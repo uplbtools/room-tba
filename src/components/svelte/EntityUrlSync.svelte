@@ -117,13 +117,6 @@
     };
   });
 
-  // Entity paths the offline shell could not resolve wait for campus data.
-  $effect(() => {
-    if (sync && appBootstrapStore.phase === "ready") {
-      void sync.resolvePendingPath();
-    }
-  });
-
   $effect(() => {
     sync?.syncFromQuery({
       type: queryStore.type,
@@ -140,6 +133,17 @@
       transitStopIndex: jeepneyStore.selectedStopIndex,
       transitRoute: transitStore.displayRoute(jeepneyStore.selectedRouteId),
     });
+  });
+
+  // A deep link served by the offline app shell resolves once campus data
+  // (buildings, orgs…) arrives; retry on each data change until it does.
+  $effect(() => {
+    void appData().buildings;
+    const dataReady =
+      appBootstrapStore.hasCachedData ||
+      appBootstrapStore.phase === "ready" ||
+      appBootstrapStore.phase === "error";
+    void sync?.resolvePendingPath(dataReady);
   });
 
   // A transit page (/transit/, /transit/forestry/…) loads with its own title;

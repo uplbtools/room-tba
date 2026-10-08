@@ -202,6 +202,16 @@
   const appActions = getAppActions();
   const { buildings, dorms, events, organizations, places, loaded } =
     $derived(data());
+  // `loaded` flips on at mount with empty arrays; this flips once campus rows
+  // are actually in, so a selection made before then can still fly.
+  const campusRowsReady = $derived(
+    loaded &&
+      (buildings.length > 0 ||
+        dorms.length > 0 ||
+        places.length > 0 ||
+        organizations.length > 0 ||
+        events.length > 0),
+  );
   // Refresh the set of buildings that host classes whenever the term changes
   // or an offline sync lands, so dual-role buildings (admin + class venue)
   // filter correctly.
@@ -1684,11 +1694,28 @@
     });
   });
 
+  /** Share of the phone screen the place sheet covers at peek, nav included. */
+  const MOBILE_SHEET_COVER_RATIO = 0.55;
+
   const calculatePadding = (md: boolean): mapGl.PaddingOptions => {
     if (md) {
+      // Centre the pin in the strip between the search bar and the place
+      // sheet: half the screen *width* used to leave it under the sheet.
+      const searchBlock = mapContainerEl
+        ? Number.parseFloat(
+            getComputedStyle(mapContainerEl).getPropertyValue(
+              "--search-block-height",
+            ),
+          )
+        : 0;
       return {
-        bottom: window.innerWidth / 2,
+        // Capped: while the search overlay is open it measures full screen.
+        top: Number.isFinite(searchBlock)
+          ? Math.min(searchBlock, Math.round(window.innerHeight * 0.25))
+          : 0,
+        bottom: Math.round(window.innerHeight * MOBILE_SHEET_COVER_RATIO),
         left: 0,
+        right: 0,
       };
     }
     return {
@@ -3517,6 +3544,10 @@
     const map = mapStore.mapInstance;
 
     if (!map) return;
+    // Deep links and fast taps commit the query before campus data arrives;
+    // re-run once it does so the camera still flies to the place. Read only
+    // for selections that need it, so boot doesn't re-home an idle camera.
+    if (category !== null && category !== "room" && !campusRowsReady) return;
 
     untrack(() => {
       const isTerrainEnabled = terrainStore.enabled;
@@ -3542,8 +3573,15 @@
         );
         if (directions) directions.clear();
       } else if (category === "room") {
-        currentRoom.getRoomByCode(value).then(() => {
+        // A deep link already loaded this room; refetching blanked the panel
+        // (skeleton) and raced the URL sync.
+        const roomReady =
+          currentRoom.value?.code.toUpperCase() === value.toUpperCase()
+            ? Promise.resolve()
+            : currentRoom.getRoomByCode(value);
+        void roomReady.then(() => {
           if (
+            queryStore.category === "room" &&
             currentRoom.value?.building?.lat &&
             currentRoom.value.building.lon
           ) {
@@ -3936,15 +3974,12 @@
     switch (queryStore.category) {
       case "building":
         return queryStore.inputValue;
-      case "room": {
-        return null;
-        // const currentRoom = rooms.find(
-        //   (room) => room.code === queryStore.inputValue,
-        // );
-        // return currentRoom && currentRoom.building
-        //   ? currentRoom.building.name
-        //   : null;
-      }
+      case "room":
+        // Highlight the room's building pin: that's where the camera flies.
+        return currentRoom.value?.code.toUpperCase() ===
+          queryStore.inputValue.toUpperCase()
+          ? (currentRoom.value.building?.name ?? null)
+          : null;
       default:
         return null;
     }

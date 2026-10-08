@@ -38,6 +38,7 @@
   let shellMainEl = $state<HTMLDivElement | null>(null);
   let chromeEl = $state<HTMLDivElement | null>(null);
   let draftInput = $state("");
+  let suggestionsRef = $state<ReturnType<typeof Suggestions> | null>(null);
   let searchFocused = $state(false);
   const mobile = new MediaQuery("max-width:48rem");
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
@@ -115,6 +116,16 @@
   function dismissMobileSearch() {
     searchFocused = false;
     searchElement?.blur();
+  }
+
+  /** Enter opens the top result, or lists every match when it's ambiguous. */
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key !== "Enter" || event.isComposing) return;
+    if (draftInput.trim() === "") return;
+    event.preventDefault();
+    // Commit the debounced text now so Enter acts on what is in the box.
+    commitSearchInput.flush();
+    suggestionsRef?.handleEnter();
   }
 
   // Once a start or end point is chosen, hand the screen back to the map so
@@ -279,6 +290,7 @@
                 value={draftInput}
                 bind:this={searchElement}
                 oninput={handleInput}
+                onkeydown={handleKeydown}
                 onfocus={(event) => {
                   searchFocused = true;
                   // Picking a start, end or extra stop: the box still holds
@@ -297,14 +309,18 @@
                 placeholder="ex. Institute of Computer Science"
               />
               {#if draftInput !== "" || queryStore.category !== null}
+                <!-- While typing in the overlay the X clears the text; it used to
+                     collapse to 0px there, leaving no way to clear. -->
                 <button
                   onclick={closeSearchContext}
+                  onmousedown={(event) => event.preventDefault()}
                   type="button"
                   class="clear-btn"
-                  class:clear-btn--hidden={mobileSearchActive}
+                  class:clear-btn--hidden={mobileSearchActive &&
+                    draftInput === ""}
                   aria-label={clearSelectionLabel}
                   title={clearSelectionLabel}
-                  tabindex={mobileSearchActive ? -1 : 0}
+                  tabindex={mobileSearchActive && draftInput === "" ? -1 : 0}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -401,7 +417,10 @@
           in:fade={dropdownFadeIn(reducedMotion.current)}
           out:fade={dropdownFadeOut(reducedMotion.current)}
         >
-          <Suggestions />
+          <Suggestions
+            bind:this={suggestionsRef}
+            onDismiss={dismissMobileSearch}
+          />
         </div>
       {/if}
     </div>
@@ -1186,7 +1205,7 @@
     padding: 0;
     border: none;
     border-radius: 999px;
-    background: var(--color-brand, #8d1437);
+    background: var(--color-brand, var(--theme-accent-fill, #8d1437));
     color: #fff;
     cursor: pointer;
   }

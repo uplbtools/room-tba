@@ -1,11 +1,14 @@
 <script lang="ts">
   import { queryStore } from "@lib/store.svelte";
+  import { normalizeCourseQuery } from "@lib/search-suggestions";
 
   function handleRoomSearchSuggestion() {
     queryStore.updateQuery({
       category: "class",
       type: "result",
-      value: queryStore.inputValue,
+      // "cmsc12" lists nothing; the class list matches "CMSC 12".
+      value:
+        normalizeCourseQuery(queryStore.inputValue) ?? queryStore.inputValue,
     });
   }
 </script>

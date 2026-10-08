@@ -1,4 +1,4 @@
-import { and, asc, eq, ilike, like, or, sql } from "drizzle-orm";
+import { and, asc, eq, ilike, like, or, type SQL, sql } from "drizzle-orm";
 import {
   aliasesTable,
   buildingsTable,
@@ -146,9 +146,19 @@ export async function getAllRooms(): Promise<RoomData[]> {
   }
 }
 
-export async function getRoomByCode(code: string) {
+export function getRoomByCode(code: string) {
+  return getRoomWhere(
+    sql`upper(${roomsTable.roomCode}) = ${code.toUpperCase()}`,
+  );
+}
+
+/** Room deep links (`/room/<code>-<id>/`) resolve by id. */
+export function getRoomById(id: number) {
+  return getRoomWhere(eq(roomsTable.id, id));
+}
+
+async function getRoomWhere(condition: SQL) {
   try {
-    const normalizedCode = code.toUpperCase();
     const data = await db
       .select({
         id: roomsTable.id,
@@ -175,7 +185,7 @@ export async function getRoomByCode(code: string) {
       .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
       .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
       .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-      .where(sql`upper(${roomsTable.roomCode}) = ${normalizedCode}`);
+      .where(condition);
     if (data.length === 0 || typeof data[0] === "undefined") return null;
     return data[0];
   } catch (e) {
@@ -186,21 +196,31 @@ export async function getRoomByCode(code: string) {
 
 export async function searchRooms(searchString: string) {
   try {
-    const escaped = escapeLikePattern(searchString);
+    const escaped = escapeLikePattern(searchString).toUpperCase();
+    // "PS105" should still find "PS 105": compare codes without spaces too.
+    const compactCode = escaped.replace(/\s+/g, "");
+    const exactCode = searchString.toUpperCase().replace(/\s+/g, "");
+    const codeNoSpaces = sql`replace(upper(${roomsTable.roomCode}), ' ', '')`;
     const data = await db
       .select({
         value: roomsTable.roomCode,
         fullName: roomsTable.fullName,
       })
       .from(roomsTable)
-      .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
-      .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
-      .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
       // Callers upper-case the query, so match both columns case-insensitively:
       // full names are mixed case ("DSDS Main Lecture Hall") (#875).
       .where(
-        sql`upper(${roomsTable.roomCode}) LIKE ${`%${escaped.toUpperCase()}%`}
-          OR upper(${roomsTable.fullName}) LIKE ${`%${escaped.toUpperCase()}%`}`,
+        sql`upper(${roomsTable.roomCode}) LIKE ${`%${escaped}%`}
+          OR ${codeNoSpaces} LIKE ${`%${compactCode}%`}
+          OR upper(${roomsTable.fullName}) LIKE ${`%${escaped}%`}`,
+      )
+      // Exact code first, then codes that start with the query, so a room
+      // code search returns that room instead of six arbitrary substrings.
+      .orderBy(
+        sql`CASE WHEN ${codeNoSpaces} = ${exactCode} THEN 0
+          WHEN ${codeNoSpaces} LIKE ${`${compactCode}%`} THEN 1 ELSE 2 END`,
+        sql`length(${roomsTable.roomCode})`,
+        asc(roomsTable.roomCode),
       )
       .limit(6);
     if (data.length === 0) return null;

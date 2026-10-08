@@ -13,6 +13,8 @@ export async function fetchClassPage(options: {
   courseCodePrefix?: string;
   limit?: number;
   cursor?: string | null;
+  /** Abort after this long (search must not wait on a hung request). */
+  timeoutMs?: number;
 }): Promise<ClassQueryPage> {
   const params = new URLSearchParams();
   if (options.termId != null) {
@@ -26,7 +28,10 @@ export async function fetchClassPage(options: {
     params.set("cursor", options.cursor);
   }
 
-  return getJSONFetch<ClassQueryPage>(`/api/classes?${params.toString()}`);
+  return getJSONFetch<ClassQueryPage>(
+    `/api/classes?${params.toString()}`,
+    options.timeoutMs,
+  );
 }
 
 // The /api/classes endpoint caps `limit` at 100, so a course with more sections
