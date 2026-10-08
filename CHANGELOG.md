@@ -1,3 +1,10 @@
+# [2.38.0](https://github.com/uplbtools/room-tba/compare/v2.37.1...v2.38.0) (2026-10-08)
+
+
+### Features
+
+* round 2 complete (You tab, Layers, leaderboard, sign-in security, jeep reports, trail, wiki, place sheet) ([#1285](https://github.com/uplbtools/room-tba/issues/1285)) ([fef9830](https://github.com/uplbtools/room-tba/commit/fef9830e35d3d3dda69fb4470bd68410ce0daf8d))
+
 ## [2.37.1](https://github.com/uplbtools/room-tba/compare/v2.37.0...v2.37.1) (2026-10-08)
 
 
