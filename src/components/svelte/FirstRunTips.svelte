@@ -39,14 +39,15 @@
 
 <style>
   .first-run-tips {
+    /* Phones: left-aligned and narrower than the screen so the Layers and
+       locate buttons on the right edge stay visible and tappable. */
     position: fixed;
-    left: 50%;
+    left: 0.75rem;
     bottom: calc(var(--mobile-bottom-nav-height, 0px) + 0.75rem);
     z-index: 19;
     box-sizing: border-box;
-    width: min(24rem, calc(100vw - 1.5rem));
+    width: min(24rem, calc(100vw - 0.75rem - 4.75rem));
     padding: 0.875rem 1rem 0.75rem;
-    transform: translateX(-50%);
     border: 1px solid var(--map-chrome-border, var(--theme-accent-border, hsl(5, 25%, 85%)));
     border-radius: 1rem;
     background: var(--map-chrome-surface, var(--theme-surface, #fff));
@@ -58,7 +59,6 @@
     .first-run-tips {
       left: 1.5rem;
       bottom: 1.5rem;
-      transform: none;
     }
   }
 

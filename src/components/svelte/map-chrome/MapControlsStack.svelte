@@ -352,6 +352,12 @@
     background: var(--theme-surface, #fff);
   }
 
+  /* compass.svg has a white face; in dark mode flip it to a dark face
+     while hue-rotate keeps the north tip red. */
+  :global(:root[data-theme="dark"]) .map-ctrl__compass-img {
+    filter: invert(0.9) hue-rotate(180deg);
+  }
+
   .map-ctrl__compass-img {
     display: block;
     width: 100%;

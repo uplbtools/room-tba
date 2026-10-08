@@ -4985,6 +4985,11 @@
     z-index: 2;
   }
 
+  /* The selected place's name card sits above every neighbouring pin. */
+  .map-container :global(.maplibregl-marker:has(.map-entity-pin.active)) {
+    z-index: 3;
+  }
+
   .map-shell :global(.edit-dock),
   .map-shell :global(.map-edit-toolbar),
   .map-shell :global(.event-placement-toolbar) {
