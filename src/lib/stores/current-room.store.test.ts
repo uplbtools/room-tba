@@ -108,7 +108,7 @@ describe("currentRoom.getRoomByCode with a cold local cache", () => {
     await currentRoom.getRoomByCode("PS 105");
 
     expect(getLocalRoomByCode).not.toHaveBeenCalled();
-    expect(currentRoom.value?.roomCode).toBe("PS 105");
+    expect(currentRoom.value).toMatchObject({ roomCode: "PS 105" });
   });
 
   test("falls back to the cache when offline", async () => {
@@ -117,7 +117,7 @@ describe("currentRoom.getRoomByCode with a cold local cache", () => {
 
     await currentRoom.getRoomByCode("PS 105");
 
-    expect(currentRoom.value?.roomCode).toBe("PS 105");
+    expect(currentRoom.value).toMatchObject({ roomCode: "PS 105" });
     expect(currentRoom.notFound).toBe(false);
   });
 });
