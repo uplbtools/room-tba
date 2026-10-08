@@ -11,24 +11,8 @@
     type ResyncOutcome,
   } from "@lib/local/resync-campus-data";
   import { modalStore, syncToastStore } from "@lib/store.svelte";
-  import {
-    readThemePreference,
-    setThemePreference,
-    type ThemePreference,
-  } from "@lib/theme";
+  import ThemeSwitch from "@ui/ThemeSwitch.svelte";
   import "../map-chrome/map-chrome.css";
-
-  const APPEARANCE_OPTIONS: { value: ThemePreference; label: string }[] = [
-    { value: "system", label: "System" },
-    { value: "light", label: "Light" },
-    { value: "dark", label: "Dark" },
-  ];
-  let appearance = $state<ThemePreference>(readThemePreference());
-
-  function chooseAppearance(value: ThemePreference) {
-    appearance = value;
-    setThemePreference(value);
-  }
 
   let confirming = $state(false);
   let clearing = $state(false);
@@ -82,22 +66,8 @@
         <span class="map-chrome-row__label" id="settings-appearance">
           Theme
         </span>
-        <div
-          class="map-chrome-row__control"
-          role="group"
-          aria-labelledby="settings-appearance"
-        >
-          {#each APPEARANCE_OPTIONS as option (option.value)}
-            <button
-              type="button"
-              class="map-chrome-chip"
-              class:map-chrome-chip--toggle-active={appearance === option.value}
-              aria-pressed={appearance === option.value}
-              onclick={() => chooseAppearance(option.value)}
-            >
-              {option.label}
-            </button>
-          {/each}
+        <div class="map-chrome-row__control">
+          <ThemeSwitch labelledBy="settings-appearance" />
         </div>
       </div>
       <p class="map-chrome-row-hint">

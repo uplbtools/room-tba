@@ -19,6 +19,7 @@
   import Users from "@lucide/svelte/icons/users";
   import BookText from "@lucide/svelte/icons/book-text";
   import Star from "@lucide/svelte/icons/star";
+  import SunMoon from "@lucide/svelte/icons/sun-moon";
   import { onMount, type Component } from "svelte";
   import { fade, fly } from "svelte/transition";
   import { MediaQuery } from "svelte/reactivity";
@@ -54,6 +55,7 @@
   import MapChromeSession from "@ui/map-chrome/MapChromeSession.svelte";
   import KeyboardShortcutsChip from "@ui/map-chrome/KeyboardShortcutsPopup.svelte";
   import StatusBarLinkGroups from "./StatusBarLinkGroups.svelte";
+  import ThemeSwitch from "../ThemeSwitch.svelte";
   import "../map-chrome/map-chrome.css";
 
   type ScreenId = "today" | "planner" | "finals" | "calendar";
@@ -334,6 +336,16 @@
           </button>
         </section>
       {/if}
+
+      <!-- Theme sits up top, one row, so nobody has to dig into Settings for
+           it. Settings keeps the same control. -->
+      <section class="app-menu__section app-menu__appearance">
+        <span id="app-menu-appearance-label" class="app-menu__appearance-label">
+          <SunMoon size={18} aria-hidden="true" />
+          Appearance
+        </span>
+        <ThemeSwitch labelledBy="app-menu-appearance-label" />
+      </section>
 
       <section
         class="app-menu__section"
@@ -747,6 +759,24 @@
   .app-menu__account:first-child {
     border-top: none;
     padding-top: 0;
+  }
+
+  .app-menu__appearance {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.375rem 0.75rem;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .app-menu__appearance-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--map-chrome-text, var(--theme-text, hsl(5 20% 18%)));
   }
 
   .app-menu__heading {
