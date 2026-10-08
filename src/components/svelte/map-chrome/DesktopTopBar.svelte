@@ -1,6 +1,7 @@
 <script lang="ts">
   import { adminAuthStore, sidebarStore } from "@lib/store.svelte";
   import AppMenu from "../status-bar/AppMenu.svelte";
+  import ThemeSwitch from "../ThemeSwitch.svelte";
 
   type NavId = "map" | "planner" | "finals";
 
@@ -63,6 +64,7 @@
       </button>
     {/each}
     <a href="/wiki" class="desktop-top-bar__link">Wiki</a>
+    <ThemeSwitch variant="toggle" />
     <AppMenu bind:open={menuOpen} {hostTabs} showAccount={false} />
     <button
       type="button"

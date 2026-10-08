@@ -103,9 +103,13 @@
     position: fixed;
     z-index: var(--z-chrome-popover, 17);
     width: min(14rem, calc(100vw - 16px));
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border: 1px solid
+      var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-radius: 0.625rem;
-    background: var(--map-chrome-panel-bg, hsl(5 18% 96%));
+    background: var(
+      --map-chrome-panel-bg,
+      var(--theme-surface, hsl(5 18% 96%))
+    );
     box-shadow: var(--map-chrome-panel-shadow);
     pointer-events: none;
     overflow: hidden;
@@ -116,7 +120,7 @@
     width: 100%;
     aspect-ratio: 16 / 9;
     object-fit: cover;
-    background: hsl(0, 0%, 92%);
+    background: var(--theme-surface-2, hsl(0, 0%, 92%));
   }
 
   .entity-hover-preview__body {
@@ -131,20 +135,20 @@
     font-size: 0.8125rem;
     font-weight: 700;
     line-height: 1.25;
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .entity-hover-preview__meta {
     margin: 0;
     font-size: 0.6875rem;
     font-weight: 600;
-    color: hsl(5, 53%, 25%);
+    color: var(--theme-accent-text, hsl(5, 53%, 25%));
   }
 
   .entity-hover-preview__hint {
     margin: 0;
     font-size: 0.6875rem;
     line-height: 1.35;
-    color: hsl(0, 0%, 22%);
+    color: var(--theme-text-2, hsl(0, 0%, 22%));
   }
 </style>

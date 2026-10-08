@@ -214,6 +214,30 @@ describe("JeepneyRouteModal", () => {
     expect(screen.getByText(/Schedule not published/)).toBeVisible();
   });
 
+  test("Suggest a stop and Copy link share one footer row", async () => {
+    jeepneyStore.modalRouteId = "kaliwa-kanan";
+    const { container } = render(JeepneyRouteModal);
+
+    const footer = container.querySelector(".jeepney-modal__actions");
+    expect(footer).not.toBeNull();
+    const suggest = screen.getByRole("button", { name: "Suggest a stop" });
+    expect(footer?.contains(suggest)).toBe(true);
+    expect(
+      footer?.contains(screen.getByRole("button", { name: /copy link/i })),
+    ).toBe(true);
+    // Only the footer's toggle: the editor below the stops has none of its own.
+    expect(
+      screen.getAllByRole("button", { name: /suggest a stop/i }),
+    ).toHaveLength(1);
+
+    suggest.click();
+    await tick();
+    expect(
+      container.querySelector(".jeepney-modal__scroll .transit-stop-editor"),
+    ).not.toBeNull();
+    expect(screen.getByLabelText("Stop name")).toBeInTheDocument();
+  });
+
   test("shows an empty state when the route id is unknown", () => {
     jeepneyStore.modalRouteId = "does-not-exist";
     render(JeepneyRouteModal);

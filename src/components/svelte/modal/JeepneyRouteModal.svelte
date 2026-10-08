@@ -5,7 +5,12 @@
   import MapPin from "@lucide/svelte/icons/map-pin";
   import Clock from "@lucide/svelte/icons/clock";
   import Banknote from "@lucide/svelte/icons/banknote";
-  import { jeepneyStore, modalStore, transitStore } from "@lib/store.svelte";
+  import {
+    adminAuthStore,
+    jeepneyStore,
+    modalStore,
+    transitStore,
+  } from "@lib/store.svelte";
   import {
     JEEPNEY_RIDING_NOTES,
     ROUTE_BOARDING_NOTES,
@@ -28,6 +33,7 @@
   import { routeScheduleSummary } from "@lib/transit-schedule";
   import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
   import TransitStopEditor from "../controls/TransitStopEditor.svelte";
+  import EntityEditorToggle from "../editor/EntityEditorToggle.svelte";
 
   type Props = {
     routeId?: string | null;
@@ -62,6 +68,7 @@
   // Campus fares, tips and the transit-map credit are about campus jeeps;
   // buses and town jeeps get their own (or none).
   const kind = $derived(route ? transitRouteKind(route) : "campus");
+  let suggestOpen = $state(false);
   const fare = $derived(route ? routeFareInfo(route) : null);
   const ridingNotes = $derived(
     kind === "campus"
@@ -144,7 +151,7 @@
       <h2 class="jeepney-modal__title">{route.name} {transitRouteNoun(route)}</h2>
     </header>
 
-    <div class="jeepney-modal__scroll">
+    <div class="jeepney-modal__scroll map-chrome-scroll">
       {#if directions}
         <div class="jeepney-modal__directions">
           <div
@@ -272,10 +279,25 @@
         {/if}
       </details>
 
-      <TransitStopEditor routeId={route.id} routeName={route.name} />
+      <TransitStopEditor
+        routeId={route.id}
+        routeName={route.name}
+        bind:expanded={suggestOpen}
+        showToggle={false}
+      />
     </div>
 
+    <!-- One footer row, one button style: the suggest toggle used to sit in
+         the scroller above a divider, with Copy link alone on the far side. -->
     <div class="jeepney-modal__actions">
+      <EntityEditorToggle
+        variant="toolbar"
+        expanded={suggestOpen}
+        canPublish={adminAuthStore.canPublish}
+        publishOpenLabel="Add stop"
+        suggestOpenLabel="Suggest a stop"
+        onclick={() => (suggestOpen = !suggestOpen)}
+      />
       <EntityShareCopyLink
         url={getJeepneyRouteShareUrl(route.id)}
         entityLabel={`${route.name} route`}
@@ -613,14 +635,22 @@
   .jeepney-modal__actions {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 0.5rem;
-    padding: 0.25rem 0 0.375rem;
+    padding: 0.5rem 0 0.375rem;
     border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
   }
 
-  .jeepney-modal__actions :global(.map-chrome-action-chip) {
+  .jeepney-modal__actions :global(.map-chrome-action-chip),
+  .jeepney-modal__actions :global(.editor-toggle--toolbar) {
+    box-sizing: border-box;
     min-height: 2.25rem;
+    border-radius: 999px;
+  }
+
+  /* View on map is the primary action: it takes the far end of the row. */
+  .jeepney-modal__view {
+    margin-left: auto;
   }
 
   .jeepney-modal__view {

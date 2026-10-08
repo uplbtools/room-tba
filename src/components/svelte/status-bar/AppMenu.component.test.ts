@@ -210,3 +210,33 @@ describe("AppMenu account row", () => {
     adminAuthStore.username = null;
   });
 });
+
+describe("AppMenu appearance row", () => {
+  test("the theme switch sits above every destination and repaints immediately", async () => {
+    localStorage.removeItem("room-tba:theme");
+    render(AppMenu, { props: { onSignOut: () => {} } });
+
+    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+
+    const group = screen.getByRole("group", { name: "Appearance" });
+    const panel = screen.getByRole("dialog", { name: "App menu" });
+    const firstNav = within(panel).getByRole("button", { name: "Saved" });
+    expect(
+      group.compareDocumentPosition(firstNav) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    await fireEvent.click(within(group).getByRole("button", { name: "Dark" }));
+    expect(document.documentElement.dataset["theme"]).toBe("dark");
+    expect(localStorage.getItem("room-tba:theme")).toBe("dark");
+    expect(within(group).getByRole("button", { name: "Dark" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await fireEvent.click(
+      within(group).getByRole("button", { name: "System" }),
+    );
+    expect(localStorage.getItem("room-tba:theme")).toBeNull();
+  });
+});

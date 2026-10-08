@@ -202,39 +202,8 @@
   flex-shrink: 0;
 }
 
-.entity-actions__scroll {
-  display: flex;
-  flex: 1 1 auto;
-  align-items: center;
-  gap: 0.375rem;
-  min-width: 0;
-  /* Room for focus rings inside the scroller's clip box. */
-  padding: 0.125rem;
-  margin: -0.125rem;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  /* Fade the trailing edge so a cut-off pill reads as "more this way". */
-  mask-image: linear-gradient(to right, #000 calc(100% - 1.25rem), transparent);
-}
-
-.entity-actions__scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.entity-actions__scroll > :global(*) {
-  flex-shrink: 0;
-}
-
-.entity-actions__scroll :global(.map-chrome-action-chip),
-.entity-actions__scroll :global(.editor-toggle--toolbar) {
-  border-radius: 999px;
-}
-
-.entity-actions__scroll > :global(:last-child) {
-  margin-right: 1rem;
-}
+/* The pill row itself (.entity-actions__scroll) lives in
+   EntityActionScroll.svelte with its edge fades and chevrons. */
 
 .entity-actions :global(.editor-toggle--toolbar),
 .entity-directions__nav :global(.map-chrome-action-chip) {
@@ -770,8 +739,59 @@
 }
 
 .entity-panel-filter {
+  position: relative;
   display: block;
   font-family: inherit;
+}
+
+.entity-panel-filter__field {
+  display: block;
+}
+
+.entity-panel-filter--search .entity-panel-filter__field {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* Our own X replaces the browser's search cancel glyph, so there is one. */
+.entity-panel-filter--clearable input {
+  padding-right: 2rem;
+}
+
+.entity-panel-filter--clearable input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.entity-panel-filter__clear {
+  position: absolute;
+  top: 50%;
+  right: 0.25rem;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--theme-text-2, #52525b);
+  cursor: pointer;
+}
+
+.entity-panel-filter__clear:hover {
+  background: var(--theme-surface-2, #f4f4f5);
+}
+
+.entity-panel-filter__clear:focus-visible {
+  outline: 2px solid var(--theme-accent-text, #7b1113);
+  outline-offset: -2px;
 }
 
 .entity-panel-filter input {

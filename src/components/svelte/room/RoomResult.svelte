@@ -1,4 +1,5 @@
 <script lang="ts">
+  import EntityActionScroll from "@ui/controls/EntityActionScroll.svelte";
   import EntitySkeleton from "@ui/EntitySkeleton.svelte";
   import { onMount } from "svelte";
   import {
@@ -545,7 +546,7 @@
             destinationLabel={parentBuilding.name}
           />
         {/if}
-        <div class="entity-actions__scroll">
+        <EntityActionScroll>
           <EntitySaveButton
             place={{
               category: "room",
@@ -593,7 +594,7 @@
             variant="toolbar"
             onclick={() => (editing = !editing)}
           />
-        </div>
+        </EntityActionScroll>
       </div>
     </header>
 

@@ -422,7 +422,7 @@
 
   .bottom-sheet__handle:hover .bottom-sheet__grab,
   .bottom-sheet__handle:focus-visible .bottom-sheet__grab {
-    background: #a1a1aa;
+    background: var(--theme-border-strong, #a1a1aa);
   }
 
   .bottom-sheet__body {

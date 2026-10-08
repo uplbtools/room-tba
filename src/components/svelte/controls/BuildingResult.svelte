@@ -1,4 +1,5 @@
 <script lang="ts">
+  import EntityActionScroll from "./EntityActionScroll.svelte";
   import EntitySkeleton from "@ui/EntitySkeleton.svelte";
   import {
     adminAuthStore,
@@ -618,7 +619,7 @@
             destinationLabel={building.buildingName}
           />
         {/if}
-        <div class="entity-actions__scroll">
+        <EntityActionScroll>
           <EntitySaveButton
             place={{
               category: "building",
@@ -661,7 +662,7 @@
             variant="toolbar"
             onclick={() => (editing = !editing)}
           />
-        </div>
+        </EntityActionScroll>
       </div>
     </header>
 

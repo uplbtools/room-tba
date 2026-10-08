@@ -1,4 +1,5 @@
 <script lang="ts">
+  import EntityActionScroll from "./EntityActionScroll.svelte";
   import {
     additionProposalStore,
     queryStore,
@@ -172,7 +173,7 @@
             destinationLabel={place.name}
           />
         {/if}
-        <div class="entity-actions__scroll">
+        <EntityActionScroll>
           <EntitySaveButton
             place={{
               category: "place",
@@ -212,7 +213,7 @@
               }
             }}
           />
-        </div>
+        </EntityActionScroll>
       </div>
     </header>
 
