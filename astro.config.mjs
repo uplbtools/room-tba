@@ -98,6 +98,8 @@ export default defineConfig({
           /^\/messenger(\/|\?|$)/,
           /^\/maintain(\/|\?|$)/,
           /^\/discord(\/|\?|$)/,
+          // Token page: the offline map shell would hide the reset form.
+          /^\/reset-password(\/|\?|$)/,
         ],
         swDest: "dist/client/sw.js",
         // Cache third-party map resources at runtime so the campus map works
@@ -431,7 +433,10 @@ export default defineConfig({
           // pathname only, so ?t=/&s=/&k= variants all collapse into one cached
           // PNG and every entity shares the first-rendered card (#651). The
           // normal CDN cache (via the route's s-maxage) keys on the full URL.
-          exclude: [/^\/api\//, /^\/og\.png$/],
+          // /reset-password carries a per-user ?token=, and ISR keys on the
+          // pathname alone: one cached render (an empty error body, in the
+          // 2026-10 outage) was served to every reset link for a day.
+          exclude: [/^\/api\//, /^\/og\.png$/, /^\/reset-password\/?$/],
         },
       }),
 });
