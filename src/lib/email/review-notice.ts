@@ -101,7 +101,10 @@ export async function sendReviewNotice(input: ReviewNoticeInput) {
             headers,
           });
         } catch (err) {
-          console.error(`Review notice (${send.audience}) to ${email} failed:`, err);
+          console.error(
+            `Review notice (${send.audience}) to ${email} failed:`,
+            err,
+          );
         }
       }
     }

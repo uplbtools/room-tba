@@ -5,7 +5,14 @@ import { db } from "@lib/db";
 import type { SessionUser } from "@lib/admin/auth";
 import { isResendConfigured, sendEmail } from "@lib/email/resend";
 import { enqueueNotification } from "@lib/notifications/outbox";
-import type { AccessRequestedPayload } from "@lib/notifications/types";
+import type {
+  AccessRequestedPayload,
+  FeedbackSubmittedPayload,
+} from "@lib/notifications/types";
+import {
+  emailIsVerifiedSql,
+  withVerification,
+} from "@lib/services/account-security";
 import { afterResponse } from "@lib/server/after-response";
 import {
   AccountActionError,
@@ -56,28 +63,46 @@ export async function getMyAccessRequest(
 }
 
 async function adminEmails(): Promise<string[]> {
-  const rows = await db
-    .select({ email: adminUsersTable.email })
-    .from(adminUsersTable)
-    .where(
-      and(
-        eq(adminUsersTable.isActive, true),
-        eq(adminUsersTable.role, "admin"),
-        isNotNull(adminUsersTable.email),
-        sql`${adminUsersTable.email} <> ''`,
-      ),
-    );
+  // Staff mail only goes to addresses the owner confirmed (0055).
+  const rows = await withVerification(
+    () =>
+      db
+        .select({ email: adminUsersTable.email })
+        .from(adminUsersTable)
+        .where(
+          and(
+            eq(adminUsersTable.isActive, true),
+            eq(adminUsersTable.role, "admin"),
+            isNotNull(adminUsersTable.email),
+            emailIsVerifiedSql,
+            sql`${adminUsersTable.email} <> ''`,
+          ),
+        ),
+    [],
+  );
   return rows.map((r) => r.email?.trim().toLowerCase() ?? "").filter(Boolean);
 }
 
 async function notifyAdmins(payload: AccessRequestedPayload): Promise<void> {
+  // The discord-bot gateway has no handler for "access.requested" yet, so an
+  // event of that type would fail every outbox retry. Post it as feedback,
+  // which the bot already routes to the team; the admins still get the email
+  // below and the dashboard at /admin is the system of record.
+  const discordPayload: FeedbackSubmittedPayload = {
+    feedbackId: payload.requestId,
+    message: `Editor access request from ${payload.displayName} (${payload.username}): ${payload.message}\nApprove or decline it at ${SITE_URL}/admin`,
+    contact: payload.username,
+    screen: "/admin",
+    appVersion: null,
+    wasOnline: null,
+  };
   await enqueueNotification({
     schemaVersion: 1,
-    type: "access.requested",
+    type: "feedback.submitted",
     source: "room-tba",
     occurredAt: new Date().toISOString(),
     idempotencyKey: `access:${payload.requestId}:requested`,
-    payload,
+    payload: discordPayload,
   });
   if (!isResendConfigured()) return;
   const emails = await adminEmails();
