@@ -195,19 +195,79 @@ export class TerrainStore {
   };
 }
 
+const TRAIL_LAYER_KEY = "makiling-trail-layer";
+
+function readTrailLayerPref(): boolean {
+  try {
+    return globalThis.localStorage?.getItem(TRAIL_LAYER_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Makiling trail (#716): the map layer (remembered across visits and carried
+ * in ?layers=trail), the trail sheet, and which stop it shows. Camera
+ * requests are nonces the trail map layer answers.
+ */
 export class TrailStore {
-  enabled: boolean = $state(false);
+  enabled: boolean = $state(readTrailLayerPref());
+  /** The trail sheet is open (overview, or a stop when one is selected). */
+  sheetOpen: boolean = $state(false);
+  selectedStopId: string | null = $state(null);
+  /** Bumped to fit the whole trail in the visible map. */
+  frameNonce: number = $state(0);
+  /** Bumped to fly to the selected stop. */
+  flyNonce: number = $state(0);
+
+  private setEnabled(on: boolean) {
+    this.enabled = on;
+    try {
+      globalThis.localStorage?.setItem(TRAIL_LAYER_KEY, String(on));
+    } catch {
+      // Private mode: the toggle still works for this session.
+    }
+  }
 
   toggle = () => {
-    this.enabled = !this.enabled;
+    if (this.enabled) this.disable();
+    else this.enable();
   };
 
   enable = () => {
-    this.enabled = true;
+    this.setEnabled(true);
   };
 
+  /** Hiding the trail closes its sheet too: it describes a line no longer drawn. */
   disable = () => {
-    this.enabled = false;
+    this.setEnabled(false);
+    this.closeSheet();
+  };
+
+  /** Show the trail and its sheet, at the overview or at one stop. */
+  openSheet = (stopId: string | null = null) => {
+    this.enable();
+    this.sheetOpen = true;
+    this.selectedStopId = stopId;
+  };
+
+  closeSheet = () => {
+    this.sheetOpen = false;
+    this.selectedStopId = null;
+  };
+
+  selectStop = (stopId: string | null) => {
+    this.selectedStopId = stopId;
+  };
+
+  requestFrame = () => {
+    this.enable();
+    this.frameNonce += 1;
+  };
+
+  flyToStop = (stopId: string) => {
+    this.selectedStopId = stopId;
+    this.flyNonce += 1;
   };
 }
 

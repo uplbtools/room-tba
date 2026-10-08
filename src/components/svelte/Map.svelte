@@ -28,7 +28,6 @@
     additionProposalStore,
     buildingTypeFilter,
     terrainStore,
-    trailStore,
     travelTimeStore,
     measureRouteStore,
     scheduleRouteStore,
@@ -92,16 +91,6 @@
   import { type Position, stopArrows } from "@lib/route-arrows";
   import { reverseLine } from "@lib/transit-direction";
   import {
-    MAKILING_TRAIL_COLOR,
-    MAKILING_TRAIL_LAYER_CASING_ID,
-    MAKILING_TRAIL_LAYER_ID,
-    MAKILING_TRAIL_LINE,
-    MAKILING_TRAIL_STATIONS,
-    MAKILING_TRAIL_STATIONS_LAYER_ID,
-    MAKILING_TRAIL_STATIONS_SOURCE_ID,
-    MAKILING_TRAIL_SOURCE_ID,
-  } from "@constants/makiling-trail";
-  import {
     CAMPUS_DEFAULT_CAMERA,
     MAP_REGION_MAX_BOUNDS,
     MAP_REGION_MIN_ZOOM,
@@ -130,7 +119,11 @@
   import { applyBasemapPalette } from "@lib/map-basemap-palette";
   import { getResolvedTheme, onThemeChange } from "@lib/theme";
   import { syncSatelliteLayer } from "@lib/map-satellite";
-  import { pointsBounds } from "@lib/map-fit";
+  import {
+    measureVisibleMapPadding,
+    pointsBounds,
+    SIDE_PANEL_WIDTH_PX,
+  } from "@lib/map-fit";
   import { loadCampusMapStyle } from "@lib/maptiler-key";
   import { isMap2DPitch } from "@constants/map-dimension";
   import { syncBuildingLayersForDimension } from "@lib/map-dimension-layers";
@@ -1080,101 +1073,6 @@
     }
   }
 
-  function ensureTrailLayers(map: mapGl.MapLibreMap) {
-    // Trail line source + casing + line
-    if (!map.getSource(MAKILING_TRAIL_SOURCE_ID)) {
-      map.addSource(MAKILING_TRAIL_SOURCE_ID, {
-        type: "geojson",
-        data: {
-          type: "Feature",
-          geometry: {
-            type: "LineString",
-            coordinates: MAKILING_TRAIL_LINE,
-          },
-          properties: {},
-        },
-      });
-    }
-
-    if (!map.getLayer(MAKILING_TRAIL_LAYER_CASING_ID)) {
-      map.addLayer({
-        id: MAKILING_TRAIL_LAYER_CASING_ID,
-        type: "line",
-        source: MAKILING_TRAIL_SOURCE_ID,
-        layout: { "line-cap": "round", "line-join": "round" },
-        paint: {
-          "line-color": "#ffffff",
-          "line-width": 7,
-          "line-opacity": 0.9,
-        },
-      });
-    }
-
-    if (!map.getLayer(MAKILING_TRAIL_LAYER_ID)) {
-      map.addLayer({
-        id: MAKILING_TRAIL_LAYER_ID,
-        type: "line",
-        source: MAKILING_TRAIL_SOURCE_ID,
-        layout: { "line-cap": "round", "line-join": "round" },
-        paint: {
-          "line-color": MAKILING_TRAIL_COLOR,
-          "line-width": 4,
-          "line-opacity": 0.95,
-        },
-      });
-    }
-
-    // Station markers source + circle layer
-    if (!map.getSource(MAKILING_TRAIL_STATIONS_SOURCE_ID)) {
-      map.addSource(MAKILING_TRAIL_STATIONS_SOURCE_ID, {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: MAKILING_TRAIL_STATIONS.map((s) => ({
-            type: "Feature" as const,
-            geometry: {
-              type: "Point" as const,
-              coordinates: [s.lon, s.lat],
-            },
-            properties: {
-              station: s.station,
-              name: s.name,
-              elevation: s.elevationMeters,
-            },
-          })),
-        },
-      });
-    }
-
-    if (!map.getLayer(MAKILING_TRAIL_STATIONS_LAYER_ID)) {
-      map.addLayer({
-        id: MAKILING_TRAIL_STATIONS_LAYER_ID,
-        type: "circle",
-        source: MAKILING_TRAIL_STATIONS_SOURCE_ID,
-        paint: {
-          "circle-radius": 6,
-          "circle-color": MAKILING_TRAIL_COLOR,
-          "circle-stroke-color": "#ffffff",
-          "circle-stroke-width": 2,
-          "circle-opacity": 0.95,
-        },
-      });
-    }
-  }
-
-  function clearTrailLayers(map: mapGl.MapLibreMap) {
-    if (map.getLayer(MAKILING_TRAIL_STATIONS_LAYER_ID))
-      map.removeLayer(MAKILING_TRAIL_STATIONS_LAYER_ID);
-    if (map.getLayer(MAKILING_TRAIL_LAYER_ID))
-      map.removeLayer(MAKILING_TRAIL_LAYER_ID);
-    if (map.getLayer(MAKILING_TRAIL_LAYER_CASING_ID))
-      map.removeLayer(MAKILING_TRAIL_LAYER_CASING_ID);
-    if (map.getSource(MAKILING_TRAIL_STATIONS_SOURCE_ID))
-      map.removeSource(MAKILING_TRAIL_STATIONS_SOURCE_ID);
-    if (map.getSource(MAKILING_TRAIL_SOURCE_ID))
-      map.removeSource(MAKILING_TRAIL_SOURCE_ID);
-  }
-
   function buildEventRouteGeometry(
     route: EventData["routes"][number],
   ): LineString | null {
@@ -1234,58 +1132,12 @@
     );
   }
 
-  /**
-   * Padding that keeps a fitted area inside the part of the map nobody is
-   * covering: below the search bar and chips, above the mobile sheet (or
-   * beside the desktop panel). A flat 80px left most of a route under the
-   * phone sheet.
-   */
+  /** Padding that keeps a fitted area clear of the search bar, chips and sheet. */
   function visibleMapPadding(map: mapGl.MapLibreMap): mapGl.PaddingOptions {
-    const gap = 24;
-    const frame = map.getContainer().getBoundingClientRect();
-    const chromeBottom = Math.max(
-      frame.top,
-      ...[
-        ...document.querySelectorAll(
-          ".search-root .map-search-chrome__pill, .search-root .map-filter-chips, .directions-route-chips",
-        ),
-      ]
-        .map((el) => el.getBoundingClientRect())
-        .filter((r) => r.height > 0 && r.bottom < frame.top + frame.height / 2)
-        .map((r) => r.bottom),
-    );
-    const padding = {
-      top: chromeBottom - frame.top + gap,
-      bottom: gap,
-      left: gap,
-      right: gap,
-    };
-    if (md.current) {
-      const root = document.querySelector(".bottom-sheet-root");
-      const sheet = root?.querySelector<HTMLElement>(".bottom-sheet");
-      if (root && sheet) {
-        // The inline transform is where the sheet is going, not where its
-        // open animation happens to be this frame.
-        const target = /translate3d\(0(?:px)?,\s*([\d.]+)px/.exec(
-          sheet.style.transform,
-        );
-        const sheetTop =
-          root.getBoundingClientRect().top + (target ? Number(target[1]) : 0);
-        padding.bottom = Math.max(gap, frame.bottom - sheetTop + gap);
-      }
-    } else if (!sidePanelStore.collapsed) {
-      padding.left = SIDEPANEL_WIDTH + gap;
-    }
-    // Never ask for more padding than the map has room for.
-    const spareH = frame.height - padding.top - padding.bottom;
-    if (spareH < 80) {
-      const scale = Math.max(0, frame.height - 80) / (padding.top + padding.bottom);
-      padding.top *= scale;
-      padding.bottom *= scale;
-    }
-    const spareW = frame.width - padding.left - padding.right;
-    if (spareW < 80) padding.left = Math.max(gap, frame.width - 80 - padding.right);
-    return padding;
+    return measureVisibleMapPadding(map, {
+      mobile: md.current,
+      leftPanelWidth: sidePanelStore.collapsed ? 0 : SIDEPANEL_WIDTH,
+    });
   }
 
   function getEventMapLocations(event: EventData) {
@@ -1665,7 +1517,7 @@
   $effect(() => {
     mapViewStore.poiPinsZoomVisible = poiPinsVisible;
   });
-  const SIDEPANEL_WIDTH = 25.75 * 16;
+  const SIDEPANEL_WIDTH = SIDE_PANEL_WIDTH_PX;
   const md = new MediaQuery("max-width:48rem");
   const orgPinsVisible = $derived(
     orgPinFilter === "all" && md.current
@@ -3469,19 +3321,6 @@
       });
     });
     return () => cancelAnimationFrame(frame);
-  });
-
-  // #716: Makiling trail overlay — toggle trail line + station markers
-  $effect(() => {
-    const map = mapStore.mapInstance;
-    const enabled = trailStore.enabled;
-    if (!map) return;
-
-    if (enabled) {
-      ensureTrailLayers(map);
-    } else {
-      clearTrailLayers(map);
-    }
   });
 
   // Load external campuses footprint layers

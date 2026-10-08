@@ -348,3 +348,37 @@ describe("enterAction", () => {
     ).toEqual({ kind: "expand" });
   });
 });
+
+describe("trail rows", () => {
+  it("rank with places and stay distinct per stop", () => {
+    const ranked = rankSuggestions([
+      {
+        value: "Maria Makiling Trail Station 1 (trailhead)",
+        category: "place",
+        score: MATCH.wordPrefix,
+      },
+      {
+        value: "Makiling Trail",
+        category: "trail",
+        trailStopId: null,
+        score: MATCH.exact,
+      },
+      {
+        value: "Station 13",
+        category: "trail",
+        trailStopId: "station-13",
+        score: MATCH.prefix,
+      },
+    ]);
+    expect(ranked.map((s) => s.value)).toEqual([
+      "Makiling Trail",
+      "Station 13",
+      "Maria Makiling Trail Station 1 (trailhead)",
+    ]);
+    expect(groupSuggestions(ranked)).toEqual([{ label: null, items: ranked }]);
+    expect(enterAction(ranked)).toEqual({
+      kind: "select",
+      suggestion: ranked[0],
+    });
+  });
+});

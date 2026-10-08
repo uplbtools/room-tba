@@ -9,6 +9,7 @@
     floatingControlPanelStore,
     mapViewStore,
     queryStore,
+    trailStore,
   } from "@lib/store.svelte";
   import {
     openEphemeralOverlay,
@@ -220,6 +221,28 @@
             {/each}
           </div>
         </section>
+
+        {#if trailStore.enabled}
+          <section class="legend-section" aria-labelledby="legend-trails">
+            <h3 id="legend-trails" class="legend-section-title">Trails</h3>
+            <div class="legend-list">
+              <div class="legend-item">
+                <span class="legend-swatch trail-line" aria-hidden="true"></span>
+                <span class="legend-copy">
+                  <span class="legend-label">Makiling Trail</span>
+                  <span class="legend-description">Hiking trail, Station 1 to Peak 2.</span>
+                </span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-swatch trail-stop" aria-hidden="true"></span>
+                <span class="legend-copy">
+                  <span class="legend-label">Trail station</span>
+                  <span class="legend-description">Tap for distance, elevation and tips.</span>
+                </span>
+              </div>
+            </div>
+          </section>
+        {/if}
 
         <section class="legend-section" aria-labelledby="legend-layers">
           <h3 id="legend-layers" class="legend-section-title">Layers</h3>
@@ -546,6 +569,22 @@
 
   .legend-swatch.schedule-stop {
     background-color: #2563eb;
+  }
+
+  .legend-swatch.trail-line {
+    height: 0.25rem;
+    border-radius: 0.125rem;
+    background: repeating-linear-gradient(
+      90deg,
+      #15803d 0 0.375rem,
+      transparent 0.375rem 0.5625rem
+    );
+  }
+
+  .legend-swatch.trail-stop {
+    border-radius: 50%;
+    background-color: #15803d;
+    box-shadow: inset 0 0 0 2px #fff;
   }
 
   .legend-swatch.event-active {

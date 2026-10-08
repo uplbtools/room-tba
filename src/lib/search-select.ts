@@ -1,6 +1,7 @@
 import { entityHoverPreviewStore } from "./entity-hover-preview.svelte";
 import type { Suggestion } from "./search-suggestions";
 import { directionsStore, queryStore } from "./store.svelte";
+import { openTrailSheet } from "./trail-sheet";
 
 /** Open a course's full class list (the "class" result panel). */
 export function openCourseClasses(courseCode: string) {
@@ -30,6 +31,10 @@ export function selectSuggestion(suggestion: Suggestion) {
   ) {
     queryStore.exitResultMode();
     queryStore.inputValue = "";
+    return;
+  }
+  if (suggestion.category === "trail") {
+    openTrailSheet(suggestion.trailStopId ?? null);
     return;
   }
   if (suggestion.category === "class") {

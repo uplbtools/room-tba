@@ -1,11 +1,9 @@
 <script lang="ts">
   import Route from "@lucide/svelte/icons/route";
-  import MapPin from "@lucide/svelte/icons/map-pin";
-  import { trailStore, mapStore } from "@lib/store.svelte";
-  import {
-    MAKILING_TRAIL_STATIONS,
-    MAKILING_TRAIL_CAMERA,
-  } from "@constants/makiling-trail";
+  import Info from "@lucide/svelte/icons/info";
+  import Maximize from "@lucide/svelte/icons/maximize";
+  import { mapToolsStore, trailStore } from "@lib/store.svelte";
+  import { openTrailSheet } from "@lib/trail-sheet";
 
   type Props = {
     embedded?: boolean;
@@ -13,24 +11,21 @@
 
   let { embedded = false }: Props = $props();
 
-  function flyToTrail() {
-    mapStore.mapInstance?.flyTo({
-      center: MAKILING_TRAIL_CAMERA.center,
-      zoom: MAKILING_TRAIL_CAMERA.zoom,
-      pitch: MAKILING_TRAIL_CAMERA.pitch,
-      bearing: MAKILING_TRAIL_CAMERA.bearing,
-      duration: 2000,
-    });
+  /** Layers gets out of the way first, then the trail fills the visible map. */
+  function frameTrail() {
+    mapToolsStore.close();
+    trailStore.requestFrame();
   }
 </script>
 
-<div class="trail-control">
+<div class="trail-control" class:embedded>
   <button
     type="button"
     class="trail-toggle"
     class:active={trailStore.enabled}
+    role="switch"
+    aria-checked={trailStore.enabled}
     onclick={() => trailStore.toggle()}
-    aria-pressed={trailStore.enabled}
   >
     <Route size={16} aria-hidden="true" />
     <span>Makiling Trail</span>
@@ -38,27 +33,14 @@
   </button>
 
   {#if trailStore.enabled}
-    <button type="button" class="trail-flyto" onclick={flyToTrail}>
-      <MapPin size={14} aria-hidden="true" />
+    <button type="button" class="trail-link" onclick={frameTrail}>
+      <Maximize size={14} aria-hidden="true" />
       <span>Frame trail on map</span>
     </button>
-
-    <ul class="trail-stations">
-      {#each MAKILING_TRAIL_STATIONS as station (station.station)}
-        <li class="trail-station">
-          <span class="trail-station-num">{station.station}</span>
-          <div class="trail-station-info">
-            <span class="trail-station-name">{station.name}</span>
-            <span class="trail-station-elev">{station.elevationMeters} m</span>
-          </div>
-        </li>
-      {/each}
-    </ul>
-
-    <p class="trail-disclaimer">
-      Stations are approximate. Do not use for navigation. Guide required —
-      register at MCME / Station 1.
-    </p>
+    <button type="button" class="trail-link" onclick={() => openTrailSheet()}>
+      <Info size={14} aria-hidden="true" />
+      <span>Trail details and stations</span>
+    </button>
   {/if}
 </div>
 
@@ -104,7 +86,7 @@
     color: var(--theme-green-text, #15803d);
   }
 
-  .trail-flyto {
+  .trail-link {
     display: flex;
     align-items: center;
     gap: 0.375rem;
@@ -116,68 +98,5 @@
     font-weight: 500;
     color: var(--theme-text-2, hsl(0 0% 34%));
     text-decoration: underline;
-  }
-
-  .trail-stations {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-    max-height: 14rem;
-    overflow-y: auto;
-  }
-
-  .trail-station {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0.375rem;
-    border-radius: 0.375rem;
-  }
-
-  .trail-station:hover {
-    background: var(--theme-accent-soft, hsl(5 20% 94%));
-  }
-
-  .trail-station-num {
-    flex-shrink: 0;
-    width: 1.5rem;
-    height: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: #15803d;
-    color: white;
-    font-size: 0.6875rem;
-    font-weight: 700;
-  }
-
-  .trail-station-info {
-    display: flex;
-    flex: 1;
-    min-width: 0;
-    flex-direction: column;
-  }
-
-  .trail-station-name {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--theme-text, hsl(0 0% 20%));
-    line-height: 1.2;
-  }
-
-  .trail-station-elev {
-    font-size: 0.6875rem;
-    color: var(--theme-text-2, hsl(0 0% 40%));
-  }
-
-  .trail-disclaimer {
-    margin: 0;
-    font-size: 0.6875rem;
-    line-height: 1.3;
-    color: var(--theme-text-2, hsl(0 0% 40%));
   }
 </style>

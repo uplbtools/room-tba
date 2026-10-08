@@ -10,6 +10,9 @@
  *                                  between them (from/stop/…/to)
  *   /?dir=…&mode=transit           the travel-mode tab (walk | transit)
  *   #map=17.25/14.16523/121.24151  camera: zoom/lat/lng (OSM style)
+ *   /?layers=trail                 optional map layers that are on
+ *   /?trail=overview | ?trail=agila-base
+ *                                  the trail sheet, at its overview or a stop
  *
  * Entity pages keep their own paths (/building/…); see entity-urls.ts.
  */
@@ -146,9 +149,39 @@ export type AppStateParams = {
   dir?: string | null;
   browse?: string | null;
   mode?: string | null;
+  layers?: string | null;
+  trail?: string | null;
 };
 
-const STATE_KEYS = ["q", "dir", "browse", "mode"] as const;
+const STATE_KEYS = ["q", "dir", "browse", "mode", "layers", "trail"] as const;
+
+/** Optional overlay layers ?layers= can name (comma separated). */
+export type LayerParam = "trail";
+const LAYER_PARAMS = ["trail"] as const satisfies readonly LayerParam[];
+
+export function parseLayersParam(value: string | null): LayerParam[] {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((part) => part.trim())
+    .filter((part): part is LayerParam =>
+      (LAYER_PARAMS as readonly string[]).includes(part),
+    );
+}
+
+export function formatLayersParam(
+  layers: readonly LayerParam[],
+): string | null {
+  return layers.length ? [...new Set(layers)].join(",") : null;
+}
+
+/** The trail sheet value: "overview", or a stop id (slug). */
+export const TRAIL_OVERVIEW_PARAM = "overview";
+
+export function parseTrailParam(value: string | null): string | null {
+  const trimmed = value?.trim() ?? "";
+  return SLUG_PATTERN.test(trimmed) ? trimmed : null;
+}
 
 /** URLSearchParams escapes `/` and `,`; both are legal in a query and read better unescaped. */
 function serializeSearch(params: URLSearchParams) {
@@ -193,19 +226,35 @@ export function readAppState(search: string) {
     dir: parseDirectionsParam(params.get("dir")),
     mode: parseDirectionsMode(params.get("mode")),
     browse: parseBrowseParam(params.get("browse")),
+    layers: parseLayersParam(params.get("layers")),
+    trail: parseTrailParam(params.get("trail")),
   };
 }
 
+/** Params that ride on top of any page (?q=, ?dir=, ?mode=, ?layers=, ?trail=). */
+const OVERLAY_KEYS = ["q", "dir", "mode", "layers", "trail"] as const;
+
 /**
- * Search without the params that ride on top of any page (?q=, ?dir=, ?mode=), so
- * entity URL sync does not mistake them for a different page and push one.
+ * Search without the params that ride on top of any page, so entity URL sync
+ * does not mistake them for a different page and push one.
  */
 export function stripOverlayParams(search: string): string {
   const params = new URLSearchParams(search);
-  params.delete("q");
-  params.delete("dir");
-  params.delete("mode");
+  for (const key of OVERLAY_KEYS) params.delete(key);
   return serializeSearch(params);
+}
+
+/**
+ * `url` with ?layers= carried over from `from` when it names none, so the
+ * layers a rider turned on survive moving between places.
+ */
+export function carryLayersParam(url: string, from: string): string {
+  const fromSearch = from.split("#")[0]?.split("?")[1] ?? "";
+  const layers = new URLSearchParams(fromSearch).get("layers");
+  if (!layers) return url;
+  const search = url.split("#")[0]?.split("?")[1] ?? "";
+  if (new URLSearchParams(search).has("layers")) return url;
+  return withAppState(url, { layers });
 }
 
 /** Top-level paths something real answers (app screens, server pages, assets). */
