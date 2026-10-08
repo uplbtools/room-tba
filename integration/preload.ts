@@ -31,4 +31,6 @@ mock.module("astro:env/server", () => ({
   RESEND_API_KEY: "",
   RESEND_FROM_EMAIL: "",
   TURNSTILE_SECRET_KEY: "",
+  // Staff 2FA on, so the enrollment and sign-in step paths are exercised.
+  TOTP_ENCRYPTION_KEY: "integration-totp-encryption-key-32-chars-min",
 }));
