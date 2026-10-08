@@ -1198,10 +1198,10 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    /* 44px hit area without growing the pill. */
-    margin-block: -0.25rem;
+    /* A full 44px touch target; the negative margin keeps the pill height. */
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-block: -0.5rem;
     padding: 0;
     border: none;
     border-radius: 999px;

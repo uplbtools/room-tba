@@ -31,7 +31,15 @@ test.describe("appearance and landscape", () => {
     expect(navBox?.height ?? 999).toBeLessThanOrEqual(48);
 
     const chips = await page.locator(".map-filter-chips").boundingBox();
-    for (const name of [/map tools/i, /location/i, "Zoom in", "Zoom out"]) {
+    // Layers and locate are always there; +/− exist only without touch.
+    const zoom =
+      (await page.getByRole("button", { name: "Zoom in" }).count()) > 0;
+    const names = [
+      /^layers$/i,
+      /location/i,
+      ...(zoom ? ["Zoom in", "Zoom out"] : []),
+    ];
+    for (const name of names) {
       const control = page.getByRole("button", { name }).first();
       await expect(control).toBeVisible();
       const box = await control.boundingBox();
