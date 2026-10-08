@@ -501,11 +501,15 @@
       <div class="inner-layer">
         <MainControls />
         <div class="bottom-band">
-          {#if travelTimeStore.active}
-            <TravelTimeLegend />
-          {/if}
-          {#if measureRouteStore.active}
-            <MeasureRoutePanel />
+          <!-- A sheet covers the tool cards: the active-overlays chip bar
+               stands in for them until it closes. -->
+          {#if sidePanelStore.mobileSheetSnap === "closed"}
+            {#if travelTimeStore.active}
+              <TravelTimeLegend />
+            {/if}
+            {#if measureRouteStore.active}
+              <MeasureRoutePanel />
+            {/if}
           {/if}
           {#if mapViewStore.cameraDebug}
             <CameraDebugHud />

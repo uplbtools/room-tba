@@ -8,6 +8,7 @@
   import ListFilter from "@lucide/svelte/icons/list-filter";
   import Route from "@lucide/svelte/icons/route";
   import Ruler from "@lucide/svelte/icons/ruler";
+  import Timer from "@lucide/svelte/icons/timer";
   import X from "@lucide/svelte/icons/x";
   import {
     mapOverlays,
@@ -20,12 +21,14 @@
     filter: ListFilter,
     tool: Ruler,
   };
+  /** The overlay's own Layers glyph, where it differs from its kind's. */
+  const idIcons: Record<string, typeof Route> = { "travel-time": Timer };
 </script>
 
 {#if overlays.length > 0}
   <div class="active-overlays" role="toolbar" aria-label="On the map">
     {#each overlays as overlay (overlay.id)}
-      {@const Icon = icons[overlay.kind]}
+      {@const Icon = idIcons[overlay.id] ?? icons[overlay.kind]}
       {@const label = overlay.label()}
       <span class="active-overlays__chip">
         {#if overlay.reopen}
@@ -76,9 +79,10 @@
     align-items: center;
     gap: 0.375rem;
     min-width: 0;
-    max-width: 100%;
-    margin-top: 0.375rem;
-    padding: 0.125rem 0;
+    max-width: calc(100% + 1rem);
+    /* Room for the chip shadows: the scroller clips its overflow. */
+    margin: 0.125rem -0.5rem -0.375rem;
+    padding: 0.25rem 0.5rem 0.5rem;
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scrollbar-width: none;

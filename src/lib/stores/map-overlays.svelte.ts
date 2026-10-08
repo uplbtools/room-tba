@@ -27,7 +27,8 @@ export type MapOverlay = {
 };
 
 export class MapOverlayRegistry {
-  private overlays = $state<MapOverlay[]>([]);
+  // Raw: entries are plain objects of getters, compared by identity.
+  private overlays = $state.raw<MapOverlay[]>([]);
   /**
    * Ids in the order they became active, oldest first. Plain (not state):
    * maintained when `active` is read, which the chip bar and Back tracking do
