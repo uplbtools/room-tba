@@ -31,7 +31,7 @@ test.describe("final exams route", () => {
     await expect(page).toHaveURL(/\/final-exams(\/|\?|$)/);
   });
 
-  test("opening finals from the App Menu updates the URL to /final-exams", async ({
+  test("opening finals from You updates the URL to /final-exams", async ({
     page,
   }) => {
     await suppressLandingModal(page);

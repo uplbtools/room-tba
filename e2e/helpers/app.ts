@@ -32,9 +32,11 @@ export async function dismissLandingIfPresent(page: Page) {
     await gotIt.click();
   }
 
-  const getStarted = page.getByRole("button", { name: "Get Started" });
-  if (await getStarted.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await getStarted.click();
+  const done = page
+    .getByRole("dialog", { name: "How Room TBA works" })
+    .getByRole("button", { name: "Done", exact: true });
+  if (await done.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await done.click();
   }
 
   const closeDialog = page.getByRole("button", { name: "Close dialog" });

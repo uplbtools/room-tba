@@ -7,7 +7,7 @@ import {
   mountAtWidth,
 } from "@test/layout-assertions";
 import { SYNC_TABLE_NAMES } from "@lib/local/data/sync-keys";
-import { modalStore, syncToastStore } from "@lib/store.svelte";
+import { syncToastStore } from "@lib/store.svelte";
 
 const clearCachedData = vi.hoisted(() => vi.fn(async () => {}));
 vi.mock("@lib/local/clear-cached-data", () => ({ clearCachedData }));
@@ -36,16 +36,7 @@ describe("SettingsModal", () => {
     const { container } = render(SettingsModalHost);
 
     expect(screen.getByRole("heading", { name: "Settings" })).toBeVisible();
-    // Transit moved to the sidebar's Jeepney routes browse panel.
-    for (const section of [
-      "Appearance",
-      "Map",
-      "Terrain",
-      "Schedule",
-      "Feedback",
-      "Storage",
-      "Reset",
-    ]) {
+    for (const section of ["Appearance", "Offline maps", "Data & storage"]) {
       expect(
         screen.getByRole("heading", { name: section }),
       ).toBeInTheDocument();
@@ -53,20 +44,44 @@ describe("SettingsModal", () => {
     expectNoHorizontalOverflow(container);
   });
 
+  test("leaves map layers, schedule help and feedback to where they live", () => {
+    render(SettingsModalHost);
+
+    // Layers owns map style, basemap, terrain, pins, my classes and camera.
+    for (const gone of [
+      "Map style",
+      "Basemap",
+      "Makiling terrain",
+      "Pins",
+      "Highlight my class buildings",
+      "Camera details",
+      "Why a class may be missing",
+    ]) {
+      expect(screen.queryByText(gone)).toBeNull();
+    }
+    expect(screen.queryByRole("switch")).toBeNull();
+    // Send feedback lives in You only.
+    expect(screen.queryByRole("button", { name: "Send feedback" })).toBeNull();
+    // No notification preferences exist, so no invented section.
+    expect(screen.queryByRole("heading", { name: "Notifications" })).toBeNull();
+  });
+
   test("Appearance switches the theme and remembers the choice", async () => {
     localStorage.removeItem("room-tba:theme");
     render(SettingsModalHost);
 
-    const system = screen.getByRole("button", { name: "System" });
-    const dark = screen.getByRole("button", { name: "Dark" });
-    const light = screen.getByRole("button", { name: "Light" });
-    expect(system).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("radiogroup", { name: "Theme" })).toBeVisible();
+    const system = screen.getByRole("radio", { name: "System" });
+    const dark = screen.getByRole("radio", { name: "Dark" });
+    const light = screen.getByRole("radio", { name: "Light" });
+    expect(system).toHaveAttribute("aria-checked", "true");
 
     dark.click();
     await tick();
     expect(document.documentElement.dataset["theme"]).toBe("dark");
     expect(localStorage.getItem("room-tba:theme")).toBe("dark");
-    expect(dark).toHaveAttribute("aria-pressed", "true");
+    expect(dark).toHaveAttribute("aria-checked", "true");
+    expect(system).toHaveAttribute("aria-checked", "false");
 
     light.click();
     expect(document.documentElement.dataset["theme"]).toBe("light");
@@ -76,24 +91,9 @@ describe("SettingsModal", () => {
     expect(localStorage.getItem("room-tba:theme")).toBeNull();
   });
 
-  test("links to Send feedback instead of embedding a second form", () => {
+  test("reset is a red destructive row", () => {
     render(SettingsModalHost);
-
-    expect(screen.queryByLabelText("Your message")).toBeNull();
-    screen.getByRole("button", { name: "Send feedback" }).click();
-    expect(modalStore.type).toBe("feedback");
-    modalStore.closeModal();
-  });
-
-  test("exaggeration is disabled while terrain is off", () => {
-    render(SettingsModalHost);
-
-    expect(
-      screen.getByRole("switch", { name: "Makiling terrain" }),
-    ).toHaveAttribute("aria-checked", "false");
-    for (const option of ["1x", "1.5x", "2x"]) {
-      expect(screen.getByRole("button", { name: option })).toBeDisabled();
-    }
+    expect(clearButton()).toHaveClass("settings-row--danger");
   });
 });
 

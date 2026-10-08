@@ -50,11 +50,11 @@ test.describe("entity pages", () => {
 });
 
 test.describe("landing", () => {
-  test("Get Started dismisses modal", async ({ page }) => {
+  test("Done dismisses the guide", async ({ page }) => {
     await page.goto("/");
-    const getStarted = page.getByRole("button", { name: "Get Started" });
-    if (await getStarted.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await getStarted.click();
+    const done = page.getByRole("button", { name: "Done", exact: true });
+    if (await done.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await done.click();
     }
     await expect(campusSearchBox(page)).toBeVisible();
   });

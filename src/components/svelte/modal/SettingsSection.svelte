@@ -23,6 +23,12 @@
     /** Destructive group: red frame, so it reads as a different kind of place. */
     danger?: boolean;
     labelledBy?: string;
+    /**
+     * `list`: a plain group of SettingsRows under a section label, the way
+     * app settings screens (Material, Google Maps) read. `card` (default)
+     * is the framed form group the account screen uses.
+     */
+    variant?: "card" | "list";
   };
 
   let {
@@ -33,12 +39,22 @@
     footer,
     danger = false,
     labelledBy,
+    variant = "card",
   }: Props = $props();
 
   const fallbackId = `settings-section-${crypto.randomUUID()}`;
   const headingId = $derived(labelledBy ?? fallbackId);
 </script>
 
+{#if variant === "list"}
+  <section class="settings-list" aria-labelledby={headingId}>
+    <h3 id={headingId} class="settings-list__label">{title}</h3>
+    {#if description}
+      <p class="settings-list__description">{description}</p>
+    {/if}
+    {@render children()}
+  </section>
+{:else}
 <section
   class="settings-section"
   class:settings-section--danger={danger}
@@ -62,8 +78,32 @@
     <div class="settings-section__footer">{@render footer()}</div>
   {/if}
 </section>
+{/if}
 
 <style>
+  .settings-list {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0.5rem;
+  }
+
+  .settings-list__label {
+    margin: 0;
+    padding: 1rem 1rem 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--theme-accent-text, hsl(345, 75%, 31%));
+  }
+
+  .settings-list__description {
+    margin: -0.25rem 0 0.25rem;
+    padding: 0 1rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
+  }
+
   .settings-section {
     display: flex;
     flex-direction: column;

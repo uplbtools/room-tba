@@ -32,6 +32,8 @@
   import { routeDirections } from "@lib/transit-direction";
   import { routeScheduleSummary } from "@lib/transit-schedule";
   import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
+  import Printer from "@lucide/svelte/icons/printer";
+  import MapChromeActionLink from "@ui/map-chrome/MapChromeActionLink.svelte";
   import TransitStopEditor from "../controls/TransitStopEditor.svelte";
   import EntityEditorToggle from "../editor/EntityEditorToggle.svelte";
 
@@ -302,6 +304,14 @@
         url={getJeepneyRouteShareUrl(route.id)}
         entityLabel={`${route.name} route`}
       />
+      <MapChromeActionLink
+        href="/api/transit-map"
+        ariaLabel="Printable transit map (PDF)"
+        toolbar
+      >
+        <Printer size={14} aria-hidden="true" />
+        Printable map
+      </MapChromeActionLink>
       {#if routeId === null}
         <button type="button" class="jeepney-modal__view" onclick={viewOnMap}>
           <MapPinned size={16} aria-hidden="true" />

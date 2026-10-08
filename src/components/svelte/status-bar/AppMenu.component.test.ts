@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/svelte";
-import { beforeEach, describe, expect, test } from "vitest";
+import { tick } from "svelte";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import AppMenu from "./AppMenu.svelte";
 import {
   adminAuthStore,
@@ -9,7 +10,16 @@ import {
   sidePanelStore,
 } from "@lib/store.svelte";
 
-describe("AppMenu review entry", () => {
+vi.mock("@lib/github-contributors", () => ({
+  fetchGithubContributors: vi.fn().mockResolvedValue([]),
+}));
+
+async function openYou() {
+  await fireEvent.click(screen.getByRole("button", { name: "You" }));
+  return screen.getByRole("dialog", { name: "You" });
+}
+
+describe("You review entry", () => {
   beforeEach(() => {
     modalStore.closeModal();
     adminAuthStore.canReview = false;
@@ -20,8 +30,7 @@ describe("AppMenu review entry", () => {
     adminAuthStore.canReview = true;
     proposalsStore.pendingCount = 3;
     render(AppMenu, { props: { onSignOut: () => {} } });
-
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+    await openYou();
 
     const reviewBtn = screen.getByRole("button", {
       name: /review suggested edits/i,
@@ -35,55 +44,93 @@ describe("AppMenu review entry", () => {
   });
 
   test("non-reviewers do not see the review entry", async () => {
-    adminAuthStore.canReview = false;
     render(AppMenu, { props: { onSignOut: () => {} } });
-
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
-
+    await openYou();
     expect(
       screen.queryByRole("button", { name: /review suggested edits/i }),
     ).toBeNull();
   });
 });
 
-describe("AppMenu help entry", () => {
+describe("You help and feedback", () => {
   beforeEach(() => {
     modalStore.closeModal();
     adminAuthStore.canReview = false;
   });
 
-  test("Help & FAQ links to the student FAQ page", async () => {
+  test("one Help & feedback section holds FAQ, the guide, the wiki and feedback", async () => {
     render(AppMenu, { props: { onSignOut: () => {} } });
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
-    const faq = screen.getByRole("link", { name: /help & faq/i });
-    expect(faq).toBeVisible();
-    expect(faq).toHaveAttribute("href", "/faq");
+    const panel = await openYou();
+    const help = within(panel)
+      .getByRole("heading", { name: "Help & feedback" })
+      .closest("section") as HTMLElement;
+
+    expect(
+      within(help).getByRole("link", { name: "Help & FAQ" }),
+    ).toHaveAttribute("href", "/faq");
+    expect(within(help).getByRole("link", { name: "Wiki" })).toHaveAttribute(
+      "href",
+      "/wiki",
+    );
+    expect(
+      within(help).getByRole("button", { name: "How Room TBA works" }),
+    ).toBeVisible();
+    expect(
+      within(help).getByRole("button", { name: "Contributors" }),
+    ).toBeVisible();
+    expect(
+      within(help).getByRole("button", { name: "Send feedback" }),
+    ).toBeVisible();
+    expect(
+      within(help).getByRole("link", { name: /contact us/i }),
+    ).toHaveAttribute("target", "_blank");
+    // Send feedback lives in one place.
+    expect(
+      within(panel).getAllByRole("button", { name: "Send feedback" }),
+    ).toHaveLength(1);
   });
 
-  test("'How Room TBA works' opens the landing modal on the welcome tab", async () => {
+  test("'How Room TBA works' opens only the guide", async () => {
     render(AppMenu, { props: { onSignOut: () => {} } });
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+    await openYou();
     await fireEvent.click(
-      screen.getByRole("button", { name: /how room tba works/i }),
+      screen.getByRole("button", { name: "How Room TBA works" }),
     );
-    expect(modalStore.open).toBe(true);
     expect(modalStore.type).toBe("landing");
     expect(modalStore.landingTab).toBe("welcome");
   });
 
+  test("Contributors pushes its own list screen, Back returns", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve(new Response(JSON.stringify([])))),
+    );
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    const panel = await openYou();
+    await fireEvent.click(screen.getByRole("button", { name: "Contributors" }));
+
+    expect(
+      within(panel).getByRole("heading", { name: "Contributors" }),
+    ).toBeVisible();
+    expect(modalStore.open).toBe(false);
+    await fireEvent.click(within(panel).getByRole("button", { name: "Back" }));
+    await tick();
+    expect(within(panel).getByRole("heading", { name: "You" })).toBeVisible();
+    vi.unstubAllGlobals();
+  });
+
   test("Send feedback opens the feedback panel directly", async () => {
     render(AppMenu, { props: { onSignOut: () => {} } });
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+    await openYou();
     await fireEvent.click(
-      screen.getByRole("button", { name: /send feedback/i }),
+      screen.getByRole("button", { name: "Send feedback" }),
     );
-    expect(modalStore.open).toBe(true);
     expect(modalStore.type).toBe("feedback");
   });
 
   test("opens emergency hotlines", async () => {
     render(AppMenu, { props: { onSignOut: () => {} } });
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+    await openYou();
     await fireEvent.click(
       screen.getByRole("button", { name: /emergency hotlines/i }),
     );
@@ -91,39 +138,53 @@ describe("AppMenu help entry", () => {
   });
 });
 
-describe("AppMenu navigation", () => {
+describe("You screens", () => {
   beforeEach(() => {
     modalStore.closeModal();
     sidebarStore.changeOpened("map");
     sidePanelStore.closePanel();
   });
 
-  test("prioritizes app destinations and keeps community links secondary", async () => {
+  test("Settings and Offline maps & storage push inside the sheet", async () => {
     render(AppMenu, { props: { onSignOut: () => {} } });
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+    const panel = await openYou();
 
-    expect(screen.getByRole("heading", { name: "Go to" })).toBeVisible();
+    await fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     expect(
-      screen.getByRole("button", { name: "Course planner" }),
+      within(panel).getByRole("heading", { name: "Settings" }),
     ).toBeVisible();
-    expect(screen.getByRole("heading", { name: "Community" })).toBeVisible();
+    // Layers owns the map controls; Settings has none of them.
+    expect(within(panel).queryByText("Map style")).toBeNull();
+    expect(within(panel).queryByText("Basemap")).toBeNull();
+    await fireEvent.click(within(panel).getByRole("button", { name: "Back" }));
+    await tick();
 
     await fireEvent.click(
-      screen.getByRole("button", { name: "Course planner" }),
+      screen.getByRole("button", { name: "Offline maps & storage" }),
     );
-    expect(sidebarStore.panelOpen).toBe("planner");
+    expect(
+      within(panel).getByRole("heading", { name: "Offline maps & storage" }),
+    ).toBeVisible();
+    expect(within(panel).getByRole("button", { name: "Resync" })).toBeVisible();
+    expect(
+      within(panel).getByRole("button", { name: "Reset offline data" }),
+    ).toBeVisible();
+  });
+
+  test("the root has a title and a close button", async () => {
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    const panel = await openYou();
+    expect(within(panel).getByRole("heading", { name: "You" })).toBeVisible();
+    await fireEvent.click(within(panel).getByRole("button", { name: "Close" }));
+    await tick();
+    expect(screen.queryByRole("dialog", { name: "You" })).toBeNull();
   });
 
   test("leaves out the screens its host already shows as tabs", async () => {
     render(AppMenu, {
       props: { onSignOut: () => {}, hostTabs: ["map", "planner", "today"] },
     });
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
-
-    const panel = screen.getByRole("dialog", { name: "App menu" });
-    expect(
-      within(panel).queryByRole("button", { name: /^(campus )?map$/i }),
-    ).toBeNull();
+    const panel = await openYou();
     expect(
       within(panel).queryByRole("button", { name: "Course planner" }),
     ).toBeNull();
@@ -133,11 +194,19 @@ describe("AppMenu navigation", () => {
     ).toBeVisible();
   });
 
+  test("opens campus screens", async () => {
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    await openYou();
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Course planner" }),
+    );
+    expect(sidebarStore.panelOpen).toBe("planner");
+  });
+
   test("marks the current screen", async () => {
     sidebarStore.changeOpened("finals");
     render(AppMenu, { props: { onSignOut: () => {} } });
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
-
+    await openYou();
     expect(screen.getByRole("button", { name: "Final exams" })).toHaveAttribute(
       "aria-current",
       "page",
@@ -147,37 +216,35 @@ describe("AppMenu navigation", () => {
     ).not.toHaveAttribute("aria-current");
   });
 
-  test("keeps the sidebar-only browse categories reachable", async () => {
+  test("About lists the version, What's new, Privacy and Terms", async () => {
     render(AppMenu, { props: { onSignOut: () => {} } });
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
-
-    await fireEvent.click(screen.getByRole("button", { name: "Colleges" }));
-    expect(sidePanelStore.state?.type).toBe("browsing-entities");
-  });
-
-  test("community actions are rows, with no duplicate sign-in, FAQ or version link", async () => {
-    adminAuthStore.isLoggedIn = false;
-    adminAuthStore.username = null;
-    render(AppMenu, { props: { onSignOut: () => {} } });
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
-    const panel = screen.getByRole("dialog", { name: "App menu" });
-
-    expect(panel.querySelector("details")).toBeNull();
+    const panel = await openYou();
+    const about = within(panel)
+      .getByRole("heading", { name: "About" })
+      .closest("section") as HTMLElement;
+    expect(within(about).getByText(/^v\d+\.\d+\.\d+/)).toBeVisible();
     expect(
-      within(panel).getByRole("button", { name: "Leaderboard" }),
+      within(about).getByRole("button", { name: "What's new" }),
     ).toBeVisible();
     expect(
-      within(panel).getAllByRole("button", { name: /sign in/i }),
-    ).toHaveLength(1);
-    expect(within(panel).queryByText(/sign up to contribute/i)).toBeNull();
-    expect(within(panel).getAllByRole("link", { name: /faq/i })).toHaveLength(
-      1,
+      within(about).getByRole("link", { name: "Privacy" }),
+    ).toHaveAttribute("href", "/privacy");
+    expect(within(about).getByRole("link", { name: "Terms" })).toHaveAttribute(
+      "href",
+      "/terms",
     );
-    expect(panel.querySelector('a[href="/changelog"]')).toBeNull();
+  });
+
+  test("links the printable transit map", async () => {
+    render(AppMenu, { props: { onSignOut: () => {} } });
+    await openYou();
+    expect(
+      screen.getByRole("link", { name: /printable transit map/i }),
+    ).toHaveAttribute("href", "/api/transit-map");
   });
 });
 
-describe("AppMenu account row", () => {
+describe("You account", () => {
   beforeEach(() => {
     adminAuthStore.isLoggedIn = false;
     adminAuthStore.username = null;
@@ -186,26 +253,30 @@ describe("AppMenu account row", () => {
     adminAuthStore.role = null;
   });
 
-  test("signed out: one full-width 'Sign in' row opens the sign-in dialog", async () => {
+  test("signed out: one Sign in row opens the sign-in dialog", async () => {
     render(AppMenu, { props: { onSignOut: () => {} } });
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
-
-    const signIn = screen.getByRole("button", { name: "Sign in" });
-    expect(signIn).toHaveClass("app-menu__nav-action");
+    const panel = await openYou();
+    const signIn = within(panel).getByRole("button", { name: "Sign in" });
+    expect(
+      within(panel).getAllByRole("button", { name: /sign in/i }),
+    ).toHaveLength(1);
     await fireEvent.click(signIn);
     expect(adminAuthStore.loginOpen).toBe(true);
     adminAuthStore.closeLogin();
   });
 
-  test("a signed-in contributor gets session controls instead of sign in", async () => {
+  test("signed in: avatar trigger, account row and sign out", async () => {
     adminAuthStore.isLoggedIn = true;
     adminAuthStore.username = "juan";
     adminAuthStore.role = "contributor";
     render(AppMenu, { props: { onSignOut: () => {} } });
-    await fireEvent.click(screen.getByRole("button", { name: /app menu/i }));
+    await openYou();
 
     expect(screen.queryByRole("button", { name: "Sign in" })).toBeNull();
     expect(screen.getByRole("button", { name: /sign out/i })).toBeVisible();
+    expect(screen.getAllByRole("img", { name: "juan" }).length).toBeGreaterThan(
+      0,
+    );
     adminAuthStore.isLoggedIn = false;
     adminAuthStore.username = null;
   });

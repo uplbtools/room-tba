@@ -14,7 +14,9 @@ describe("SavedPlacesModal", () => {
 
   test("empty state explains how to save", () => {
     render(SavedPlacesModal);
-    expect(screen.getByText(/to keep it here/)).toBeInTheDocument();
+    expect(
+      screen.getByText("Tap the star on any place to save it here."),
+    ).toBeInTheDocument();
     expect(screen.getByText("Places you open show up here.")).toBeVisible();
   });
 

@@ -18,7 +18,10 @@
     toastStore,
   } from "@lib/store.svelte";
   import { fetchAllClasses } from "@lib/classes-api";
-  import { COURSE_CHANGE_DISCLAIMER } from "@lib/amis/room-scheduled-types";
+  import {
+    COURSE_CHANGE_DISCLAIMER,
+    ROOM_SCHEDULE_SCOPE_NOTE,
+  } from "@lib/amis/room-scheduled-types";
   import { changeOfMatriculationLabel } from "@lib/term-calendar";
   import { fetchFinalExams, FINALS_SCOPE_NOTE } from "@lib/final-exams";
   import { isUnscheduled } from "@lib/planner/conflicts";
@@ -475,6 +478,12 @@
         across devices. Use <strong>Share</strong> to copy a link you can reopen
         anywhere or send to someone.
       {/if}
+    </p>
+    <!-- Lived in Settings once; it explains the Planner's own sections, and
+         why some never get a map stop, so it belongs here. -->
+    <p class="planner-save-note" role="note">
+      <strong>Why a class may be missing from your day's stops:</strong>
+      {ROOM_SCHEDULE_SCOPE_NOTE}
     </p>
   </details>
 

@@ -7,15 +7,24 @@
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import BookText from "@lucide/svelte/icons/book-text";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import MapPin from "@lucide/svelte/icons/map-pin";
+  import Phone from "@lucide/svelte/icons/phone";
+  import University from "@lucide/svelte/icons/university";
+  import Users from "@lucide/svelte/icons/users";
   import { onMount } from "svelte";
-  import { openCampusBrowse } from "@lib/browse-campus";
+  import { openBrowseClasses, openCampusBrowse } from "@lib/browse-campus";
   import type { CampusBrowseTab } from "@lib/browse-campus";
   import { portal } from "@lib/portal";
   import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
   import { campusTransit } from "../../../campus.config";
-  import { jeepneyStore, queryStore, sidePanelStore } from "@lib/store.svelte";
+  import {
+    jeepneyStore,
+    modalStore,
+    queryStore,
+    sidePanelStore,
+  } from "@lib/store.svelte";
 
   import classBuildingsIcon from "../../../assets/icons/class-buildings.svg?url";
   import dormsIcon from "../../../assets/icons/dorms.svg?url";
@@ -24,9 +33,10 @@
   import storeIcon from "../../../assets/icons/store.svg?url";
   import eventIcon from "../../../assets/icons/event.svg?url";
 
-  /** Top-row chips from the map chrome design. Classes / Colleges / Student Orgs
-   * stay in the sidebar — they duplicated icons or did not match this row. */
-  type ChipId = CampusBrowseTab | "events";
+  /** Top-row chips from the map chrome design. The row is full (AGENTS.md:
+   * past ~5 chips it clips), so Colleges, Student orgs, Classes and Emergency
+   * live in the More menu. Emergency opens the hotlines, not a list. */
+  type ChipId = CampusBrowseTab | "events" | "classes" | "emergency";
 
   type Chip =
     | { id: ChipId; label: string; iconUrl: string }
@@ -52,10 +62,14 @@
     { id: "landmarks", label: "Landmarks", LucideIcon: MapPin },
   ];
 
-  /** The org chart: useful, but rarely the first thing anyone looks for. */
+  /** Useful, but rarely the first thing anyone looks for. */
   const moreChips: Chip[] = [
+    { id: "colleges", label: "Colleges", LucideIcon: University },
+    { id: "organizations", label: "Student orgs", LucideIcon: Users },
+    { id: "classes", label: "Classes", LucideIcon: BookText },
     { id: "divisions", label: "Divisions", LucideIcon: GraduationCap },
     { id: "offices", label: "Units and offices", iconUrl: unitsOfficesIcon },
+    { id: "emergency", label: "Emergency", LucideIcon: Phone },
   ];
 
   let moreOpen = $state(false);
@@ -121,6 +135,8 @@
     const v = queryStore.queryValue;
     if (
       v === "buildings" ||
+      v === "colleges" ||
+      v === "organizations" ||
       v === "dorms" ||
       v === "divisions" ||
       v === "offices" ||
@@ -172,7 +188,15 @@
   function handleChip(chip: Chip) {
     const { id, label } = chip;
     moreOpen = false;
+    if (id === "emergency") {
+      modalStore.openModal("hotlines");
+      return;
+    }
     jeepneyStore.closeStop();
+    if (id === "classes") {
+      openBrowseClasses(queryStore, sidePanelStore);
+      return;
+    }
     if (id === "events") {
       queryStore.updateQuery({
         category: "events",

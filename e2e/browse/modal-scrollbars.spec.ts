@@ -15,12 +15,11 @@ test.describe("modal scrollbars", () => {
     const dialog = page.getByRole("dialog", { name: /room tba/i });
     await expect(dialog).toBeVisible({ timeout: 30_000 });
 
-    const scrollRegion = page.locator(".scroll-region.map-chrome-scroll");
+    const scrollRegion = page.locator(".landing__scroll.map-chrome-scroll");
     await expect(scrollRegion).toHaveCount(1);
     await expect(scrollRegion).toHaveCSS("overflow-y", "auto");
 
-    // The Campus team tab moved out to the menu's Contributors entry, which
-    // opens the same modal and scroll region on its own view.
+    // Contributors is its own screen under You, not a tab of the guide.
     await expect(dialog.getByRole("tablist")).toHaveCount(0);
   });
 });
