@@ -345,6 +345,15 @@
     overscroll-behavior: contain;
     scroll-padding: 4px 0 0.5rem;
   }
+  /* With a mouse, the scrollbar is a stray grey line running down the
+     panel's edge beside the content; show the thumb only while the panel is
+     hovered or has focus (wheel and keyboard scroll work either way). */
+  @media (hover: hover) and (pointer: fine) {
+    .side-panel-details:not(:hover):not(:focus-within) {
+      --map-chrome-scrollbar-thumb: transparent;
+    }
+  }
+
   .side-panel-details > :global(*) {
     flex: 0 1 auto;
     min-height: 0;
