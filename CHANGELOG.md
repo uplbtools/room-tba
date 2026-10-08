@@ -1,3 +1,10 @@
+# [2.37.0](https://github.com/uplbtools/room-tba/compare/v2.36.1...v2.37.0) (2026-10-08)
+
+
+### Features
+
+* work like Google Maps (Jakob's-law audit, 30 items) ([#1278](https://github.com/uplbtools/room-tba/issues/1278)) ([245ca28](https://github.com/uplbtools/room-tba/commit/245ca28e3679e35be1f43e24654a50e29fd5e9c3)), closes [#fff](https://github.com/uplbtools/room-tba/issues/fff) [#7b1113](https://github.com/uplbtools/room-tba/issues/7b1113)
+
 # [2.35.0](https://github.com/uplbtools/room-tba/compare/v2.34.1...v2.35.0) (2026-10-07)
 
 
