@@ -37,11 +37,11 @@
     margin: 0.35rem 0 0;
     font-size: 0.75rem;
     line-height: 1.35;
-    color: hsl(0 0% 45%);
+    color: var(--theme-text-2, hsl(0 0% 45%));
   }
 
   .schedule-freshness--stale {
-    color: hsl(25 70% 32%);
+    color: var(--theme-amber-text, hsl(25 70% 32%));
   }
 
   .schedule-freshness__link {

@@ -1,3 +1,13 @@
+/**
+ * Phone held sideways (Jakob audit macro 14): ~340-430px tall. A bottom
+ * sheet there leaves a sliver of map and a sliver of sheet, so the sheet
+ * becomes a full-height left side panel instead (GMaps landscape), the
+ * bottom nav goes icon-only and the map controls wrap into columns.
+ * CSS repeats this query: `(orientation: landscape) and (max-height: 500px)`.
+ */
+export const LANDSCAPE_COMPACT_MEDIA =
+  "(orientation: landscape) and (max-height: 500px)";
+
 /** Snap points for the mobile entity bottom sheet (GMaps-style). */
 export type BottomSheetSnap = "peek" | "expanded";
 

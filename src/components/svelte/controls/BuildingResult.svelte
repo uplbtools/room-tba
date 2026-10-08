@@ -15,7 +15,9 @@
   import type { BuildingData, RoomData } from "@lib/types";
   import ResultDisplay from "./ResultDisplay.svelte";
   import BuildingPhoto from "./BuildingPhoto.svelte";
-  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityShareButton from "./EntityShareButton.svelte";
+  import EntitySaveButton from "./EntitySaveButton.svelte";
+  import EntityPanelClose from "./EntityPanelClose.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
   import EntityPrintableMapLink from "./EntityPrintableMapLink.svelte";
@@ -597,51 +599,69 @@
 
 <div class="entity-detail building-query-wrapper">
   {#if building}
-    <header class="entity-header">
-      <EntityBackToList tab="buildings" label="Back to buildings" />
-      <div class="entity-header__title-row">
+    <EntityBackToList tab="buildings" label="Back to buildings" />
+    <header class="entity-header entity-header--sticky">
+      <div
+        class="entity-header__title-row entity-header__title-row--with-close"
+      >
         <h2 class="entity-header__title">{building.buildingName}</h2>
         <span class="entity-header__badge">{buildingTypeLabel}</span>
+        <EntityPanelClose ariaLabel="Close building details" showOnMobile />
       </div>
 
-      <div class="entity-actions">
+      <div class="entity-actions entity-actions--place">
         {#if hasMapPin}
-          <MapChromeActionChip
-            toolbar
-            ariaLabel="3D view"
-            onclick={() => building3DStore.open(building.buildingName)}
-          >
-            <Box size={14} aria-hidden="true" />
-            3D view
-          </MapChromeActionChip>
           <EntityDirectionsChip
+            primary
             lat={building.lat ?? 0}
             lon={building.lon ?? 0}
             destinationLabel={building.buildingName}
           />
-          <EntityGoogleMapsLink
-            lat={building.lat ?? 0}
-            lon={building.lon ?? 0}
-            name={building.buildingName}
-            ariaLabel={`Open ${building.buildingName} in Google Maps`}
-          />
-          <EntityPrintableMapLink
-            lat={building.lat ?? 0}
-            lon={building.lon ?? 0}
-            name={building.buildingName}
-          />
         {/if}
-        <EntityShareCopyLink
-          url={buildingShareUrl}
-          entityLabel={building.buildingName}
-        />
-        <EntityEditorToggle
-          expanded={editing}
-          {canPublish}
-          publishOpenLabel="Edit building"
-          variant="toolbar"
-          onclick={() => (editing = !editing)}
-        />
+        <div class="entity-actions__scroll">
+          <EntitySaveButton
+            place={{
+              category: "building",
+              value: building.buildingName,
+              label: building.buildingName,
+              subtitle: buildingTypeLabel,
+              lat: building.lat,
+              lon: building.lon,
+            }}
+          />
+          <EntityShareButton
+            url={buildingShareUrl}
+            entityLabel={building.buildingName}
+          />
+          {#if hasMapPin}
+            <MapChromeActionChip
+              toolbar
+              ariaLabel="3D view"
+              onclick={() => building3DStore.open(building.buildingName)}
+            >
+              <Box size={14} aria-hidden="true" />
+              3D view
+            </MapChromeActionChip>
+            <EntityGoogleMapsLink
+              lat={building.lat ?? 0}
+              lon={building.lon ?? 0}
+              name={building.buildingName}
+              ariaLabel={`Open ${building.buildingName} in Google Maps`}
+            />
+            <EntityPrintableMapLink
+              lat={building.lat ?? 0}
+              lon={building.lon ?? 0}
+              name={building.buildingName}
+            />
+          {/if}
+          <EntityEditorToggle
+            expanded={editing}
+            {canPublish}
+            publishOpenLabel="Edit building"
+            variant="toolbar"
+            onclick={() => (editing = !editing)}
+          />
+        </div>
       </div>
     </header>
 
@@ -943,8 +963,8 @@
   .building-orgs__chip {
     border: none;
     cursor: pointer;
-    background-color: hsl(265, 45%, 92%);
-    color: hsl(265, 45%, 34%);
+    background-color: var(--theme-purple-soft, hsl(265, 45%, 92%));
+    color: var(--theme-purple-text, hsl(265, 45%, 34%));
   }
 
   .building-query-wrapper {
@@ -952,9 +972,9 @@
   }
 
   .editor-advanced {
-    border: 1px solid hsl(5, 53%, 90%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 53%, 90%));
     border-radius: 0.5rem;
-    background: white;
+    background: var(--theme-surface, white);
   }
 
   .editor-advanced summary {
@@ -963,7 +983,7 @@
     font-size: 0.8125rem;
     font-weight: 700;
     line-height: 1.3;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     list-style: none;
   }
 
@@ -974,7 +994,7 @@
   .editor-advanced summary::after {
     content: "▾";
     float: right;
-    color: hsl(5, 53%, 45%);
+    color: var(--theme-accent-text, hsl(5, 53%, 45%));
     transition: transform 0.15s ease;
   }
 
@@ -987,7 +1007,7 @@
     flex-direction: column;
     gap: 0.5rem;
     padding: 0 0.55rem 0.55rem;
-    border-top: 1px solid hsl(5, 53%, 92%);
+    border-top: 1px solid var(--theme-accent-border, hsl(5, 53%, 92%));
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -88,11 +88,11 @@
   }
 
   .final-exam-suggestion:hover {
-    background-color: hsl(0, 0%, 95%);
+    background-color: var(--theme-surface-2, hsl(0, 0%, 95%));
     border-radius: 0.75rem;
   }
 
   .final-exam-suggestion strong {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 </style>

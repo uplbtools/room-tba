@@ -37,7 +37,7 @@
   .leaderboard-modal-note {
     margin: 0;
     font-size: 0.875rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .leaderboard-modal-body {

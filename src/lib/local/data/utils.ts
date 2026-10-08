@@ -892,13 +892,25 @@ export async function searchLocalRooms(
     const escaped = escapeLikePattern(searchString);
     const localDB = await getDB();
     await localDB.waitReady;
+    const compactCode = escaped.toUpperCase().replace(/\s+/g, "");
+    // Same contract as the server: exact code, then code prefix, then rest.
     const data = (await localDB.query(
       `SELECT room_code AS value, full_name AS "fullName" FROM rooms
        WHERE upper(room_code) LIKE upper($1) ESCAPE '\\'
+          OR replace(upper(room_code), ' ', '') LIKE $2 ESCAPE '\\'
           OR upper(full_name) LIKE upper($1) ESCAPE '\\'
-       ORDER BY length(room_code), room_code
+       ORDER BY
+         CASE WHEN replace(upper(room_code), ' ', '') = $3 THEN 0
+              WHEN replace(upper(room_code), ' ', '') LIKE $4 ESCAPE '\\' THEN 1
+              ELSE 2 END,
+         length(room_code), room_code
        LIMIT 6`,
-      [`%${escaped}%`],
+      [
+        `%${escaped}%`,
+        `%${compactCode}%`,
+        searchString.toUpperCase().replace(/\s+/g, ""),
+        `${compactCode}%`,
+      ],
     )) as Results<{ value: string; fullName: string | null }>;
     return data.rows.length ? data.rows : null;
   } catch (e) {

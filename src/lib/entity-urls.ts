@@ -45,10 +45,13 @@ export type RoutableQueryState = {
     | "place"
     | "event"
     | "events"
+    | "classes"
     | "browse"
     | null;
   value: string;
   eventSlug?: string;
+  /** Browse list the place was picked from (kept in history for Back). */
+  browseOrigin?: string | null;
 };
 
 export type ParsedEntityPath = {
@@ -166,6 +169,7 @@ export function getEntityCanonicalPath(
       return query.eventSlug ? getEventCanonicalPath(query.eventSlug) : null;
     case "class":
     case "events":
+    case "classes":
     case "browse":
       return null;
     default:

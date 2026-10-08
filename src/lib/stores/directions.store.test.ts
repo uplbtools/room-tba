@@ -3,8 +3,9 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 vi.mock("../travel-graph/load", () => ({
   loadTravelGraph: async () => ({}),
 }));
+const plan = vi.hoisted(() => ({ journeys: [] as unknown[] }));
 vi.mock("../travel-graph/plan-multi-leg", () => ({
-  planMultiLegJourneys: () => ({ journeys: [], status: "ok" }),
+  planMultiLegJourneys: () => ({ journeys: plan.journeys, status: "ok" }),
 }));
 
 import { DirectionsStore } from "./directions-store.svelte";
@@ -17,6 +18,7 @@ describe("DirectionsStore start point", () => {
   let store: DirectionsStore;
   beforeEach(() => {
     store = new DirectionsStore();
+    plan.journeys = [];
   });
 
   test("Directions from here waits for a destination, then plans", async () => {
@@ -66,5 +68,79 @@ describe("DirectionsStore start point", () => {
     expect(store.originFixed).toBe(false);
     expect(store.picking).toBeNull();
     expect(store.origin).toBeNull();
+  });
+});
+
+// Ranked fastest first, as planMultiLegJourneys returns them.
+const jeep = { id: "forestry", kind: "transit", seconds: 300, legs: [] };
+const walk = { id: "walk", kind: "walk", seconds: 600, legs: [] };
+
+describe("DirectionsStore GMaps controls", () => {
+  let store: DirectionsStore;
+  beforeEach(() => {
+    store = new DirectionsStore();
+    plan.journeys = [jeep, walk];
+  });
+
+  test("home Directions starts at GPS and asks where to", () => {
+    store.openEmpty(gps);
+    expect(store.active).toBe(true);
+    expect(store.origin).toEqual(gps);
+    expect(store.originFixed).toBe(false);
+    expect(store.picking).toBe("destination");
+  });
+
+  test("defaults to the fastest option and has a tab per mode", async () => {
+    await store.open(library, gps);
+    expect(store.selected?.id).toBe("forestry");
+    expect(store.fastestId).toBe("forestry");
+    expect(store.modes).toEqual([
+      { mode: "walk", seconds: 600 },
+      { mode: "transit", seconds: 300 },
+    ]);
+    store.selectMode("walk");
+    expect(store.mode).toBe("walk");
+    // A replan keeps the chosen tab.
+    await store.refresh();
+    expect(store.selected?.id).toBe("walk");
+  });
+
+  test("swap trades the ends and pins the old end as the start", async () => {
+    await store.open(library, gps);
+    await store.swap();
+    expect(store.origin).toEqual(library);
+    expect(store.originFixed).toBe(true);
+    expect(store.destination).toEqual(gps);
+  });
+
+  test("swap with no destination asks for one again", async () => {
+    store.openFrom(pin);
+    await store.swap();
+    expect(store.origin).toBeNull();
+    expect(store.destination).toEqual(pin);
+    expect(store.picking).toBe("origin");
+    expect(store.journeys).toEqual([]);
+  });
+
+  test("getSnapshot round-trips through restore", async () => {
+    await store.open(library, pin);
+    store.originFixed = true;
+    store.waypoints = [gps];
+    store.selectMode("walk");
+    store.startNavigation();
+    const snapshot = store.getSnapshot();
+    expect(snapshot).toEqual({
+      origin: pin,
+      originFixed: true,
+      destination: library,
+      waypoints: [gps],
+      mode: "walk",
+      navigating: true,
+    });
+
+    const other = new DirectionsStore();
+    await other.restore(JSON.parse(JSON.stringify(snapshot)));
+    expect(other.getSnapshot()).toEqual(snapshot);
+    expect(other.phase).toBe("ready");
   });
 });

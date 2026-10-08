@@ -18,6 +18,7 @@
   import University from "@lucide/svelte/icons/university";
   import Users from "@lucide/svelte/icons/users";
   import BookText from "@lucide/svelte/icons/book-text";
+  import Star from "@lucide/svelte/icons/star";
   import { onMount, type Component } from "svelte";
   import { fade, fly } from "svelte/transition";
   import { MediaQuery } from "svelte/reactivity";
@@ -37,6 +38,7 @@
     openEphemeralOverlay,
   } from "@lib/overlay-stack";
   import { rafThrottle } from "@lib/layout-css-vars";
+  import { trackOverlay } from "@lib/track-overlay.svelte";
   import {
     adminAuthStore,
     announcementsStore,
@@ -204,6 +206,9 @@
     open = false;
   }
 
+  // Back closes the menu instead of leaving the app.
+  trackOverlay("menu", () => open, closePanel);
+
   // Focus the panel itself, not its first row: a tap-opened menu should not
   // paint a focus ring (or a "selected" look) on whichever row comes first.
   $effect(() => {
@@ -335,6 +340,17 @@
         aria-labelledby="app-menu-go-heading"
       >
         <h3 id="app-menu-go-heading" class="app-menu__heading">Go to</h3>
+        <button
+          type="button"
+          class="app-menu__nav-action"
+          onclick={() => {
+            closePanel();
+            modalStore.openModal("saved-places");
+          }}
+        >
+          <Star size={18} aria-hidden="true" />
+          <span>Saved</span>
+        </button>
         {#each screens as screen (screen.id)}
           {@const Icon = screen.icon}
           <button
@@ -621,7 +637,7 @@
     align-items: center;
     gap: 0.75rem;
     background: transparent;
-    color: var(--map-chrome-text, hsl(5 20% 18%));
+    color: var(--map-chrome-text, var(--theme-text, hsl(5 20% 18%)));
     font: inherit;
     font-size: 0.875rem;
     font-weight: 600;
@@ -639,21 +655,21 @@
      last tapped row. */
   @media (hover: hover) {
     .app-menu__panel :global(.app-menu__nav-action:hover) {
-      background: var(--map-chrome-hover, hsl(5 25% 96%));
+      background: var(--map-chrome-hover, var(--theme-accent-soft, hsl(5 25% 96%)));
     }
   }
 
   .app-menu__panel :global(.app-menu__nav-action:active) {
-    background: var(--map-chrome-hover, hsl(5 25% 96%));
+    background: var(--map-chrome-hover, var(--theme-accent-soft, hsl(5 25% 96%)));
   }
 
   .app-menu__panel :global(.app-menu__nav-action[aria-current="page"]) {
-    background: #feeaea;
-    color: #8d1437;
+    background: var(--theme-accent-soft, #feeaea);
+    color: var(--theme-accent-text, #8d1437);
   }
 
   .app-menu__panel :global(.app-menu__nav-action:focus-visible) {
-    outline: 2px solid var(--color-brand, hsl(345 75% 31%));
+    outline: 2px solid var(--color-brand, var(--theme-accent-text, hsl(345 75% 31%)));
     outline-offset: -2px;
   }
 
@@ -672,7 +688,7 @@
     margin-left: 0.25rem;
     padding: 0 0.3rem;
     border-radius: 999px;
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
     font-size: 0.6875rem;
     font-weight: 700;
@@ -715,7 +731,7 @@
     background: linear-gradient(
       to bottom,
       transparent,
-      var(--map-chrome-surface, rgba(255, 255, 255, 0.98)) 85%
+      var(--map-chrome-surface, var(--theme-surface, rgba(255, 255, 255, 0.98))) 85%
     );
     pointer-events: none;
   }
@@ -724,7 +740,7 @@
     display: flex;
     flex-direction: column;
     padding: 0.25rem 0;
-    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+    border-top: 1px solid var(--map-chrome-divider, var(--theme-accent-border, hsl(5 12% 88%)));
   }
 
   .app-menu__section:first-child,
@@ -741,7 +757,7 @@
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .app-menu__section--install :global(.pwa-install-prompt) {
@@ -760,9 +776,9 @@
     justify-content: space-between;
     gap: 0.25rem 0.75rem;
     padding: 0.5rem 0.75rem 0.25rem;
-    border-top: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+    border-top: 1px solid var(--map-chrome-divider, var(--theme-accent-border, hsl(5 12% 88%)));
     font-size: 0.75rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .app-menu__footer :global(.online-counter) {

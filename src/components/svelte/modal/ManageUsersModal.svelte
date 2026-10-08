@@ -315,7 +315,7 @@
   .settings-frame {
     width: min(28rem, 100%);
     max-height: min(38rem, 90vh);
-    background: white;
+    background: var(--theme-surface, white);
     border-radius: 0.75rem;
     box-shadow: 0 18px 38px rgba(0, 0, 0, 0.3);
     overflow: hidden;
@@ -327,14 +327,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid hsl(0, 0%, 92%);
+    border-bottom: 1px solid var(--theme-border, hsl(0, 0%, 92%));
   }
   .settings-title {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     font-weight: 600;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
   .settings-body {
     padding: 1rem;
@@ -345,7 +345,7 @@
   }
   .settings-loading {
     margin: 0;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
   .settings-section {
     display: flex;
@@ -356,13 +356,13 @@
     margin: 0 0 0.25rem;
     font-size: 0.875rem;
     font-weight: 700;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
   .settings-link-btn {
     background: none;
     border: none;
     padding: 0;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-weight: 600;
     font-size: 0.75rem;
     cursor: pointer;
@@ -387,7 +387,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem;
-    border: 1px solid hsl(0, 0%, 92%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 92%));
     border-radius: 0.5rem;
   }
   .user-row--inactive {
@@ -404,7 +404,7 @@
   }
   .user-row-info small {
     font-size: 0.6875rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

@@ -1,9 +1,15 @@
 // src/lib/store.svelte.ts
 
 import { CAMPUS_BOUNDS } from "@constants/map-terrain";
-import { describeLocationFix } from "@lib/geolocation";
+import {
+  compassHeading,
+  describeLocationFix,
+  LOCATION_DENIED_MESSAGE,
+  type OrientationReading,
+} from "@lib/geolocation";
 import { campusTransit } from "../../campus.config";
 import { getJSONFetch, getLocalRoomByCode } from "../local/data/utils.js";
+import { isLocalCacheReady } from "../local/data/pgliteDB.js";
 import type { BuildingTypeFilter } from "@constants/building-types";
 import type { ClassMapValue } from "@lib/types";
 import type { RouteTotals } from "../campus-route.js";
@@ -104,19 +110,29 @@ export const currentRoom = {
     const generation = ++roomLoadGeneration;
     _currentRoom = null;
     _currentRoomNotFound = false;
+    const fetchRemote = async () => {
+      const codeParam = encodeURI(code.toUpperCase());
+      const remoteRoomReq = await getJSONFetch<{ data: RoomData }>(
+        `/api/rooms?code=${codeParam}`,
+      );
+      return remoteRoomReq.data;
+    };
     try {
-      const localRoom = await getLocalRoomByCode(code);
-      if (localRoom === null) {
-        const codeParam = encodeURI(code.toUpperCase());
-        const remoteRoomReq = await getJSONFetch<{ data: RoomData }>(
-          `/api/rooms?code=${codeParam}`,
-        );
-        if (generation !== roomLoadGeneration) return;
-        _currentRoom = remoteRoomReq.data;
-        return;
+      let room: RoomData | null;
+      if (isLocalCacheReady()) {
+        room = (await getLocalRoomByCode(code)) ?? (await fetchRemote());
+      } else {
+        // Cold cache (first visit, a fresh tab): booting it first held a
+        // room deep link on a skeleton for seconds. Network first, then the
+        // cache once it is up (offline).
+        try {
+          room = await fetchRemote();
+        } catch {
+          room = await getLocalRoomByCode(code);
+        }
       }
       if (generation !== roomLoadGeneration) return;
-      _currentRoom = localRoom;
+      _currentRoom = room;
     } catch (e) {
       console.error(e);
       if (generation !== roomLoadGeneration) return;
@@ -182,9 +198,14 @@ import { AnnouncementsStore } from "./announcements-store.svelte";
 import {
   DirectionsStore,
   MAX_DIRECTIONS_WAYPOINTS,
+  YOUR_LOCATION_LABEL,
 } from "./directions-store.svelte";
-export { MAX_DIRECTIONS_WAYPOINTS };
-export type { DirectionsPick } from "./directions-store.svelte";
+export { MAX_DIRECTIONS_WAYPOINTS, YOUR_LOCATION_LABEL };
+export type {
+  DirectionsMode,
+  DirectionsPick,
+  DirectionsSnapshot,
+} from "./directions-store.svelte";
 
 export { plannerRoomCodes } from "./data-stores.svelte";
 
@@ -192,7 +213,18 @@ class LocationStore {
   coords: [number, number] | null = $state(null);
   /** Horizontal accuracy from the browser GPS fix, meters. */
   accuracyMeters: number | null = $state(null);
+  /** Direction of travel from the GPS fix; null while standing still. */
   bearing: number | null = $state(null);
+  /** Compass heading from the device's orientation sensor, when it has one. */
+  deviceHeading: number | null = $state(null);
+  /** Where the phone points (compass first, then direction of travel). */
+  heading: number | null = $derived(this.deviceHeading ?? this.bearing);
+  /**
+   * Google Maps' locate button cycle: off, following the dot, following the
+   * dot with the map turned to the compass heading. Panning the map by hand
+   * drops back to off (MapControlsStack owns the camera side).
+   */
+  followMode: "off" | "follow" | "heading" = $state("off");
   isTracking: boolean = $state(false);
   /**
    * Why the last location request ended without a fix (denied, unavailable,
@@ -205,6 +237,7 @@ class LocationStore {
   /** Multi-stop foot route (schedule import or 2-point fallback). */
   routeWaypoints: [number, number][] | null = $state(null);
   private watchId: number | null = null;
+  private stopHeading: (() => void) | null = null;
   /** Avoid re-toasting every watch tick; still toast once when accuracy improves. */
   private announcedGoodFix = false;
   private announcedApproximateFix = false;
@@ -235,7 +268,8 @@ class LocationStore {
     this.failure = null;
     this.announcedGoodFix = false;
     this.announcedApproximateFix = false;
-    toastStore.show("Requesting location access...", "info");
+    // No "Requesting…" toast: the browser's own permission prompt says it.
+    this.startHeading();
 
     this.watchId = navigator.geolocation.watchPosition(
       (position) => {
@@ -255,18 +289,22 @@ class LocationStore {
         this.coords = [longitude, latitude];
         this.accuracyMeters =
           Number.isFinite(accuracy) && accuracy > 0 ? accuracy : null;
-        this.bearing = heading;
+        this.bearing =
+          typeof heading === "number" && Number.isFinite(heading)
+            ? heading
+            : null;
         // Update route origin if destination exists but origin hasn't been set
         if (this.destination && !this.routeOrigin) {
           this.routeOrigin = [longitude, latitude];
         }
 
+        // A good fix is announced by the blue dot itself; only a poor one
+        // gets a toast, once, and never after a good fix was seen.
         const fix = describeLocationFix(this.accuracyMeters);
-        if (fix.level === "good" && !this.announcedGoodFix) {
+        if (fix.level === "good") {
           this.announcedGoodFix = true;
-          toastStore.show(fix.message, "success");
         } else if (
-          fix.level === "approximate" &&
+          fix.message &&
           !this.announcedApproximateFix &&
           !this.announcedGoodFix
         ) {
@@ -278,7 +316,7 @@ class LocationStore {
         let msg = "An unknown error occurred while getting location.";
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            msg = "Location access denied. Please enable it in your settings.";
+            msg = LOCATION_DENIED_MESSAGE;
             break;
           case error.POSITION_UNAVAILABLE:
             msg = "Location information is unavailable.";
@@ -287,7 +325,12 @@ class LocationStore {
             msg = "Location request timed out.";
             break;
         }
-        toastStore.show(msg, "error");
+        // Every failure can be retried; for a denial the retry is what the
+        // user taps after flipping the site permission back on.
+        toastStore.show(msg, "error", {
+          label: "Try again",
+          run: this.requestLocation,
+        });
         this.stopTracking();
         this.failure = msg;
       },
@@ -297,8 +340,65 @@ class LocationStore {
     );
   };
 
+  /**
+   * Listen to the compass for the heading cone. iOS asks permission, and only
+   * inside a user gesture, so this runs from requestLocation (a tap). Android
+   * Chrome's absolute orientation event needs no prompt. Desktops without a
+   * sensor never fire, and the dot simply has no cone.
+   */
+  private startHeading() {
+    if (this.stopHeading || typeof window === "undefined") return;
+    if (typeof DeviceOrientationEvent === "undefined") return;
+    const eventName =
+      "ondeviceorientationabsolute" in window
+        ? "deviceorientationabsolute"
+        : "deviceorientation";
+    const onOrientation = (event: Event) => {
+      const next = compassHeading(
+        event as unknown as OrientationReading,
+        screen.orientation?.angle ?? 0,
+      );
+      if (next === null) return;
+      const rounded = Math.round(next);
+      // Sensors fire ~60 times a second; a couple of degrees is noise.
+      const previous = this.deviceHeading;
+      if (
+        previous !== null &&
+        Math.abs(((rounded - previous + 540) % 360) - 180) < 2
+      ) {
+        return;
+      }
+      this.deviceHeading = rounded;
+    };
+    const listen = () => {
+      window.addEventListener(eventName, onOrientation);
+    };
+    this.stopHeading = () => {
+      window.removeEventListener(eventName, onOrientation);
+      this.deviceHeading = null;
+    };
+    const requestPermission = (
+      DeviceOrientationEvent as unknown as {
+        requestPermission?: () => Promise<"granted" | "denied">;
+      }
+    ).requestPermission;
+    if (typeof requestPermission !== "function") {
+      listen();
+      return;
+    }
+    requestPermission()
+      .then((state) => {
+        if (state === "granted" && this.stopHeading) listen();
+      })
+      // Called outside a tap (deep link, directions): no cone, no error.
+      .catch(() => {});
+  }
+
   private stopTracking() {
     this.isTracking = false;
+    this.followMode = "off";
+    this.stopHeading?.();
+    this.stopHeading = null;
     this.coords = null;
     this.accuracyMeters = null;
     this.routeOrigin = null;

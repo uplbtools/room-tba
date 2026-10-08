@@ -35,7 +35,9 @@
   import { entityEditorSavedMessage } from "@lib/editor/field-action-label";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import Box from "@lucide/svelte/icons/box";
-  import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
+  import EntityShareButton from "../controls/EntityShareButton.svelte";
+  import EntitySaveButton from "../controls/EntitySaveButton.svelte";
+  import EntityPanelClose from "../controls/EntityPanelClose.svelte";
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
   import MapChromeActionChip from "../map-chrome/MapChromeActionChip.svelte";
   import { getRoomShareUrl } from "@lib/share-links";
@@ -504,20 +506,29 @@
 
 <div class="entity-detail">
   {#if currentRoom.value}
-    <header class="entity-header">
-      {#if parentBuilding}
-        <button
-          class="entity-header__breadcrumb"
-          type="button"
-          onclick={openBuildingResult}
-          aria-label={`Back to ${parentBuilding.name}`}
-        >
-          <ChevronLeft size={14} aria-hidden="true" />
-          <span>{parentBuilding.name}</span>
-        </button>
-      {/if}
-
-      <h2 class="entity-header__title">{currentRoom.value.code}</h2>
+    {#if parentBuilding}
+      <button
+        class="entity-header__breadcrumb"
+        type="button"
+        onclick={openBuildingResult}
+        aria-label={`Back to ${parentBuilding.name}`}
+      >
+        <ChevronLeft size={14} aria-hidden="true" />
+        <span>{parentBuilding.name}</span>
+      </button>
+    {/if}
+    <header class="entity-header entity-header--sticky">
+      <div
+        class="entity-header__title-row entity-header__title-row--with-close"
+      >
+        <h2 class="entity-header__title">{currentRoom.value.code}</h2>
+        {#if roomCategoryLabel(currentRoom.value.category)}
+          <span class="room-category-badge"
+            >{roomCategoryLabel(currentRoom.value.category)}</span
+          >
+        {/if}
+        <EntityPanelClose ariaLabel="Close room details" showOnMobile />
+      </div>
 
       {#if currentRoom.value.fullName}
         <p class="entity-header__context room-full-name">
@@ -525,64 +536,72 @@
         </p>
       {/if}
 
-      {#if roomCategoryLabel(currentRoom.value.category)}
-        <span class="room-category-badge"
-          >{roomCategoryLabel(currentRoom.value.category)}</span
-        >
-      {/if}
-
-      {#if currentRoom.value.collegeName}
-        <p class="entity-header__context">
-          {currentRoom.value.collegeName}
-        </p>
-      {/if}
-
-      <div class="entity-actions">
+      <div class="entity-actions entity-actions--place">
         {#if parentBuilding?.lat && parentBuilding.lon}
           <EntityDirectionsChip
+            primary
             lat={parentBuilding.lat}
             lon={parentBuilding.lon}
             destinationLabel={parentBuilding.name}
           />
-          <EntityGoogleMapsLink
-            lat={parentBuilding.lat}
-            lon={parentBuilding.lon}
-            name={parentBuilding.name}
-            ariaLabel={`Open ${parentBuilding.name} in Google Maps`}
-          />
-          <EntityPrintableMapLink
-            lat={parentBuilding.lat}
-            lon={parentBuilding.lon}
-            name={parentBuilding.name}
-          />
         {/if}
-        {#if parentBuilding?.lat && parentBuilding.lon}
-          <MapChromeActionChip
-            toolbar
-            ariaLabel="Move in 3D"
-            onclick={() =>
-              building3DStore.open(parentBuilding.name, {
-                roomCode: currentRoom.value?.code,
-                editMode: canPublish,
-              })}
-          >
-            <Box size={14} aria-hidden="true" />
-            Move in 3D
-          </MapChromeActionChip>
-        {/if}
-        <EntityShareCopyLink
-          url={roomShareUrl}
-          entityLabel={currentRoom.value.code}
-        />
-        <EntityEditorToggle
-          expanded={editing}
-          {canPublish}
-          publishOpenLabel="Edit room"
-          variant="toolbar"
-          onclick={() => (editing = !editing)}
-        />
+        <div class="entity-actions__scroll">
+          <EntitySaveButton
+            place={{
+              category: "room",
+              value: currentRoom.value.code,
+              label: currentRoom.value.code,
+              subtitle:
+                currentRoom.value.fullName ?? parentBuilding?.name ?? null,
+              lat: parentBuilding?.lat ?? null,
+              lon: parentBuilding?.lon ?? null,
+            }}
+          />
+          <EntityShareButton
+            url={roomShareUrl}
+            entityLabel={currentRoom.value.code}
+          />
+          {#if parentBuilding?.lat && parentBuilding.lon}
+            <MapChromeActionChip
+              toolbar
+              ariaLabel="Move in 3D"
+              onclick={() =>
+                building3DStore.open(parentBuilding.name, {
+                  roomCode: currentRoom.value?.code,
+                  editMode: canPublish,
+                })}
+            >
+              <Box size={14} aria-hidden="true" />
+              Move in 3D
+            </MapChromeActionChip>
+            <EntityGoogleMapsLink
+              lat={parentBuilding.lat}
+              lon={parentBuilding.lon}
+              name={parentBuilding.name}
+              ariaLabel={`Open ${parentBuilding.name} in Google Maps`}
+            />
+            <EntityPrintableMapLink
+              lat={parentBuilding.lat}
+              lon={parentBuilding.lon}
+              name={parentBuilding.name}
+            />
+          {/if}
+          <EntityEditorToggle
+            expanded={editing}
+            {canPublish}
+            publishOpenLabel="Edit room"
+            variant="toolbar"
+            onclick={() => (editing = !editing)}
+          />
+        </div>
       </div>
     </header>
+
+    {#if currentRoom.value.collegeName}
+      <p class="entity-header__context">
+        {currentRoom.value.collegeName}
+      </p>
+    {/if}
 
     {#if editing}
       <section class="entity-editor" aria-label="Edit room details">
@@ -945,17 +964,19 @@
   /* The unabbreviated name (#875) reads as the room's real name, so it sits
      a shade darker than the college affiliation line below it. */
   .room-full-name {
-    color: #27272a;
+    color: var(--theme-text, #27272a);
     font-weight: 600;
   }
 
   .room-category-badge {
     display: inline-block;
-    align-self: flex-start;
+    flex-shrink: 0;
+    align-self: center;
+    white-space: nowrap;
     padding: 0.125rem 0.5rem;
     border-radius: 999px;
-    background: hsl(5, 40%, 94%);
-    color: #7b1113;
+    background: var(--theme-accent-soft, hsl(5, 40%, 94%));
+    color: var(--theme-accent-text, #7b1113);
     font-size: 0.6875rem;
     font-weight: 600;
   }
@@ -965,16 +986,16 @@
     flex-direction: column;
     gap: 0.5rem;
     padding: 0.625rem;
-    border: 1px solid hsl(35, 80%, 70%);
+    border: 1px solid var(--theme-amber-border, hsl(35, 80%, 70%));
     border-radius: 0.5rem;
-    background-color: hsl(45, 100%, 97%);
+    background-color: var(--theme-amber-soft, hsl(45, 100%, 97%));
   }
 
   .merge-prompt p {
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.45;
-    color: #333;
+    color: var(--theme-text, #333);
   }
 
   .merge-actions {
@@ -984,30 +1005,30 @@
   }
 
   .merge-btn {
-    border: 1px solid #d8b9ba;
+    border: 1px solid var(--theme-accent-border, #d8b9ba);
     border-radius: 0.375rem;
     padding: 0.375rem 0.625rem;
-    background: white;
-    color: #7b1113;
+    background: var(--theme-surface, white);
+    color: var(--theme-accent-text, #7b1113);
     font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
   }
 
   .merge-btn-primary {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 32%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
   }
 
   .merge-btn:hover:not(:disabled) {
-    border-color: #c58f91;
-    background: #fdf3f3;
+    border-color: var(--theme-accent-border, #c58f91);
+    background: var(--theme-accent-soft, #fdf3f3);
   }
 
   .merge-btn-primary:hover:not(:disabled) {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 38%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 38%));
   }
 
   .merge-btn:disabled {
@@ -1028,7 +1049,7 @@
   }
 
   .entity-schedule__count {
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
     font-weight: 600;
     letter-spacing: normal;
     text-transform: none;
@@ -1038,15 +1059,15 @@
     margin: 0;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #7b1113;
+    color: var(--theme-accent-text, #7b1113);
   }
 
   .entity-schedule__scope {
     margin: 0;
     font-size: 0.6875rem;
     line-height: 1.4;
-    color: #71717a;
-    background-color: #f4f4f5;
+    color: var(--theme-text-2, #71717a);
+    background-color: var(--theme-surface-2, #f4f4f5);
     padding: 0.375rem 0.5rem;
     border-radius: 0.25rem;
   }
@@ -1054,6 +1075,6 @@
   .entity-schedule__empty {
     margin: 0;
     font-size: 0.8125rem;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
   }
 </style>

@@ -231,17 +231,17 @@
     font: inherit;
     font-size: 0.85rem;
     font-weight: 600;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
     text-decoration: underline;
   }
 
   .entity-history-toggle:hover {
-    background: hsl(0, 0%, 94%);
+    background: var(--theme-surface-2, hsl(0, 0%, 94%));
   }
 
   .entity-history-restore:hover {
-    background: #fdf3f3;
+    background: var(--theme-accent-soft, #fdf3f3);
   }
 
   .entity-history-note,
@@ -251,7 +251,7 @@
   }
 
   .entity-history-error {
-    color: hsl(0, 65%, 40%);
+    color: var(--theme-accent-text, hsl(0, 65%, 40%));
   }
 
   .entity-history-list {
@@ -264,7 +264,7 @@
   }
 
   .entity-history-entry {
-    border-top: 1px solid hsl(0 0% 88%);
+    border-top: 1px solid var(--theme-border, hsl(0 0% 88%));
     padding-top: 0.5rem;
     display: flex;
     flex-direction: column;
@@ -283,7 +283,7 @@
     text-transform: uppercase;
     font-size: 0.7rem;
     letter-spacing: 0.04em;
-    color: hsl(0 0% 45%);
+    color: var(--theme-text-2, hsl(0 0% 45%));
   }
 
   .entity-history-summary {
@@ -313,7 +313,7 @@
   }
 
   .entity-history-diff-old {
-    color: hsl(0 0% 45%);
+    color: var(--theme-text-2, hsl(0 0% 45%));
     text-decoration: line-through;
     overflow-wrap: anywhere;
   }

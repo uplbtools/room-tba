@@ -350,7 +350,7 @@
     min-height: 0;
     width: 100%;
     border-radius: inherit;
-    background-color: white;
+    background-color: var(--theme-surface, white);
   }
 
   .landing-header {
@@ -364,7 +364,7 @@
   }
 
   .hero-overlay {
-    background-color: rgb(123, 17, 19);
+    background-color: var(--theme-accent-fill, rgb(123, 17, 19));
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -438,7 +438,7 @@
     margin: 0;
     font-size: 0.9375rem;
     font-weight: 700;
-    color: hsl(5, 53%, 28%);
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
   }
 
   .inspiration-block {
@@ -453,7 +453,7 @@
     margin: 0;
     font-size: 0.9375rem;
     font-weight: 700;
-    color: hsl(5, 53%, 28%);
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
   }
 
   .inspiration-links {
@@ -465,20 +465,20 @@
     margin: 0;
     padding: 0;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
   }
 
   .section-note {
     margin: 0;
     font-size: 0.75rem;
     line-height: 1.45;
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
     max-width: 28rem;
     text-align: center;
   }
 
   .inline-link {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-weight: 600;
     text-decoration: underline;
     text-underline-offset: 2px;
@@ -487,8 +487,8 @@
   .github-cta {
     margin: 1.25rem 0 0.5rem;
     padding: 1rem;
-    background: hsl(0, 0%, 98%);
-    border: 1px solid hsl(0, 0%, 90%);
+    background: var(--theme-surface, hsl(0, 0%, 98%));
+    border: 1px solid var(--theme-border, hsl(0, 0%, 90%));
     border-radius: 0.75rem;
     text-align: center;
     display: flex;
@@ -502,7 +502,7 @@
   .cta-text {
     margin: 0;
     font-size: 0.875rem;
-    color: hsl(0, 0%, 25%);
+    color: var(--theme-text, hsl(0, 0%, 25%));
     font-weight: 500;
   }
 
@@ -551,7 +551,7 @@
     margin: 0;
     font-size: 0.9375rem;
     font-weight: 700;
-    color: hsl(5, 53%, 28%);
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
   }
 
   .community-links {
@@ -578,7 +578,7 @@
   .legal-hint {
     margin: 0;
     font-size: 0.75rem;
-    color: hsl(0, 0%, 38%);
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
   }
 
   .scroll-footer {
@@ -588,7 +588,7 @@
     gap: 0.625rem;
     margin-top: 1.5rem;
     padding-top: 1rem;
-    border-top: 1px solid hsl(0, 0%, 92%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
     width: 100%;
   }
 
@@ -599,8 +599,8 @@
     align-items: center;
     gap: 0.625rem;
     padding: 0.875rem 1rem 1rem;
-    border-top: 1px solid hsl(0, 0%, 92%);
-    background: white;
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
+    background: var(--theme-surface, white);
     width: 100%;
     box-sizing: border-box;
   }
@@ -616,7 +616,7 @@
     font-size: 0.9375rem;
     font-weight: 700;
     cursor: pointer;
-    background-color: hsl(5, 75%, 28%);
+    background-color: var(--theme-accent-fill, hsl(5, 75%, 28%));
     color: white;
     border: none;
     box-shadow: 0 2px 4px rgba(123, 17, 19, 0.2);
@@ -625,11 +625,11 @@
   }
 
   .primary-btn:hover {
-    background-color: hsl(5, 75%, 22%);
+    background-color: var(--theme-accent-fill, hsl(5, 75%, 22%));
   }
 
   .primary-btn:focus-visible {
-    outline: 2px solid hsl(5, 75%, 22%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 75%, 22%));
     outline-offset: 2px;
   }
 
@@ -637,7 +637,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background-color: hsl(5, 75%, 28%);
+    background-color: var(--theme-accent-fill, hsl(5, 75%, 28%));
   }
 
   @media screen and (max-width: 48rem) {

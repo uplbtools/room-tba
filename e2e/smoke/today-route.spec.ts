@@ -111,7 +111,7 @@ test.describe("today day route", () => {
     // The day route moved into the Map tools toolbox with the chrome
     // redesign. Hidden-not-disabled: the tool only exists with routable
     // classes today.
-    await page.getByRole("button", { name: "Map tools" }).first().click();
+    await page.getByRole("button", { name: "Layers" }).first().click();
     const tool = page.getByRole("button", { name: /Route my day/ });
     await expect(tool).toBeVisible({ timeout: 30_000 });
     await tool.click();

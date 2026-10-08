@@ -14,8 +14,8 @@ test.describe("travel time tool @advisory", () => {
     await page.goto("/");
     await waitForAppBoot(page);
 
-    await page.getByRole("button", { name: "Map tools", exact: true }).click();
-    await expect(page.getByRole("dialog", { name: "Map tools" })).toBeVisible();
+    await page.getByRole("button", { name: "Layers", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Layers" })).toBeVisible();
     await page.getByRole("button", { name: /travel time/i }).click();
 
     // Tool active: panel hands the map back and the legend prompts for a tap.

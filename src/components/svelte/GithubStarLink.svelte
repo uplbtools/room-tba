@@ -53,9 +53,9 @@
     margin: 0;
     padding: 0.5rem 0.875rem;
     border-radius: 999px;
-    background: hsl(5, 32%, 95%);
-    border: 1px solid hsl(5, 28%, 78%);
-    color: hsl(5, 58%, 22%);
+    background: var(--theme-accent-soft, hsl(5, 32%, 95%));
+    border: 1px solid var(--theme-accent-border, hsl(5, 28%, 78%));
+    color: var(--theme-accent-text, hsl(5, 58%, 22%));
     text-decoration: none;
     box-shadow: 0 1px 2px hsla(5, 40%, 20%, 0.06);
     transition:
@@ -65,20 +65,20 @@
   }
 
   .github-star-link:hover {
-    background: hsl(5, 38%, 92%);
+    background: var(--theme-accent-soft, hsl(5, 38%, 92%));
     border-color: hsl(5, 45%, 62%);
     box-shadow: 0 2px 6px hsla(5, 40%, 20%, 0.1);
   }
 
   .github-star-link:focus-visible {
-    outline: 2px solid hsl(5, 65%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 65%, 32%));
     outline-offset: 2px;
   }
 
   .github-star-link :global(.github-star-link__icon) {
     flex-shrink: 0;
-    color: hsl(42, 92%, 38%);
-    fill: hsl(42, 92%, 38%);
+    color: var(--theme-amber-text, hsl(42, 92%, 38%));
+    fill: var(--theme-amber-text, hsl(42, 92%, 38%));
   }
 
   .github-star-link__copy {
@@ -94,14 +94,14 @@
     font-weight: 800;
     line-height: 1.1;
     font-variant-numeric: tabular-nums;
-    color: hsl(5, 70%, 20%);
+    color: var(--theme-accent-text, hsl(5, 70%, 20%));
   }
 
   .github-star-link__label {
     font-size: 0.75rem;
     font-weight: 700;
     line-height: 1.2;
-    color: hsl(5, 45%, 30%);
+    color: var(--theme-accent-text, hsl(5, 45%, 30%));
     white-space: nowrap;
   }
 </style>

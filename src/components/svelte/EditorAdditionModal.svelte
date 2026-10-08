@@ -123,8 +123,8 @@
     flex-direction: column;
     overflow: hidden;
     border-radius: 0.75rem;
-    border: 1px solid var(--map-chrome-border, hsl(5, 25%, 78%));
-    background: var(--map-chrome-surface, #fffafa);
+    border: 1px solid var(--map-chrome-border, var(--theme-accent-border, hsl(5, 25%, 78%)));
+    background: var(--map-chrome-surface, var(--theme-surface, #fffafa));
     box-shadow: var(--map-chrome-panel-shadow, 0 18px 38px rgba(0, 0, 0, 0.3));
   }
 
@@ -135,7 +135,7 @@
     justify-content: space-between;
     gap: 0.75rem;
     padding: 0.625rem 0.875rem;
-    border-bottom: 1px solid hsl(0, 0%, 92%);
+    border-bottom: 1px solid var(--theme-border, hsl(0, 0%, 92%));
   }
 
   .editor-addition-title {
@@ -143,7 +143,7 @@
     align-items: center;
     gap: 0.5rem;
     font-weight: 600;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .editor-addition-body {
@@ -151,5 +151,33 @@
     overscroll-behavior: contain;
     padding: 1rem;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Phones: a full-screen sheet, like any app's "add a place" form. The map
+     is not needed while typing; "Pick on map" hides the sheet for the pin
+     drop and brings it back after (SuggestAdditionPanel.pickOnMap). */
+  @media (max-width: 47.99rem) {
+    .editor-addition-overlay {
+      align-items: stretch;
+      padding: 0;
+    }
+
+    .editor-addition-frame {
+      width: 100%;
+      height: 100dvh;
+      max-height: none;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .editor-addition-header {
+      padding-top: calc(0.625rem + env(safe-area-inset-top, 0px));
+    }
+
+    .editor-addition-body {
+      flex: 1;
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    }
   }
 </style>

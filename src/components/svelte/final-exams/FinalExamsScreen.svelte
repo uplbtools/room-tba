@@ -163,7 +163,7 @@
     flex-direction: column;
     gap: 0.75rem;
     padding: 1rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));
-    background: hsl(0, 0%, 98%);
+    background: var(--theme-surface, hsl(0, 0%, 98%));
     flex:1 1 auto;
     pointer-events: auto;
     overflow: hidden;
@@ -187,23 +187,23 @@
     width: 2.75rem;
     height: 2.75rem;
     border-radius: 999px;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
   }
 
   .finals-back:hover {
-    background: hsl(5, 30%, 94%);
+    background: var(--theme-accent-soft, hsl(5, 30%, 94%));
   }
 
   .finals-back:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .finals-title {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 800;
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .finals-toolbar {
@@ -216,7 +216,7 @@
 
   .finals-about {
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .finals-about summary {
@@ -224,12 +224,12 @@
     align-items: center;
     min-height: 2.75rem;
     font-weight: 600;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
   }
 
   .finals-about summary:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 2px;
   }
 
@@ -244,21 +244,21 @@
     gap: 0.5rem;
     max-width: 26rem;
     padding: 0.5rem 0.75rem;
-    border: 1px solid hsl(0, 0%, 85%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 85%));
     border-radius: 0.625rem;
-    background: white;
-    color: hsl(0, 0%, 45%);
+    background: var(--theme-surface, white);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .finals-search:focus-within {
-    border-color: hsl(5, 53%, 32%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .finals-search input {
     all: unset;
     flex: 1;
     font-size: 0.875rem;
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .finals-body {
@@ -273,7 +273,7 @@
   .finals-status {
     margin: 0;
     font-size: 0.875rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .finals-empty {
@@ -284,7 +284,7 @@
     margin: auto 0;
     padding: 2rem 1rem;
     text-align: center;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .finals-empty .finals-status {
@@ -299,7 +299,7 @@
     margin: 0;
     font-size: 1rem;
     font-weight: 700;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .finals-empty__action {
@@ -311,7 +311,7 @@
     margin-top: 0.25rem;
     padding: 0 1.125rem;
     border-radius: 999px;
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: #fff;
     font-size: 0.875rem;
     font-weight: 700;
@@ -319,11 +319,11 @@
   }
 
   .finals-empty__action:hover {
-    background: hsl(5, 53%, 38%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 38%));
   }
 
   .finals-empty__action:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 2px;
   }
 
@@ -338,16 +338,16 @@
     margin: 0;
     font-size: 0.9375rem;
     font-weight: 700;
-    color: hsl(0, 0%, 20%);
+    color: var(--theme-text, hsl(0, 0%, 20%));
     position: sticky;
     top: 0;
-    background: hsl(0, 0%, 98%);
+    background: var(--theme-surface, hsl(0, 0%, 98%));
     padding: 0.25rem 0;
   }
 
   .finals-day__count {
     font-weight: 500;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   @media (max-width: 48rem) {

@@ -370,7 +370,7 @@
     flex-direction: column;
     gap: 0.75rem;
     padding: 1rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));
-    background: hsl(0, 0%, 98%);
+    background: var(--theme-surface, hsl(0, 0%, 98%));
     flex: 1 1 auto;
     pointer-events: auto;
     overflow: hidden;
@@ -394,23 +394,23 @@
     width: 2.75rem;
     height: 2.75rem;
     border-radius: 999px;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
   }
 
   .acal-back:hover {
-    background: hsl(5, 30%, 94%);
+    background: var(--theme-accent-soft, hsl(5, 30%, 94%));
   }
 
   .acal-back:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .acal-title {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 800;
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .acal-about {
@@ -423,19 +423,19 @@
     min-height: 2.75rem;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
   }
 
   .acal-about summary:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 2px;
   }
 
   .acal-note {
     margin: 0;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .acal-body {
@@ -450,7 +450,7 @@
   .acal-status {
     margin: 0;
     font-size: 0.875rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .acal-year {
@@ -464,26 +464,26 @@
     margin: 0;
     font-size: 0.9375rem;
     font-weight: 700;
-    color: hsl(0, 0%, 20%);
+    color: var(--theme-text, hsl(0, 0%, 20%));
   }
 
   .acal-strip {
     position: relative;
     height: 4rem;
-    border: 1px solid hsl(0, 0%, 88%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 88%));
     border-radius: 0.625rem;
-    background: white;
+    background: var(--theme-surface, white);
   }
 
   .acal-month {
     position: absolute;
     top: 0.25rem;
     padding-left: 0.1875rem;
-    border-left: 1px solid hsl(0, 0%, 90%);
+    border-left: 1px solid var(--theme-border, hsl(0, 0%, 90%));
     height: calc(100% - 0.5rem);
     font-size: 0.5625rem;
     font-weight: 600;
-    color: hsl(0, 0%, 55%);
+    color: var(--theme-text-muted, hsl(0, 0%, 55%));
     line-height: 1;
     pointer-events: none;
   }
@@ -500,17 +500,17 @@
   }
 
   .acal-seg--past {
-    background: hsl(0, 0%, 90%);
-    color: hsl(0, 0%, 35%);
+    background: var(--theme-surface-3, hsl(0, 0%, 90%));
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
   }
 
   .acal-seg--upcoming {
-    background: hsl(5, 30%, 92%);
-    color: hsl(5, 40%, 30%);
+    background: var(--theme-accent-soft, hsl(5, 30%, 92%));
+    color: var(--theme-accent-text, hsl(5, 40%, 30%));
   }
 
   .acal-seg--in-session {
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
   }
 
@@ -546,17 +546,17 @@
     font-weight: 800;
     line-height: 1;
     color: white;
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
   }
 
   /* A missed deadline costs money, so deadlines read loudest. */
   .acal-dot--deadline {
-    background: hsl(5, 72%, 42%);
+    background: var(--theme-accent-fill, hsl(5, 72%, 42%));
   }
 
   .acal-dot--period {
-    background: white;
-    color: hsl(5, 53%, 32%);
+    background: var(--theme-surface, white);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     box-shadow: inset 0 0 0 2px hsl(5, 53%, 32%);
   }
 
@@ -587,7 +587,7 @@
     padding: 0;
     list-style: none;
     font-size: 0.6875rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .acal-legend li {
@@ -607,7 +607,7 @@
     margin: 0;
     font-size: 0.6875rem;
     font-weight: 600;
-    color: hsl(210, 60%, 35%);
+    color: var(--theme-blue-text, hsl(210, 60%, 35%));
   }
 
   .acal-milestones {
@@ -623,7 +623,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .acal-milestones__list {
@@ -641,38 +641,38 @@
     align-items: baseline;
     gap: 0.25rem 0.75rem;
     padding: 0.4375rem 0.75rem;
-    border: 1px solid hsl(0, 0%, 88%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 88%));
     border-radius: 0.625rem;
-    background: white;
+    background: var(--theme-surface, white);
   }
 
   .acal-milestone--deadline {
-    border-color: hsl(5, 45%, 78%);
-    background: hsl(5, 60%, 98%);
+    border-color: var(--theme-accent-border, hsl(5, 45%, 78%));
+    background: var(--theme-accent-soft, hsl(5, 60%, 98%));
   }
 
   /* Past dates stay on the calendar, just quieter than what is still ahead. */
   .acal-milestone--past {
-    border-color: hsl(0, 0%, 90%);
-    background: hsl(0, 0%, 97%);
+    border-color: var(--theme-border, hsl(0, 0%, 90%));
+    background: var(--theme-surface, hsl(0, 0%, 97%));
   }
 
   .acal-milestone__date {
     font-size: 0.75rem;
     font-weight: 700;
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
     font-variant-numeric: tabular-nums;
   }
 
   .acal-milestone--past .acal-milestone__date,
   .acal-milestone--past .acal-milestone__label {
-    color: hsl(0, 0%, 48%);
+    color: var(--theme-text-2, hsl(0, 0%, 48%));
   }
 
   .acal-milestone__label {
     font-size: 0.8125rem;
     font-weight: 600;
-    color: hsl(0, 0%, 16%);
+    color: var(--theme-text, hsl(0, 0%, 16%));
     overflow-wrap: anywhere;
   }
 
@@ -681,13 +681,13 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: hsl(0, 0%, 52%);
+    color: var(--theme-text-muted, hsl(0, 0%, 52%));
   }
 
   .acal-milestones__note {
     margin: 0.25rem 0 0;
     font-size: 0.6875rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .acal-terms {
@@ -701,9 +701,9 @@
   .acal-card {
     display: block;
     padding: 0.625rem 0.75rem;
-    border: 1px solid hsl(0, 0%, 88%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 88%));
     border-radius: 0.625rem;
-    background: white;
+    background: var(--theme-surface, white);
   }
 
   .acal-card__head {
@@ -736,7 +736,7 @@
   .acal-card__dates {
     margin: 0.5rem 0 0;
     padding: 0.5rem 0 0;
-    border-top: 1px solid hsl(0, 0%, 92%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
     list-style: none;
     display: flex;
     flex-direction: column;
@@ -745,20 +745,20 @@
 
   .acal-card__hint {
     font-weight: 650;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .acal-card__empty {
     margin: 0.5rem 0 0;
     padding-top: 0.5rem;
-    border-top: 1px solid hsl(0, 0%, 92%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
     font-size: 0.75rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .acal-card--current {
-    border-color: hsl(5, 53%, 32%);
-    background: hsl(5, 53%, 98%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background: var(--theme-accent-soft, hsl(5, 53%, 98%));
   }
 
   .acal-card__head {
@@ -773,7 +773,7 @@
     margin: 0;
     font-size: 0.875rem;
     font-weight: 700;
-    color: hsl(0, 0%, 16%);
+    color: var(--theme-text, hsl(0, 0%, 16%));
   }
 
   .acal-badge {
@@ -787,19 +787,19 @@
   }
 
   .acal-badge--in-session {
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
   }
 
   .acal-badge--upcoming {
-    background: hsl(5, 30%, 92%);
-    color: hsl(5, 40%, 30%);
+    background: var(--theme-accent-soft, hsl(5, 30%, 92%));
+    color: var(--theme-accent-text, hsl(5, 40%, 30%));
   }
 
   .acal-badge--past,
   .acal-badge--undated {
-    background: hsl(0, 0%, 92%);
-    color: hsl(0, 0%, 40%);
+    background: var(--theme-surface-2, hsl(0, 0%, 92%));
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .acal-card__meta {
@@ -808,7 +808,7 @@
     flex-wrap: wrap;
     gap: 0.25rem 0.75rem;
     font-size: 0.75rem;
-    color: hsl(0, 0%, 42%);
+    color: var(--theme-text-2, hsl(0, 0%, 42%));
   }
 
   @media (max-width: 48rem) {

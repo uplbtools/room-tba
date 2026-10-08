@@ -145,3 +145,52 @@ describe("bottom sheet peek fits its content", () => {
     );
   });
 });
+
+/** Jakob audit macro 14: phone landscape turns the sheet into a side panel. */
+describe("bottom sheet in phone landscape", () => {
+  function landscape(matches: boolean) {
+    const original = window.matchMedia;
+    window.matchMedia = ((query: string) => ({
+      ...original(query),
+      matches: query.includes("orientation: landscape") ? matches : false,
+    })) as typeof window.matchMedia;
+    return () => {
+      window.matchMedia = original;
+    };
+  }
+
+  test("renders as a full-height side panel with no drag handle", () => {
+    const restore = landscape(true);
+    try {
+      const { container } = render(BottomSheetHost, { open: true });
+      const root = container.querySelector(".bottom-sheet-root");
+      const sheet = container.querySelector<HTMLElement>(".bottom-sheet");
+      expect(root?.classList.contains("bottom-sheet-root--side")).toBe(true);
+      expect(sheet?.style.transform).toBe("");
+      expect(
+        screen.queryByRole("button", {
+          name: /Expand details|Collapse details/,
+        }),
+      ).toBeNull();
+    } finally {
+      restore();
+    }
+  });
+
+  test("portrait keeps the snapping bottom sheet", () => {
+    const restore = landscape(false);
+    try {
+      const { container } = render(BottomSheetHost, { open: true });
+      expect(
+        container
+          .querySelector(".bottom-sheet-root")
+          ?.classList.contains("bottom-sheet-root--side"),
+      ).toBe(false);
+      expect(
+        screen.getByRole("button", { name: /Expand details|Collapse details/ }),
+      ).toBeInTheDocument();
+    } finally {
+      restore();
+    }
+  });
+});

@@ -8,6 +8,8 @@ import { deactivateMapModesExcept } from "./map-modes.js";
 import type { MapToolsSection, TerrainStatus } from "./store-types.js";
 import type { WaybackSnapshot } from "../wayback-imagery.js";
 
+const HIGHLIGHT_MY_BUILDINGS_KEY = "highlight-my-buildings";
+
 export class MapStore {
   mapInstance: maplibre.MapLibreMap | undefined = $state.raw();
 }
@@ -18,8 +20,13 @@ export class MapViewStore {
   // map legend so users can declutter the map (#18b).
   showOrgs: boolean = $state(true);
   showPlaces: boolean = $state(true);
-  // Emphasize buildings hosting the user's planner classes; dim other pins.
-  highlightMyBuildings: boolean = $state(false);
+  // Mark the buildings hosting the user's planner classes. On by default so a
+  // planned class shows up on the map without a trip to settings; turning it
+  // off is remembered.
+  highlightMyBuildings: boolean = $state(
+    typeof localStorage === "undefined" ||
+      localStorage.getItem(HIGHLIGHT_MY_BUILDINGS_KEY) !== "false",
+  );
   /** Org/place pins are also zoom-gated in Map.svelte. The legend reads this
    * so its toggles cannot claim "Shown" while the gate is hiding them. */
   poiPinsZoomVisible: boolean = $state(true);
@@ -66,6 +73,14 @@ export class MapViewStore {
 
   toggleHighlightMyBuildings = () => {
     this.highlightMyBuildings = !this.highlightMyBuildings;
+    try {
+      localStorage.setItem(
+        HIGHLIGHT_MY_BUILDINGS_KEY,
+        String(this.highlightMyBuildings),
+      );
+    } catch {
+      // Private mode: the toggle still works for this session.
+    }
     // Events-only hides building pins entirely — pointless combined with a
     // building highlight, so leave that mode when highlighting.
     if (this.highlightMyBuildings) this.eventsOnly = false;

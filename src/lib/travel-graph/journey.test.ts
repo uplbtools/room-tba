@@ -90,12 +90,32 @@ describe("planJourneys", () => {
     );
     expect(ride?.boardStopName).toBe("Stop 0");
     expect(ride?.alightStopName).toBe("Stop 4");
+    // The itinerary lists the stops ridden through, board and alight included.
+    expect(ride?.stopNames[0]).toBe("Stop 0");
+    expect(ride?.stopNames.at(-1)).toBe("Stop 4");
+    expect(ride?.stopNames).toHaveLength(ride?.stopCount ?? -1);
+    // A one-way route has no Kaliwa/Kanan-style direction name.
+    expect(ride?.directionLabel).toBeNull();
     expect(ride?.waitSeconds).toBe(JEEPNEY_WAIT_SECONDS);
     // Boarding at the origin and alighting at the destination: no walking.
     expect(transit?.walkMeters).toBeCloseTo(0, 0);
     // 4 km at 14 km/h = ~1029s, plus the 300s wait.
     expect(transit?.seconds).toBeCloseTo(1029 + JEEPNEY_WAIT_SECONDS, -1);
     expect(transit?.seconds).toBeLessThan(journeys[0].seconds + 1);
+  });
+
+  test("names the direction of a two-way route ridden backwards", () => {
+    const { journeys } = planJourneys({
+      graph,
+      origin: nodeAt(4),
+      destination: nodeAt(0),
+      routes: [{ ...corridorRoute, id: "kaliwa-kanan" }],
+    });
+    const ride = journeys
+      .flatMap((j) => j.legs)
+      .find((leg): leg is RideLeg => leg.kind === "ride");
+    expect(ride?.boardStopName).toBe("Stop 4");
+    expect(ride?.directionLabel).toBe("Kaliwa");
   });
 
   test("suppresses a ride that barely beats walking", () => {

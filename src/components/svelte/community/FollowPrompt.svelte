@@ -48,9 +48,9 @@
     gap: 0.5rem;
     margin-top: 1rem;
     padding: 0.75rem;
-    border: 1px solid hsl(0, 0%, 88%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 88%));
     border-radius: 0.5rem;
-    background: hsl(0, 0%, 98%);
+    background: var(--theme-surface, hsl(0, 0%, 98%));
   }
 
   .follow-prompt__body {
@@ -67,14 +67,13 @@
     height: 2.75rem;
   }
 
-  @media (prefers-color-scheme: dark) {
-    .follow-prompt {
-      border-color: hsl(0, 0%, 28%);
-      background: hsl(0, 0%, 15%);
-    }
+  /* Follows Settings → Appearance (data-theme is resolved before paint). */
+  :global(:root[data-theme="dark"]) .follow-prompt {
+    border-color: hsl(0, 0%, 28%);
+    background: hsl(0, 0%, 15%);
+  }
 
-    .follow-prompt :global(.follow-prompt__dismiss) {
-      color: hsl(0, 0%, 78%);
-    }
+  :global(:root[data-theme="dark"]) .follow-prompt :global(.follow-prompt__dismiss) {
+    color: hsl(0, 0%, 78%);
   }
 </style>

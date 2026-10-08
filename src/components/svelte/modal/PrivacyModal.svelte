@@ -76,12 +76,12 @@
 
   h2 {
     font-size: 1rem;
-    color: hsl(0 0% 15%);
+    color: var(--theme-text, hsl(0 0% 15%));
   }
 
   header > p:last-child,
   .privacy-modal__eyebrow {
-    color: hsl(0 0% 42%);
+    color: var(--theme-text-2, hsl(0 0% 42%));
     font-size: 0.75rem;
   }
 
@@ -99,7 +99,7 @@
     gap: 0.875rem;
     overflow-y: auto;
     padding-right: 0.375rem;
-    color: hsl(0 0% 22%);
+    color: var(--theme-text, hsl(0 0% 22%));
     font-size: 0.875rem;
     line-height: 1.55;
   }
@@ -111,7 +111,7 @@
   }
 
   h3 {
-    color: hsl(5 53% 28%);
+    color: var(--theme-accent-text, hsl(5 53% 28%));
     font-size: 0.875rem;
   }
 
@@ -124,7 +124,7 @@
   }
 
   a {
-    color: hsl(5 53% 32%);
+    color: var(--theme-accent-text, hsl(5 53% 32%));
     font-weight: 600;
   }
 

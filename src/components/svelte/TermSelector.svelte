@@ -294,7 +294,7 @@
   }
   .term-filter-chip__button:focus-visible,
   .term-inline__trigger:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: -2px; /* chips row clips outward rings */
   }
 
@@ -317,9 +317,9 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 0.625rem;
-    border: 1px solid hsl(5, 53%, 88%);
+    border: 1px solid var(--theme-accent-border, hsl(5, 53%, 88%));
     border-radius: 0.5rem;
-    background: hsl(5, 53%, 98%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 98%));
   }
 
   .term-inline__label {
@@ -328,7 +328,7 @@
     gap: 0.25rem;
     font-size: 0.75rem;
     font-weight: 700;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     white-space: nowrap;
   }
 
@@ -340,13 +340,13 @@
     min-width: 0;
     max-width: 100%;
     padding: 0.3125rem 0.5rem;
-    border: 1px solid hsl(0, 0%, 82%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 82%));
     border-radius: 0.375rem;
-    background: white;
+    background: var(--theme-surface, white);
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: hsl(0, 0%, 16%);
+    color: var(--theme-text, hsl(0, 0%, 16%));
     cursor: pointer;
     text-align: left;
   }
@@ -362,7 +362,7 @@
   .term-inline__count {
     font-size: 0.75rem;
     font-weight: 600;
-    color: hsl(0, 0%, 42%);
+    color: var(--theme-text-2, hsl(0, 0%, 42%));
     white-space: nowrap;
   }
 
@@ -370,7 +370,7 @@
     flex-basis: 100%;
     font-size: 0.6875rem;
     font-weight: 600;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .term-picker-panel {
@@ -397,7 +397,7 @@
     padding: 0.5rem 0.625rem;
     border: 1px solid transparent;
     border-radius: 0.625rem;
-    background: hsl(0, 0%, 98%);
+    background: var(--theme-surface, hsl(0, 0%, 98%));
     cursor: pointer;
     text-align: left;
     font: inherit;
@@ -408,14 +408,14 @@
 
   .term-picker-option:hover,
   .term-picker-option:focus-visible {
-    border-color: hsl(5, 40%, 72%);
-    background-color: hsl(5, 53%, 98%);
+    border-color: var(--theme-accent-border, hsl(5, 40%, 72%));
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 98%));
   }
 
   .term-picker-option--active {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 96%);
-    color: hsl(5, 53%, 22%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 96%));
+    color: var(--theme-accent-text, hsl(5, 53%, 22%));
   }
 
   .term-picker-option__copy {
@@ -437,21 +437,21 @@
   .term-picker-option__meta {
     font-size: 0.6875rem;
     font-weight: 600;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .term-picker-option__count {
     flex: 0 0 auto;
     font-size: 0.6875rem;
     font-weight: 700;
-    color: hsl(0, 0%, 42%);
+    color: var(--theme-text-2, hsl(0, 0%, 42%));
     white-space: nowrap;
     text-align: right;
   }
 
   .term-picker-option--active .term-picker-option__count,
   .term-picker-option--active .term-picker-option__meta {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .term-picker-calendar-link {
@@ -463,7 +463,7 @@
     margin-top: 0.125rem;
     padding: 0.5rem 0.625rem;
     border: none;
-    border-top: 1px solid hsl(0, 0%, 90%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 90%));
     border-radius: 0 0 0.625rem 0.625rem;
     background: none;
     cursor: pointer;
@@ -471,16 +471,16 @@
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .term-picker-calendar-link:hover,
   .term-picker-calendar-link:focus-visible {
-    background: hsl(5, 53%, 98%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 98%));
   }
 
   .term-picker-calendar-link:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: -2px;
   }
 </style>

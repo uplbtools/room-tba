@@ -38,7 +38,9 @@
   import EntityEditorToggle from "@ui/editor/EntityEditorToggle.svelte";
   import DormEditorPanel from "@ui/controls/DormEditorPanel.svelte";
   import EntityLastUpdated from "../EntityLastUpdated.svelte";
-  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityShareButton from "./EntityShareButton.svelte";
+  import EntitySaveButton from "./EntitySaveButton.svelte";
+  import EntityPanelClose from "./EntityPanelClose.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
   import EntityExternalLink from "./EntityExternalLink.svelte";
   import BuildingPhoto from "./BuildingPhoto.svelte";
@@ -678,91 +680,109 @@
 
 <div class="entity-detail">
   {#if dorm}
-    <header class="entity-header">
-      <EntityBackToList tab="dorms" label="Back to dormitories" />
-      <div class="entity-header__title-row">
+    <EntityBackToList tab="dorms" label="Back to dormitories" />
+    <header class="entity-header entity-header--sticky">
+      <div
+        class="entity-header__title-row entity-header__title-row--with-close"
+      >
         <h2 class="entity-header__title">
           {dorm.dormName}
           {#if showShortName}
             <span class="entity-header__abbrev">{dorm.shortName}</span>
           {/if}
         </h2>
+        <EntityPanelClose ariaLabel="Close dorm details" showOnMobile />
       </div>
 
-      <div class="entity-meta-row">
-        {#if dorm.isUpManaged}
-          <span class="entity-meta-chip up-badge">
-            <BadgeCheck size={12} />
-            UP-managed
-          </span>
-        {:else}
-          <span class="entity-meta-chip private-badge">
-            <KeyRound size={12} />
-            Private
-          </span>
-        {/if}
-        {#if genderLabel}
-          <span
-            class="entity-meta-chip gender-badge"
-            style:--badge-color={genderColor}
-          >
-            <Users size={12} />
-            {genderLabel}
-          </span>
-        {/if}
-        {#if dorm.capacity}
-          <span class="entity-meta-chip capacity-badge">
-            <Building2 size={12} />
-            {dorm.capacity} beds
-          </span>
-        {/if}
-        {#if dorm.priceRange}
-          <span class="entity-meta-chip price-badge">
-            <CircleDollarSign size={12} aria-hidden="true" />
-            {dorm.priceRange}
-          </span>
-        {/if}
-      </div>
-
-      <div class="entity-actions">
+      <div class="entity-actions entity-actions--place">
         {#if dorm.lon && dorm.lat}
           <EntityDirectionsChip
+            primary
             lat={dorm.lat}
             lon={dorm.lon}
             destinationLabel={dorm.dormName}
           />
-          <EntityGoogleMapsLink
-            lat={dorm.lat}
-            lon={dorm.lon}
-            name={dorm.dormName}
-            ariaLabel={`Open ${dorm.dormName} in Google Maps`}
-          />
-          <EntityPrintableMapLink
-            lat={dorm.lat}
-            lon={dorm.lon}
-            name={dorm.dormName}
-          />
         {/if}
-        <EntityShareCopyLink url={dormShareUrl} entityLabel={dorm.dormName} />
-        {#if kuboDormCta}
-          <EntityExternalLink
-            href={kuboDormCta.href}
-            label={kuboDormCta.label}
-            ariaLabel={kuboDormCta.ariaLabel}
-            class="entity-footer__link--button entity-footer__link--kubo"
-            iconSrc="/kubo-logo.png"
+        <div class="entity-actions__scroll">
+          <EntitySaveButton
+            place={{
+              category: "dorm",
+              value: dorm.dormName,
+              label: dorm.dormName,
+              subtitle: dorm.isUpManaged ? "UP-managed dorm" : "Private dorm",
+              lat: dorm.lat,
+              lon: dorm.lon,
+            }}
           />
-        {/if}
-        <EntityEditorToggle
-          expanded={editing}
-          {canPublish}
-          publishOpenLabel="Edit dorm"
-          closeLabel={canPublish ? "Close editor" : "Close"}
-          variant="toolbar"
-          onclick={() => (editing = !editing)}
-        />
+          <EntityShareButton url={dormShareUrl} entityLabel={dorm.dormName} />
+          {#if kuboDormCta}
+            <EntityExternalLink
+              href={kuboDormCta.href}
+              label={kuboDormCta.label}
+              ariaLabel={kuboDormCta.ariaLabel}
+              class="entity-footer__link--button entity-footer__link--kubo"
+              iconSrc="/kubo-logo.png"
+            />
+          {/if}
+          {#if dorm.lon && dorm.lat}
+            <EntityGoogleMapsLink
+              lat={dorm.lat}
+              lon={dorm.lon}
+              name={dorm.dormName}
+              ariaLabel={`Open ${dorm.dormName} in Google Maps`}
+            />
+            <EntityPrintableMapLink
+              lat={dorm.lat}
+              lon={dorm.lon}
+              name={dorm.dormName}
+            />
+          {/if}
+          <EntityEditorToggle
+            expanded={editing}
+            {canPublish}
+            publishOpenLabel="Edit dorm"
+            closeLabel={canPublish ? "Close editor" : "Close"}
+            variant="toolbar"
+            onclick={() => (editing = !editing)}
+          />
+        </div>
       </div>
     </header>
+
+    <div class="entity-meta-row">
+      {#if dorm.isUpManaged}
+        <span class="entity-meta-chip up-badge">
+          <BadgeCheck size={12} />
+          UP-managed
+        </span>
+      {:else}
+        <span class="entity-meta-chip private-badge">
+          <KeyRound size={12} />
+          Private
+        </span>
+      {/if}
+      {#if genderLabel}
+        <span
+          class="entity-meta-chip gender-badge"
+          style:--badge-color={genderColor}
+        >
+          <Users size={12} />
+          {genderLabel}
+        </span>
+      {/if}
+      {#if dorm.capacity}
+        <span class="entity-meta-chip capacity-badge">
+          <Building2 size={12} />
+          {dorm.capacity} beds
+        </span>
+      {/if}
+      {#if dorm.priceRange}
+        <span class="entity-meta-chip price-badge">
+          <CircleDollarSign size={12} aria-hidden="true" />
+          {dorm.priceRange}
+        </span>
+      {/if}
+    </div>
 
     {#if !editing}
       <div class="entity-body entity-body--compact">
@@ -986,19 +1006,19 @@
   }
 
   .capacity-badge {
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
   }
 
   .up-badge {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .private-badge {
-    color: hsl(210, 55%, 36%);
+    color: var(--theme-blue-text, hsl(210, 55%, 36%));
   }
 
   .price-badge {
-    color: hsl(150, 45%, 27%);
+    color: var(--theme-green-text, hsl(150, 45%, 27%));
   }
 
   .price-disclaimer {
@@ -1006,7 +1026,7 @@
     align-items: center;
     gap: 0.2rem;
     font-size: 0.6875rem;
-    color: hsl(35, 80%, 45%);
+    color: var(--theme-amber-text, hsl(35, 80%, 45%));
     font-weight: 500;
   }
 
@@ -1022,12 +1042,12 @@
   }
 
   .entity-curfew a {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-weight: 600;
   }
 
   .no-results {
-    color: #666;
+    color: var(--theme-text-2, #666);
     font-size: 0.875rem;
     text-align: center;
     padding: 1rem 0;

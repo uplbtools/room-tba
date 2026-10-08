@@ -84,7 +84,7 @@
     padding: 0 0.875rem;
     border: none;
     border-radius: 0.625rem;
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
     font: inherit;
     font-size: 0.8125rem;
@@ -98,7 +98,7 @@
   }
 
   .offline-maps-modal__all:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 2px;
   }
 
@@ -106,7 +106,7 @@
     flex-basis: 100%;
     margin: 0;
     font-size: 0.75rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .offline-maps-modal__scroll {

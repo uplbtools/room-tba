@@ -39,7 +39,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
     cursor: pointer;
     transition: background-color 0.15s ease;
   }
@@ -65,11 +65,11 @@
   .icon-btn:hover,
   .icon-btn:focus-visible {
     background-color: hsla(0, 0%, 0%, 0.08);
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .icon-btn:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 1px;
   }
 

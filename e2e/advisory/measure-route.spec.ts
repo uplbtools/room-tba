@@ -13,7 +13,7 @@ test.describe("measure route tool @advisory", () => {
     await page.goto("/");
     await waitForAppBoot(page);
 
-    await page.getByRole("button", { name: "Map tools", exact: true }).click();
+    await page.getByRole("button", { name: "Layers", exact: true }).click();
     await page.getByRole("button", { name: /measure route/i }).click();
 
     await expect(

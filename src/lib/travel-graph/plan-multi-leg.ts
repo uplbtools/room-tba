@@ -13,6 +13,7 @@ import {
   type LatLng,
   type PlanStatus,
   type RideLeg,
+  type RouteLines,
   planJourneys,
 } from "./journey";
 
@@ -21,6 +22,8 @@ export type PlanMultiLegInput = {
   /** Ordered: origin, optional waypoints, destination (length ≥ 2). */
   points: LatLng[];
   routes: JeepneyRoute[];
+  /** Road geometry per route, so ride legs follow the street. */
+  routeLines?: RouteLines;
   maxOptions?: number;
 };
 
@@ -103,13 +106,29 @@ export function journeyOptionLabel(journey: Journey): string {
 }
 
 /**
- * Plan a multi-stop trip. Walk stays first; commute variants follow by ETA.
+ * Fastest first, as GMaps lists routes. The cap never drops the walk-only
+ * option: on a 2 km campus it is the baseline every other card is read
+ * against, even when three jeeps beat it.
+ */
+function rankFastestFirst(journeys: Journey[], maxOptions: number): Journey[] {
+  const sorted = [...journeys].sort((a, b) => a.seconds - b.seconds);
+  const ranked = sorted.slice(0, maxOptions);
+  const walk = sorted.find((j) => j.kind === "walk");
+  if (walk && !ranked.includes(walk) && ranked.length > 0) {
+    ranked[ranked.length - 1] = walk;
+  }
+  return ranked;
+}
+
+/**
+ * Plan a multi-stop trip, options ranked fastest first.
  * With no intermediate points this delegates to planJourneys.
  */
 export function planMultiLegJourneys({
   graph,
   points,
   routes,
+  routeLines,
   maxOptions = MAX_JOURNEY_OPTIONS,
 }: PlanMultiLegInput): JourneyPlan {
   if (points.length < 2) {
@@ -122,17 +141,10 @@ export function planMultiLegJourneys({
       origin: points[0],
       destination: points[1],
       routes,
+      routeLines,
       maxOptions,
     });
-    // Pin Walk as the baseline card even when a jeep is faster.
-    const walk = plan.journeys.filter((j) => j.kind === "walk");
-    const rest = plan.journeys
-      .filter((j) => j.kind !== "walk")
-      .sort((a, b) => a.seconds - b.seconds);
-    return {
-      ...plan,
-      journeys: [...walk, ...rest].slice(0, maxOptions),
-    };
+    return { ...plan, journeys: rankFastestFirst(plan.journeys, maxOptions) };
   }
 
   const segmentPlans: JourneyPlan[] = [];
@@ -142,6 +154,7 @@ export function planMultiLegJourneys({
       origin: points[i],
       destination: points[i + 1],
       routes,
+      routeLines,
       maxOptions,
     });
     if (plan.status === "origin-off-network" && i === 0) {
@@ -243,12 +256,7 @@ export function planMultiLegJourneys({
     }
   }
 
-  // Walk first, then by ETA; cap.
-  const walk = journeys.filter((j) => j.kind === "walk");
-  const rest = journeys
-    .filter((j) => j.kind !== "walk")
-    .sort((a, b) => a.seconds - b.seconds);
-  const ranked = [...walk, ...rest].slice(0, maxOptions);
+  const ranked = rankFastestFirst(journeys, maxOptions);
 
   const status: PlanStatus = ranked.length > 0 ? "ok" : "no-route";
   return { status, journeys: ranked };

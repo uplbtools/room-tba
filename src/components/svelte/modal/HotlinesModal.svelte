@@ -78,7 +78,7 @@
 
   h3 {
     margin: 0;
-    color: hsl(5 53% 28%);
+    color: var(--theme-accent-text, hsl(5 53% 28%));
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -91,10 +91,10 @@
     gap: 0.375rem;
     min-height: 2.75rem;
     padding: 0 0.875rem;
-    border: 1px solid hsl(5 34% 78%);
+    border: 1px solid var(--theme-accent-border, hsl(5 34% 78%));
     border-radius: 0.625rem;
-    background: white;
-    color: hsl(5 53% 32%);
+    background: var(--theme-surface, white);
+    color: var(--theme-accent-text, hsl(5 53% 32%));
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -103,7 +103,7 @@
 
   .hotlines-modal__save:focus-visible,
   a:focus-visible {
-    outline: 2px solid hsl(5 53% 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5 53% 32%));
     outline-offset: 1px;
   }
 
@@ -124,7 +124,7 @@
   .hotlines-modal__entry {
     display: grid;
     gap: 0.375rem;
-    color: hsl(0 0% 22%);
+    color: var(--theme-text, hsl(0 0% 22%));
     font-size: 0.875rem;
     line-height: 1.35;
   }
@@ -141,10 +141,10 @@
     gap: 0.375rem;
     min-height: 2.75rem;
     padding: 0 0.75rem;
-    border: 1px solid hsl(5 34% 82%);
+    border: 1px solid var(--theme-accent-border, hsl(5 34% 82%));
     border-radius: 0.625rem;
-    background: hsl(0 100% 99%);
-    color: hsl(5 53% 32%);
+    background: var(--theme-accent-soft, hsl(0 100% 99%));
+    color: var(--theme-accent-text, hsl(5 53% 32%));
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     text-decoration: none;
@@ -154,8 +154,8 @@
   @media (hover: hover) {
     a:hover,
     .hotlines-modal__save:hover {
-      border-color: hsl(5 34% 68%);
-      background: hsl(0 78% 97%);
+      border-color: var(--theme-accent-border, hsl(5 34% 68%));
+      background: var(--theme-accent-soft, hsl(0 78% 97%));
     }
   }
 </style>

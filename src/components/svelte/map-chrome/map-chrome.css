@@ -9,8 +9,8 @@
   --motion-duration-shelf: 260ms;
   --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --map-chrome-scrollbar-thumb: #d4d4d8;
-  --map-chrome-scrollbar-thumb-hover: #a1a1aa;
+  --map-chrome-scrollbar-thumb: var(--theme-border, #d4d4d8);
+  --map-chrome-scrollbar-thumb-hover: var(--theme-border-strong, #a1a1aa);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -39,7 +39,10 @@
 .map-chrome-scroll::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: 999px;
-  background-color: var(--map-chrome-scrollbar-thumb, #d4d4d8);
+  background-color: var(
+    --map-chrome-scrollbar-thumb,
+    var(--theme-surface-3, #d4d4d8)
+  );
   background-clip: content-box;
 }
 
@@ -55,10 +58,10 @@
   justify-content: center;
   width: var(--map-chrome-toggle-size, 2.75rem);
   height: var(--map-chrome-toggle-size, 2.75rem);
-  border: 1px solid #d8b9ba;
+  border: 1px solid var(--theme-accent-border, #d8b9ba);
   border-radius: var(--map-chrome-toggle-radius, 0.625rem);
-  background: #fffafa;
-  color: #7b1113;
+  background: var(--theme-accent-soft, #fffafa);
+  color: var(--theme-accent-text, #7b1113);
   transition:
     background-color 0.16s,
     border-color 0.16s;
@@ -75,21 +78,21 @@ button.map-chrome-toggle-btn:hover,
 button.map-chrome-toggle-btn:focus-visible,
 button.chrome-toggle-btn:hover,
 button.chrome-toggle-btn:focus-visible {
-  border-color: #c58f91;
-  background: #fdf3f3;
+  border-color: var(--theme-accent-border, #c58f91);
+  background: var(--theme-accent-soft, #fdf3f3);
 }
 
 /* Negative outline-offset: chrome rows / panel bodies clip outward rings. */
 button.map-chrome-toggle-btn:focus-visible,
 button.chrome-toggle-btn:focus-visible {
-  outline: 2px solid #7b1113;
+  outline: 2px solid var(--theme-accent-text, #7b1113);
   outline-offset: -2px;
 }
 
 button.map-chrome-toggle-btn[aria-expanded="true"],
 button.chrome-toggle-btn[aria-expanded="true"] {
-  border-color: #7b1113;
-  background: #7b1113;
+  border-color: var(--theme-accent-text, #7b1113);
+  background: var(--theme-accent-fill, #7b1113);
   color: #fffafa;
 }
 
@@ -101,7 +104,7 @@ button.chrome-toggle-btn[aria-expanded="true"] {
   font: inherit;
   font-size: 0.75rem;
   font-weight: 600;
-  color: hsl(5, 53%, 32%);
+  color: var(--theme-accent-text, hsl(5, 53%, 32%));
   cursor: pointer;
   padding: 0.125rem 0.375rem;
   white-space: nowrap;
@@ -150,10 +153,10 @@ button.chrome-toggle-btn[aria-expanded="true"] {
   gap: 0.3rem;
   min-height: 1.5rem;
   padding: 0.125rem 0.5rem;
-  border: 1px solid hsl(160, 40%, 72%);
+  border: 1px solid var(--theme-green-border, hsl(160, 40%, 72%));
   border-radius: 999px;
-  background-color: hsl(160, 45%, 96%);
-  color: hsl(160, 84%, 22%);
+  background-color: var(--theme-green-soft, hsl(160, 45%, 96%));
+  color: var(--theme-green-text, hsl(160, 84%, 22%));
   font-size: 0.75rem;
   font-weight: 700;
   line-height: 1;
@@ -178,7 +181,7 @@ button.chrome-toggle-btn[aria-expanded="true"] {
   min-width: 0;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: hsl(160, 84%, 22%);
+  color: var(--theme-green-text, hsl(160, 84%, 22%));
 }
 
 .map-chrome-session-expanded-label span {
@@ -193,7 +196,7 @@ button.chrome-toggle-btn[aria-expanded="true"] {
   flex-shrink: 0;
   align-items: center;
   gap: 0.25rem;
-  color: hsl(0, 70%, 38%);
+  color: var(--theme-accent-text, hsl(0, 70%, 38%));
 }
 
 .map-chrome-session-label {
@@ -203,7 +206,7 @@ button.chrome-toggle-btn[aria-expanded="true"] {
   white-space: nowrap;
   font-size: 0.75rem;
   font-weight: 600;
-  color: hsl(0, 0%, 32%);
+  color: var(--theme-text-2, hsl(0, 0%, 32%));
 }
 
 .map-chrome-action-chip {
@@ -214,10 +217,10 @@ button.chrome-toggle-btn[aria-expanded="true"] {
   min-height: 1.75rem;
   padding: 0.3125rem 0.5rem;
   white-space: nowrap;
-  border: 1px solid #c58f91;
+  border: 1px solid var(--theme-accent-border, #c58f91);
   border-radius: 0.75rem;
-  background: #ffffff;
-  color: hsl(5, 65%, 22%);
+  background: var(--theme-surface, #ffffff);
+  color: var(--theme-accent-text, hsl(5, 65%, 22%));
   cursor: pointer;
   font: inherit;
   font-size: 0.75rem;
@@ -232,14 +235,14 @@ button.chrome-toggle-btn[aria-expanded="true"] {
 }
 
 .map-chrome-action-chip:hover:not(:disabled) {
-  border-color: #c58f91;
-  background: #fdf3f3;
+  border-color: var(--theme-accent-border, #c58f91);
+  background: var(--theme-accent-soft, #fdf3f3);
 }
 
 .map-chrome-action-chip:focus-visible {
-  border-color: #c58f91;
-  background: #fdf3f3;
-  outline: 2px solid #7b1113;
+  border-color: var(--theme-accent-border, #c58f91);
+  background: var(--theme-accent-soft, #fdf3f3);
+  outline: 2px solid var(--theme-accent-text, #7b1113);
   outline-offset: -2px;
 }
 
@@ -265,6 +268,51 @@ button.chrome-toggle-btn[aria-expanded="true"] {
   flex-shrink: 0;
 }
 
+/* The one filled action on a place sheet (Directions), GMaps-style. */
+.map-chrome-action-chip--primary,
+.map-chrome-action-chip--primary:hover:not(:disabled),
+.map-chrome-action-chip--primary:focus-visible {
+  border-color: var(--theme-accent-text, #7b1113);
+  border-radius: 999px;
+  background: var(--theme-accent-fill, #7b1113);
+  color: #fff;
+}
+
+.map-chrome-action-chip--primary:hover:not(:disabled) {
+  border-color: var(--theme-accent-text, hsl(359, 75%, 22%));
+  background: var(--theme-accent-fill, hsl(359, 75%, 22%));
+}
+
+.map-chrome-action-chip--primary.map-chrome-action-chip--toolbar {
+  min-height: 2.25rem;
+  padding: 0.5rem 0.875rem;
+}
+
+/* Desktop drawer restyles every chip as a white shadow pill (Entry.svelte);
+   the primary action keeps its fill there too (`:root` outranks that
+   component-scoped rule). */
+:root
+  .app-layout.redesign-desktop
+  .drawer-card
+  .map-chrome-action-chip.map-chrome-action-chip--primary,
+:root
+  .app-layout.redesign-desktop
+  .drawer-card
+  .map-chrome-action-chip.map-chrome-action-chip--primary:hover:not(:disabled) {
+  min-height: 2rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 999px;
+  background: var(--theme-accent-fill, #7b1113);
+  color: #fff;
+  font-weight: 700;
+}
+
+.map-chrome-action-chip--primary:focus-visible {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px #7b1113;
+}
+
 .map-chrome-chip {
   all: unset;
   box-sizing: border-box;
@@ -275,10 +323,14 @@ button.chrome-toggle-btn[aria-expanded="true"] {
   min-height: 1.75rem;
   height: 1.75rem;
   padding: 0 0.625rem;
-  border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+  border: 1px solid
+    var(--map-chrome-border, var(--theme-border-strong, hsl(0, 0%, 58%)));
   border-radius: 999px;
-  background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-  color: hsl(0, 0%, 22%);
+  background-color: var(
+    --map-chrome-surface,
+    var(--theme-surface-translucent, rgba(255, 255, 255, 0.98))
+  );
+  color: var(--theme-text, hsl(0, 0%, 22%));
   cursor: pointer;
   font: inherit;
   font-size: 0.6875rem;
@@ -295,12 +347,12 @@ button.chrome-toggle-btn[aria-expanded="true"] {
 button.map-chrome-chip:hover:not(:disabled):not(
   .map-chrome-chip--toggle-active
 ):not(.map-chrome-chip--editor-active):not(.map-chrome-chip--filter-selected) {
-  border-color: #c58f91;
-  background-color: #fdf3f3;
+  border-color: var(--theme-accent-border, #c58f91);
+  background-color: var(--theme-accent-soft, #fdf3f3);
 }
 
 button.map-chrome-chip:focus-visible {
-  outline: 2px solid hsl(5, 53%, 32%);
+  outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
   outline-offset: -2px;
 }
 
@@ -310,20 +362,20 @@ button.map-chrome-chip:disabled {
 }
 
 .map-chrome-chip--toggle-active {
-  border-color: hsl(5, 53%, 32%);
-  background-color: hsl(5, 53%, 96%);
-  color: hsl(5, 53%, 22%);
+  border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+  background-color: var(--theme-accent-soft, hsl(5, 53%, 96%));
+  color: var(--theme-accent-text, hsl(5, 53%, 22%));
 }
 
 .map-chrome-chip--editor-active {
-  border-color: hsl(160, 40%, 72%);
-  background-color: hsl(160, 45%, 96%);
-  color: hsl(160, 84%, 22%);
+  border-color: var(--theme-green-border, hsl(160, 40%, 72%));
+  background-color: var(--theme-green-soft, hsl(160, 45%, 96%));
+  color: var(--theme-green-text, hsl(160, 84%, 22%));
 }
 
 .map-chrome-chip--filter-selected {
-  border-color: hsl(5, 53%, 32%);
-  background: hsl(5, 53%, 32%);
+  border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+  background: var(--theme-accent-fill, hsl(5, 53%, 32%));
   color: white;
 }
 
@@ -345,20 +397,20 @@ button.map-chrome-chip:disabled {
 }
 
 .map-chrome-chip__icon--all {
-  color: hsl(0, 0%, 42%);
+  color: var(--theme-text-2, hsl(0, 0%, 42%));
 }
 
 .map-chrome-chip__icon--building,
 .map-chrome-chip__icon--admin {
-  color: hsl(5, 53%, 32%);
+  color: var(--theme-accent-text, hsl(5, 53%, 32%));
 }
 
 .map-chrome-chip__icon--up-dorm {
-  color: hsl(170, 50%, 35%);
+  color: var(--theme-blue-text, hsl(170, 50%, 35%));
 }
 
 .map-chrome-chip__icon--non-up-dorm {
-  color: hsl(25, 70%, 50%);
+  color: var(--theme-amber-text, hsl(25, 70%, 50%));
 }
 
 .map-chrome-chip__route-color {
@@ -396,7 +448,7 @@ button.map-chrome-chip:disabled {
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.25;
-  color: hsl(0, 0%, 22%);
+  color: var(--theme-text, hsl(0, 0%, 22%));
 }
 
 .map-chrome-row__value {
@@ -404,7 +456,7 @@ button.map-chrome-chip:disabled {
   min-width: 0;
   font-size: 0.8125rem;
   line-height: 1.25;
-  color: hsl(0, 0%, 30%);
+  color: var(--theme-text, hsl(0, 0%, 30%));
 }
 
 .map-chrome-row__control,
@@ -445,16 +497,16 @@ button.map-chrome-chip:disabled {
   margin: 0;
   font-size: 0.75rem;
   line-height: 1.35;
-  color: hsl(0, 0%, 38%);
+  color: var(--theme-text-2, hsl(0, 0%, 38%));
 }
 
 .map-chrome-row-hint--warn {
-  color: hsl(25, 85%, 28%);
+  color: var(--theme-amber-text, hsl(25, 85%, 28%));
   font-weight: 600;
 }
 
 .map-chrome-row-hint--ok {
-  color: hsl(150, 45%, 25%);
+  color: var(--theme-green-text, hsl(150, 45%, 25%));
   font-weight: 600;
 }
 
@@ -463,14 +515,14 @@ button.map-chrome-chip:disabled {
   margin: 0;
   font-size: 0.6875rem;
   line-height: 1.35;
-  color: hsl(0, 0%, 40%);
+  color: var(--theme-text-2, hsl(0, 0%, 40%));
 }
 
 /* No invisible ::after tap target here on purpose: #905 removed exactly that
    pattern from this file after it swallowed the map attribution's own links.
    The attribution stays a plain inline link until that is redone properly. */
 .map-chrome-row-note a {
-  color: hsl(5, 53%, 32%);
+  color: var(--theme-accent-text, hsl(5, 53%, 32%));
   font-weight: 700;
 }
 
@@ -494,7 +546,7 @@ button.map-chrome-chip:disabled {
   position: absolute;
   inset: 0.625rem 0;
   border-radius: 999px;
-  background: hsl(0, 0%, 72%);
+  background: var(--theme-border-strong, hsl(0, 0%, 72%));
   transition: background-color 0.15s ease;
 }
 
@@ -506,13 +558,13 @@ button.map-chrome-chip:disabled {
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 50%;
-  background: white;
+  background: var(--theme-surface, white);
   box-shadow: 0 1px 2px hsla(0, 0%, 0%, 0.3);
   transition: translate 0.15s ease;
 }
 
 .map-chrome-switch[aria-checked="true"]::before {
-  background: hsl(5, 53%, 32%);
+  background: var(--theme-accent-fill, hsl(5, 53%, 32%));
 }
 
 .map-chrome-switch[aria-checked="true"]::after {
@@ -520,7 +572,7 @@ button.map-chrome-chip:disabled {
 }
 
 .map-chrome-switch:focus-visible {
-  outline: 2px solid hsl(5, 53%, 32%);
+  outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
   outline-offset: 1px;
 }
 
@@ -549,11 +601,15 @@ button.map-chrome-chip:disabled {
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--map-chrome-border-accent, hsl(5, 40%, 42%));
+  border: 1.5px solid
+    var(--map-chrome-border-accent, var(--theme-accent-text, hsl(5, 40%, 42%)));
   border-radius: 50%;
-  background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+  background-color: var(
+    --map-chrome-surface,
+    var(--theme-surface-translucent, rgba(255, 255, 255, 0.98))
+  );
   backdrop-filter: blur(10px);
-  color: hsl(5, 53%, 32%);
+  color: var(--theme-accent-text, hsl(5, 53%, 32%));
   cursor: pointer;
   box-shadow: var(
     --map-chrome-fab-shadow,
@@ -567,18 +623,18 @@ button.map-chrome-chip:disabled {
 }
 
 .map-chrome-fab-trigger:hover {
-  background-color: hsl(5 25% 98%);
-  border-color: hsl(5, 53%, 32%);
+  background-color: var(--theme-accent-soft, hsl(5 25% 98%));
+  border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
 }
 
 .map-chrome-fab-trigger:focus-visible {
-  outline: 2px solid hsl(5, 53%, 32%);
+  outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
   outline-offset: 2px;
 }
 
 .map-chrome-fab-trigger[aria-expanded="true"] {
-  border-color: hsl(5, 53%, 32%);
-  background-color: hsl(5, 53%, 32%);
+  border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+  background-color: var(--theme-accent-fill, hsl(5, 53%, 32%));
   color: white;
   box-shadow:
     inset 0 0 0 1px hsla(0, 0%, 100%, 0.2),
@@ -596,13 +652,17 @@ button.map-chrome-chip:disabled {
   justify-content: center;
   margin: 0;
   padding: 0;
-  border: 1.5px solid var(--map-chrome-border-accent, hsl(5, 40%, 42%));
+  border: 1.5px solid
+    var(--map-chrome-border-accent, var(--theme-accent-text, hsl(5, 40%, 42%)));
   border-radius: 50%;
   width: 3rem;
   height: 3rem;
-  background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+  background-color: var(
+    --map-chrome-surface,
+    var(--theme-surface-translucent, rgba(255, 255, 255, 0.98))
+  );
   backdrop-filter: blur(10px);
-  color: hsl(5, 53%, 32%);
+  color: var(--theme-accent-text, hsl(5, 53%, 32%));
   cursor: pointer;
   font: inherit;
   line-height: 0;
@@ -643,19 +703,19 @@ button.map-chrome-chip:disabled {
 }
 
 .map-chrome-control-btn:hover {
-  background-color: hsl(0, 0%, 99%);
-  border-color: hsl(5, 53%, 32%);
+  background-color: var(--theme-surface, hsl(0, 0%, 99%));
+  border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
 }
 
 .map-chrome-control-btn:focus-visible {
-  outline: 2px solid hsl(5, 53%, 32%);
+  outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
   outline-offset: 2px;
 }
 
 .map-chrome-control-btn.active,
 .map-chrome-control-btn[aria-expanded="true"] {
-  border-color: hsl(5, 53%, 32%);
-  background-color: hsl(5, 53%, 32%);
+  border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+  background-color: var(--theme-accent-fill, hsl(5, 53%, 32%));
   color: white;
   box-shadow:
     inset 0 0 0 1px hsla(0, 0%, 100%, 0.2),
@@ -668,9 +728,13 @@ button.map-chrome-chip:disabled {
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
-  border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+  border: 1px solid
+    var(--map-chrome-border, var(--theme-border-strong, hsl(0, 0%, 58%)));
   border-radius: 0.875rem;
-  background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+  background-color: var(
+    --map-chrome-surface,
+    var(--theme-surface-translucent, rgba(255, 255, 255, 0.98))
+  );
   backdrop-filter: blur(10px);
   padding: 0.5rem;
   box-shadow: var(
@@ -716,7 +780,7 @@ button.map-chrome-chip:disabled {
   justify-content: space-between;
   gap: 0.375rem;
   padding: 0.125rem 0.25rem;
-  color: hsl(0, 0%, 20%);
+  color: var(--theme-text, hsl(0, 0%, 20%));
   font-size: 0.9375rem;
   font-weight: 600;
 }
@@ -739,14 +803,14 @@ button.map-chrome-chip:disabled {
   border: none;
   border-radius: 0.375rem;
   background: transparent;
-  color: hsl(0, 0%, 40%);
+  color: var(--theme-text-2, hsl(0, 0%, 40%));
   cursor: pointer;
   padding: 0;
 }
 
 .map-chrome-panel-close:hover,
 .map-chrome-panel-close:focus-visible {
-  background-color: hsl(0, 0%, 95%);
+  background-color: var(--theme-surface-2, hsl(0, 0%, 95%));
 }
 
 .map-chrome-panel-body {
@@ -770,8 +834,8 @@ button.map-chrome-chip:disabled {
   padding: 0.25rem 0.375rem;
   border: none;
   border-radius: 0.625rem;
-  background: hsl(0, 0%, 97%);
-  color: hsl(0, 0%, 20%);
+  background: var(--theme-surface, hsl(0, 0%, 97%));
+  color: var(--theme-text, hsl(0, 0%, 20%));
   cursor: pointer;
   font: inherit;
   font-size: 0.875rem;
@@ -780,7 +844,7 @@ button.map-chrome-chip:disabled {
 }
 
 .map-chrome-accordion-toggle:hover {
-  background: hsl(0, 0%, 94%);
+  background: var(--theme-surface-2, hsl(0, 0%, 94%));
 }
 
 .map-chrome-accordion-body {
@@ -829,24 +893,25 @@ button.map-chrome-chip:disabled {
   font: inherit;
   font-size: 0.8125rem;
   line-height: 1.4;
-  border: 1px solid var(--map-chrome-border, hsl(5, 25%, 78%));
+  border: 1px solid
+    var(--map-chrome-border, var(--theme-accent-border, hsl(5, 25%, 78%)));
   border-radius: 0.625rem;
   padding: 0.4375rem 0.625rem;
   max-width: 8rem;
-  color: hsl(0, 0%, 14%);
-  background: var(--map-chrome-surface, #fffafa);
+  color: var(--theme-text, hsl(0, 0%, 14%));
+  background: var(--map-chrome-surface, var(--theme-surface, #fffafa));
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
 }
 
 .map-chrome-name-field input::placeholder {
-  color: hsl(0, 0%, 54%);
+  color: var(--theme-text-muted, hsl(0, 0%, 54%));
 }
 
 .map-chrome-name-field input:focus {
   outline: none;
-  border-color: hsl(5, 53%, 42%);
+  border-color: var(--theme-accent-text, hsl(5, 53%, 42%));
   box-shadow: inset 0 0 0 2px hsla(5, 53%, 32%, 0.12);
 }
 
@@ -860,7 +925,7 @@ button.map-chrome-chip:disabled {
   align-items: stretch;
   gap: 0.3125rem;
   font-size: 0.8125rem;
-  color: hsl(0, 0%, 32%);
+  color: var(--theme-text-2, hsl(0, 0%, 32%));
 }
 
 .map-chrome-name-field--block input {
@@ -879,34 +944,34 @@ button.map-chrome-chip:disabled {
   margin: 0;
   font-weight: 600;
   font-size: 0.8125rem;
-  color: black;
+  color: var(--theme-text, black);
 }
 
 .map-chrome-popover-sub {
   margin: 0;
   font-size: 0.75rem;
   font-weight: 500;
-  color: hsl(0, 0%, 40%);
+  color: var(--theme-text-2, hsl(0, 0%, 40%));
 }
 
 .map-chrome-popover-footnote {
   margin: 0.125rem 0 0;
   padding-top: 0.375rem;
-  border-top: 1px solid hsl(0, 0%, 92%);
+  border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
   font-size: 0.6875rem;
-  color: hsl(0, 0%, 55%);
+  color: var(--theme-text-muted, hsl(0, 0%, 55%));
 }
 
 .map-chrome-progress {
   height: 0.5rem;
   border-radius: 0.5rem;
-  background-color: #ddd;
+  background-color: var(--theme-surface-3, #ddd);
   overflow: hidden;
 }
 
 .map-chrome-progress__value {
   height: 100%;
-  background-color: #7b1113;
+  background-color: var(--theme-accent-fill, #7b1113);
   border-radius: 0.5rem;
   transition: width 0.2s ease;
 }

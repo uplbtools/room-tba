@@ -100,8 +100,8 @@
     max-width: 100%;
     padding: 0.4375rem 0.625rem;
     border-radius: 999px;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(0, 0%, 58%)));
+    background-color: var(--map-chrome-surface, var(--theme-surface-translucent, rgba(255, 255, 255, 0.98)));
     cursor: pointer;
     text-align: left;
     font: inherit;
@@ -115,19 +115,19 @@
     flex: 1 1 auto;
     min-width: 0;
     border-radius: 0.625rem;
-    background-color: hsl(0, 0%, 98%);
+    background-color: var(--theme-surface, hsl(0, 0%, 98%));
     border-color: transparent;
   }
 
   .transit-route-option:hover {
-    border-color: hsl(5, 40%, 72%);
-    background-color: hsl(5, 53%, 98%);
+    border-color: var(--theme-accent-border, hsl(5, 40%, 72%));
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 98%));
   }
 
   .transit-route-option--active {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 96%);
-    color: hsl(5, 53%, 22%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 96%));
+    color: var(--theme-accent-text, hsl(5, 53%, 22%));
   }
 
   .transit-route-option__color {
@@ -158,20 +158,20 @@
 
   .transit-route-option__description {
     font-size: 0.75rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .transit-route-clear {
     margin-top: 0.125rem;
     padding: 0.4375rem 0.625rem;
     border-radius: 999px;
-    border: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(0, 0%, 58%)));
     background-color: transparent;
     cursor: pointer;
     font: inherit;
     font-size: 0.6875rem;
     font-weight: 700;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .transit-route-panel--compact .transit-route-clear {
@@ -180,6 +180,6 @@
   }
 
   .transit-route-clear:hover {
-    background-color: hsl(5, 53%, 98%);
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 98%));
   }
 </style>

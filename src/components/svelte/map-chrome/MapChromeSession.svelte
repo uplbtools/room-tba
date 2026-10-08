@@ -87,7 +87,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    color: hsl(0, 70%, 38%);
+    color: var(--theme-accent-text, hsl(0, 70%, 38%));
     font-size: 0.75rem;
     padding: 0.0625rem 0.25rem;
   }

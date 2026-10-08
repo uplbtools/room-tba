@@ -48,13 +48,13 @@ function panelStore() {
 }
 
 describe("openCampusBrowse", () => {
-  test("sets browse query, clears search input, and expands the drawer", () => {
+  test("sets browse query, names the list in the search bar, and expands the drawer", () => {
     const queryStore = mockQueryStore();
     const sidePanelStore = panelStore();
     openCampusBrowse(queryStore as never, sidePanelStore, "divisions");
     expect(queryStore.category).toBe("browse");
     expect(queryStore.queryValue).toBe("divisions");
-    expect(queryStore.inputValue).toBe("");
+    expect(queryStore.inputValue).toBe("Divisions");
     expect(sidePanelStore.collapsed).toBe(false);
   });
 

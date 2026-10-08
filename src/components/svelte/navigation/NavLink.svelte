@@ -88,7 +88,7 @@
     padding: 0.5rem 0rem;
     display: flex;
     align-items: center;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
     border-radius: 0.5rem;
     transition:
       background-color 75ms ease-in-out,
@@ -99,7 +99,7 @@
     border-left: 8px solid transparent;
     border-right: 8px solid transparent;
     &:hover:not(.nav-link--sublink-active, .nav-link--hard-active) {
-      background-color: hsl(0, 0%, 90%);
+      background-color: var(--theme-surface-3, hsl(0, 0%, 90%));
     }
     .tooltip {
       position: fixed;
@@ -117,7 +117,7 @@
       font-size: 0.75rem;
     }
     .icon {
-      color: hsl(0, 0%, 50%);
+      color: var(--theme-text-muted, hsl(0, 0%, 50%));
     }
     /* Fade only on hover-in; anywhere else opacity snaps. A transition on the
        base rule made every inline label (opacity 1) fade out as a fixed-
@@ -134,7 +134,7 @@
     gap: 0.5rem;
     padding: 0.5rem;
     &:hover:not(.nav-link--sublink-active, .nav-link--hard-active) {
-        color: hsl(0, 0%, 20%);
+        color: var(--theme-text, hsl(0, 0%, 20%));
     }
     .tooltip,
     &:hover .tooltip {
@@ -160,22 +160,22 @@
     display: inline-flex;
     order: 2;
     margin-left: auto;
-    color: hsl(0, 0%, 55%);
+    color: var(--theme-text-muted, hsl(0, 0%, 55%));
   }
 
   .nav-link--sublink-active {
-    color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 96%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 96%));
 
     &.nav-link--expanded {
-      border-left: 8px solid hsl(5, 53%, 32%);
+      border-left: 8px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     }
     .icon {
-      color: hsl(5, 53%, 32%);
+      color: var(--theme-accent-text, hsl(5, 53%, 32%));
     }
   }
   .nav-link--hard-active {
-    background-color: hsl(5, 53%, 32%);
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: hsl(5, 53%, 96%);
     .icon {
       color: hsl(5, 53%, 96%);

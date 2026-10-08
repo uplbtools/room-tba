@@ -43,8 +43,8 @@
     padding: 0.75rem;
     max-height: 100%;
     min-height: 0;
-    background: var(--map-chrome-surface, hsl(5 20% 97%));
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    background: var(--map-chrome-surface, var(--theme-surface, hsl(5 20% 97%)));
+    border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-radius: var(--map-chrome-radius, 1rem);
     box-shadow: var(--map-chrome-panel-shadow);
   }
@@ -55,20 +55,20 @@
     gap: 0.625rem;
     flex-wrap: wrap;
     padding-bottom: 0.375rem;
-    border-bottom: 1px solid var(--map-chrome-divider, hsl(5 12% 88%));
+    border-bottom: 1px solid var(--map-chrome-divider, var(--theme-accent-border, hsl(5 12% 88%)));
   }
 
   .schedule-modal__header h2 {
     margin: 0;
     font-size: 1.125rem;
     font-weight: 700;
-    color: hsl(5, 53%, 22%);
+    color: var(--theme-accent-text, hsl(5, 53%, 22%));
   }
 
   .schedule-modal__term {
     font-size: 0.8125rem;
     font-weight: 600;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .schedule-modal__body {
@@ -81,7 +81,7 @@
   .schedule-modal__empty {
     margin: 0;
     padding: 1.5rem 0.5rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     font-size: 0.875rem;
   }
 </style>

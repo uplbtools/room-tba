@@ -7,6 +7,8 @@
     toastStore,
     type QueryStoreState,
   } from "@lib/store.svelte";
+  import { matchHighlightRange } from "@lib/search-suggestions";
+  import { selectSuggestion } from "@lib/search-select";
   import {
     entityHoverPreviewStore,
     buildingPreviewFromRow,
@@ -34,6 +36,8 @@
     building,
     event: eventData,
     secondary,
+    courseCode,
+    roomCode,
     lat = null,
     lon = null,
   }: {
@@ -45,6 +49,9 @@
     event?: EventData;
     /** Supporting line under the value, e.g. a room's unabbreviated name (#875). */
     secondary?: string | null;
+    /** Class sections: the course, and the room selecting it opens. */
+    courseCode?: string;
+    roomCode?: string | null;
     lat?: number | null;
     lon?: number | null;
   } = $props();
@@ -52,9 +59,13 @@
   const stopLat = $derived(lat ?? building?.lat ?? null);
   const stopLon = $derived(lon ?? building?.lon ?? null);
 
+  // Not while filling the From / To field: there the row itself is the pick.
   const canAddStop = $derived(
     directionsStore.active &&
       !directionsStore.navigating &&
+      directionsStore.picking === null &&
+      !directionsStore.addingStop &&
+      directionsStore.destination !== null &&
       directionsStore.waypoints.length < MAX_DIRECTIONS_WAYPOINTS &&
       stopLat != null &&
       stopLon != null &&
@@ -66,25 +77,16 @@
   let addedTimer: ReturnType<typeof setTimeout> | null = null;
 
   function handleSuggestionClick() {
-    entityHoverPreviewStore.hideNow();
-    // Choosing a start or end point for directions: any place with a pin works.
-    if (
-      directionsStore.picking &&
-      stopLat != null &&
-      stopLon != null &&
-      directionsStore.takePick({ lat: stopLat, lng: stopLon, label: value })
-    ) {
-      queryStore.exitResultMode();
-      queryStore.inputValue = "";
-      return;
-    }
-    queryStore.updateQuery({
-      type: "result",
-      category,
+    selectSuggestion({
       value,
+      category,
       eventSlug,
+      building,
+      lat: stopLat,
+      lon: stopLon,
+      courseCode,
+      roomCode,
     });
-    queryStore.inputValue = value;
   }
 
   function handleAddStop(event: MouseEvent) {
@@ -147,14 +149,11 @@
     handleMouseEnter(event as unknown as MouseEvent);
   }
 
-  /** Match query in label; expand to word end so "Institute o" → "Institute of". */
+  /** Bold only the typed characters where they start a word (GMaps style). */
   const labelParts = $derived.by(() => {
-    const q = queryStore.inputValue.trim();
-    if (!q) return [{ text: value, matched: false }];
-    const idx = value.toLowerCase().indexOf(q.toLowerCase());
-    if (idx < 0) return [{ text: value, matched: false }];
-    let end = idx + q.length;
-    while (end < value.length && value[end] !== " ") end += 1;
+    const range = matchHighlightRange(value, queryStore.inputValue);
+    if (!range) return [{ text: value, matched: false }];
+    const [idx, end] = range;
     const parts: { text: string; matched: boolean }[] = [];
     if (idx > 0) parts.push({ text: value.slice(0, idx), matched: false });
     parts.push({ text: value.slice(idx, end), matched: true });
@@ -259,7 +258,7 @@
 
   .suggestion-row:hover .suggestion,
   .suggestion-row:focus-within .suggestion {
-    background-color: hsl(0, 0%, 95%);
+    background-color: var(--theme-surface-2, hsl(0, 0%, 95%));
   }
 
   .suggestion {
@@ -288,7 +287,7 @@
     }
 
     .suggestion-row:active .suggestion {
-      background-color: hsl(0, 0%, 97%);
+      background-color: var(--theme-surface, hsl(0, 0%, 97%));
     }
   }
 
@@ -299,16 +298,17 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 2rem;
+    width: 2.75rem;
+    min-height: 2.75rem;
     cursor: pointer;
     border-radius: 0.5rem;
-    color: #52525b;
+    color: var(--theme-text-2, #52525b);
   }
 
   .suggestion-remove:hover,
   .suggestion-remove:focus-visible {
-    background-color: hsl(0, 0%, 90%);
-    color: #18181b;
+    background-color: var(--theme-surface-3, hsl(0, 0%, 90%));
+    color: var(--theme-text, #18181b);
   }
 
   .suggestion-add-stop {
@@ -322,7 +322,7 @@
     min-height: 2rem;
     padding: 0.25rem 0.5rem;
     border-radius: 0.5rem;
-    color: var(--color-brand, #8d1437);
+    color: var(--color-brand, var(--theme-accent-text, #8d1437));
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
@@ -331,14 +331,14 @@
 
   .suggestion-add-stop:hover,
   .suggestion-add-stop:focus-visible {
-    background-color: #fff7f7;
+    background-color: var(--theme-accent-soft, #fff7f7);
   }
 
   .suggestion-add-stop--added,
   .suggestion-add-stop--added:hover,
   .suggestion-add-stop--added:focus-visible {
-    background-color: #ecfdf5;
-    color: #047857;
+    background-color: var(--theme-green-soft, #ecfdf5);
+    color: var(--theme-green-text, #047857);
     cursor: default;
   }
 
@@ -354,7 +354,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #18181b;
+    color: var(--theme-text, #18181b);
     flex-shrink: 0;
   }
 
@@ -366,14 +366,14 @@
     flex: 1 1 auto;
     min-width: 0;
     font-size: 0.875rem;
-    color: #18181b;
+    color: var(--theme-text, #18181b);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .text-secondary {
-    color: #52525b;
+    color: var(--theme-text-2, #52525b);
   }
 
   .text-secondary::before {
@@ -382,12 +382,12 @@
 
   .text .match {
     font-weight: 700;
-    color: #18181b;
+    color: var(--theme-text, #18181b);
   }
 
   .text .rest {
     font-weight: 400;
-    color: #8b8b96;
+    color: var(--theme-text-muted, #8b8b96);
   }
 
   @media (max-width: 48rem) {

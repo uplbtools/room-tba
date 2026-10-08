@@ -55,3 +55,24 @@ describe("EditorAdditionModal click-outside dismiss", () => {
     expect(overlay?.getAttribute("onclick")).toBeNull();
   });
 });
+
+/** Jakob audit micro 15: the place comes first, the contributor name last. */
+describe("EditorAdditionModal field order", () => {
+  afterEach(() => {
+    editorChromeStore.closeAdditionModal();
+  });
+
+  test("name and map pin come before the optional contributor name", () => {
+    editorChromeStore.openAdditionModal();
+    render(EditorAdditionModal);
+
+    const placeName = screen.getByLabelText("What's it called?");
+    const pick = screen.getByRole("button", { name: "Pick on map" });
+    const contributor = screen.getByLabelText("Your name (optional)");
+
+    const follows = (a: Element, b: Element) =>
+      Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(follows(placeName, pick)).toBe(true);
+    expect(follows(pick, contributor)).toBe(true);
+  });
+});

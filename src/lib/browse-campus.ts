@@ -1,5 +1,6 @@
 import { dismissEphemeralOverlays } from "./overlay-stack.js";
 import {
+  CAMPUS_BROWSE_LABELS,
   campusBrowseQuery,
   type CampusBrowseTab,
 } from "./browse-campus-shared.js";
@@ -19,13 +20,16 @@ export function openCampusBrowse(
   queryStore: QueryStore,
   sidePanelStore: SidePanelStore,
   tab: CampusBrowseTab = "buildings",
+  /** Search bar text; defaults to the tab's directory label. */
+  label: string = CAMPUS_BROWSE_LABELS[tab],
 ) {
   dismissEphemeralOverlays();
   // A selected jeepney stop outranks panel content in SidePanel, so browsing
   // anywhere must drop it or the stop panel stays painted over the list.
   jeepneyStore.closeStop();
   queryStore.updateQuery(campusBrowseQuery(tab));
-  queryStore.inputValue = "";
+  // The bar names the list it is showing, and its X closes it.
+  queryStore.inputValue = label;
   sidePanelStore.openPanel({
     type: "browsing-entities",
     component: CampusBrowseList,

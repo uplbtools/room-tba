@@ -26,7 +26,7 @@
     padding-right: 2.25rem;
     font-size: 1rem;
     font-weight: 700;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .editor-tools-modal__scroll {

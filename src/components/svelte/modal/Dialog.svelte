@@ -155,7 +155,7 @@
     flex: 0 1 64rem;
     max-height: 90dvh;
     min-height: 0;
-    background-color: #fff;
+    background-color: var(--theme-surface, #fff);
     z-index: inherit;
     border-radius: 1rem;
     padding: 0.5rem;
@@ -168,7 +168,7 @@
       right: 0.25rem;
       top: 0.25rem;
       z-index: 1;
-      background-color: #fff;
+      background-color: var(--theme-surface, #fff);
     }
   }
 

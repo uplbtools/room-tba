@@ -1,16 +1,29 @@
 <script lang="ts">
   import X from "@lucide/svelte/icons/x";
+  import { queryStore, sidePanelStore } from "@lib/store.svelte";
 
   type Props = {
     ariaLabel: string;
     title?: string;
-    onclick: () => void;
+    /** Defaults to closing the open entity sheet (same as the search X). */
+    onclick?: () => void;
     /** Keep the button on mobile sheets too (browse lists). */
     showOnMobile?: boolean;
   };
 
-  let { ariaLabel, title = ariaLabel, onclick, showOnMobile = false }: Props =
-    $props();
+  let {
+    ariaLabel,
+    title = ariaLabel,
+    onclick = closeEntitySheet,
+    showOnMobile = false,
+  }: Props = $props();
+
+  function closeEntitySheet() {
+    queryStore.clearQuery();
+    queryStore.inputValue = "";
+    // openPanel() metadata outranks the query in resolvePanelContent.
+    sidePanelStore.closePanel();
+  }
 </script>
 
 <button
@@ -43,7 +56,7 @@
     padding: 0;
     border-color: transparent;
     background: transparent;
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
   }
 
   :global(.app-layout:not(.redesign-desktop))

@@ -21,7 +21,9 @@
   import EntityGoogleMapsLink from "./EntityGoogleMapsLink.svelte";
   import EntityPrintableMapLink from "./EntityPrintableMapLink.svelte";
   import EntityStreetAddress from "./EntityStreetAddress.svelte";
-  import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
+  import EntityShareButton from "./EntityShareButton.svelte";
+  import EntitySaveButton from "./EntitySaveButton.svelte";
+  import EntityPanelClose from "./EntityPanelClose.svelte";
   import EntityExternalLink from "./EntityExternalLink.svelte";
   import EntityBackToList from "./EntityBackToList.svelte";
   import BuildingPhoto from "./BuildingPhoto.svelte";
@@ -144,53 +146,73 @@
 
 {#if place}
   <div class="entity-detail">
-    <header class="entity-header">
-      {#if isLandmarkPlaceCategory(place.category)}
-        <EntityBackToList tab="landmarks" label="Back to landmarks" />
-      {:else}
-        <EntityBackToList tab="services" label="Back to establishments" />
-      {/if}
-      <h2 class="entity-header__title">{place.name}</h2>
-      {#if placeDirectoryLabel(place.category)}
-        <span class="place-category-badge"
-          >{placeDirectoryLabel(place.category)}</span
-        >
-      {/if}
-      <div class="entity-actions">
+    {#if isLandmarkPlaceCategory(place.category)}
+      <EntityBackToList tab="landmarks" label="Back to landmarks" />
+    {:else}
+      <EntityBackToList tab="services" label="Back to establishments" />
+    {/if}
+    <header class="entity-header entity-header--sticky">
+      <div
+        class="entity-header__title-row entity-header__title-row--with-close"
+      >
+        <h2 class="entity-header__title">{place.name}</h2>
+        {#if placeDirectoryLabel(place.category)}
+          <span class="place-category-badge"
+            >{placeDirectoryLabel(place.category)}</span
+          >
+        {/if}
+        <EntityPanelClose ariaLabel="Close place details" showOnMobile />
+      </div>
+      <div class="entity-actions entity-actions--place">
         {#if place.lat != null && place.lon != null}
           <EntityDirectionsChip
+            primary
             lat={place.lat}
             lon={place.lon}
             destinationLabel={place.name}
           />
-          <EntityGoogleMapsLink
-            lat={place.lat}
-            lon={place.lon}
-            name={place.name}
-            ariaLabel={`Open ${place.name} in Google Maps`}
-          />
-          <EntityPrintableMapLink
-            lat={place.lat}
-            lon={place.lon}
-            name={place.name}
-          />
         {/if}
-        <EntityShareCopyLink url={placeShareUrl} entityLabel={place.name} />
-        <EntityEditorToggle
-          expanded={editing}
-          {canPublish}
-          publishOpenLabel="Edit place"
-          closeLabel={canPublish ? "Close editor" : "Close"}
-          variant="toolbar"
-          onclick={() => {
-            if (editing) {
-              editing = false;
-              additionProposalStore.clearDraftPin();
-            } else {
-              startEdit();
-            }
-          }}
-        />
+        <div class="entity-actions__scroll">
+          <EntitySaveButton
+            place={{
+              category: "place",
+              value: place.name,
+              label: place.name,
+              subtitle: placeDirectoryLabel(place.category) || null,
+              lat: place.lat,
+              lon: place.lon,
+            }}
+          />
+          <EntityShareButton url={placeShareUrl} entityLabel={place.name} />
+          {#if place.lat != null && place.lon != null}
+            <EntityGoogleMapsLink
+              lat={place.lat}
+              lon={place.lon}
+              name={place.name}
+              ariaLabel={`Open ${place.name} in Google Maps`}
+            />
+            <EntityPrintableMapLink
+              lat={place.lat}
+              lon={place.lon}
+              name={place.name}
+            />
+          {/if}
+          <EntityEditorToggle
+            expanded={editing}
+            {canPublish}
+            publishOpenLabel="Edit place"
+            closeLabel={canPublish ? "Close editor" : "Close"}
+            variant="toolbar"
+            onclick={() => {
+              if (editing) {
+                editing = false;
+                additionProposalStore.clearDraftPin();
+              } else {
+                startEdit();
+              }
+            }}
+          />
+        </div>
       </div>
     </header>
 
@@ -293,11 +315,13 @@
 
   .place-category-badge {
     display: inline-block;
-    align-self: flex-start;
+    flex-shrink: 0;
+    align-self: center;
+    white-space: nowrap;
     padding: 0.125rem 0.5rem;
     border-radius: 999px;
-    background: hsl(162, 45%, 92%);
-    color: #0d7a5f;
+    background: var(--theme-green-soft, hsl(162, 45%, 92%));
+    color: var(--theme-green-text, #0d7a5f);
     font-size: 0.6875rem;
     font-weight: 600;
   }
@@ -310,7 +334,7 @@
     gap: 0.375rem;
     font-size: 0.875rem;
     line-height: 1.5;
-    color: #27272a;
+    color: var(--theme-text, #27272a);
   }
   .place-form {
     display: flex;
@@ -329,7 +353,7 @@
   .place-form textarea {
     font: inherit;
     padding: 0.375rem 0.5rem;
-    border: 1px solid hsl(0, 0%, 80%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 80%));
     border-radius: 0.375rem;
   }
   .place-form__actions {
@@ -355,17 +379,17 @@
   }
   .place-cancel-btn {
     padding: 0.375rem 0.75rem;
-    border: 1px solid hsl(0, 0%, 80%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 80%));
     border-radius: 0.375rem;
-    background: white;
+    background: var(--theme-surface, white);
     cursor: pointer;
   }
   .place-cancel-btn:hover:not(:disabled) {
-    border-color: #c58f91;
-    background: #fdf3f3;
+    border-color: var(--theme-accent-border, #c58f91);
+    background: var(--theme-accent-soft, #fdf3f3);
   }
   .place-empty {
     padding: 1rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 </style>
