@@ -7,6 +7,7 @@ import {
 } from "@drizzle/schema";
 import { and, desc, eq, inArray, isNull, lte, sql } from "drizzle-orm";
 import { toIsoTimestamp } from "@lib/editor/entity-attribution";
+import { withUndefinedColumnFallback } from "@lib/db-column-fallback";
 import {
   getBuildingCanonicalPath,
   getCollegeCanonicalPath,
@@ -63,7 +64,18 @@ type ContributionInput = {
 };
 
 async function recordContribution(input: ContributionInput): Promise<void> {
-  await db.insert(contributionsTable).values(input);
+  await withUndefinedColumnFallback(
+    "record contribution",
+    () => db.insert(contributionsTable).values(input),
+    // Before migration 0053: drizzle names every schema column in an insert,
+    // so write the pre-0053 columns by hand. The edit still gets its credit.
+    () =>
+      db.execute(sql`insert into contributions
+        (user_id, submitter_name, entity_type, entity_id, entity_label, source, proposal_id)
+        values (${input.userId}, ${input.submitterName}, ${input.entityType},
+          ${input.entityId}, ${input.entityLabel}, ${input.source},
+          ${input.proposalId ?? null})`),
+  );
   ledgerCache.clear();
 }
 
@@ -88,12 +100,51 @@ export async function recordProposalContribution(
     entityLabel: proposal.entityLabel,
     source: "proposal_approved",
     proposalId: proposal.id,
-    contributorId: proposal.contributorId ?? null,
+    contributorId: await readProposalContributorId(proposal.id),
     kind: classifyContribution({
       entityType: proposal.entityType,
       keys: patch && typeof patch === "object" ? Object.keys(patch) : [],
     }),
   });
+}
+
+/**
+ * edit_proposals.contributor_id (migration 0053) is deliberately left out of
+ * the drizzle table: `select()` and inserts name every declared column, so
+ * declaring it would break every proposal read and write in the window where
+ * new code runs before the migration. It is read and written here by hand,
+ * and both become no-ops while the column is missing.
+ */
+export async function readProposalContributorId(
+  proposalId: number,
+): Promise<string | null> {
+  return withUndefinedColumnFallback(
+    "read proposal contributor",
+    async () => {
+      const result = await db.execute<{ contributor_id: string | null }>(
+        sql`select contributor_id from edit_proposals where id = ${proposalId}`,
+      );
+      return result.rows[0]?.contributor_id ?? null;
+    },
+    async () => null,
+  );
+}
+
+export async function writeProposalContributorId(
+  proposalId: number,
+  contributorId: string | null | undefined,
+): Promise<void> {
+  if (!contributorId) return;
+  await withUndefinedColumnFallback(
+    "write proposal contributor",
+    () =>
+      db.execute(
+        sql`update edit_proposals
+          set contributor_id = coalesce(contributor_id, ${contributorId}::uuid)
+          where id = ${proposalId}`,
+      ),
+    async () => undefined,
+  );
 }
 
 /**
@@ -113,18 +164,22 @@ export async function markContributionsReverted(input: {
     input.entityType === "event"
       ? ["event", "event_locations"]
       : [input.entityType];
-  await db
-    .update(contributionsTable)
-    .set({ revertedAt: sql`now()` })
-    .where(
-      and(
-        inArray(contributionsTable.entityType, types),
-        eq(contributionsTable.entityId, input.entityId),
-        sql`${contributionsTable.createdAt} >= ${input.since}`,
-        lte(contributionsTable.id, input.throughId),
-        isNull(contributionsTable.revertedAt),
-      ),
-    );
+  const mark = () =>
+    db
+      .update(contributionsTable)
+      .set({ revertedAt: sql`now()` })
+      .where(
+        and(
+          inArray(contributionsTable.entityType, types),
+          eq(contributionsTable.entityId, input.entityId),
+          sql`${contributionsTable.createdAt} >= ${input.since}`,
+          lte(contributionsTable.id, input.throughId),
+          isNull(contributionsTable.revertedAt),
+        ),
+      );
+  // Before migration 0053 there is no reverted_at to set; the restore itself
+  // must not fail over leaderboard bookkeeping.
+  await withUndefinedColumnFallback("mark reverted", mark, async () => {});
   ledgerCache.clear();
 }
 
@@ -150,30 +205,36 @@ export async function getMyContributions(
   userId: number,
   limit = 50,
 ): Promise<MyContribution[]> {
-  const rows = await db
-    .select({
-      id: contributionsTable.id,
-      entityType: contributionsTable.entityType,
-      entityId: contributionsTable.entityId,
-      entityLabel: contributionsTable.entityLabel,
-      source: contributionsTable.source,
-      kind: contributionsTable.kind,
-      patchKeys: patchKeysSql,
-      createdAt: contributionsTable.createdAt,
-    })
-    .from(contributionsTable)
-    .leftJoin(
-      editProposalsTable,
-      eq(contributionsTable.proposalId, editProposalsTable.id),
-    )
-    .where(
-      and(
-        eq(contributionsTable.userId, userId),
-        isNull(contributionsTable.revertedAt),
-      ),
-    )
-    .orderBy(desc(contributionsTable.createdAt), desc(contributionsTable.id))
-    .limit(limit);
+  const query = (legacy: boolean) =>
+    db
+      .select({
+        id: contributionsTable.id,
+        entityType: contributionsTable.entityType,
+        entityId: contributionsTable.entityId,
+        entityLabel: contributionsTable.entityLabel,
+        source: contributionsTable.source,
+        kind: legacy ? sql<string | null>`null` : contributionsTable.kind,
+        patchKeys: patchKeys(legacy),
+        createdAt: contributionsTable.createdAt,
+      })
+      .from(contributionsTable)
+      .leftJoin(
+        editProposalsTable,
+        eq(contributionsTable.proposalId, editProposalsTable.id),
+      )
+      .where(
+        and(
+          eq(contributionsTable.userId, userId),
+          legacy ? undefined : isNull(contributionsTable.revertedAt),
+        ),
+      )
+      .orderBy(desc(contributionsTable.createdAt), desc(contributionsTable.id))
+      .limit(limit);
+  const rows = await withUndefinedColumnFallback(
+    "my contributions",
+    () => query(false),
+    () => query(true),
+  );
   return rows.map(({ patchKeys, ...row }) => {
     const kind = resolveKind(row.kind, row.entityType, patchKeys);
     return {
@@ -200,11 +261,15 @@ const ledgerCache = new Map<
 
 // Legacy rows have no kind; classify them from the fields the proposal
 // touched. Only keys are read, never the (possibly large) patch values.
-const patchKeysSql = sql<string[] | null>`case
-  when ${contributionsTable.kind} is null
+// `legacy` is the pre-0053 database, which has no kind column at all.
+function patchKeys(legacy: boolean) {
+  const needed = legacy ? sql`true` : sql`${contributionsTable.kind} is null`;
+  return sql<string[] | null>`case
+  when ${needed}
     and jsonb_typeof(${editProposalsTable.proposedPatch}) = 'object'
   then (select array_agg(k) from jsonb_object_keys(${editProposalsTable.proposedPatch}) as k)
 end`;
+}
 
 function resolveKind(
   stored: string | null,
@@ -221,39 +286,48 @@ function toMs(value: string): number {
 }
 
 async function queryLedger(source: ContributionSource): Promise<LedgerRow[]> {
-  const rows = await db
-    .select({
-      id: contributionsTable.id,
-      userId: contributionsTable.userId,
-      contributorId: contributionsTable.contributorId,
-      submitterName: contributionsTable.submitterName,
-      entityType: contributionsTable.entityType,
-      entityId: contributionsTable.entityId,
-      entityLabel: contributionsTable.entityLabel,
-      kind: contributionsTable.kind,
-      createdAt: contributionsTable.createdAt,
-      patchKeys: patchKeysSql,
-      username: adminUsersTable.username,
-      displayName: adminUsersTable.displayName,
-      isActive: adminUsersTable.isActive,
-      showInCredits: adminUsersTable.showInCredits,
-      deletedAt: adminUsersTable.deletedAt,
-    })
-    .from(contributionsTable)
-    .leftJoin(
-      adminUsersTable,
-      eq(contributionsTable.userId, adminUsersTable.id),
-    )
-    .leftJoin(
-      editProposalsTable,
-      eq(contributionsTable.proposalId, editProposalsTable.id),
-    )
-    .where(
-      and(
-        eq(contributionsTable.source, source),
-        isNull(contributionsTable.revertedAt),
-      ),
-    );
+  const query = (legacy: boolean) =>
+    db
+      .select({
+        id: contributionsTable.id,
+        userId: contributionsTable.userId,
+        contributorId: legacy
+          ? sql<string | null>`null`
+          : contributionsTable.contributorId,
+        submitterName: contributionsTable.submitterName,
+        entityType: contributionsTable.entityType,
+        entityId: contributionsTable.entityId,
+        entityLabel: contributionsTable.entityLabel,
+        kind: legacy ? sql<string | null>`null` : contributionsTable.kind,
+        createdAt: contributionsTable.createdAt,
+        patchKeys: patchKeys(legacy),
+        username: adminUsersTable.username,
+        displayName: adminUsersTable.displayName,
+        isActive: adminUsersTable.isActive,
+        showInCredits: adminUsersTable.showInCredits,
+        deletedAt: adminUsersTable.deletedAt,
+      })
+      .from(contributionsTable)
+      .leftJoin(
+        adminUsersTable,
+        eq(contributionsTable.userId, adminUsersTable.id),
+      )
+      .leftJoin(
+        editProposalsTable,
+        eq(contributionsTable.proposalId, editProposalsTable.id),
+      )
+      .where(
+        and(
+          eq(contributionsTable.source, source),
+          legacy ? undefined : isNull(contributionsTable.revertedAt),
+        ),
+      );
+  // Before migration 0053: every row counts and groups by name, as before.
+  const rows = await withUndefinedColumnFallback(
+    "contribution ledger",
+    () => query(false),
+    () => query(true),
+  );
 
   return rows.map((row) => ({
     id: row.id,

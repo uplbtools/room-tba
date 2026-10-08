@@ -21,7 +21,11 @@ import {
   validateSubmitterName,
   validateSubmitterNote,
 } from "@constants/proposals";
-import { recordProposalContribution } from "./contribution-service";
+import {
+  readProposalContributorId,
+  recordProposalContribution,
+  writeProposalContributorId,
+} from "./contribution-service";
 import { parseImageUrl } from "@lib/r2-upload";
 import { R2_PUBLIC_URL } from "astro:env/server";
 import { canWithdrawProposal } from "./proposal-access";
@@ -685,13 +689,13 @@ export async function submitProposal(
       !["pending", "needs_changes"].includes(existing.status) ||
       existing.submitterName !== name ||
       (input.submitterUserId &&
-        existing.submitterUserId !== input.submitterUserId) ||
-      // Same typed name from another browser is another person.
-      (existing.contributorId &&
-        input.contributorId &&
-        existing.contributorId !== input.contributorId)
+        existing.submitterUserId !== input.submitterUserId)
     ) {
       existing = undefined;
+    } else if (input.contributorId) {
+      // Same typed name from another browser is another person.
+      const owner = await readProposalContributorId(existing.id);
+      if (owner && owner !== input.contributorId) existing = undefined;
     }
   } else if (allowEntityScopedProposalMerge(isCreate, input.submitterUserId)) {
     [existing] = await db
@@ -745,7 +749,6 @@ export async function submitProposal(
         adminNote: null,
         // A revise with no new note keeps the one already on the proposal.
         submitterNote: submitterNote ?? existing.submitterNote,
-        contributorId: existing.contributorId ?? input.contributorId ?? null,
         reviewedBy: null,
         reviewedAt: null,
         updatedAt: sql`now()`,
@@ -753,6 +756,7 @@ export async function submitProposal(
       .where(eq(editProposalsTable.id, existing.id))
       .returning();
     if (!updated) throw new Error("Failed to update proposal.");
+    await writeProposalContributorId(updated.id, input.contributorId);
     return withEntityLabel(updated);
   }
 
@@ -766,12 +770,12 @@ export async function submitProposal(
       submitterName: name,
       submitterUserId: input.submitterUserId ?? null,
       submitterNote,
-      contributorId: input.contributorId ?? null,
       status: "pending",
     })
     .returning();
 
   if (!created) throw new Error("Failed to create proposal.");
+  await writeProposalContributorId(created.id, input.contributorId);
   return withEntityLabel(created);
 }
 

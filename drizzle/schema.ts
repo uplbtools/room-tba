@@ -545,8 +545,8 @@ export const editProposalsTable = pgTable("edit_proposals", {
   submitterUserId: integer("submitter_user_id").references(
     () => adminUsersTable.id,
   ),
-  /** Browser-held uuid crediting a public submitter (never published). */
-  contributorId: uuid("contributor_id"),
+  // contributor_id uuid (migration 0053) exists but is not declared here:
+  // see readProposalContributorId in contribution-service.ts.
   adminNote: text("admin_note"),
   /** Contributor's message to the reviewer. Never published (#873). */
   submitterNote: text("submitter_note"),

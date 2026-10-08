@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import bcrypt from "bcrypt";
-import { and, desc, eq, ne, sql } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, ne, sql } from "drizzle-orm";
+import { withUndefinedColumnFallback } from "@lib/db-column-fallback";
 import { ADMIN_PASSWORD } from "astro:env/server";
 import {
   adminUsersTable,
@@ -718,11 +719,25 @@ export async function exportAccountData(
       .from(editProposalsTable)
       .where(eq(editProposalsTable.submitterUserId, userId))
       .orderBy(desc(editProposalsTable.createdAt)),
-    db
-      .select()
-      .from(contributionsTable)
-      .where(eq(contributionsTable.userId, userId))
-      .orderBy(desc(contributionsTable.createdAt)),
+    withUndefinedColumnFallback(
+      "export contributions",
+      () =>
+        db
+          .select()
+          .from(contributionsTable)
+          .where(eq(contributionsTable.userId, userId))
+          .orderBy(desc(contributionsTable.createdAt)),
+      // Before migration 0053: the same rows without the leaderboard columns.
+      () => {
+        const { contributorId, kind, revertedAt, ...legacy } =
+          getTableColumns(contributionsTable);
+        return db
+          .select(legacy)
+          .from(contributionsTable)
+          .where(eq(contributionsTable.userId, userId))
+          .orderBy(desc(contributionsTable.createdAt));
+      },
+    ),
     db
       .select({ data: plannerPlansTable.data })
       .from(plannerPlansTable)
