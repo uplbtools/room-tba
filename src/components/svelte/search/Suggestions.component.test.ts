@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import SuggestionsHost from "@test/components/SuggestionsHost.svelte";
 import { loadedAppContext } from "@test/fixtures/app-context";
 import { appBootstrapStore, queryStore } from "@lib/store.svelte";
+import { savedPlaces } from "@lib/saved-places.svelte";
 import type { BuildingData } from "@lib/types";
 
 const physSci = {
@@ -87,6 +88,23 @@ describe("Suggestions", () => {
     await fireEvent.click(screen.getByRole("button", { name: "Clear" }));
     expect(queryStore.recentSearches).toEqual([]);
     expect(screen.queryByRole("heading", { name: "Recent" })).toBeNull();
+  });
+
+  test("focused empty search lists saved places above recents", async () => {
+    savedPlaces.save({
+      category: "building",
+      value: "Physical Sciences Building",
+      label: "Physical Sciences Building",
+      subtitle: "Class building",
+    });
+    renderSuggestions();
+
+    expect(screen.getByRole("heading", { name: "Saved" })).toBeVisible();
+    expect(screen.getByText("Class building")).toBeVisible();
+    await fireEvent.click(screen.getByText("Physical Sciences Building"));
+    expect(queryStore.category).toBe("building");
+    expect(queryStore.queryValue).toBe("Physical Sciences Building");
+    savedPlaces.clear();
   });
 
   test("keeps at most six recent searches, newest first", () => {

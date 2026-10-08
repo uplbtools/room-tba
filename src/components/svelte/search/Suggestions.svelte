@@ -40,11 +40,14 @@
   import SearchQuerySuggestion from "./SearchQuerySuggestion.svelte";
   import FinalExamSuggestion from "./FinalExamSuggestion.svelte";
   import Suggestion from "./Suggestion.svelte";
+  import { savedPlaces } from "@lib/saved-places.svelte";
 
   let { onDismiss = () => {} }: { onDismiss?: () => void } = $props();
 
   /** A search fetch that hangs must not leave "Loading…" up forever. */
   const SEARCH_FETCH_TIMEOUT_MS = 8_000;
+  /** Saved places shown above Recent before typing; the rest live in Saved. */
+  const SAVED_PREVIEW = 5;
   /** Longest Enter waits on a slow source before opening the top result. */
   const ENTER_WAIT_MS = 2_000;
 
@@ -356,6 +359,18 @@
         </button>
       {/if}
     {/if}
+    {#if savedPlaces.items.length !== 0}
+      <h2 class="suggestions-header">Saved</h2>
+      {#each savedPlaces.items.slice(0, SAVED_PREVIEW) as place (`${place.category}:${place.value}`)}
+        <Suggestion
+          value={place.value}
+          category={place.category}
+          secondary={place.subtitle}
+          lat={place.lat ?? null}
+          lon={place.lon ?? null}
+        />
+      {/each}
+    {/if}
     {#if queryStore.recentSearches.length !== 0}
       <div class="suggestions-header-row">
         <h2 class="suggestions-header">Recent</h2>
@@ -370,7 +385,7 @@
       {#each queryStore.recentSearches as { category, value, eventSlug }, id (id)}
         <Suggestion {value} {category} {id} {eventSlug} />
       {/each}
-    {:else}
+    {:else if savedPlaces.items.length === 0}
       <!-- First visit: an empty white screen gave no hint what search takes. -->
       <p class="suggestions-status suggestions-hint">
         Search a room code like ICS MH1, a building, dorm, office, student
