@@ -9,6 +9,7 @@
   import EntityDirectionsChip from "./EntityDirectionsChip.svelte";
   import EntityShareCopyLink from "./EntityShareCopyLink.svelte";
   import TransitStopEditor from "./TransitStopEditor.svelte";
+  import JeepStopReports from "./JeepStopReports.svelte";
   import { getGoogleStreetViewUrl } from "@lib/google-maps-links";
   import { getJeepneyRouteShareUrl } from "@lib/share-links";
   import MapChromeActionLink from "@ui/map-chrome/MapChromeActionLink.svelte";
@@ -186,6 +187,8 @@
         entityLabel={stop.name}
       />
     </div>
+
+    <JeepStopReports entries={servingRoutes} />
 
     <p class="entity-directions__text">{stop.description}</p>
     <p class="entity-panel-note">{route.description}</p>

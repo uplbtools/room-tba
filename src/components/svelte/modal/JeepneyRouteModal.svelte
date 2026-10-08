@@ -26,6 +26,12 @@
   } from "@lib/transit-route-kind";
   import { routeDirections } from "@lib/transit-direction";
   import { routeScheduleSummary } from "@lib/transit-schedule";
+  import Radio from "@lucide/svelte/icons/radio";
+  import { routeReportLine } from "@lib/transit-reports";
+  import {
+    type ReportsResponse,
+    fetchRouteReports,
+  } from "@lib/transit-reports-client";
   import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
   import TransitStopEditor from "../controls/TransitStopEditor.svelte";
 
@@ -80,6 +86,41 @@
           route,
           jeepneyGeometries as Record<string, StoredRouteGeometry>,
         ).caveat
+      : null,
+  );
+
+  // Rider reports from the last hour; null (no line at all) until loaded or
+  // when the request fails, so a failure never reads as "No recent reports".
+  let routeReports = $state<ReportsResponse | null>(null);
+  let reportsNow = $state(Date.now());
+  const routeIdForReports = $derived(route?.id ?? null);
+
+  $effect(() => {
+    const id = routeIdForReports;
+    routeReports = null;
+    if (!id) return;
+    let cancelled = false;
+    const load = () =>
+      fetchRouteReports(id).then((result) => {
+        if (cancelled) return;
+        routeReports = result;
+        reportsNow = Date.now();
+      });
+    void load();
+    const poll = setInterval(load, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(poll);
+    };
+  });
+
+  const reportLine = $derived(
+    route && routeReports
+      ? routeReportLine(
+          routeReports.reports,
+          route.stops,
+          reportsNow + routeReports.skewMs,
+        )
       : null,
   );
 
@@ -206,6 +247,16 @@
               >{schedule.hours}{schedule.published
                 ? ` · ${schedule.frequency}`
                 : ""}{schedule.note ? `. ${schedule.note}` : ""}</span
+            >
+          </li>
+        {/if}
+        {#if reportLine}
+          <li class="jeepney-modal__reports">
+            <Radio size={16} aria-hidden="true" />
+            <span
+              >{reportLine.last}{reportLine.frequency
+                ? `. ${reportLine.frequency}`
+                : ""}</span
             >
           </li>
         {/if}

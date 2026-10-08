@@ -88,6 +88,7 @@ const E2E_MIGRATION_FILES = [
   "0050_dorm_gender_nullable.sql",
   "0051_room_position_source.sql",
   "0052_building_street_view.sql",
+  "0054_add_jeep_reports.sql",
 ] as const;
 
 /**
@@ -242,6 +243,7 @@ async function main() {
 
     await client.query(`
       TRUNCATE TABLE
+        jeep_reports,
         feedback,
         announcements,
         sponsor_impressions,

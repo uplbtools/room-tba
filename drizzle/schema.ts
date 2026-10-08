@@ -791,6 +791,46 @@ export const sponsorImpressionsTable = pgTable("sponsor_impressions", {
 // user id, or an IP. Server-only: deliberately absent from the PGlite
 // SYNCED_TABLES set so it never reaches the browser cache. Rows are pruned
 // opportunistically by /api/presence.
+// "Jeep is here" reports (0054). Server-only: not in the PGlite generator's
+// SYNCED_TABLES. `deviceId` is an anonymous localStorage UUID; no IP is stored.
+export const jeepReportsTable = pgTable(
+  "jeep_reports",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "jeep_reports_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    routeId: varchar("route_id", { length: 64 }).notNull(),
+    /** `transitStopKey()`: the stop's rounded "lat,lon". */
+    stopKey: varchar("stop_key", { length: 32 }).notNull(),
+    /** "forward" | "reverse" for two-way routes, null otherwise. */
+    direction: varchar({ length: 8 }),
+    deviceId: varchar("device_id", { length: 64 }).notNull(),
+    isFull: boolean("is_full").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("jeep_reports_stop_created_idx").on(
+      table.stopKey,
+      table.createdAt.desc(),
+    ),
+    index("jeep_reports_route_created_idx").on(
+      table.routeId,
+      table.createdAt.desc(),
+    ),
+    index("jeep_reports_device_created_idx").on(
+      table.deviceId,
+      table.createdAt.desc(),
+    ),
+  ],
+);
+
 export const presenceTable = pgTable("presence", {
   sid: varchar({ length: 64 }).primaryKey(),
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true, mode: "string" })
