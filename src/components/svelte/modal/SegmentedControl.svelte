@@ -1,6 +1,6 @@
 <script lang="ts" generics="T extends string | number">
   /**
-   * Material 3 segmented button for 2 or 3 exclusive choices: a 40px
+   * Material 3 segmented button for 2 or 3 exclusive choices: a 44px
    * radiogroup with a check on the selected segment. Arrow keys move the
    * selection (roving tabindex), the way a native radio group behaves.
    */
@@ -119,7 +119,7 @@
     justify-content: center;
     gap: 0.375rem;
     min-width: 0;
-    min-height: 2.5rem;
+    min-height: 2.75rem;
     padding: 0 0.75rem;
     font-size: 0.875rem;
     font-weight: 500;
@@ -133,8 +133,10 @@
     border-left: 1px solid var(--theme-border-strong, hsl(0, 0%, 46%));
   }
 
-  .segmented__option:hover:not(:disabled) {
-    background-color: var(--theme-accent-soft, hsl(5, 30%, 96%));
+  @media (hover: hover) {
+    .segmented__option:hover:not(:disabled) {
+      background-color: var(--theme-accent-soft, hsl(5, 30%, 96%));
+    }
   }
 
   .segmented__option[aria-checked="true"] {
