@@ -21,6 +21,7 @@
   import DirectionsRouteChips from "@ui/directions/DirectionsRouteChips.svelte";
   import NavigationBanner from "@ui/directions/NavigationBanner.svelte";
   import MapFilterChips from "@ui/map-chrome/MapFilterChips.svelte";
+  import ActiveOverlayChips from "@ui/map-chrome/ActiveOverlayChips.svelte";
   import { observeBlockHeight } from "@lib/layout-css-vars";
   import { registerSearchFocus } from "@lib/search-focus";
   import { registerEphemeralOverlayDismisser } from "@lib/overlay-stack";
@@ -404,6 +405,10 @@
         <div class="map-search-chrome__mobile-chips">
           <MapFilterChips />
         </div>
+      {/if}
+
+      {#if !searchFocused && !directionsSearchActive}
+        <ActiveOverlayChips />
       {/if}
 
       {#if showSearchDropdown}

@@ -61,8 +61,9 @@
   } from "@lib/keyboard-shortcuts";
   import { dismissEphemeralOverlays } from "@lib/overlay-stack";
   import { trackOverlay } from "@lib/track-overlay.svelte";
-  import { openOverlayKeys } from "@lib/overlay-history";
   import { debugMode } from "@lib/debug-flag";
+  import { installMapOverlays, mapIsBare } from "@lib/map-overlay-sources.svelte";
+  import { mapOverlays } from "@lib/stores/map-overlays.svelte";
   import { openCampusBrowse } from "@lib/browse-campus";
   import { getTransitRoutePath, getTransitStopPath } from "@lib/transit-urls";
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
@@ -127,6 +128,8 @@
   const appData = getAppData();
 
   onMount(() => {
+    installMapOverlays();
+
     // Session state drives account-backed planner sync too. This belongs at the
     // app root: /planner renders without the map-only location control that
     // used to hydrate auth, so direct planner visits were treated as guests.
@@ -437,16 +440,6 @@
         editorChromeStore.closeAdditionModal();
       } else if (mapToolsStore.open) {
         mapToolsStore.close();
-      } else if (travelTimeStore.active || measureRouteStore.active) {
-        // Both can be on at once: close whichever opened last.
-        const top = openOverlayKeys()
-          .filter((key) => key === "measure" || key === "travel-time")
-          .at(-1);
-        if (top === "travel-time" || !measureRouteStore.active) {
-          travelTimeStore.disable();
-        } else {
-          measureRouteStore.disable();
-        }
       } else if (jeepneyStore.selectedStopIndex !== null) {
         jeepneyStore.closeStop();
       } else if (queryStore.inputValue !== "" || queryStore.type === "result") {
@@ -454,6 +447,9 @@
         if (locationStore.destination) {
           locationStore.clearDestination();
         }
+      } else if (mapIsBare()) {
+        // Nothing open but the map: take the newest overlay off it.
+        mapOverlays.clearMostRecent();
       }
       sidePanelStore.closePanel();
     }
@@ -511,14 +507,18 @@
         <div class="bottom-band">
         <!-- One slot for every map panel: they stack in a column above the
              bottom nav (or the desktop attribution) and scroll together
-             when they outgrow the space, instead of overlapping. -->
-        {#if travelTimeStore.active || measureRouteStore.active || (debugMode && mapViewStore.cameraDebug)}
+             when they outgrow the space, instead of overlapping. A sheet
+             covers the tool cards: the active-overlays chip bar stands in
+             for them until it closes. -->
+        {#if ((travelTimeStore.active || measureRouteStore.active) && sidePanelStore.mobileSheetSnap === "closed") || (debugMode && mapViewStore.cameraDebug)}
           <div class="map-panel-slot" role="group" aria-label="Map panels">
-            {#if travelTimeStore.active}
-              <TravelTimeLegend />
-            {/if}
-            {#if measureRouteStore.active}
-              <MeasureRoutePanel />
+            {#if sidePanelStore.mobileSheetSnap === "closed"}
+              {#if travelTimeStore.active}
+                <TravelTimeLegend />
+              {/if}
+              {#if measureRouteStore.active}
+                <MeasureRoutePanel />
+              {/if}
             {/if}
             {#if debugMode && mapViewStore.cameraDebug}
               <CameraDebugHud />
