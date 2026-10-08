@@ -40,10 +40,33 @@ describe("directions param", () => {
     expect(parseDirectionsParam(null)).toBeNull();
     expect(parseDirectionsParam("")).toBeNull();
     expect(parseDirectionsParam("me")).toBeNull();
-    expect(parseDirectionsParam("a/b/c")).toBeNull();
+    expect(parseDirectionsParam("a/b/c/d/e/f")).toBeNull();
+    expect(parseDirectionsParam("a/me/c")).toBeNull();
     expect(parseDirectionsParam("psb/me")).toBeNull();
     expect(parseDirectionsParam("Not A Slug/psb")).toBeNull();
     expect(parseDirectionsParam("95,10/psb")).toBeNull();
+  });
+});
+
+describe("directions stops and mode", () => {
+  test("round-trips stops between start and end", () => {
+    const param = {
+      from: { kind: "me" as const },
+      via: [
+        { kind: "slug" as const, slug: "dl-umali-hall" },
+        { kind: "coords" as const, lat: 14.16, lng: 121.24 },
+      ],
+      to: { kind: "slug" as const, slug: "psb" },
+    };
+    const text = formatDirectionsParam(param);
+    expect(text).toBe("me/dl-umali-hall/14.16,121.24/psb");
+    expect(parseDirectionsParam(text)).toEqual(param);
+  });
+
+  test("reads the mode tab and drops it with the other overlay params", () => {
+    expect(readAppState("?dir=me/psb&mode=transit").mode).toBe("transit");
+    expect(readAppState("?dir=me/psb&mode=car").mode).toBeNull();
+    expect(stripOverlayParams("?term=3&dir=me/psb&mode=walk")).toBe("?term=3");
   });
 });
 
@@ -102,11 +125,13 @@ test("readAppState decodes what the app writes", () => {
     q: "chem",
     browse: "dorms",
     dir: { from: { kind: "me" }, to: { kind: "slug", slug: "psb" } },
+    mode: null,
   });
   expect(readAppState("?browse=nope")).toEqual({
     q: null,
     browse: null,
     dir: null,
+    mode: null,
   });
 });
 

@@ -6,7 +6,9 @@
  *   /?browse=dorms                 a category list (map chip)
  *   /?dir=me/physical-sciences-building
  *                                  directions; each end is `me` (GPS), a
- *                                  campus slug, or `lat,lng`
+ *                                  campus slug, or `lat,lng`; stops go
+ *                                  between them (from/stop/…/to)
+ *   /?dir=…&mode=transit           the travel-mode tab (walk | transit)
  *   #map=17.25/14.16523/121.24151  camera: zoom/lat/lng (OSM style)
  *
  * Entity pages keep their own paths (/building/…); see entity-urls.ts.
@@ -75,26 +77,50 @@ export function parseDirectionsToken(raw: string): DirectionsToken | null {
   return null;
 }
 
-export type DirectionsParam = { from: DirectionsToken; to: DirectionsToken };
+export type DirectionsParam = {
+  from: DirectionsToken;
+  to: DirectionsToken;
+  /** Stops between start and end, in order. */
+  via?: DirectionsToken[];
+};
+
+/** Matches MAX_DIRECTIONS_WAYPOINTS in the directions store. */
+const MAX_VIA = 3;
 
 export function formatDirectionsParam(param: DirectionsParam): string {
-  return `${formatDirectionsToken(param.from)}/${formatDirectionsToken(param.to)}`;
+  return [param.from, ...(param.via ?? []), param.to]
+    .map(formatDirectionsToken)
+    .join("/");
 }
 
 export function parseDirectionsParam(
   value: string | null,
 ): DirectionsParam | null {
   if (!value) return null;
-  const [fromRaw, toRaw, extra] = value.split("/");
-  if (fromRaw === undefined || toRaw === undefined || extra !== undefined) {
+  const parts = value.split("/");
+  if (parts.length < 2 || parts.length > MAX_VIA + 2) return null;
+  const tokens: DirectionsToken[] = [];
+  for (const part of parts) {
+    const token = parseDirectionsToken(part);
+    if (!token) return null;
+    tokens.push(token);
+  }
+  const [from, ...via] = tokens;
+  const to = via.pop();
+  if (!from || !to) return null;
+  // Directions *to* (or via) the rider's own position mean nothing.
+  if (to.kind === "me" || via.some((token) => token.kind === "me")) {
     return null;
   }
-  const from = parseDirectionsToken(fromRaw);
-  const to = parseDirectionsToken(toRaw);
-  if (!from || !to) return null;
-  // Directions *to* the rider's own position mean nothing.
-  if (to.kind === "me") return null;
-  return { from, to };
+  return via.length > 0 ? { from, to, via } : { from, to };
+}
+
+export type DirectionsModeParam = "walk" | "transit";
+
+export function parseDirectionsMode(
+  value: string | null,
+): DirectionsModeParam | null {
+  return value === "walk" || value === "transit" ? value : null;
 }
 
 export type MapCamera = { zoom: number; lat: number; lng: number };
@@ -119,9 +145,10 @@ export type AppStateParams = {
   q?: string | null;
   dir?: string | null;
   browse?: string | null;
+  mode?: string | null;
 };
 
-const STATE_KEYS = ["q", "dir", "browse"] as const;
+const STATE_KEYS = ["q", "dir", "browse", "mode"] as const;
 
 /** URLSearchParams escapes `/` and `,`; both are legal in a query and read better unescaped. */
 function serializeSearch(params: URLSearchParams) {
@@ -164,18 +191,20 @@ export function readAppState(search: string) {
   return {
     q: params.get("q")?.trim() || null,
     dir: parseDirectionsParam(params.get("dir")),
+    mode: parseDirectionsMode(params.get("mode")),
     browse: parseBrowseParam(params.get("browse")),
   };
 }
 
 /**
- * Search without the params that ride on top of any page (?q=, ?dir=), so
+ * Search without the params that ride on top of any page (?q=, ?dir=, ?mode=), so
  * entity URL sync does not mistake them for a different page and push one.
  */
 export function stripOverlayParams(search: string): string {
   const params = new URLSearchParams(search);
   params.delete("q");
   params.delete("dir");
+  params.delete("mode");
   return serializeSearch(params);
 }
 

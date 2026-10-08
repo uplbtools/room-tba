@@ -368,7 +368,14 @@ function planDirect({
       coordinates: [...egressReversed.coordinates].reverse(),
     };
 
-    const ride = buildRideLeg(route, stops, best.board, best.alight, reversed, line);
+    const ride = buildRideLeg(
+      route,
+      stops,
+      best.board,
+      best.alight,
+      reversed,
+      line,
+    );
 
     journeys.push({
       id: `${route.id}${suffix}`,

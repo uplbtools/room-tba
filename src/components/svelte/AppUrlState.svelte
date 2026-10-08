@@ -20,8 +20,12 @@
   } from "@lib/app-url-state";
   import { replaceAppUrl } from "@lib/overlay-history";
   import { trackOverlay } from "@lib/track-overlay.svelte";
+  import { droppedPinStore } from "@lib/dropped-pin.svelte";
   import { slugifySegment } from "@lib/site";
-  import type { DirectionsEndpoint } from "@lib/stores/directions-store.svelte";
+  import {
+    YOUR_LOCATION_LABEL,
+    type DirectionsEndpoint,
+  } from "@lib/stores/directions-store.svelte";
   import {
     adminAuthStore,
     appBootstrapStore,
@@ -65,6 +69,12 @@
   );
   trackOverlay("map-tools", () => mapToolsStore.open, mapToolsStore.close);
   trackOverlay("menu-rail", () => sidebarStore.railOpen, sidebarStore.closeRail);
+  // Long-press "Dropped pin" sheet; the panel lifts its pin when it closes.
+  trackOverlay(
+    "dropped-pin",
+    () => droppedPinStore.at !== null,
+    sidePanelStore.closePanel,
+  );
 
   // ── Directions: /…?dir=<from>/<to> ─────────────────────────────────────
   type Named = { name: string; lat: number | null; lon: number | null };
@@ -131,14 +141,26 @@
       from:
         origin && directionsStore.originFixed ? tokenFor(origin) : { kind: "me" },
       to: tokenFor(directionsStore.destination),
+      via: directionsStore.waypoints.map(tokenFor),
     });
+  });
+
+  // The mode tab rides along only when it is not the default (the fastest
+  // option's mode), so most links stay as short as from/to.
+  const directionsMode = $derived.by(() => {
+    if (!directionsParam) return null;
+    const mode = directionsStore.mode;
+    return mode && mode !== directionsStore.journeys[0]?.kind ? mode : null;
   });
 
   trackOverlay(
     "directions",
     () => directionsStore.active,
     directionsStore.close,
-    () => ({ url: (url) => withAppState(url, { dir: directionsParam }) }),
+    () => ({
+      url: (url) =>
+        withAppState(url, { dir: directionsParam, mode: directionsMode }),
+    }),
   );
   trackOverlay(
     "navigation",
@@ -150,8 +172,9 @@
   // URL is rewritten (effects run in order); the page under it stays bare.
   $effect(() => {
     const dir = directionsParam;
+    const mode = directionsMode;
     if (!directionsStore.active) return;
-    replaceAppUrl((url) => withAppState(url, { dir }));
+    replaceAppUrl((url) => withAppState(url, { dir, mode }));
   });
 
   // ── Camera: #map=zoom/lat/lng ──────────────────────────────────────────
@@ -204,19 +227,26 @@
     pendingDirections = null;
     const destination = resolveToken(dir.to);
     const origin = resolveToken(dir.from);
+    const waypoints = (dir.via ?? []).map(resolveToken);
     if (!destination || (dir.from.kind !== "me" && !origin)) return;
+    if (waypoints.some((stop) => stop === null)) return;
     if (!origin) locationStore.requestLocation();
     const gpsOrigin =
       !origin && locationStore.coords
         ? {
             lat: locationStore.coords[1],
             lng: locationStore.coords[0],
-            label: "Your location",
+            label: YOUR_LOCATION_LABEL,
           }
         : null;
-    const opening = directionsStore.open(destination, origin ?? gpsOrigin);
-    if (origin) directionsStore.originFixed = true;
-    await opening;
+    await directionsStore.restore({
+      origin: origin ?? gpsOrigin,
+      originFixed: origin !== null,
+      destination,
+      waypoints: waypoints as DirectionsEndpoint[],
+      mode: initial?.state.mode ?? null,
+      navigating: false,
+    });
   }
 
   onMount(() => {
@@ -226,7 +256,9 @@
     // The directions overlay pushes its own entry carrying ?dir=; the entry
     // it opens over is the plain page, so Back lands somewhere sensible.
     // (Search restores ?q= itself; it owns the draft text.)
-    if (state.dir) replaceAppUrl((url) => withAppState(url, { dir: null }));
+    if (state.dir) {
+      replaceAppUrl((url) => withAppState(url, { dir: null, mode: null }));
+    }
 
     if (state.browse === "events") {
       queryStore.updateQuery({

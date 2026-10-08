@@ -128,11 +128,15 @@
 
   const mobileSearchActive = $derived(mobile.current && searchFocused);
 
-  // The phone search is a full-screen layer: Back closes it. Transient, so a
-  // place picked from it replaces its entry rather than stacking on it.
-  trackOverlay("search", () => mobileSearchActive, dismissMobileSearch, () => ({
-    transient: true,
-  }));
+  // The phone search is a full-screen layer and the desktop one a dropdown:
+  // either way Back closes it. Transient, so a place picked from it replaces
+  // its entry rather than stacking on it.
+  trackOverlay(
+    "search",
+    () => (mobile.current ? mobileSearchActive : showSearchDropdown),
+    dismissMobileSearch,
+    () => ({ transient: true }),
+  );
 
   // Typed search text rides in ?q= (on the search layer's own entry on
   // phones), so the URL can be shared or reloaded mid-search.
@@ -1166,7 +1170,7 @@
 
   .map-search-chrome__add:hover,
   .map-search-chrome__add:focus-visible {
-    background: #fcdada;
+    background: var(--theme-accent-soft, #fcdada);
   }
 
   /* GMaps-style Directions button at the right of the search bar. */
@@ -1189,7 +1193,7 @@
 
   .map-search-chrome__directions:hover,
   .map-search-chrome__directions:focus-visible {
-    background: #7a1130;
+    background: var(--theme-accent-fill, #7a1130);
   }
 
   .map-search-chrome__directions--hidden {

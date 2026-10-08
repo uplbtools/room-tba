@@ -58,6 +58,7 @@
     getGlobalShortcutAction,
   } from "@lib/keyboard-shortcuts";
   import { dismissEphemeralOverlays } from "@lib/overlay-stack";
+  import { trackOverlay } from "@lib/track-overlay.svelte";
   import { openCampusBrowse } from "@lib/browse-campus";
   import { getTransitRoutePath, getTransitStopPath } from "@lib/transit-urls";
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
@@ -325,6 +326,10 @@
     landingModalAutoOpenConsumed = true;
     firstRunTipsOpen = true;
   });
+
+  // Back dismisses the tips like "Got it". Tracked while they are pending,
+  // not while they step aside for a sheet, so their entry stays under it.
+  trackOverlay("first-run-tips", () => firstRunTipsOpen, dismissFirstRunTips);
 
   function dismissFirstRunTips() {
     firstRunTipsOpen = false;
