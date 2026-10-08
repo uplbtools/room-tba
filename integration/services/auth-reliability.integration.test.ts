@@ -84,6 +84,18 @@ describeIntegration(
         [`${PREFIX}-${suffix}`, hash, role, email],
       );
       const id = rows[0]?.id as number;
+      // Staff mail only reaches confirmed addresses, so a user created with
+      // an email here has already confirmed it.
+      if (email) {
+        await client.query(
+          `INSERT INTO admin_user_auth (user_id, verified_email, email_verified_at)
+         VALUES ($1, lower($2), now())
+         ON CONFLICT (user_id) DO UPDATE
+           SET verified_email = EXCLUDED.verified_email,
+               email_verified_at = EXCLUDED.email_verified_at`,
+          [id, email],
+        );
+      }
       return {
         id,
         username: `${PREFIX}-${suffix}`,
