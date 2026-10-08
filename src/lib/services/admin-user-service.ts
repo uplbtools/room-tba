@@ -1,4 +1,9 @@
-import { createHash, timingSafeEqual } from "node:crypto";
+import {
+  createHash,
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from "node:crypto";
 import bcrypt from "bcrypt";
 import { and, desc, eq, getTableColumns, ne, sql } from "drizzle-orm";
 import { withUndefinedColumnFallback } from "@lib/db-column-fallback";
@@ -1133,6 +1138,8 @@ export async function createContributorAccount(input: {
 
 export const BOOTSTRAP_ADMIN_USERNAME = "admin";
 
+const COMPARE_KEY = randomBytes(32);
+
 /**
  * ADMIN_PASSWORD is no longer a login. It survives only as break-glass for a
  * database with NO active admin (fresh fork, or every admin deactivated):
@@ -1148,8 +1155,10 @@ export async function bootstrapAdminLogin(
 ): Promise<SessionUser | null> {
   const expected = configuredPassword ?? "";
   if (!expected || !password) return null;
-  const given = createHash("sha256").update(password).digest();
-  const wanted = createHash("sha256").update(expected).digest();
+  // Keyed digests give timingSafeEqual equal-length buffers without ever
+  // computing a bare hash of the password; the key is per process and random.
+  const given = createHmac("sha256", COMPARE_KEY).update(password).digest();
+  const wanted = createHmac("sha256", COMPARE_KEY).update(expected).digest();
   if (!timingSafeEqual(given, wanted)) return null;
 
   const passwordHash = await bcrypt.hash(expected, 12);

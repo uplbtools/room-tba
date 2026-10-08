@@ -128,9 +128,18 @@ export function otpauthUri(
 /** Ten single-use recovery codes, `xxxx-xxxx` from an unambiguous alphabet. */
 export function generateRecoveryCodes(count = 10): string[] {
   const alphabet = "abcdefghjkmnpqrstuvwxyz23456789";
+  // Reject bytes past the largest multiple of the alphabet size, so every
+  // character is equally likely (a plain modulo favours the first few).
+  const limit = 256 - (256 % alphabet.length);
+  const pick = (): string => {
+    for (;;) {
+      for (const byte of randomBytes(16)) {
+        if (byte < limit) return alphabet[byte % alphabet.length] as string;
+      }
+    }
+  };
   return Array.from({ length: count }, () => {
-    const bytes = randomBytes(8);
-    const chars = [...bytes].map((b) => alphabet[b % alphabet.length]);
+    const chars = Array.from({ length: 8 }, pick);
     return `${chars.slice(0, 4).join("")}-${chars.slice(4).join("")}`;
   });
 }

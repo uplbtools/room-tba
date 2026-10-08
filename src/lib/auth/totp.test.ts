@@ -96,4 +96,20 @@ describe("otpauth URI and recovery codes", () => {
       hashRecoveryCode(first),
     );
   });
+
+  test("recovery codes use the whole alphabet roughly evenly", () => {
+    const counts = new Map<string, number>();
+    for (const code of generateRecoveryCodes(2000)) {
+      for (const ch of code.replace("-", "")) {
+        counts.set(ch, (counts.get(ch) ?? 0) + 1);
+      }
+    }
+    // 31 characters, 16000 draws: about 516 each. A modulo-biased draw
+    // doubles the first eight, far outside this band.
+    expect(counts.size).toBe(31);
+    for (const n of counts.values()) {
+      expect(n).toBeGreaterThan(380);
+      expect(n).toBeLessThan(660);
+    }
+  });
 });

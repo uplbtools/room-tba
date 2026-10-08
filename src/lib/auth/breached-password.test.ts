@@ -18,8 +18,8 @@ function fakeFetch(body: string, ok = true) {
 }
 
 describe("breached password check", () => {
-  test("sha1Hex is upper-case hex", () => {
-    expect(sha1Hex("password")).toBe(`5BAA6${PASSWORD_SUFFIX}`);
+  test("sha1Hex is upper-case hex", async () => {
+    expect(await sha1Hex("password")).toBe(`5BAA6${PASSWORD_SUFFIX}`);
   });
 
   test("finds the suffix count in a padded range body", () => {
@@ -49,7 +49,9 @@ describe("breached password check", () => {
   });
 
   test("checkNewPassword: length rules first, then the breach list", async () => {
-    const hit = fakeFetch(`${sha1Hex("correct horse battery").slice(5)}:12`);
+    const hit = fakeFetch(
+      `${(await sha1Hex("correct horse battery")).slice(5)}:12`,
+    );
     expect(await checkNewPassword("short", hit)).toMatch(/at least 10/);
     expect(await checkNewPassword("é".repeat(40), hit)).toMatch(/72 bytes/);
     expect(await checkNewPassword("correct horse battery", hit)).toBe(

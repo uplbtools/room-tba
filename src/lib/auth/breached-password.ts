@@ -6,7 +6,6 @@
  * Fails open: a timeout or network error must never block sign-up or a
  * password change, so those resolve to "unknown" (null).
  */
-import { createHash } from "node:crypto";
 import { newPasswordError } from "@lib/auth/contributor-signup";
 
 const RANGE_URL = "https://api.pwnedpasswords.com/range/";
@@ -15,8 +14,20 @@ const HIBP_TIMEOUT_MS = 2500;
 export const BREACHED_PASSWORD_MESSAGE =
   "This password has appeared in a known data breach, so it is easy to guess. Choose a different one.";
 
-export function sha1Hex(value: string): string {
-  return createHash("sha1").update(value, "utf8").digest("hex").toUpperCase();
+/**
+ * The Pwned Passwords range API is keyed on SHA-1, so that is the one digest
+ * that works here. It is a lookup key sent as a 5 character prefix, never a
+ * stored credential: passwords are stored with bcrypt.
+ */
+export async function sha1Hex(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-1",
+    new TextEncoder().encode(value),
+  );
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("")
+    .toUpperCase();
 }
 
 /** Count for `suffix` in a range response body (`SUFFIX:COUNT` lines). */
@@ -37,7 +48,7 @@ export async function pwnedPasswordCount(
   password: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<number | null> {
-  const hash = sha1Hex(password);
+  const hash = await sha1Hex(password);
   try {
     const res = await fetchImpl(`${RANGE_URL}${hash.slice(0, 5)}`, {
       headers: { "Add-Padding": "true", "User-Agent": "room-tba" },
