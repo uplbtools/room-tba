@@ -223,6 +223,11 @@
     padding: 0 1rem;
   }
 
+  /* The section label already says what this list is. */
+  .data-storage__offline :global(.map-chrome-popover-line) {
+    display: none;
+  }
+
   .data-storage__primary:focus-visible,
   .data-storage__text-btn:focus-visible {
     outline: 2px solid var(--theme-accent-text, hsl(345, 75%, 31%));

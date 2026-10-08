@@ -146,6 +146,7 @@
     font: inherit;
     font-size: 0.875rem;
     font-weight: 500;
+    text-align: center;
     cursor: pointer;
   }
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Snippet } from "svelte";
+  import { untrack, type Snippet } from "svelte";
   import { fade, fly } from "svelte/transition";
   import { MediaQuery } from "svelte/reactivity";
   import X from "@lucide/svelte/icons/x";
@@ -84,11 +84,11 @@
       return closeLabel;
     },
     back: null,
+    // Untracked: the caller is a header's effect, which must not re-run
+    // (and re-claim) every time the count changes.
     claimHeader() {
-      headers += 1;
-      return () => {
-        headers -= 1;
-      };
+      untrack(() => (headers += 1));
+      return () => untrack(() => (headers -= 1));
     },
   });
 

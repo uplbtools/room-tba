@@ -45,9 +45,11 @@ describe("How Room TBA works", () => {
 
   test("lists current features as rows, students first", () => {
     openFromMenu();
-    const labels = [...document.querySelectorAll("#landing-panel-welcome .settings-row__label")].map(
-      (el) => el.textContent?.trim(),
-    );
+    const labels = [
+      ...document.querySelectorAll(
+        "#landing-panel-welcome .settings-row__label",
+      ),
+    ].map((el) => el.textContent?.trim());
     expect(labels.slice(0, 2)).toEqual([
       "Search rooms and buildings",
       "Get directions",
@@ -80,7 +82,9 @@ describe("How Room TBA works", () => {
 
   test("opened from the menu: no Got it footer, no Done", () => {
     openFromMenu();
-    expect(screen.queryByRole("button", { name: /got it|get started/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /got it|get started/i }),
+    ).toBeNull();
     expect(screen.queryByRole("button", { name: "Done" })).toBeNull();
   });
 
@@ -106,7 +110,9 @@ describe("feature rows do what they say and close the guide", () => {
   test("Get directions opens directions", async () => {
     const openEmpty = vi.spyOn(directionsStore, "openEmpty");
     openFromMenu();
-    await fireEvent.click(screen.getByRole("button", { name: "Get directions" }));
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Get directions" }),
+    );
     expect(openEmpty).toHaveBeenCalledTimes(1);
     expect(modalStore.open).toBe(false);
     openEmpty.mockRestore();
@@ -134,7 +140,9 @@ describe("feature rows do what they say and close the guide", () => {
 
   test("Campus events opens the events list", async () => {
     openFromMenu();
-    await fireEvent.click(screen.getByRole("button", { name: "Campus events" }));
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Campus events" }),
+    );
     expect(queryStore.category).toBe("events");
     expect(modalStore.open).toBe(false);
     queryStore.clearQuery();
@@ -153,7 +161,9 @@ describe("feature rows do what they say and close the guide", () => {
 
   test("Suggest an edit opens the add flow", async () => {
     openFromMenu();
-    await fireEvent.click(screen.getByRole("button", { name: "Suggest an edit" }));
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Suggest an edit" }),
+    );
     expect(editorChromeStore.additionModalOpen).toBe(true);
     expect(modalStore.open).toBe(false);
     editorChromeStore.closeAdditionModal();

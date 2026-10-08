@@ -206,7 +206,7 @@
     opacity: 0.92;
   }
 
-  .mobile-bottom-nav :global(.app-menu__trigger span) {
+  .mobile-bottom-nav :global(.app-menu__trigger-label) {
     overflow: hidden;
     max-width: 100%;
     text-overflow: ellipsis;
@@ -251,7 +251,7 @@
     }
 
     .mobile-bottom-nav__item span,
-    .mobile-bottom-nav :global(.app-menu__trigger span) {
+    .mobile-bottom-nav :global(.app-menu__trigger-label) {
       position: absolute;
       width: 1px;
       height: 1px;

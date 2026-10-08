@@ -65,10 +65,9 @@ describe("You help and feedback", () => {
       .getByRole("heading", { name: "Help & feedback" })
       .closest("section") as HTMLElement;
 
-    expect(within(help).getByRole("link", { name: "Help & FAQ" })).toHaveAttribute(
-      "href",
-      "/faq",
-    );
+    expect(
+      within(help).getByRole("link", { name: "Help & FAQ" }),
+    ).toHaveAttribute("href", "/faq");
     expect(within(help).getByRole("link", { name: "Wiki" })).toHaveAttribute(
       "href",
       "/wiki",
@@ -76,8 +75,12 @@ describe("You help and feedback", () => {
     expect(
       within(help).getByRole("button", { name: "How Room TBA works" }),
     ).toBeVisible();
-    expect(within(help).getByRole("button", { name: "Contributors" })).toBeVisible();
-    expect(within(help).getByRole("button", { name: "Send feedback" })).toBeVisible();
+    expect(
+      within(help).getByRole("button", { name: "Contributors" }),
+    ).toBeVisible();
+    expect(
+      within(help).getByRole("button", { name: "Send feedback" }),
+    ).toBeVisible();
     expect(
       within(help).getByRole("link", { name: /contact us/i }),
     ).toHaveAttribute("target", "_blank");
@@ -119,7 +122,9 @@ describe("You help and feedback", () => {
   test("Send feedback opens the feedback panel directly", async () => {
     render(AppMenu, { props: { onSignOut: () => {} } });
     await openYou();
-    await fireEvent.click(screen.getByRole("button", { name: "Send feedback" }));
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Send feedback" }),
+    );
     expect(modalStore.type).toBe("feedback");
   });
 
@@ -145,7 +150,9 @@ describe("You screens", () => {
     const panel = await openYou();
 
     await fireEvent.click(screen.getByRole("button", { name: "Settings" }));
-    expect(within(panel).getByRole("heading", { name: "Settings" })).toBeVisible();
+    expect(
+      within(panel).getByRole("heading", { name: "Settings" }),
+    ).toBeVisible();
     // Layers owns the map controls; Settings has none of them.
     expect(within(panel).queryByText("Map style")).toBeNull();
     expect(within(panel).queryByText("Basemap")).toBeNull();
@@ -216,11 +223,12 @@ describe("You screens", () => {
       .getByRole("heading", { name: "About" })
       .closest("section") as HTMLElement;
     expect(within(about).getByText(/^v\d+\.\d+\.\d+/)).toBeVisible();
-    expect(within(about).getByRole("button", { name: "What's new" })).toBeVisible();
-    expect(within(about).getByRole("link", { name: "Privacy" })).toHaveAttribute(
-      "href",
-      "/privacy",
-    );
+    expect(
+      within(about).getByRole("button", { name: "What's new" }),
+    ).toBeVisible();
+    expect(
+      within(about).getByRole("link", { name: "Privacy" }),
+    ).toHaveAttribute("href", "/privacy");
     expect(within(about).getByRole("link", { name: "Terms" })).toHaveAttribute(
       "href",
       "/terms",
@@ -249,7 +257,9 @@ describe("You account", () => {
     render(AppMenu, { props: { onSignOut: () => {} } });
     const panel = await openYou();
     const signIn = within(panel).getByRole("button", { name: "Sign in" });
-    expect(within(panel).getAllByRole("button", { name: /sign in/i })).toHaveLength(1);
+    expect(
+      within(panel).getAllByRole("button", { name: /sign in/i }),
+    ).toHaveLength(1);
     await fireEvent.click(signIn);
     expect(adminAuthStore.loginOpen).toBe(true);
     adminAuthStore.closeLogin();
@@ -264,7 +274,9 @@ describe("You account", () => {
 
     expect(screen.queryByRole("button", { name: "Sign in" })).toBeNull();
     expect(screen.getByRole("button", { name: /sign out/i })).toBeVisible();
-    expect(screen.getAllByRole("img", { name: "juan" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("img", { name: "juan" }).length).toBeGreaterThan(
+      0,
+    );
     adminAuthStore.isLoggedIn = false;
     adminAuthStore.username = null;
   });

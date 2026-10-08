@@ -50,9 +50,7 @@ describe("modal scroll chrome", () => {
   test("contributors is its own screen, not a tab of the guide", async () => {
     render(ContributorsModal);
     await tick();
-    expect(
-      screen.getByRole("heading", { name: "Contributors" }),
-    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Contributors" })).toBeVisible();
     expect(document.querySelector(".contributors__scroll")).toHaveClass(
       "map-chrome-scroll",
     );
