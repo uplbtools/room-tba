@@ -64,7 +64,7 @@
     },
     {
       key: "establishment",
-      label: "Service / establishment",
+      label: "Service or establishment",
       description: "Food, services, and transport points.",
     },
     {
@@ -282,44 +282,60 @@
     gap: 0.375rem;
   }
 
+  /* Inside the Layers sheet the legend is a static key: sentence-case group
+     labels, 24px swatches and 16px labels on the same grid as the rows
+     above it. Descriptions stay in the floating panel only. */
   .map-legend.embedded .legend-sections {
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
 
   .map-legend.embedded .legend-section {
     gap: 0.25rem;
   }
 
+  .map-legend.embedded .legend-section-title {
+    padding: 0;
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: 1.25rem;
+    text-transform: none;
+  }
+
   .map-legend.embedded .legend-list {
-    gap: 0.25rem;
+    gap: 0;
   }
 
   .map-legend.embedded .legend-item {
-    gap: 0.5rem;
-    padding: 0.3125rem 0.5rem;
+    gap: 1rem;
+    min-height: 2.5rem;
+    padding: 0.25rem 0;
+    background: none;
   }
 
   .map-legend.embedded .legend-swatch {
-    width: 1.125rem;
-    height: 1.125rem;
-    font-size: 0.625rem;
-  }
-
-  .map-legend.embedded .legend-label {
+    width: 1.5rem;
+    height: 1.5rem;
     font-size: 0.75rem;
   }
 
+  .map-legend.embedded .legend-label {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
   .map-legend.embedded .legend-description {
-    font-size: 0.625rem;
-    line-height: 1.2;
+    display: none;
   }
 
   .legend-empty-note {
     margin: 0;
     padding: 0 0.25rem;
     color: var(--theme-text-2, hsl(0, 0%, 45%));
-    font-size: 0.75rem;
-    line-height: 1.35;
+    font-size: 0.875rem;
+    line-height: 1.4;
   }
 
   .map-legend {

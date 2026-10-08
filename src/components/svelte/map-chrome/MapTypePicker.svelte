@@ -99,7 +99,7 @@
   </div>
   {#if !satelliteAvailable}
     <p id="map-type-satellite-reason" class="map-type-picker__reason">
-      Satellite imagery is unavailable on this map right now.
+      Satellite is not available right now.
     </p>
   {/if}
 </div>
@@ -149,6 +149,8 @@
     width: 100%;
     aspect-ratio: 1;
     border: 3px solid transparent;
+    /* Paint the preview under the border too, or it tiles into it. */
+    background-origin: border-box;
     border-radius: 0.75rem;
     box-shadow: inset 0 0 0 1px var(--theme-border, hsl(0, 0%, 85%));
   }

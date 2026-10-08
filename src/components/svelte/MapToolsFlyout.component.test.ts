@@ -183,19 +183,25 @@ describe("MapToolsFlyout", () => {
     expect(toastStore.message).toBe("Walking time turned off while measuring");
   });
 
-  test("schedule route opens as a sub-screen with a back arrow", async () => {
+  test("Schedule route and Route my day live in Today, not in Layers", async () => {
     const sheet = await openSheet();
-    within(sheet).getByRole("button", { name: "Schedule route" }).click();
-    const back = await within(sheet).findByRole("button", {
-      name: "Back to layers",
-    });
+    expect(within(sheet).queryByText("Schedule route")).toBeNull();
+    expect(within(sheet).queryByText("Route my day")).toBeNull();
+  });
+
+  test("map tool subtitles use plain language without slashes", async () => {
+    const sheet = await openSheet();
     expect(
-      within(sheet).getByRole("heading", { name: "Schedule route" }),
+      within(sheet).getByText(
+        "Shows how many minutes it takes to walk from a point you tap",
+      ),
     ).toBeInTheDocument();
-    back.click();
     expect(
-      await within(sheet).findByRole("heading", { name: "Layers" }),
+      within(sheet).getByText(
+        "Tap the map to add stops and see walking, cycling and driving times",
+      ),
     ).toBeInTheDocument();
+    expect(sheet.textContent ?? "").not.toMatch(/ \/ /);
     expect(mapToolsStore.open).toBe(true);
   });
 });

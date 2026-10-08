@@ -1,12 +1,9 @@
 <script lang="ts">
-  import ArrowLeft from "@lucide/svelte/icons/arrow-left";
   import Box from "@lucide/svelte/icons/box";
   import Bus from "@lucide/svelte/icons/bus";
-  import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import Gauge from "@lucide/svelte/icons/gauge";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import Landmark from "@lucide/svelte/icons/landmark";
-  import Route from "@lucide/svelte/icons/route";
   import Ruler from "@lucide/svelte/icons/ruler";
   import Timer from "@lucide/svelte/icons/timer";
   import Users from "@lucide/svelte/icons/users";
@@ -27,8 +24,6 @@
     toastStore,
     travelTimeStore,
   } from "@lib/store.svelte";
-  import { sidebarStore } from "@lib/store.svelte";
-  import { routableTodayWeekday, routeToday } from "@lib/today-route";
   import { THREE_D_PITCH, isMap2DPitch } from "@constants/map-dimension";
   import {
     enterFlatMapDimension,
@@ -41,7 +36,6 @@
   import TerrainControl from "@ui/TerrainControl.svelte";
   import { TERRAIN_ENABLED } from "@constants/map-terrain";
   import TrailControl from "@ui/TrailControl.svelte";
-  import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
   import MapChromeFabTrigger from "@ui/map-chrome/MapChromeFabTrigger.svelte";
   import MapTypePicker from "@ui/map-chrome/MapTypePicker.svelte";
   import Dialog from "@ui/modal/Dialog.svelte";
@@ -51,41 +45,19 @@
   import { campusTransit } from "../../campus.config";
   import "./map-chrome/map-chrome.css";
 
-  /** Root list, or a sub-screen pushed inside the same sheet. */
-  let screen = $state<"root" | "schedule">("root");
   let scrolled = $state(false);
-  let bodyEl = $state<HTMLDivElement | null>(null);
 
   function closeSheet() {
     mapToolsStore.close();
   }
 
-  // Each closed sheet starts again from its root list.
+  // Each closed sheet starts again at the top without a divider.
   $effect(() => {
-    if (!mapToolsStore.open) {
-      screen = "root";
-      scrolled = false;
-    }
+    if (!mapToolsStore.open) scrolled = false;
   });
 
-  // Back closes the topmost layer first: the sub-screen, then the sheet.
+  // Back closes the sheet (overlay history), like Escape and the X.
   trackOverlay("layers", () => mapToolsStore.open, closeSheet);
-  trackOverlay(
-    "layers-schedule",
-    () => mapToolsStore.open && screen === "schedule",
-    () => (screen = "root"),
-  );
-
-  function openScreen(next: "schedule") {
-    screen = next;
-    scrolled = false;
-    bodyEl?.scrollTo({ top: 0 });
-  }
-
-  function popOrClose() {
-    if (screen !== "root") screen = "root";
-    else closeSheet();
-  }
 
   // 3D is a camera tilt, independent of the map type underneath.
   let pitch = $state(0);
@@ -161,25 +133,6 @@
     closeSheet();
   }
 
-  // Day route lived on its own status-bar chip before the chrome redesign;
-  // the redesign dropped that mount, so the toolbox is its home now. Hidden
-  // when there is nothing to route today, same as the old chip.
-  const dayRoutable = $derived(routableTodayWeekday() !== null);
-  let dayRouting = $state(false);
-
-  async function handleRouteMyDay() {
-    if (dayRouting) return;
-    dayRouting = true;
-    try {
-      if (await routeToday()) {
-        closeSheet();
-        sidebarStore.changeOpened("map");
-      }
-    } finally {
-      dayRouting = false;
-    }
-  }
-
   // Drag the handle down to dismiss the phone sheet, the way a Material
   // bottom sheet does; a short drag springs back.
   let dragStartY: number | null = null;
@@ -201,10 +154,6 @@
     if (dragOffset > 96) closeSheet();
     dragOffset = 0;
   }
-
-  const screenTitle = $derived(
-    screen === "schedule" ? "Schedule route" : "Layers",
-  );
 </script>
 
 <div class="map-tools-flyout">
@@ -224,7 +173,6 @@
   <Dialog
     open={mapToolsStore.open}
     onclose={closeSheet}
-    onescape={popOrClose}
     ariaLabel="Layers"
     showClose={false}
   >
@@ -247,166 +195,137 @@
         <button
           type="button"
           class="layers-bar__nav"
-          aria-label={screen === "root" ? "Close layers" : "Back to layers"}
-          onclick={screen === "root" ? closeSheet : () => (screen = "root")}
+          aria-label="Close layers"
+          onclick={closeSheet}
         >
-          {#if screen === "root"}
-            <X size={24} aria-hidden="true" />
-          {:else}
-            <ArrowLeft size={24} aria-hidden="true" />
-          {/if}
+          <X size={24} aria-hidden="true" />
         </button>
-        <h2 class="layers-bar__title">{screenTitle}</h2>
+        <h2 class="layers-bar__title">Layers</h2>
       </header>
 
       <div
-        bind:this={bodyEl}
         class="layers-sheet__body"
         onscroll={(event) =>
           (scrolled = (event.currentTarget as HTMLElement).scrollTop > 0)}
       >
-        {#if screen === "root"}
-          <section class="layers-section" aria-labelledby="layers-map-type">
-            <h3 id="layers-map-type" class="layers-section__label">Map type</h3>
-            <MapTypePicker labelledBy="layers-map-type" />
-            <div class="layers-section__pad">
-              <WaybackImageryControl />
-            </div>
-          </section>
+        <section class="layers-section" aria-labelledby="layers-map-type">
+          <h3 id="layers-map-type" class="layers-section__label">Map type</h3>
+          <MapTypePicker labelledBy="layers-map-type" />
+          <div class="layers-section__pad">
+            <WaybackImageryControl />
+          </div>
+        </section>
 
-          <section class="layers-section" aria-labelledby="layers-details">
-            <h3 id="layers-details" class="layers-section__label">
-              Map details
+        <section class="layers-section" aria-labelledby="layers-details">
+          <h3 id="layers-details" class="layers-section__label">
+            Map details
+          </h3>
+          <div class="layers-list">
+            <SettingsRow
+              label="3D"
+              supporting="Tilt the map to show buildings in 3D"
+              icon={Box}
+              checked={tilted}
+              onclick={toggle3D}
+            />
+            {#if TERRAIN_ENABLED}
+              <TerrainControl variant="row" />
+            {/if}
+            <TrailControl />
+            <SettingsRow
+              label="Orgs, units and offices"
+              supporting={poiSupporting(mapViewStore.showOrgs)}
+              icon={Users}
+              checked={mapViewStore.showOrgs}
+              onclick={mapViewStore.toggleOrgs}
+            />
+            <SettingsRow
+              label="Landmarks and establishments"
+              supporting={poiSupporting(mapViewStore.showPlaces)}
+              icon={Landmark}
+              checked={mapViewStore.showPlaces}
+              onclick={mapViewStore.togglePlaces}
+            />
+            {#if campusTransit.enabled}
+              <SettingsRow
+                label="Jeepney routes"
+                icon={Bus}
+                checked={jeepneyStore.layerActive}
+                onclick={jeepneyStore.toggleLayer}
+              />
+            {/if}
+            <SettingsRow
+              label="My classes"
+              supporting={hasPlannerClasses
+                ? "Highlight the buildings your classes are in"
+                : "Add classes in the Planner first"}
+              icon={GraduationCap}
+              checked={hasPlannerClasses && mapViewStore.highlightMyBuildings}
+              disabled={!hasPlannerClasses}
+              onclick={mapViewStore.toggleHighlightMyBuildings}
+            />
+          </div>
+        </section>
+
+        <section class="layers-section" aria-labelledby="layers-pins">
+          <h3 id="layers-pins" class="layers-section__label">Pins</h3>
+          <div class="layers-section__pad">
+            <SegmentedControl
+              options={pinOptions}
+              value={mapViewStore.eventsOnly ? "events" : "all"}
+              labelledBy="layers-pins"
+              onchange={setPins}
+            />
+          </div>
+        </section>
+
+        <section class="layers-section" aria-labelledby="layers-tools">
+          <h3 id="layers-tools" class="layers-section__label">Map tools</h3>
+          <div class="layers-list">
+            <SettingsRow
+              label="Walking time"
+              supporting={travelTimeStore.active
+                ? "Tap the map to choose where you start"
+                : "Shows how many minutes it takes to walk from a point you tap"}
+              icon={Timer}
+              checked={travelTimeStore.active}
+              onclick={toggleTravelTime}
+            />
+            <SettingsRow
+              label="Measure route"
+              supporting={measureRouteStore.active
+                ? "Tap the map or a pin to drop waypoints"
+                : "Tap the map to add stops and see walking, cycling and driving times"}
+              icon={Ruler}
+              checked={measureRouteStore.active}
+              onclick={toggleMeasureRoute}
+            />
+          </div>
+        </section>
+
+        {#if debugMode}
+          <section class="layers-section" aria-labelledby="layers-developer">
+            <h3 id="layers-developer" class="layers-section__label">
+              Developer
             </h3>
             <div class="layers-list">
               <SettingsRow
-                label="3D"
-                supporting="Tilt the map to show buildings in 3D"
-                icon={Box}
-                checked={tilted}
-                onclick={toggle3D}
-              />
-              {#if TERRAIN_ENABLED}
-                <TerrainControl variant="row" />
-              {/if}
-              <TrailControl />
-              <SettingsRow
-                label="Orgs, units and offices"
-                supporting={poiSupporting(mapViewStore.showOrgs)}
-                icon={Users}
-                checked={mapViewStore.showOrgs}
-                onclick={mapViewStore.toggleOrgs}
-              />
-              <SettingsRow
-                label="Landmarks and establishments"
-                supporting={poiSupporting(mapViewStore.showPlaces)}
-                icon={Landmark}
-                checked={mapViewStore.showPlaces}
-                onclick={mapViewStore.togglePlaces}
-              />
-              {#if campusTransit.enabled}
-                <SettingsRow
-                  label="Jeepney routes"
-                  icon={Bus}
-                  checked={jeepneyStore.layerActive}
-                  onclick={jeepneyStore.toggleLayer}
-                />
-              {/if}
-              <SettingsRow
-                label="My classes"
-                supporting={hasPlannerClasses
-                  ? "Highlight the buildings your classes are in"
-                  : "Add classes in the Planner first"}
-                icon={GraduationCap}
-                checked={hasPlannerClasses && mapViewStore.highlightMyBuildings}
-                disabled={!hasPlannerClasses}
-                onclick={mapViewStore.toggleHighlightMyBuildings}
+                label="Camera details"
+                supporting="Live zoom, pitch, bearing and center readout"
+                icon={Gauge}
+                checked={mapViewStore.cameraDebug}
+                onclick={mapViewStore.toggleCameraDebug}
               />
             </div>
           </section>
-
-          <section class="layers-section" aria-labelledby="layers-pins">
-            <h3 id="layers-pins" class="layers-section__label">Pins</h3>
-            <div class="layers-section__pad">
-              <SegmentedControl
-                options={pinOptions}
-                value={mapViewStore.eventsOnly ? "events" : "all"}
-                labelledBy="layers-pins"
-                onchange={setPins}
-              />
-            </div>
-          </section>
-
-          <section class="layers-section" aria-labelledby="layers-tools">
-            <h3 id="layers-tools" class="layers-section__label">Map tools</h3>
-            <div class="layers-list">
-              {#if dayRoutable}
-                <SettingsRow
-                  label="Route my day"
-                  supporting={dayRouting
-                    ? "Routing your classes now"
-                    : "Walk route through today's classes"}
-                  icon={Route}
-                  busy={dayRouting}
-                  onclick={handleRouteMyDay}
-                />
-              {/if}
-              <SettingsRow
-                label="Walking time"
-                supporting={travelTimeStore.active
-                  ? "Tap the map to pick a start point"
-                  : "Color paths by walking minutes from a point"}
-                icon={Timer}
-                checked={travelTimeStore.active}
-                onclick={toggleTravelTime}
-              />
-              <SettingsRow
-                label="Measure route"
-                supporting={measureRouteStore.active
-                  ? "Tap the map or a pin to drop waypoints"
-                  : "Drop waypoints for walk, cycle and car times"}
-                icon={Ruler}
-                checked={measureRouteStore.active}
-                onclick={toggleMeasureRoute}
-              />
-              <SettingsRow
-                chevron
-                label="Schedule route"
-                supporting="Route a weekday of your planned classes"
-                icon={CalendarDays}
-                onclick={() => openScreen("schedule")}
-              />
-            </div>
-          </section>
-
-          {#if debugMode}
-            <section class="layers-section" aria-labelledby="layers-developer">
-              <h3 id="layers-developer" class="layers-section__label">
-                Developer
-              </h3>
-              <div class="layers-list">
-                <SettingsRow
-                  label="Camera details"
-                  supporting="Live zoom, pitch, bearing and center readout"
-                  icon={Gauge}
-                  checked={mapViewStore.cameraDebug}
-                  onclick={mapViewStore.toggleCameraDebug}
-                />
-              </div>
-            </section>
-          {/if}
-
-          <section class="layers-section" aria-labelledby="layers-legend">
-            <h3 id="layers-legend" class="layers-section__label">Legend</h3>
-            <div class="layers-section__pad">
-              <MapLegend embedded />
-            </div>
-          </section>
-        {:else if screen === "schedule"}
-          <div class="layers-section layers-section__pad">
-            <ScheduleImportPanel embedded />
-          </div>
         {/if}
+
+        <section class="layers-section" aria-labelledby="layers-legend">
+          <h3 id="layers-legend" class="layers-section__label">Legend</h3>
+          <div class="layers-section__pad">
+            <MapLegend embedded />
+          </div>
+        </section>
       </div>
     </div>
   </Dialog>
@@ -445,7 +364,9 @@
     .map-tools-dialog-host :global(.modal-content) {
       width: 100%;
       height: auto;
-      max-height: 85dvh;
+      /* Starts 64px down, under the search bar and over the chip row, so
+         no chip is ever sliced by the sheet edge. */
+      max-height: calc(100dvh - 4rem - env(safe-area-inset-top, 0px));
       border-radius: 1.75rem 1.75rem 0 0;
     }
   }
