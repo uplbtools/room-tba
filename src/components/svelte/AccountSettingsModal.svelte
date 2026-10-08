@@ -12,6 +12,7 @@
     username: string;
     displayName: string;
     email: string | null;
+    emailVerified: boolean;
     role: "admin" | "editor" | "contributor";
     hasPassword: boolean;
     linkedGoogle: boolean;
@@ -53,6 +54,13 @@
 
   let unlinkingGoogle = $state(false);
   let identityError = $state<string | null>(null);
+
+  let resendingVerification = $state(false);
+  let verificationSent = $state(false);
+  let verificationError = $state<string | null>(null);
+
+  let signingOutEverywhere = $state(false);
+  let signOutError = $state<string | null>(null);
 
   let showDeleteConfirm = $state(false);
   let deletePasswordDraft = $state("");
@@ -171,6 +179,51 @@
       emailError = "Network error. Try again.";
     } finally {
       emailRequestPending = false;
+    }
+  }
+
+  async function resendVerification() {
+    resendingVerification = true;
+    verificationError = null;
+    verificationSent = false;
+    try {
+      const res = await fetch("/api/account/resend-verification", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+      const data = await res.json().catch(() => ({}) as { error?: string });
+      if (!res.ok) {
+        verificationError = data.error ?? "Could not send a confirmation link.";
+        return;
+      }
+      verificationSent = true;
+    } catch {
+      verificationError = "Network error. Try again.";
+    } finally {
+      resendingVerification = false;
+    }
+  }
+
+  async function signOutEverywhere() {
+    signingOutEverywhere = true;
+    signOutError = null;
+    try {
+      const res = await fetch("/api/account/sign-out-everywhere", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+      const data = await res.json().catch(() => ({}) as { error?: string });
+      if (!res.ok) {
+        signOutError = data.error ?? "Could not sign out of all devices.";
+        return;
+      }
+      close();
+      await adminAuthStore.logout();
+      toastStore.show("Signed out of all devices.", "success");
+    } catch {
+      signOutError = "Network error. Try again.";
+    } finally {
+      signingOutEverywhere = false;
     }
   }
 
@@ -371,7 +424,42 @@
       >
         {#snippet meta()}
           <span class="settings-current">{profile.email ?? "No email set"}</span>
+          {#if profile.email}
+            <span
+              class="settings-email-status"
+              class:settings-email-status--pending={!profile.emailVerified}
+            >
+              {profile.emailVerified ? "Confirmed" : "Not confirmed"}
+            </span>
+          {/if}
         {/snippet}
+
+        {#if profile.email && !profile.emailVerified}
+          <p class="field-hint">
+            Confirm this address to reset your password by email and get
+            replies about your edits.
+          </p>
+          {#if verificationError}
+            <EntityEditorMessage variant="error" message={verificationError} />
+          {/if}
+          {#if verificationSent}
+            <EntityEditorMessage
+              variant="success"
+              message="Check your inbox for a confirmation link."
+            />
+          {:else}
+            <button
+              type="button"
+              class="settings-link-btn"
+              disabled={resendingVerification}
+              onclick={resendVerification}
+            >
+              {resendingVerification
+                ? "Sending…"
+                : "Send confirmation link"}
+            </button>
+          {/if}
+        {/if}
 
         {#if !showChangeEmail}
           <button
@@ -501,6 +589,25 @@
               onclick={connectGoogle}
             />
           {/if}
+        {/snippet}
+      </SettingsSection>
+
+      <SettingsSection
+        title="Signed-in devices"
+        description="Sign out everywhere, this device included, if you used a shared computer or think someone else has access."
+      >
+        {#if signOutError}
+          <EntityEditorMessage variant="error" message={signOutError} />
+        {/if}
+
+        {#snippet footer()}
+          <EntityEditorSubmitButton
+            label="Sign out of all devices"
+            savingLabel="Signing out…"
+            saving={signingOutEverywhere}
+            variant="secondary"
+            onclick={signOutEverywhere}
+          />
         {/snippet}
       </SettingsSection>
 
@@ -651,6 +758,21 @@
 
   .settings-current {
     font-weight: 500;
+  }
+
+  .settings-email-status {
+    margin-left: 0.5rem;
+    padding: 0.0625rem 0.375rem;
+    border-radius: 999px;
+    background: var(--theme-green-soft, hsl(140, 40%, 92%));
+    color: var(--theme-green-text, hsl(140, 50%, 24%));
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .settings-email-status--pending {
+    background: var(--theme-surface-2, hsl(0, 0%, 94%));
+    color: var(--theme-text-2, hsl(0, 0%, 36%));
   }
 
   .settings-empty {

@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { canReviewProposals } from "@lib/admin/auth";
-import { getEditorSession } from "@lib/admin/require-editor";
+import { optionalEditorSession } from "@lib/admin/require-editor";
 import {
   canViewProposalSubmitterDetails,
   getProposalById,
@@ -19,7 +19,7 @@ export const GET: APIRoute = async ({ cookies, params }) => {
   const proposal = await getProposalById(id);
   if (!proposal) return json({ error: "Proposal not found" }, 404);
 
-  const session = getEditorSession(cookies);
+  const session = await optionalEditorSession(cookies);
 
   if (session && canReviewProposals(session.role)) {
     return json({ proposal });

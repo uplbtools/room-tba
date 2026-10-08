@@ -33,6 +33,7 @@ const REQUIRED_TABLES = [
   "admin_users",
   "editor_history",
   "edit_proposals",
+  "rate_limits",
 ];
 
 const REQUIRED_SYNC_ROWS = ["organizations", "places", "announcements"];

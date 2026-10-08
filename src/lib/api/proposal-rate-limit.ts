@@ -1,4 +1,4 @@
-import { checkRateLimit } from "./rate-limit";
+import { checkRateLimit, type RateLimiter } from "./rate-limit";
 
 const SHORT_WINDOW_MS = 10 * 60 * 1000;
 const DAILY_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -26,11 +26,13 @@ export function isProposalHoneypotTripped(
   return typeof value === "string" && value.trim() !== "";
 }
 
-export function enforceProposalSubmitLimits(
+/** Routes pass the shared Postgres limiter; tests use the memory default. */
+export async function enforceProposalSubmitLimits(
   session: ProposalRateLimitSession,
   ip: string,
   now = Date.now(),
-): { allowed: false; resetAt: number } | null {
+  limiter: RateLimiter = checkRateLimit,
+): Promise<{ allowed: false; resetAt: number } | null> {
   if (shouldSkipProposalRateLimits()) return null;
 
   const signedIn = Boolean(session && session.id > 0);
@@ -40,7 +42,7 @@ export function enforceProposalSubmitLimits(
   // would let authenticated traffic (capped at 24) push the counter past the
   // anonymous cap (8), blocking a brand-new anonymous request from the same
   // IP/NAT even though it's the first one that IP has ever sent.
-  const ipShort = checkRateLimit(
+  const ipShort = await limiter(
     `proposals:ip:${signedIn ? "auth" : "anon"}:${ip}`,
     ipShortMax,
     SHORT_WINDOW_MS,
@@ -51,7 +53,7 @@ export function enforceProposalSubmitLimits(
   }
 
   if (signedIn && session) {
-    const userShort = checkRateLimit(
+    const userShort = await limiter(
       `proposals:user:${session.id}`,
       AUTH_USER_SHORT_MAX,
       SHORT_WINDOW_MS,
@@ -62,7 +64,7 @@ export function enforceProposalSubmitLimits(
     }
   }
 
-  const ipDaily = checkRateLimit(
+  const ipDaily = await limiter(
     `proposals:daily:ip:${ip}`,
     ANON_IP_DAILY_MAX,
     DAILY_WINDOW_MS,
@@ -73,7 +75,7 @@ export function enforceProposalSubmitLimits(
   }
 
   if (signedIn && session) {
-    const userDaily = checkRateLimit(
+    const userDaily = await limiter(
       `proposals:daily:user:${session.id}`,
       AUTH_USER_DAILY_MAX,
       DAILY_WINDOW_MS,
@@ -87,14 +89,15 @@ export function enforceProposalSubmitLimits(
   return null;
 }
 
-export function enforceProposalWithdrawLimits(
+export async function enforceProposalWithdrawLimits(
   session: ProposalRateLimitSession,
   ip: string,
   now = Date.now(),
-): { allowed: false; resetAt: number } | null {
+  limiter: RateLimiter = checkRateLimit,
+): Promise<{ allowed: false; resetAt: number } | null> {
   if (shouldSkipProposalRateLimits()) return null;
 
-  const ipRate = checkRateLimit(
+  const ipRate = await limiter(
     `proposals-withdraw:ip:${ip}`,
     WITHDRAW_SHORT_MAX,
     SHORT_WINDOW_MS,
@@ -105,7 +108,7 @@ export function enforceProposalWithdrawLimits(
   }
 
   if (session && session.id > 0) {
-    const userRate = checkRateLimit(
+    const userRate = await limiter(
       `proposals-withdraw:user:${session.id}`,
       WITHDRAW_SHORT_MAX,
       SHORT_WINDOW_MS,

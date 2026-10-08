@@ -8,7 +8,7 @@ For human developers contributing code. Start with [CONTRIBUTING.md](../CONTRIBU
 | ---------------- | --------------------------------------------------------------- |
 | Bun 1.3+ | Package manager and test runner |
 | `DATABASE_URL` | Supabase Postgres; use the **session pooler** URL for local dev |
-| `ADMIN_PASSWORD` | Optional; enables in-app editor login locally |
+| `ADMIN_SESSION_SECRET` | Optional; signs editor sessions. Create the admin account with `ADMIN_NEW_PASSWORD='...' bun run scripts/set-admin-user.ts <username>` |
 
 ```sh
 cp .env.example .env.local

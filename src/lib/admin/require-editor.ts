@@ -12,8 +12,11 @@ import {
   type AdminRole,
   type SessionUser,
 } from "./auth";
+import { isSessionVersionCurrent } from "./session-version";
 
-export function getEditorSession(cookies: AstroCookies): SessionUser | null {
+/** Cookie-only decode. Deliberately not exported: every route goes through
+ * the DB-revalidating helpers below so revocation applies immediately. */
+function readCookieSession(cookies: AstroCookies): SessionUser | null {
   const cookie = cookies.get(ADMIN_COOKIE_NAME)?.value;
   return getSessionUser(cookie);
 }
@@ -25,11 +28,13 @@ type EditorSessionOptions = {
 };
 
 /**
- * Re-check the stateless cookie against the DB so deactivation/demotion
- * takes effect immediately instead of after cookie expiry (7 days). One
- * primary-key lookup per privileged request; returns the CURRENT role.
+ * Re-check the stateless cookie against the DB so deactivation, demotion and
+ * revocation take effect immediately instead of after cookie expiry (7 days).
+ * One primary-key lookup per request; returns the CURRENT role. A cookie whose
+ * session version is behind the row's was revoked (password change or reset,
+ * role change, deactivation, "Sign out of all devices").
  */
-async function revalidateSession(
+export async function revalidateSession(
   session: SessionUser,
 ): Promise<SessionUser | null> {
   try {
@@ -37,6 +42,7 @@ async function revalidateSession(
       .select({
         role: adminUsersTable.role,
         displayName: adminUsersTable.displayName,
+        sessionVersion: adminUsersTable.sessionVersion,
       })
       .from(adminUsersTable)
       .where(
@@ -47,10 +53,14 @@ async function revalidateSession(
       )
       .limit(1);
     if (!row) return null;
+    if (!isSessionVersionCurrent(session.sessionVersion, row.sessionVersion)) {
+      return null;
+    }
     return {
       ...session,
       displayName: row.displayName ?? session.displayName,
       role: row.role ?? session.role,
+      sessionVersion: row.sessionVersion,
     };
   } catch (error) {
     // DB down: fail closed for privileged routes.
@@ -59,13 +69,26 @@ async function revalidateSession(
   }
 }
 
+/**
+ * Current signed-in user for routes that also serve anonymous visitors
+ * (proposal submit/view/withdraw, the auth status probe). Null when there is
+ * no cookie or the cookie no longer matches an active, unrevoked account.
+ */
+export async function optionalEditorSession(
+  cookies: AstroCookies,
+): Promise<SessionUser | null> {
+  const cookieSession = readCookieSession(cookies);
+  if (!cookieSession) return null;
+  return revalidateSession(cookieSession);
+}
+
 export async function editorSessionOrUnauthorized(
   cookies: AstroCookies,
   options: EditorSessionOptions = {},
 ): Promise<
   { session: SessionUser; editedBy: string; role: AdminRole } | Response
 > {
-  const cookieSession = getEditorSession(cookies);
+  const cookieSession = readCookieSession(cookies);
   if (!cookieSession) {
     return unauthorized();
   }

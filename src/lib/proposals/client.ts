@@ -18,6 +18,9 @@ export type StoredProposalRef = {
   entityType: ProposalEntityType;
   entityId: number;
   status: string;
+  /** Owner token from submit: proves an anonymous author to the server when
+   * withdrawing, revising or adding a photo. Never shown in the UI. */
+  token?: string;
 };
 
 const STORAGE_KEY = "room-tba-proposal-refs";
@@ -34,8 +37,19 @@ export function readStoredProposals(): StoredProposalRef[] {
 }
 
 export function rememberProposal(ref: StoredProposalRef) {
-  const existing = readStoredProposals().filter((item) => item.id !== ref.id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([ref, ...existing]));
+  const all = readStoredProposals();
+  // A revise response carries no token; keep the one from the first submit.
+  const token = ref.token ?? all.find((item) => item.id === ref.id)?.token;
+  const existing = all.filter((item) => item.id !== ref.id);
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify([{ ...ref, ...(token ? { token } : {}) }, ...existing]),
+  );
+}
+
+/** Owner token saved for a proposal this browser submitted, if any. */
+export function getStoredProposalToken(id: number): string | undefined {
+  return readStoredProposals().find((item) => item.id === id)?.token;
 }
 
 export function removeStoredProposal(id: number) {
@@ -548,11 +562,14 @@ export async function submitEntityProposal(input: {
     getStoredProposalForEntity(input.entityType, input.entityId)?.id ??
     null;
 
+  const proposalToken =
+    proposalId !== null ? getStoredProposalToken(proposalId) : undefined;
+
   const res = await fetch("/api/proposals", {
     method: "POST",
     credentials: "same-origin",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ ...input, proposalId, _hp: "" }),
+    body: JSON.stringify({ ...input, proposalId, proposalToken, _hp: "" }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -562,7 +579,9 @@ export async function submitEntityProposal(input: {
     };
   }
   const proposal = (
-    data as { proposal?: StoredProposalRef & { status: string } }
+    data as {
+      proposal?: StoredProposalRef & { status: string; withdrawToken?: string };
+    }
   ).proposal;
   if (proposal) {
     const ref: StoredProposalRef = {
@@ -570,6 +589,7 @@ export async function submitEntityProposal(input: {
       entityType: input.entityType,
       entityId: input.entityId,
       status: proposal.status,
+      ...(proposal.withdrawToken ? { token: proposal.withdrawToken } : {}),
     };
     rememberProposal(ref);
     return { ok: true, proposal: ref };
@@ -579,15 +599,13 @@ export async function submitEntityProposal(input: {
 
 export async function withdrawEntityProposal(input: {
   proposalId: number;
-  submitterName?: string;
 }): Promise<{ ok: boolean; error?: string }> {
+  const proposalToken = getStoredProposalToken(input.proposalId);
   const res = await fetch(`/api/proposals/${input.proposalId}/withdraw`, {
     method: "POST",
     credentials: "same-origin",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(
-      input.submitterName ? { submitterName: input.submitterName } : {},
-    ),
+    body: JSON.stringify(proposalToken ? { proposalToken } : {}),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

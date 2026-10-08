@@ -14,6 +14,8 @@ export async function listDigestRecipients(): Promise<string[]> {
       and(
         eq(adminUsersTable.isActive, true),
         isNotNull(adminUsersTable.email),
+        // Notification mail only to addresses the owner confirmed (0053).
+        isNotNull(adminUsersTable.emailVerifiedAt),
         sql`${adminUsersTable.email} <> ''`,
         inArray(adminUsersTable.role, ["admin", "editor"] as const),
       ),

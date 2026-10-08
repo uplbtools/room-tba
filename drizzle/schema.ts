@@ -516,6 +516,10 @@ export const adminUsersTable = pgTable(
     legacyCredit: boolean("legacy_credit").default(false).notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     supabaseUserId: uuid("supabase_user_id"),
+    /** Set once the owner clicked the signed confirmation link (0053). */
+    emailVerifiedAt: timestamp("email_verified_at", { mode: "string" }),
+    /** Copied into session cookies; bump to revoke every live session (0053). */
+    sessionVersion: integer("session_version").default(0).notNull(),
     deletedAt: timestamp("deleted_at", { mode: "string" }),
     createdAt: timestamp("created_at", { mode: "string" })
       .defaultNow()
@@ -548,11 +552,27 @@ export const editProposalsTable = pgTable("edit_proposals", {
   adminNote: text("admin_note"),
   /** Contributor's message to the reviewer. Never published (#873). */
   submitterNote: text("submitter_note"),
+  /** SHA-256 of the random token returned at submit (0055). */
+  withdrawTokenHash: varchar("withdraw_token_hash", { length: 64 }),
   reviewedBy: varchar("reviewed_by", { length: 100 }),
   reviewedAt: timestamp("reviewed_at", { mode: "string" }),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
+
+/** Shared fixed-window rate-limit buckets (0054). Server-only. */
+export const rateLimitsTable = pgTable(
+  "rate_limits",
+  {
+    key: varchar({ length: 200 }).primaryKey(),
+    count: integer().default(0).notNull(),
+    resetAt: timestamp("reset_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [index("rate_limits_reset_at_idx").on(table.resetAt)],
+);
 
 export const editorHistoryTable = pgTable("editor_history", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),

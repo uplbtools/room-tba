@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
-import { getEditorSession } from "@lib/admin/require-editor";
+import { optionalEditorSession } from "@lib/admin/require-editor";
 import { clientIp, rateLimitResponse } from "@lib/api/rate-limit";
+import { sharedRateLimit } from "@lib/api/rate-limit-db";
 import { enforceProposalWithdrawLimits } from "@lib/api/proposal-rate-limit";
-import { validateSubmitterName } from "@constants/proposals";
 import {
   ProposalActionError,
   ProposalValidationError,
@@ -11,12 +11,18 @@ import {
 
 export const prerender = false;
 
-type WithdrawBody = { submitterName?: string };
+/** Anonymous callers prove ownership with the token returned at submit. */
+type WithdrawBody = { proposalToken?: unknown };
 
 export const POST: APIRoute = async ({ cookies, params, request }) => {
-  const session = getEditorSession(cookies);
+  const session = await optionalEditorSession(cookies);
   const ip = clientIp(request);
-  const denied = enforceProposalWithdrawLimits(session, ip);
+  const denied = await enforceProposalWithdrawLimits(
+    session,
+    ip,
+    Date.now(),
+    sharedRateLimit,
+  );
   if (denied) {
     return rateLimitResponse(denied.resetAt);
   }
@@ -26,21 +32,12 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
     return json({ error: "Invalid proposal ID" }, 400);
   }
 
-  const body = await request.json().catch(() => ({}) as WithdrawBody);
-  const submitterName =
-    session?.displayName ||
-    session?.username ||
-    (typeof body.submitterName === "string" ? body.submitterName : "");
-
-  if (!session) {
-    const validation = validateSubmitterName(submitterName);
-    if (!validation.ok) {
-      return json({ error: validation.error }, 400);
-    }
-  }
+  const body = (await request
+    .json()
+    .catch(() => ({}) as WithdrawBody)) as WithdrawBody;
 
   try {
-    const proposal = await withdrawProposal(id, session, submitterName);
+    const proposal = await withdrawProposal(id, session, body.proposalToken);
     return json({ success: true, proposal });
   } catch (err) {
     if (err instanceof ProposalValidationError) {

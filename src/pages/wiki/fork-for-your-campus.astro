@@ -124,9 +124,9 @@ cp .env.example .env.local</code></pre>
       <p>
         Create a project. In SQL settings, copy the <strong>session pooler</strong>
         connection string (the one ending in <code>*.pooler.supabase.com</code>).
-        Paste it as <code>DATABASE_URL</code> in <code>.env.local</code>. Set
-        <code>ADMIN_PASSWORD</code> to something long and random. You need it
-        to log into the editor.
+        Paste it as <code>DATABASE_URL</code> in <code>.env.local</code>, and
+        set <code>ADMIN_SESSION_SECRET</code> to 32+ random characters (it
+        signs editor sessions).
       </p>
 
       <h3>3. Install and create the tables</h3>
@@ -195,8 +195,9 @@ bunx drizzle-kit push</code></pre>
         Two ways. Use both.
       </p>
       <p>
-        <strong>The in-app editor.</strong> Log in at
-        <code>/?editor=login</code> with your <code>ADMIN_PASSWORD</code>. Drop
+        <strong>The in-app editor.</strong> Create your admin account once with
+        <code>ADMIN_NEW_PASSWORD='…' bun run scripts/set-admin-user.ts admin</code>,
+        then log in at <code>/?editor=login</code> as <code>admin</code>. Drop
         pins, add buildings and rooms, set aliases. This is how you fix data
         day-to-day and how volunteers contribute without touching the DB.
       </p>
@@ -232,8 +233,8 @@ bunx drizzle-kit push</code></pre>
       </p>
       <ul>
         <li><code>DATABASE_URL</code>: your Supabase pooler URL.</li>
-        <li><code>ADMIN_PASSWORD</code>: same one you used locally.</li>
         <li><code>ADMIN_SESSION_SECRET</code>: 32+ random chars, used to sign editor cookies.</li>
+        <li><code>PUBLIC_TURNSTILE_SITE_KEY</code> and <code>TURNSTILE_SECRET_KEY</code>: a free Cloudflare Turnstile widget. Production sign-in, sign-up and password reset refuse to run without the secret (set <code>TURNSTILE_ALLOW_UNCONFIGURED=1</code> only on a private test deploy).</li>
         <li><code>ISR_BYPASS_TOKEN</code>: 32+ random chars, must match <code>bypassToken</code> in <code>astro.config.mjs</code>. Without it, editor publishes do not revalidate the SEO pages.</li>
         <li><code>PUBLIC_MAPTILER_KEY</code>: your key.</li>
         <li><code>PUBLIC_APP_ENV=production</code> on your production deploy; <code>staging</code> on preview.</li>

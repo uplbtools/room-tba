@@ -98,6 +98,9 @@ export function parseImageUrl(
   value: unknown,
   publicBaseUrl?: string | null,
   label = "Image",
+  /** Proposals may point at quarantine/ (promoted on approval); direct
+   * publishes may not, or an unreviewed file would go live. */
+  options: { allowQuarantine?: boolean } = {},
 ): ParsedEventImageUrl {
   if (value === undefined) {
     return { ok: true, imageUrl: null, provided: false };
@@ -156,6 +159,16 @@ export function parseImageUrl(
     };
   }
 
+  if (
+    !options.allowQuarantine &&
+    isQuarantineKey(keyFromPublicUrl(trimmed, base))
+  ) {
+    return {
+      ok: false,
+      error: `${label} is still awaiting review. Upload it again to publish it directly.`,
+    };
+  }
+
   return { ok: true, imageUrl: trimmed, provided: true };
 }
 
@@ -164,4 +177,73 @@ export function parseEventImageUrl(
   publicBaseUrl?: string | null,
 ): ParsedEventImageUrl {
   return parseImageUrl(value, publicBaseUrl, "Event image");
+}
+
+// ── Quarantine (security audit item 10) ──
+// Uploads from people without publish rights land under quarantine/ and are
+// only copied to a public prefix when a reviewer approves the proposal that
+// uses them. Unreferenced quarantine files are swept after a week.
+
+export const QUARANTINE_PREFIX = "quarantine";
+export const QUARANTINE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+/** Where approved quarantine images are copied to. */
+export const PROMOTED_PREFIX = "uploads";
+
+export function buildQuarantineKey(
+  proposalId: number,
+  contentType: string,
+  id = crypto.randomUUID(),
+): string {
+  return buildUploadKey(`${QUARANTINE_PREFIX}/${proposalId}`, contentType, id);
+}
+
+/** True when a client-chosen prefix would write into the quarantine area. */
+export function isQuarantinePrefix(prefix: string | null | undefined): boolean {
+  const cleaned = sanitizeUploadPrefix(prefix);
+  return (
+    cleaned === QUARANTINE_PREFIX || cleaned.startsWith(`${QUARANTINE_PREFIX}/`)
+  );
+}
+
+/** The object key for an upload URL under `publicBaseUrl`, else null. */
+export function keyFromPublicUrl(
+  url: string,
+  publicBaseUrl: string | null | undefined,
+): string | null {
+  const base = publicBaseUrl?.trim().replace(/\/$/, "");
+  if (!base || !url.startsWith(`${base}/`)) return null;
+  const key = url.slice(base.length + 1).split(/[?#]/)[0] ?? "";
+  return key || null;
+}
+
+export function isQuarantineKey(key: string | null): key is string {
+  return Boolean(key?.startsWith(`${QUARANTINE_PREFIX}/`));
+}
+
+/** quarantine/12/abc.webp -> uploads/abc.webp (the random id stays unique). */
+export function promotedKeyFor(quarantineKey: string): string {
+  const fileName = quarantineKey.split("/").pop() ?? quarantineKey;
+  return `${PROMOTED_PREFIX}/${fileName}`;
+}
+
+/**
+ * Quarantine objects to delete: older than `maxAgeMs` and not referenced by
+ * any open proposal. Fresh files are kept even when unreferenced, so an
+ * upload made moments before its proposal is saved is never swept.
+ */
+export function staleQuarantineKeys(
+  objects: Array<{ key: string; lastModified: number | null }>,
+  referencedKeys: ReadonlySet<string>,
+  now: number,
+  maxAgeMs = QUARANTINE_MAX_AGE_MS,
+): string[] {
+  return objects
+    .filter(
+      (object) =>
+        isQuarantineKey(object.key) &&
+        !referencedKeys.has(object.key) &&
+        object.lastModified !== null &&
+        now - object.lastModified > maxAgeMs,
+    )
+    .map((object) => object.key);
 }

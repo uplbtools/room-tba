@@ -9,7 +9,7 @@ import {
   FEEDBACK_CONTACT_MAX,
   FEEDBACK_MESSAGE_MAX,
 } from "@constants/feedback";
-import { checkRateLimit } from "./rate-limit";
+import { checkRateLimit, type RateLimiter } from "./rate-limit";
 
 export { FEEDBACK_CONTACT_MAX, FEEDBACK_MESSAGE_MAX };
 
@@ -98,15 +98,16 @@ function skipRateLimits(): boolean {
 
 /**
  * Per-IP only — feedback is anonymous, so there is no account to key on. The IP
- * is used for the in-memory bucket and never stored.
+ * only forms the rate-limit bucket key and is never stored with the message.
  */
-export function enforceFeedbackLimits(
+export async function enforceFeedbackLimits(
   ip: string,
   now = Date.now(),
-): { allowed: false; resetAt: number } | null {
+  limiter: RateLimiter = checkRateLimit,
+): Promise<{ allowed: false; resetAt: number } | null> {
   if (skipRateLimits()) return null;
 
-  const short = checkRateLimit(
+  const short = await limiter(
     `feedback:ip:${ip}`,
     IP_SHORT_MAX,
     SHORT_WINDOW_MS,
@@ -114,7 +115,7 @@ export function enforceFeedbackLimits(
   );
   if (!short.allowed) return { allowed: false, resetAt: short.resetAt };
 
-  const daily = checkRateLimit(
+  const daily = await limiter(
     `feedback:daily:ip:${ip}`,
     IP_DAILY_MAX,
     DAILY_WINDOW_MS,

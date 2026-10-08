@@ -698,7 +698,7 @@ class AdminAuthStore {
         return (
           data.error ??
           (res.status === 409
-            ? "That username is already taken. Try another."
+            ? "We couldn't create an account with those details. Try a different username, or sign in if you already have an account."
             : res.status === 429
               ? "Too many sign-up attempts. Wait about a minute and try again."
               : res.status >= 500

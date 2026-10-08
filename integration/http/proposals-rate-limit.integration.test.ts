@@ -25,7 +25,7 @@ describeIntegration("proposal submit rate limit", () => {
           _hp: "",
         },
         undefined,
-        { "X-Forwarded-For": ISOLATED_IP },
+        { "X-Real-IP": ISOLATED_IP },
       );
       lastStatus = res.status;
       if (lastStatus === 429) break;
@@ -42,7 +42,7 @@ describeIntegration("proposal submit rate limit", () => {
         _hp: "",
       },
       undefined,
-      { "X-Forwarded-For": ISOLATED_IP },
+      { "X-Real-IP": ISOLATED_IP },
     );
     expect(blocked.status).toBe(429);
     expect(blocked.headers.get("Retry-After")).toBeTruthy();

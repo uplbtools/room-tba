@@ -22,9 +22,20 @@ import {
   validateSubmitterNote,
 } from "@constants/proposals";
 import { recordProposalContribution } from "./contribution-service";
-import { parseImageUrl } from "@lib/r2-upload";
+import {
+  isQuarantineKey,
+  isR2Configured,
+  keyFromPublicUrl,
+  parseImageUrl,
+  promoteQuarantinedObject,
+} from "@lib/r2-upload";
 import { R2_PUBLIC_URL } from "astro:env/server";
 import { canWithdrawProposal } from "./proposal-access";
+import {
+  generateProposalToken,
+  hashProposalToken,
+  proposalTokenMatches,
+} from "@lib/proposals/proposal-token";
 export {
   canViewProposalSubmitterDetails,
   canWithdrawProposal,
@@ -123,7 +134,9 @@ export function isUpdateProposalType(
 
 export type EditProposalRow = typeof editProposalsTable.$inferSelect;
 
-export type EditProposalSummary = EditProposalRow & {
+/** Never carries the withdraw-token hash: summaries reach reviewers and
+ * notification payloads. Ownership checks read it with readProposalTokenHash. */
+export type EditProposalSummary = Omit<EditProposalRow, "withdrawTokenHash"> & {
   entityLabel: string;
 };
 
@@ -402,16 +415,29 @@ export function toSubmitterProposalView(
   };
 }
 export async function withEntityLabel(
-  row: EditProposalRow,
+  row: EditProposalRow | EditProposalSummary,
 ): Promise<EditProposalSummary> {
+  const { withdrawTokenHash: _hash, ...rest } = row as EditProposalRow;
   return {
-    ...row,
+    ...rest,
     entityLabel: await getEntityLabel(
       row.entityType as ProposalEntityType,
       row.entityId,
       row.proposedPatch as Record<string, unknown>,
     ),
   };
+}
+
+/** Stored SHA-256 of the proposal's owner token (null for pre-0055 rows). */
+export async function readProposalTokenHash(
+  id: number,
+): Promise<string | null> {
+  const [row] = await db
+    .select({ hash: editProposalsTable.withdrawTokenHash })
+    .from(editProposalsTable)
+    .where(eq(editProposalsTable.id, id))
+    .limit(1);
+  return row?.hash ?? null;
 }
 
 export async function listPendingProposals(): Promise<EditProposalSummary[]> {
@@ -590,8 +616,15 @@ type SubmitProposalInput = {
   submitterName: string;
   submitterUserId?: number | null;
   proposalId?: number | null;
+  /** Owner token from the original submit; required to revise anonymously. */
+  proposalToken?: string | null;
   /** Contributor's message to the reviewer. Never merged into the patch. */
   submitterNote?: string | null;
+};
+
+/** A freshly created proposal also hands back its owner token, once. */
+export type SubmittedProposal = EditProposalSummary & {
+  withdrawToken?: string;
 };
 
 /** Anonymous submitters cannot borrow a registered contributor's identity:
@@ -619,7 +652,7 @@ async function isReservedContributorName(name: string): Promise<boolean> {
 
 export async function submitProposal(
   input: SubmitProposalInput,
-): Promise<EditProposalSummary> {
+): Promise<SubmittedProposal> {
   if (!isProposalEntityType(input.entityType)) {
     throw new ProposalValidationError("Unsupported entity type.");
   }
@@ -678,12 +711,22 @@ export async function submitProposal(
       .from(editProposalsTable)
       .where(eq(editProposalsTable.id, input.proposalId))
       .limit(1);
+    // Revising needs proof of ownership: the account for signed-in
+    // submitters, the submit-time token for anonymous ones. Anything else
+    // starts a fresh proposal instead of touching someone else's.
+    const owned =
+      existing &&
+      (input.submitterUserId
+        ? existing.submitterUserId === input.submitterUserId
+        : existing.submitterUserId == null &&
+          proposalTokenMatches(
+            input.proposalToken,
+            existing.withdrawTokenHash,
+          ));
     if (
       !existing ||
-      !["pending", "needs_changes"].includes(existing.status) ||
-      existing.submitterName !== name ||
-      (input.submitterUserId &&
-        existing.submitterUserId !== input.submitterUserId)
+      !owned ||
+      !["pending", "needs_changes"].includes(existing.status)
     ) {
       existing = undefined;
     }
@@ -749,6 +792,7 @@ export async function submitProposal(
     return withEntityLabel(updated);
   }
 
+  const withdrawToken = generateProposalToken();
   const [created] = await db
     .insert(editProposalsTable)
     .values({
@@ -759,12 +803,13 @@ export async function submitProposal(
       submitterName: name,
       submitterUserId: input.submitterUserId ?? null,
       submitterNote,
+      withdrawTokenHash: hashProposalToken(withdrawToken),
       status: "pending",
     })
     .returning();
 
   if (!created) throw new Error("Failed to create proposal.");
-  return withEntityLabel(created);
+  return { ...(await withEntityLabel(created)), withdrawToken };
 }
 
 export {
@@ -789,7 +834,9 @@ function validateProposalImageUrl(
   label: string,
 ) {
   if (!("imageUrl" in patch)) return;
-  const parsed = parseImageUrl(patch.imageUrl, R2_PUBLIC_URL, label);
+  const parsed = parseImageUrl(patch.imageUrl, R2_PUBLIC_URL, label, {
+    allowQuarantine: true,
+  });
   if (!parsed.ok) {
     throw new ProposalActionError(parsed.error);
   }
@@ -807,6 +854,25 @@ const IMAGE_PATCH_ENTITY_LABELS: Readonly<Record<string, string>> = {
   create_dorm: "Dorm image",
 };
 
+/**
+ * A contributor's photo waits under quarantine/ until a reviewer approves the
+ * proposal; approval copies it to the public prefix and rewrites the patch to
+ * the promoted URL before anything is published.
+ */
+async function promoteProposalImage(patch: Record<string, unknown>) {
+  const { imageUrl } = patch;
+  if (typeof imageUrl !== "string") return;
+  const key = keyFromPublicUrl(imageUrl, R2_PUBLIC_URL);
+  if (!isQuarantineKey(key)) return;
+  if (!isR2Configured()) {
+    throw new ProposalActionError(
+      "Image storage is not configured, so this photo cannot be published.",
+      503,
+    );
+  }
+  Object.assign(patch, { imageUrl: await promoteQuarantinedObject(key) });
+}
+
 async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
   const patch = proposal.proposedPatch as Record<string, unknown>;
   const entityType = proposal.entityType as ProposalEntityType;
@@ -814,6 +880,7 @@ async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {
   const imageLabel = IMAGE_PATCH_ENTITY_LABELS[entityType];
   if (imageLabel) {
     validateProposalImageUrl(patch, imageLabel);
+    await promoteProposalImage(patch);
   }
 
   if (isCreateProposalType(entityType)) {
@@ -1156,14 +1223,21 @@ export async function requestProposalChanges(
 export async function withdrawProposal(
   id: number,
   session: SessionUser | null,
-  submitterName?: string,
+  proposalToken?: unknown,
 ) {
   const proposal = await getProposalById(id);
   if (!proposal) throw new ProposalActionError("Proposal not found.", 404);
   if (!["pending", "needs_changes"].includes(proposal.status)) {
     throw new ProposalActionError("This proposal is no longer open.", 409);
   }
-  if (!canWithdrawProposal(session, proposal, submitterName)) {
+  const withdrawTokenHash = await readProposalTokenHash(id);
+  if (
+    !canWithdrawProposal(
+      session,
+      { ...proposal, withdrawTokenHash },
+      proposalToken,
+    )
+  ) {
     throw new ProposalActionError(
       "Not allowed to withdraw this proposal.",
       403,

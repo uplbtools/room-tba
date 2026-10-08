@@ -1,7 +1,6 @@
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash } from "node:crypto";
 import bcrypt from "bcrypt";
-import { and, desc, eq, ne, sql } from "drizzle-orm";
-import { ADMIN_PASSWORD } from "astro:env/server";
+import { and, desc, eq, isNotNull, ne, sql } from "drizzle-orm";
 import {
   adminUsersTable,
   contributionsTable,
@@ -11,7 +10,15 @@ import {
 import { db } from "@lib/db";
 import type { SessionUser } from "@lib/admin/auth";
 import { createSignedToken, verifySignedToken } from "@lib/admin/signed-token";
-import { sendEmail } from "@lib/email/resend";
+import {
+  EMAIL_VERIFY_TOKEN_TTL_SECONDS,
+  SIGNUP_UNAVAILABLE_MESSAGE,
+  buildEmailInUseNotice,
+  buildVerificationEmail,
+  parseEmailVerifyToken,
+  type EmailVerifyTokenPayload,
+} from "@lib/auth/email-verification";
+import { isResendConfigured, sendEmail } from "@lib/email/resend";
 import { SITE_URL } from "@lib/site";
 
 export class AccountActionError extends Error {
@@ -27,6 +34,33 @@ export class AccountActionError extends Error {
 const MIN_PASSWORD_LENGTH = 10;
 const EMAIL_CHANGE_TOKEN_TTL_SECONDS = 30 * 60;
 
+type DbOrTx = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/**
+ * Revoke every session cookie issued so far for this account (they carry the
+ * old version and fail revalidateSession). Returns the new version so the
+ * caller can re-issue a cookie for the device that made the change.
+ */
+async function bumpSessionVersion(
+  executor: DbOrTx,
+  userId: number,
+): Promise<number> {
+  const [row] = await executor
+    .update(adminUsersTable)
+    .set({
+      sessionVersion: sql`${adminUsersTable.sessionVersion} + 1`,
+      updatedAt: sql`now()`,
+    })
+    .where(eq(adminUsersTable.id, userId))
+    .returning({ sessionVersion: adminUsersTable.sessionVersion });
+  return row?.sessionVersion ?? 0;
+}
+
+/** "Sign out of all devices": every existing cookie stops working. */
+export async function signOutEverywhere(userId: number): Promise<void> {
+  await bumpSessionVersion(db, userId);
+}
+
 function hasPassword(passwordHash: string): boolean {
   return passwordHash.length > 0;
 }
@@ -39,6 +73,7 @@ const adminUserCredentialColumns = {
   passwordHash: adminUsersTable.passwordHash,
   role: adminUsersTable.role,
   isActive: adminUsersTable.isActive,
+  sessionVersion: adminUsersTable.sessionVersion,
 };
 
 function toSessionUser(user: {
@@ -46,12 +81,14 @@ function toSessionUser(user: {
   username: string;
   displayName: string | null;
   role: SessionUser["role"] | null;
+  sessionVersion?: number | null;
 }): SessionUser {
   return {
     id: user.id,
     username: user.username,
     displayName: user.displayName ?? user.username,
     role: user.role ?? "editor",
+    sessionVersion: user.sessionVersion ?? 0,
   };
 }
 
@@ -72,6 +109,7 @@ export async function getAdminUserBySupabaseId(
         username: adminUsersTable.username,
         displayName: adminUsersTable.displayName,
         role: adminUsersTable.role,
+        sessionVersion: adminUsersTable.sessionVersion,
       })
       .from(adminUsersTable)
       .where(
@@ -105,7 +143,9 @@ export type SupabaseIdentity = {
  * Email matching/storage only happens for provider-verified emails —
  * otherwise a provider that passes unverified emails would let anyone
  * claim an existing account (including admin rows) by registering its
- * email address at that provider.
+ * email address at that provider. The match is also limited to rows whose
+ * email WE verified (email_verified_at): a typed, unconfirmed signup email
+ * must never let someone pre-claim the real owner's Google sign-in.
  */
 export async function linkOrCreateContributorFromSupabase(
   identity: SupabaseIdentity,
@@ -125,9 +165,15 @@ export async function linkOrCreateContributorFromSupabase(
         displayName: adminUsersTable.displayName,
         role: adminUsersTable.role,
         isActive: adminUsersTable.isActive,
+        sessionVersion: adminUsersTable.sessionVersion,
       })
       .from(adminUsersTable)
-      .where(sql`lower(email) = ${email}`)
+      .where(
+        and(
+          sql`lower(email) = ${email}`,
+          isNotNull(adminUsersTable.emailVerifiedAt),
+        ),
+      )
       .limit(1);
     if (byEmail) {
       if (!byEmail.isActive) return null;
@@ -157,7 +203,10 @@ export async function linkOrCreateContributorFromSupabase(
           // OAuth-only account: no usable password login.
           passwordHash: "",
           role: "contributor",
+          // Only reachable with a provider-confirmed email (see above), and
+          // only when no verified row holds it yet.
           email,
+          emailVerifiedAt: email ? sql`now()` : null,
           isActive: true,
           supabaseUserId: identity.id,
         })
@@ -203,6 +252,8 @@ async function findUserByLogin(login: string) {
         and(
           eq(adminUsersTable.isActive, true),
           sql`lower(email) = ${normalized}`,
+          // Unverified addresses are just typed text: never a login handle.
+          isNotNull(adminUsersTable.emailVerifiedAt),
         ),
       )
       .limit(1);
@@ -227,35 +278,6 @@ export async function authenticateAdminUser(
   return toSessionUser(user);
 }
 
-export async function ensureBootstrapAdminUser(): Promise<void> {
-  const existing = await countAdminUsers();
-  if (existing > 0 || !ADMIN_PASSWORD) return;
-
-  const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 12);
-  await db.insert(adminUsersTable).values({
-    username: "admin",
-    displayName: "Admin",
-    passwordHash,
-    role: "admin",
-    isActive: true,
-  });
-}
-
-export async function authenticateLegacyAdminPassword(
-  password: string,
-): Promise<SessionUser | null> {
-  if (!ADMIN_PASSWORD) return null;
-  const passwordBuf = Buffer.from(password);
-  const expectedBuf = Buffer.from(ADMIN_PASSWORD);
-  if (
-    passwordBuf.length !== expectedBuf.length ||
-    !timingSafeEqual(passwordBuf, expectedBuf)
-  )
-    return null;
-  await ensureBootstrapAdminUser();
-  return authenticateAdminUser("admin", password);
-}
-
 // ── Self-service account management (#456/#272 follow-up) ──
 
 export type AccountProfile = {
@@ -263,6 +285,8 @@ export type AccountProfile = {
   username: string;
   displayName: string;
   email: string | null;
+  /** True once the address was confirmed through the emailed link. */
+  emailVerified: boolean;
   role: SessionUser["role"];
   hasPassword: boolean;
   linkedGoogle: boolean;
@@ -281,6 +305,7 @@ export async function getAccountProfile(
       username: adminUsersTable.username,
       displayName: adminUsersTable.displayName,
       email: adminUsersTable.email,
+      emailVerifiedAt: adminUsersTable.emailVerifiedAt,
       role: adminUsersTable.role,
       passwordHash: adminUsersTable.passwordHash,
       supabaseUserId: adminUsersTable.supabaseUserId,
@@ -300,6 +325,7 @@ export async function getAccountProfile(
     username: row.username,
     displayName: row.displayName ?? row.username,
     email: row.email,
+    emailVerified: row.email !== null && row.emailVerifiedAt !== null,
     role: row.role ?? "editor",
     hasPassword: hasPassword(row.passwordHash),
     linkedGoogle: row.supabaseUserId !== null,
@@ -395,11 +421,12 @@ export async function updateDisplayName(
     .where(eq(adminUsersTable.id, userId));
 }
 
+/** Resolves to the new session version (every other device is signed out). */
 export async function changePassword(
   userId: number,
   currentPassword: string | null,
   newPassword: string,
-): Promise<void> {
+): Promise<number> {
   if (newPassword.length < MIN_PASSWORD_LENGTH) {
     throw new AccountActionError(
       `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
@@ -424,10 +451,13 @@ export async function changePassword(
   }
 
   const passwordHash = await bcrypt.hash(newPassword, 12);
-  await db
-    .update(adminUsersTable)
-    .set({ passwordHash, updatedAt: sql`now()` })
-    .where(eq(adminUsersTable.id, userId));
+  return db.transaction(async (tx) => {
+    await tx
+      .update(adminUsersTable)
+      .set({ passwordHash, updatedAt: sql`now()` })
+      .where(eq(adminUsersTable.id, userId));
+    return bumpSessionVersion(tx, userId);
+  });
 }
 
 // `purpose` stops cross-endpoint replay (an email-change token must never
@@ -450,15 +480,25 @@ export async function requestEmailChange(
     throw new AccountActionError("Enter a valid email address.");
   }
 
+  // Same answer whether or not the address is taken (no enumeration): a
+  // verified owner elsewhere gets a heads-up instead of a change link.
   const [existing] = await db
     .select({ id: adminUsersTable.id })
     .from(adminUsersTable)
     .where(
-      and(sql`lower(email) = ${normalized}`, ne(adminUsersTable.id, userId)),
+      and(
+        sql`lower(email) = ${normalized}`,
+        ne(adminUsersTable.id, userId),
+        isNotNull(adminUsersTable.emailVerifiedAt),
+      ),
     )
     .limit(1);
   if (existing) {
-    throw new AccountActionError("That email is already in use.", 409);
+    await sendEmail({
+      to: [normalized],
+      ...buildEmailInUseNotice({ siteUrl: SITE_URL }),
+    });
+    return;
   }
 
   const [self] = await db
@@ -519,19 +559,25 @@ export async function requestPasswordReset(login: string): Promise<void> {
       email: adminUsersTable.email,
       isActive: adminUsersTable.isActive,
       passwordHash: adminUsersTable.passwordHash,
+      emailVerifiedAt: adminUsersTable.emailVerifiedAt,
     })
     .from(adminUsersTable)
     .where(
       and(
         eq(adminUsersTable.isActive, true),
         normalized.includes("@")
-          ? sql`lower(email) = ${normalized}`
+          ? and(
+              sql`lower(email) = ${normalized}`,
+              isNotNull(adminUsersTable.emailVerifiedAt),
+            )
           : eq(adminUsersTable.username, normalized),
       ),
     )
     .limit(1);
 
-  if (!user?.isActive || !user.email) return;
+  // Reset mail only goes to an address the owner proved they control;
+  // an unverified typed email could belong to anyone.
+  if (!user?.isActive || !user.email || !user.emailVerifiedAt) return;
 
   const token = createSignedToken<PasswordResetTokenPayload>(
     {
@@ -556,10 +602,11 @@ export async function requestPasswordReset(login: string): Promise<void> {
   });
 }
 
+/** Resolves to the account's username (for clearing its sign-in backoff). */
 export async function confirmPasswordReset(
   token: string,
   newPassword: string,
-): Promise<void> {
+): Promise<string> {
   if (newPassword.length < MIN_PASSWORD_LENGTH) {
     throw new AccountActionError(
       `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
@@ -575,7 +622,10 @@ export async function confirmPasswordReset(
   }
 
   const [row] = await db
-    .select({ passwordHash: adminUsersTable.passwordHash })
+    .select({
+      passwordHash: adminUsersTable.passwordHash,
+      username: adminUsersTable.username,
+    })
     .from(adminUsersTable)
     .where(eq(adminUsersTable.id, payload.userId))
     .limit(1);
@@ -586,10 +636,16 @@ export async function confirmPasswordReset(
   }
 
   const passwordHash = await bcrypt.hash(newPassword, 12);
-  await db
-    .update(adminUsersTable)
-    .set({ passwordHash, updatedAt: sql`now()` })
-    .where(eq(adminUsersTable.id, payload.userId));
+  // New password also revokes every live session: whoever knew the old one
+  // (the reason for many resets) is signed out everywhere.
+  await db.transaction(async (tx) => {
+    await tx
+      .update(adminUsersTable)
+      .set({ passwordHash, updatedAt: sql`now()` })
+      .where(eq(adminUsersTable.id, payload.userId));
+    await bumpSessionVersion(tx, payload.userId);
+  });
+  return row.username;
 }
 
 export async function confirmEmailChange(token: string): Promise<void> {
@@ -603,12 +659,24 @@ export async function confirmEmailChange(token: string): Promise<void> {
   }
   // Guarding on the issued-against email makes the token single-use and
   // drops stale tokens if the email changed some other way meanwhile.
+  // Clicking the link proves control of the new address, so it lands
+  // verified, unless another account verified it in the meantime.
   const updated = await db
     .update(adminUsersTable)
-    .set({ email: payload.newEmail, updatedAt: sql`now()` })
+    .set({
+      email: payload.newEmail,
+      emailVerifiedAt: sql`now()`,
+      updatedAt: sql`now()`,
+    })
     .where(
       and(
         eq(adminUsersTable.id, payload.userId),
+        sql`NOT EXISTS (
+          SELECT 1 FROM admin_users other
+          WHERE other.id <> ${payload.userId}
+            AND lower(other.email) = ${payload.newEmail}
+            AND other.email_verified_at IS NOT NULL
+        )`,
         payload.fromEmail === null
           ? sql`email IS NULL`
           : sql`lower(email) = ${payload.fromEmail.toLowerCase()}`,
@@ -694,6 +762,8 @@ export async function softDeleteAccount(
       displayName: "Deleted user",
       passwordHash: "",
       supabaseUserId: null,
+      emailVerifiedAt: null,
+      sessionVersion: sql`${adminUsersTable.sessionVersion} + 1`,
       updatedAt: sql`now()`,
     })
     .where(eq(adminUsersTable.id, userId));
@@ -904,6 +974,13 @@ export async function updateManagedUser(
     const updates: Record<string, unknown> = { updatedAt: sql`now()` };
     if (input.role !== undefined) updates.role = input.role;
     if (input.isActive !== undefined) updates.isActive = input.isActive;
+    // A role change or deactivation revokes the user's live sessions, so the
+    // new rights apply on their next request with a fresh sign-in.
+    const roleChanged = input.role !== undefined && input.role !== target.role;
+    const deactivated = input.isActive === false && target.isActive;
+    if (roleChanged || deactivated) {
+      updates.sessionVersion = sql`${adminUsersTable.sessionVersion} + 1`;
+    }
 
     const [updated] = await tx
       .update(adminUsersTable)
@@ -926,4 +1003,143 @@ export async function updateManagedUser(
       role: updated.role ?? "editor",
     };
   });
+}
+
+// ── Email verification (security audit item 1) ──
+
+/**
+ * Email a verification link to the account's current, unverified address.
+ * Best effort: resolves false (logged) when there is nothing to verify or
+ * mail is not configured, so signup and admin user creation never fail on it.
+ */
+export async function sendEmailVerification(userId: number): Promise<boolean> {
+  const [row] = await db
+    .select({
+      username: adminUsersTable.username,
+      email: adminUsersTable.email,
+      emailVerifiedAt: adminUsersTable.emailVerifiedAt,
+      isActive: adminUsersTable.isActive,
+    })
+    .from(adminUsersTable)
+    .where(eq(adminUsersTable.id, userId))
+    .limit(1);
+  if (!row?.isActive || !row.email || row.emailVerifiedAt) return false;
+  if (!isResendConfigured()) {
+    console.warn("Email verification skipped: Resend is not configured.");
+    return false;
+  }
+  const email = row.email.trim().toLowerCase();
+  const token = createSignedToken<EmailVerifyTokenPayload>(
+    { purpose: "email-verify", userId, email },
+    EMAIL_VERIFY_TOKEN_TTL_SECONDS,
+  );
+  try {
+    await sendEmail({
+      to: [email],
+      ...buildVerificationEmail({
+        siteUrl: SITE_URL,
+        token,
+        username: row.username,
+      }),
+    });
+    return true;
+  } catch (error) {
+    console.error("Email verification send failed:", error);
+    return false;
+  }
+}
+
+/**
+ * Confirm an address from the emailed link. Single use: the UPDATE only
+ * matches while the account still holds that exact, unverified address, and
+ * no other account has verified it since.
+ */
+export async function verifyEmailToken(token: string): Promise<void> {
+  const payload = parseEmailVerifyToken(verifySignedToken<unknown>(token));
+  if (!payload) {
+    throw new AccountActionError("This link is invalid or has expired.", 400);
+  }
+  const updated = await db
+    .update(adminUsersTable)
+    .set({ emailVerifiedAt: sql`now()`, updatedAt: sql`now()` })
+    .where(
+      and(
+        eq(adminUsersTable.id, payload.userId),
+        eq(adminUsersTable.isActive, true),
+        sql`lower(email) = ${payload.email}`,
+        sql`email_verified_at IS NULL`,
+        sql`NOT EXISTS (
+          SELECT 1 FROM admin_users other
+          WHERE other.id <> ${payload.userId}
+            AND lower(other.email) = ${payload.email}
+            AND other.email_verified_at IS NOT NULL
+        )`,
+      ),
+    )
+    .returning({ id: adminUsersTable.id });
+  if (updated.length === 0) {
+    throw new AccountActionError("This link is invalid or has expired.", 400);
+  }
+}
+
+async function isEmailVerifiedElsewhere(email: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: adminUsersTable.id })
+    .from(adminUsersTable)
+    .where(
+      and(
+        sql`lower(email) = ${email}`,
+        isNotNull(adminUsersTable.emailVerifiedAt),
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
+}
+
+/**
+ * Contributor self-signup. The response is the same whether or not the email
+ * is already registered: a taken, verified address is simply not attached to
+ * the new account, and its owner gets a heads-up instead of a link. A taken
+ * username surfaces as one generic message (SIGNUP_UNAVAILABLE_MESSAGE).
+ */
+export async function createContributorAccount(input: {
+  username: string;
+  password: string;
+  email: string | null;
+  displayName: string | null;
+}): Promise<AdminManagedUser> {
+  const email = input.email?.trim().toLowerCase() || null;
+  const emailTaken = email ? await isEmailVerifiedElsewhere(email) : false;
+
+  let user: AdminManagedUser;
+  try {
+    user = await createAdminUser({
+      username: input.username,
+      displayName: input.displayName ?? undefined,
+      email: emailTaken ? undefined : (email ?? undefined),
+      password: input.password,
+      role: "contributor",
+    });
+  } catch (error) {
+    if (error instanceof AccountActionError && error.status === 409) {
+      throw new AccountActionError(SIGNUP_UNAVAILABLE_MESSAGE, 400);
+    }
+    throw error;
+  }
+
+  if (email && emailTaken) {
+    if (isResendConfigured()) {
+      try {
+        await sendEmail({
+          to: [email],
+          ...buildEmailInUseNotice({ siteUrl: SITE_URL }),
+        });
+      } catch (error) {
+        console.error("Signup email-in-use notice failed:", error);
+      }
+    }
+  } else if (email) {
+    await sendEmailVerification(user.id);
+  }
+  return user;
 }

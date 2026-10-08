@@ -1,10 +1,8 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
-import {
-  checkRateLimit,
-  clientIp,
-  rateLimitResponse,
-} from "@lib/api/rate-limit";
+import { createSessionToken, setSessionCookie } from "@lib/admin/auth";
+import { clientIp, rateLimitResponse } from "@lib/api/rate-limit";
+import { sharedRateLimit } from "@lib/api/rate-limit-db";
 import {
   AccountActionError,
   changePassword,
@@ -18,7 +16,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
   const auth = await editorSessionOrUnauthorized(cookies);
   if (auth instanceof Response) return auth;
 
-  const rate = checkRateLimit(
+  const rate = await sharedRateLimit(
     `account-change-password:${auth.session.id}:${clientIp(request)}`,
     LIMIT.max,
     LIMIT.windowMs,
@@ -37,12 +35,23 @@ export const POST: APIRoute = async ({ cookies, request }) => {
   }
 
   try {
-    await changePassword(
+    const sessionVersion = await changePassword(
       auth.session.id,
       typeof body.currentPassword === "string" ? body.currentPassword : null,
       body.newPassword,
     );
-    return json({ success: true });
+    // Every other device is now signed out; keep this one signed in with a
+    // cookie carrying the new session version.
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "private, no-store",
+        "Set-Cookie": setSessionCookie(
+          createSessionToken({ ...auth.session, sessionVersion }),
+        ),
+      },
+    });
   } catch (error) {
     if (error instanceof AccountActionError) {
       return json({ error: error.message }, error.status);

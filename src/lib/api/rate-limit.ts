@@ -9,7 +9,24 @@ export type RateLimitResult =
   | { allowed: true; remaining: number; resetAt: number }
   | { allowed: false; remaining: 0; resetAt: number };
 
-/** Best-effort in-memory limiter (per server instance). */
+/**
+ * Any limiter: the in-memory one below or the shared Postgres one in
+ * rate-limit-db.ts. Pure helpers (proposal/feedback limits) take one of these
+ * so unit tests run against memory while routes pass the shared store.
+ */
+export type RateLimiter = (
+  key: string,
+  max: number,
+  windowMs: number,
+  now?: number,
+) => RateLimitResult | Promise<RateLimitResult>;
+
+/**
+ * In-memory limiter (per server instance). On serverless each instance has
+ * its own Map, so this only suits cheap read endpoints and acts as the
+ * fallback when the shared store is unreachable. Auth, signup, reset,
+ * feedback and proposals use the shared limiter (rate-limit-db.ts).
+ */
 export function checkRateLimit(
   key: string,
   max: number,
@@ -35,14 +52,16 @@ export function checkRateLimit(
   };
 }
 
+/**
+ * Client IP for rate-limit keys. Vercel sets `x-vercel-forwarded-for` (and
+ * `x-real-ip`) itself; the first `X-Forwarded-For` entry is whatever the
+ * client typed, so keying on it let anyone mint a fresh bucket per request.
+ */
 export function clientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first) return first;
+  for (const header of ["x-vercel-forwarded-for", "x-real-ip"]) {
+    const value = request.headers.get(header)?.split(",")[0]?.trim();
+    if (value) return value;
   }
-  const realIp = request.headers.get("x-real-ip")?.trim();
-  if (realIp) return realIp;
   return "unknown";
 }
 
