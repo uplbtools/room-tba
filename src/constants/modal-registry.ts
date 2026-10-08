@@ -149,8 +149,8 @@ export const MODAL_REGISTRY: Record<ModalType, ModalEntry> = {
     component: EntityHistoryModal,
     size: "reading",
     label: "Edit history",
+    labelledBy: "entity-history-title",
     closeLabel: "Close edit history",
-    scroll: true,
   },
   // Settings links here rather than embedding a second copy of the form.
   feedback: {

@@ -44,6 +44,7 @@
   import Printer from "@lucide/svelte/icons/printer";
   import MapChromeActionLink from "@ui/map-chrome/MapChromeActionLink.svelte";
   import TransitStopEditor from "../controls/TransitStopEditor.svelte";
+  import ModalHeader from "./ModalHeader.svelte";
   import EntityEditorToggle from "../editor/EntityEditorToggle.svelte";
 
   type Props = {
@@ -169,6 +170,7 @@
 {#if route}
   <div
     class="jeepney-modal"
+    class:jeepney-modal--sheet={!onback && !onclose}
     style:--route-color={darkenForWhiteText(route.color)}
   >
     {#if onback || onclose}
@@ -191,14 +193,19 @@
         {/if}
       </div>
     {/if}
-    <header class="jeepney-modal__header">
-      <span
-        class="jeepney-modal__swatch"
-        style:background-color={route.color}
-        aria-hidden="true"
-      ></span>
-      <h2 class="jeepney-modal__title">{route.name} {transitRouteNoun(route)}</h2>
-    </header>
+    {#if onback || onclose}
+      <header class="jeepney-modal__header">
+        <span
+          class="jeepney-modal__swatch"
+          style:background-color={route.color}
+          aria-hidden="true"
+        ></span>
+        <h2 class="jeepney-modal__title">{route.name} {transitRouteNoun(route)}</h2>
+      </header>
+    {:else}
+      <!-- Opened as a modal: the standard top app bar (X at the top-left). -->
+      <ModalHeader title={`${route.name} ${transitRouteNoun(route)}`} />
+    {/if}
 
     <div class="jeepney-modal__scroll map-chrome-scroll">
       {#if directions}
@@ -389,6 +396,20 @@
     padding: 0.5rem 0.5rem 0.25rem;
     flex: 1 1 auto;
     min-height: 0;
+  }
+
+  /* In a Dialog the top app bar runs edge to edge; the body keeps the
+     16px side gutter every modal screen uses. */
+  .jeepney-modal--sheet {
+    padding: 0;
+  }
+
+  .jeepney-modal--sheet .jeepney-modal__scroll {
+    padding: 0 1rem 0.5rem;
+  }
+
+  .jeepney-modal--sheet .jeepney-modal__actions {
+    padding: 0 1rem 0.75rem;
   }
 
   .jeepney-modal__header {
