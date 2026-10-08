@@ -78,6 +78,11 @@ describeIntegration("contribution ledger", () => {
          (NULL, NULL, 'room', 8, 'Orphan row', 'proposal_approved', '2026-07-08T00:00:00Z')`,
       [rows[0]!.id, rows[1]!.id],
     );
+    // Rows were written behind the service's back; drop its memo.
+    const { clearLedgerCacheForTests } = await import(
+      "@lib/services/contribution-service"
+    );
+    clearLedgerCacheForTests();
   });
 
   afterAll(async () => {
@@ -89,7 +94,7 @@ describeIntegration("contribution ledger", () => {
     const { getContributorLeaderboard } = await import(
       "@lib/services/contribution-service"
     );
-    const leaderboard = await getContributorLeaderboard("all");
+    const { rows: leaderboard } = await getContributorLeaderboard("all");
 
     // Other integration fixtures also append ledger rows, so assert this
     // contributor's row instead of an absolute rank.
@@ -110,7 +115,7 @@ describeIntegration("contribution ledger", () => {
     const { getContributorLeaderboard } = await import(
       "@lib/services/contribution-service"
     );
-    const leaderboard = await getContributorLeaderboard("all");
+    const { rows: leaderboard } = await getContributorLeaderboard("all");
 
     const publicContributor = leaderboard.find(
       (row) => row.displayName === `${PREFIX}-public`,
@@ -131,7 +136,7 @@ describeIntegration("contribution ledger", () => {
 
     // 'Editor room' is the only editor_published fixture row, so the community
     // board must count 2 for this contributor, not 3.
-    const community = await getContributorLeaderboard(
+    const { rows: community } = await getContributorLeaderboard(
       "all",
       "proposal_approved",
     );
@@ -142,7 +147,10 @@ describeIntegration("contribution ledger", () => {
       `${PREFIX}-public`,
     );
 
-    const editors = await getContributorLeaderboard("all", "editor_published");
+    const { rows: editors } = await getContributorLeaderboard(
+      "all",
+      "editor_published",
+    );
     expect(
       editors.find((row) => row.displayName === "Visible Contributor")
         ?.contributionCount,
@@ -153,11 +161,41 @@ describeIntegration("contribution ledger", () => {
     );
   });
 
+  test("credits one contributor id as one person and skips reverted edits", async () => {
+    const id = "e2e00000-0000-4000-8000-000000000001";
+    await client.query(
+      `INSERT INTO contributions (submitter_name, contributor_id, entity_type, entity_id, entity_label, source, kind, reverted_at)
+       VALUES
+         ('${PREFIX}-device', $1, 'room', 11, 'Device A', 'proposal_approved', 'rooms', NULL),
+         ('${PREFIX}-device renamed', $1, 'room', 12, 'Device B', 'proposal_approved', 'place', NULL),
+         ('${PREFIX}-device renamed', $1, 'room', 13, 'Device C', 'proposal_approved', 'place', now())`,
+      [id],
+    );
+    const { clearLedgerCacheForTests, getContributorLeaderboard } =
+      await import("@lib/services/contribution-service");
+    clearLedgerCacheForTests();
+    const { rows } = await getContributorLeaderboard("all");
+    const device = rows.filter((row) =>
+      row.displayName.startsWith(`${PREFIX}-device`),
+    );
+    expect(device).toHaveLength(1);
+    expect(device[0]).toMatchObject({
+      displayName: `${PREFIX}-device renamed`,
+      contributionCount: 2,
+      points: 8,
+    });
+    // The raw uuid never leaves the server.
+    expect(JSON.stringify(rows)).not.toContain(id);
+    await client.query("DELETE FROM contributions WHERE contributor_id = $1", [
+      id,
+    ]);
+  });
+
   test("drops rows that cannot be credited to anyone", async () => {
     const { getContributorLeaderboard } = await import(
       "@lib/services/contribution-service"
     );
-    const leaderboard = await getContributorLeaderboard("all");
+    const { rows: leaderboard } = await getContributorLeaderboard("all");
     expect(leaderboard.map((row) => row.displayName)).not.toContain(
       "Contributor",
     );

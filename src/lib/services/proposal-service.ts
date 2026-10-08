@@ -592,6 +592,8 @@ type SubmitProposalInput = {
   proposalId?: number | null;
   /** Contributor's message to the reviewer. Never merged into the patch. */
   submitterNote?: string | null;
+  /** Browser-held uuid that credits a public submitter on the leaderboard. */
+  contributorId?: string | null;
 };
 
 /** Anonymous submitters cannot borrow a registered contributor's identity:
@@ -683,7 +685,11 @@ export async function submitProposal(
       !["pending", "needs_changes"].includes(existing.status) ||
       existing.submitterName !== name ||
       (input.submitterUserId &&
-        existing.submitterUserId !== input.submitterUserId)
+        existing.submitterUserId !== input.submitterUserId) ||
+      // Same typed name from another browser is another person.
+      (existing.contributorId &&
+        input.contributorId &&
+        existing.contributorId !== input.contributorId)
     ) {
       existing = undefined;
     }
@@ -739,6 +745,7 @@ export async function submitProposal(
         adminNote: null,
         // A revise with no new note keeps the one already on the proposal.
         submitterNote: submitterNote ?? existing.submitterNote,
+        contributorId: existing.contributorId ?? input.contributorId ?? null,
         reviewedBy: null,
         reviewedAt: null,
         updatedAt: sql`now()`,
@@ -759,6 +766,7 @@ export async function submitProposal(
       submitterName: name,
       submitterUserId: input.submitterUserId ?? null,
       submitterNote,
+      contributorId: input.contributorId ?? null,
       status: "pending",
     })
     .returning();

@@ -545,6 +545,8 @@ export const editProposalsTable = pgTable("edit_proposals", {
   submitterUserId: integer("submitter_user_id").references(
     () => adminUsersTable.id,
   ),
+  /** Browser-held uuid crediting a public submitter (never published). */
+  contributorId: uuid("contributor_id"),
   adminNote: text("admin_note"),
   /** Contributor's message to the reviewer. Never published (#873). */
   submitterNote: text("submitter_note"),
@@ -568,24 +570,42 @@ export const editorHistoryTable = pgTable("editor_history", {
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
 
-export const contributionsTable = pgTable("contributions", {
-  id: integer().primaryKey().generatedByDefaultAsIdentity({
-    name: "contributions_id_seq",
-    startWith: 1,
-    increment: 1,
-    minValue: 1,
-    maxValue: 2147483647,
-    cache: 1,
-  }),
-  userId: integer("user_id").references(() => adminUsersTable.id),
-  submitterName: varchar("submitter_name", { length: 100 }),
-  entityType: varchar("entity_type", { length: 32 }).notNull(),
-  entityId: integer("entity_id").notNull(),
-  entityLabel: text("entity_label").notNull(),
-  source: varchar({ length: 32 }).notNull(),
-  proposalId: integer("proposal_id").references(() => editProposalsTable.id),
-  createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
-});
+export const contributionsTable = pgTable(
+  "contributions",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity({
+      name: "contributions_id_seq",
+      startWith: 1,
+      increment: 1,
+      minValue: 1,
+      maxValue: 2147483647,
+      cache: 1,
+    }),
+    userId: integer("user_id").references(() => adminUsersTable.id),
+    submitterName: varchar("submitter_name", { length: 100 }),
+    entityType: varchar("entity_type", { length: 32 }).notNull(),
+    entityId: integer("entity_id").notNull(),
+    entityLabel: text("entity_label").notNull(),
+    source: varchar({ length: 32 }).notNull(),
+    proposalId: integer("proposal_id").references(() => editProposalsTable.id),
+    /** Browser-held uuid crediting a public submitter (never published). */
+    contributorId: uuid("contributor_id"),
+    /** Leaderboard weight class; null on legacy rows (classified on read). */
+    kind: varchar({ length: 16 }),
+    /** Set when a later restore undid this edit; it stops earning points. */
+    revertedAt: timestamp("reverted_at", {
+      mode: "string",
+      withTimezone: true,
+    }),
+    createdAt: timestamp("created_at", { mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("contributions_source_created_idx").on(table.source, table.createdAt),
+    index("contributions_entity_idx").on(table.entityType, table.entityId),
+  ],
+);
 
 /**
  * A signed-in user's saved course planner (#2). One row per user holding the

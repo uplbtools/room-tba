@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  enforceProposalDeviceLimits,
   enforceProposalSubmitLimits,
   enforceProposalWithdrawLimits,
   isProposalHoneypotTripped,
@@ -95,5 +96,29 @@ describe("enforceProposalWithdrawLimits", () => {
       now,
     );
     expect(blocked?.allowed).toBe(false);
+  });
+});
+
+describe("enforceProposalDeviceLimits", () => {
+  const device = "11111111-1111-4111-8111-111111111111";
+
+  test("caps one browser across networks at the anonymous rate", () => {
+    resetRateLimitsForTests();
+    const now = 3_000_000;
+    for (let i = 0; i < 8; i += 1) {
+      expect(enforceProposalDeviceLimits(device, now)).toBeNull();
+    }
+    expect(enforceProposalDeviceLimits(device, now)?.allowed).toBe(false);
+    // Another browser on the same network is its own bucket.
+    expect(
+      enforceProposalDeviceLimits("22222222-2222-4222-8222-222222222222", now),
+    ).toBeNull();
+  });
+
+  test("no device id, no device bucket", () => {
+    resetRateLimitsForTests();
+    for (let i = 0; i < 20; i += 1) {
+      expect(enforceProposalDeviceLimits(null, 4_000_000)).toBeNull();
+    }
   });
 });
