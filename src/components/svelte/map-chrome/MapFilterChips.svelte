@@ -1,4 +1,9 @@
 <script lang="ts">
+  import {
+    pageScrollTarget,
+    scrollEdges,
+    wheelToHorizontal,
+  } from "@lib/h-scroll";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
@@ -138,10 +143,9 @@
       canScrollBack = false;
       return;
     }
-    const overflow = el.scrollWidth > el.clientWidth + 4;
-    const remaining = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
-    canScrollMore = overflow && remaining;
-    canScrollBack = overflow && el.scrollLeft > 4;
+    const edges = scrollEdges(el);
+    canScrollMore = edges.more;
+    canScrollBack = edges.back;
     // Fade out exactly the chip cut off on the left, so no sliver of it
     // shows (at the end of a short row it can stick out past a fixed fade).
     const cut = ([...el.children] as HTMLElement[]).find(
@@ -199,34 +203,19 @@
   function scrollChips(direction: 1 | -1 = 1) {
     const el = scroller;
     if (!el) return;
-    const chipsEls = [...el.children] as HTMLElement[];
-    const viewStart = el.scrollLeft;
-    const viewEnd = viewStart + el.clientWidth;
-    let target: number;
-    if (direction === 1) {
-      const next = chipsEls.find(
-        (c) => c.offsetLeft + c.offsetWidth > viewEnd - EDGE_PX + 1,
-      );
-      target = next ? next.offsetLeft - EDGE_PX : el.scrollWidth;
-    } else {
-      const prev = [...chipsEls]
-        .reverse()
-        .find((c) => c.offsetLeft < viewStart + EDGE_PX - 1);
-      target = prev
-        ? prev.offsetLeft + prev.offsetWidth - el.clientWidth + EDGE_PX
-        : 0;
-    }
-    el.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
+    const target = pageScrollTarget(
+      el,
+      [...el.children] as HTMLElement[],
+      direction,
+      EDGE_PX,
+    );
+    el.scrollTo({ left: target, behavior: "smooth" });
   }
 
   /** Trackpads / mice scroll vertically by default; convert to pan-x here. */
   function onWheel(event: WheelEvent) {
     const el = scroller;
-    if (!el || el.scrollWidth <= el.clientWidth + 4) return;
-    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-    event.preventDefault();
-    el.scrollLeft += event.deltaY;
-    syncScrollMore();
+    if (el && wheelToHorizontal(el, event)) syncScrollMore();
   }
 </script>
 

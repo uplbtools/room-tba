@@ -1,4 +1,5 @@
 <script lang="ts">
+  import EntityActionScroll from "./EntityActionScroll.svelte";
   import {
     adminAuthStore,
     mapEditStore,
@@ -703,7 +704,7 @@
             destinationLabel={dorm.dormName}
           />
         {/if}
-        <div class="entity-actions__scroll">
+        <EntityActionScroll>
           <EntitySaveButton
             place={{
               category: "dorm",
@@ -745,7 +746,7 @@
             variant="toolbar"
             onclick={() => (editing = !editing)}
           />
-        </div>
+        </EntityActionScroll>
       </div>
     </header>
 

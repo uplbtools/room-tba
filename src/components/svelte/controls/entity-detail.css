@@ -202,39 +202,8 @@
   flex-shrink: 0;
 }
 
-.entity-actions__scroll {
-  display: flex;
-  flex: 1 1 auto;
-  align-items: center;
-  gap: 0.375rem;
-  min-width: 0;
-  /* Room for focus rings inside the scroller's clip box. */
-  padding: 0.125rem;
-  margin: -0.125rem;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  /* Fade the trailing edge so a cut-off pill reads as "more this way". */
-  mask-image: linear-gradient(to right, #000 calc(100% - 1.25rem), transparent);
-}
-
-.entity-actions__scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.entity-actions__scroll > :global(*) {
-  flex-shrink: 0;
-}
-
-.entity-actions__scroll :global(.map-chrome-action-chip),
-.entity-actions__scroll :global(.editor-toggle--toolbar) {
-  border-radius: 999px;
-}
-
-.entity-actions__scroll > :global(:last-child) {
-  margin-right: 1rem;
-}
+/* The pill row itself (.entity-actions__scroll) lives in
+   EntityActionScroll.svelte with its edge fades and chevrons. */
 
 .entity-actions :global(.editor-toggle--toolbar),
 .entity-directions__nav :global(.map-chrome-action-chip) {
