@@ -1138,8 +1138,6 @@ export async function createContributorAccount(input: {
 
 export const BOOTSTRAP_ADMIN_USERNAME = "admin";
 
-const COMPARE_KEY = randomBytes(32);
-
 /**
  * ADMIN_PASSWORD is no longer a login. It survives only as break-glass for a
  * database with NO active admin (fresh fork, or every admin deactivated):
@@ -1155,11 +1153,18 @@ export async function bootstrapAdminLogin(
 ): Promise<SessionUser | null> {
   const expected = configuredPassword ?? "";
   if (!expected || !password) return null;
-  // Keyed digests give timingSafeEqual equal-length buffers without ever
-  // computing a bare hash of the password; the key is per process and random.
-  const given = createHmac("sha256", COMPARE_KEY).update(password).digest();
-  const wanted = createHmac("sha256", COMPARE_KEY).update(expected).digest();
-  if (!timingSafeEqual(given, wanted)) return null;
+  // Compare the raw bytes in constant time: pad both to the longer length so
+  // timingSafeEqual gets equal-length buffers, and fold the length check into
+  // the same result. No digest of the password is computed.
+  const givenBytes = Buffer.from(password, "utf8");
+  const expectedBytes = Buffer.from(expected, "utf8");
+  const width = Math.max(givenBytes.length, expectedBytes.length);
+  const given = Buffer.alloc(width);
+  const wanted = Buffer.alloc(width);
+  givenBytes.copy(given);
+  expectedBytes.copy(wanted);
+  const sameBytes = timingSafeEqual(given, wanted);
+  if (!(sameBytes && givenBytes.length === expectedBytes.length)) return null;
 
   const passwordHash = await bcrypt.hash(expected, 12);
   const user = await db.transaction(async (tx) => {
