@@ -113,7 +113,7 @@
     margin: 0;
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--text-muted, #64748b);
+    color: var(--text-muted, var(--theme-text-muted, #64748b));
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -133,9 +133,9 @@
     align-items: flex-start;
     justify-content: space-between;
     padding: 0.5rem 0.6rem;
-    border: 1px solid var(--border-subtle, #e2e8f0);
+    border: 1px solid var(--border-subtle, var(--theme-border, #e2e8f0));
     border-radius: 0.5rem;
-    background: color-mix(in srgb, var(--surface-muted, #f8fafc) 80%, transparent);
+    background: color-mix(in srgb, var(--surface-muted, var(--theme-surface, #f8fafc)) 80%, transparent);
   }
 
   .pending-proposals__meta {
@@ -153,7 +153,7 @@
   .pending-proposals__status {
     margin: 0.15rem 0 0;
     font-size: 0.8rem;
-    color: var(--text-muted, #64748b);
+    color: var(--text-muted, var(--theme-text-muted, #64748b));
     text-transform: capitalize;
   }
 

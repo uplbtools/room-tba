@@ -15,9 +15,7 @@ test.describe("layout chrome @advisory", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
     await waitForAppBoot(page);
-    await page.getByRole("button", { name: /map tools/i }).click();
-    await expect(
-      page.getByRole("dialog", { name: /map tools/i }),
-    ).toBeVisible();
+    await page.getByRole("button", { name: /^layers$/i }).click();
+    await expect(page.getByRole("dialog", { name: /^layers$/i })).toBeVisible();
   });
 });

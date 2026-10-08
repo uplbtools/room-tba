@@ -107,8 +107,8 @@
     margin: 0.75rem 0 0;
     padding: 0.625rem 0.75rem;
     border-radius: 0.75rem;
-    border: 1px solid hsl(5 30% 88%);
-    background: var(--map-chrome-surface, #fffafa);
+    border: 1px solid var(--theme-accent-border, hsl(5 30% 88%));
+    background: var(--map-chrome-surface, var(--theme-surface, #fffafa));
   }
 
   .sponsor-banner__label {
@@ -117,7 +117,7 @@
     letter-spacing: 0.08em;
     font-size: 0.625rem;
     font-weight: 700;
-    color: hsl(0, 0%, 52%);
+    color: var(--theme-text-muted, hsl(0, 0%, 52%));
     margin-bottom: 0.375rem;
   }
 
@@ -134,14 +134,14 @@
     border: none;
     border-radius: 999px;
     background: transparent;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     cursor: pointer;
   }
 
   .sponsor-banner__dismiss:hover,
   .sponsor-banner__dismiss:focus-visible {
-    background: hsl(5 30% 92%);
-    color: hsl(0, 0%, 20%);
+    background: var(--theme-accent-soft, hsl(5 30% 92%));
+    color: var(--theme-text, hsl(0, 0%, 20%));
   }
 
   .sponsor-banner__link {
@@ -174,7 +174,7 @@
   .sponsor-banner__name {
     font-size: 0.8125rem;
     font-weight: 700;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -182,7 +182,7 @@
 
   .sponsor-banner__tagline {
     font-size: 0.75rem;
-    color: hsl(0, 0%, 38%);
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;

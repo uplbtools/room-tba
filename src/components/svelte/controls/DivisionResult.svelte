@@ -520,6 +520,6 @@
 
   .entity-header__context--muted {
     font-style: italic;
-    color: #a1a1aa;
+    color: var(--theme-text-muted, #a1a1aa);
   }
 </style>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { editorToggleLabel } from "@lib/editor/field-action-label";
+  import { trackOverlay } from "@lib/track-overlay.svelte";
   import "./entity-editor.css";
 
   type Props = {
@@ -21,6 +22,12 @@
     variant = "panel",
     onclick,
   }: Props = $props();
+
+  // The open editor/suggest form is a layer: Back closes it (via the same
+  // toggle) before it leaves the place.
+  trackOverlay("suggest-edit", () => expanded, () => {
+    if (expanded) onclick();
+  });
 
   const label = $derived(
     editorToggleLabel({

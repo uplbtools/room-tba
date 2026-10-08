@@ -14,6 +14,12 @@ export function contrastWithWhite(hex: string): number {
   return 1.05 / (luminance(hex) + 0.05);
 }
 
+/** WCAG contrast ratio between two #rrggbb colours. */
+export function contrastRatio(a: string, b: string): number {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi! + 0.05) / (lo! + 0.05);
+}
+
 /**
  * The route colour, darkened just enough that white text on it reaches
  * `target` (WCAG AA, 4.5:1). Forestry orange (#d97706) measured 3.19:1 under

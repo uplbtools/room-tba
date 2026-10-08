@@ -6,7 +6,7 @@ test.describe("offline terrain @advisory", () => {
     await page.goto("/");
     await waitForAppBoot(page);
     await context.setOffline(true);
-    await page.getByRole("button", { name: /map tools/i }).click();
+    await page.getByRole("button", { name: /^layers$/i }).click();
     await page.waitForTimeout(1000);
     await context.setOffline(false);
   });

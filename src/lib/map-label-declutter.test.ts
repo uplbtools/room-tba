@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { labelsToHide, type LabelCandidate } from "./map-label-declutter";
+import {
+  labelRectAt,
+  placeLabels,
+  type LabelCandidate,
+} from "./map-label-declutter";
 
 const rect = (left: number, top: number, width: number, height: number) => ({
   left,
@@ -11,55 +15,85 @@ const rect = (left: number, top: number, width: number, height: number) => ({
 const candidate = (
   id: number,
   priority: number,
-  label: ReturnType<typeof rect>,
-  pin = rect(-100, -100, 28, 28),
-): LabelCandidate => ({ id, priority, label, pin });
+  pin: ReturnType<typeof rect>,
+  width = 100,
+  height = 16,
+): LabelCandidate => ({ id, priority, pin, width, height });
 
-describe("labelsToHide", () => {
-  test("keeps the higher-priority label when two overlap", () => {
-    const hidden = labelsToHide([
-      candidate(1, 4, rect(0, 0, 100, 20)),
-      candidate(2, 1, rect(50, 10, 100, 20)),
-    ]);
-    expect([...hidden]).toEqual([1]);
+describe("labelRectAt", () => {
+  test("right sits beside the pin, vertically centred", () => {
+    expect(labelRectAt("right", rect(100, 100, 28, 28), 80, 16)).toEqual({
+      left: 132,
+      right: 212,
+      top: 106,
+      bottom: 122,
+    });
   });
 
-  test("hides a label that covers a more important pin", () => {
-    const building = candidate(
-      1,
-      1,
-      rect(300, 300, 80, 20),
-      rect(120, 40, 28, 28),
-    );
-    const office = candidate(2, 4, rect(100, 30, 150, 20));
-    expect([...labelsToHide([building, office])]).toEqual([2]);
+  test("top sits above the pin, horizontally centred", () => {
+    expect(labelRectAt("top", rect(100, 100, 28, 28), 80, 16)).toEqual({
+      left: 74,
+      right: 154,
+      top: 80,
+      bottom: 96,
+    });
+  });
+});
+
+describe("placeLabels", () => {
+  test("labels go to the right of their pin when there is room", () => {
+    const a = candidate(1, 1, rect(0, 0, 28, 28));
+    expect(placeLabels([a], [a.pin]).get(1)).toBe("right");
+  });
+
+  test("a label blocked on the right moves to the next free anchor", () => {
+    const a = candidate(1, 1, rect(200, 100, 28, 28));
+    // A neighbour pin just right of a, where its label would go.
+    const neighbour = rect(240, 100, 28, 28);
+    expect(placeLabels([a], [a.pin, neighbour]).get(1)).toBe("left");
+  });
+
+  test("labels never paint over another pin, whatever its rank", () => {
+    const a = candidate(1, 1, rect(200, 100, 28, 28));
+    const around = [
+      rect(240, 100, 28, 28),
+      rect(80, 100, 28, 28),
+      rect(200, 140, 28, 28),
+      rect(200, 60, 28, 28),
+    ];
+    expect(placeLabels([a], [a.pin, ...around]).get(1)).toBeNull();
+  });
+
+  test("the more important label wins a shared spot", () => {
+    const office = candidate(1, 4, rect(0, 100, 28, 28));
+    const building = candidate(2, 1, rect(0, 140, 28, 28), 100, 80);
+    const placed = placeLabels([office, building], [office.pin, building.pin]);
+    expect(placed.get(2)).toBe("right");
+    // The building label (tall) covers the office's right; it tries on.
+    expect(placed.get(1)).not.toBe("right");
+  });
+
+  test("a label that would run off the map edge flips inward", () => {
+    const a = candidate(1, 1, rect(340, 200, 28, 28));
+    const map = rect(0, 0, 390, 800);
+    expect(placeLabels([a], [a.pin], [], map).get(1)).toBe("left");
   });
 
   test("hides labels under the search bar", () => {
-    const hidden = labelsToHide(
-      [candidate(1, 1, rect(10, 40, 100, 20))],
-      [rect(0, 0, 390, 110)],
-    );
-    expect(hidden.has(1)).toBe(true);
+    const a = candidate(1, 1, rect(10, 40, 28, 28));
+    const placed = placeLabels([a], [a.pin], [rect(0, 0, 390, 110)]);
+    expect(placed.get(1)).toBeNull();
   });
 
   test("never hides the selected place's label", () => {
-    const hidden = labelsToHide(
-      [
-        candidate(1, 0, rect(10, 40, 100, 20)),
-        candidate(2, 1, rect(10, 40, 100, 20)),
-      ],
+    const selected = candidate(1, 0, rect(10, 40, 28, 28));
+    const other = candidate(2, 1, rect(10, 40, 28, 28));
+    const placed = placeLabels(
+      [selected, other],
+      [selected.pin, other.pin],
       [rect(0, 0, 390, 110)],
     );
-    expect(hidden.has(1)).toBe(false);
-    expect(hidden.has(2)).toBe(true);
-  });
-
-  test("leaves labels that only touch", () => {
-    const hidden = labelsToHide([
-      candidate(1, 1, rect(0, 0, 100, 20)),
-      candidate(2, 1, rect(99, 0, 100, 20)),
-    ]);
-    expect(hidden.size).toBe(0);
+    expect(placed.get(1)).toBe("right");
+    expect(placed.get(2)).toBeNull();
   });
 });

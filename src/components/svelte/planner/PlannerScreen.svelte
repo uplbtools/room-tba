@@ -708,7 +708,7 @@
     overflow-x: clip;
     display: flex;
     flex-direction: column;
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    background-color: var(--map-chrome-surface, var(--theme-surface-translucent, rgba(255, 255, 255, 0.98)));
     pointer-events: auto;
   }
 
@@ -719,7 +719,7 @@
     gap: 0.5rem;
     min-width: 0;
     padding: calc(env(safe-area-inset-top, 0px) + 0.375rem) 0.625rem 0.375rem;
-    border-bottom: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border-bottom: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(0, 0%, 58%)));
   }
 
   /* The chip ships flex: 0 0 auto; let it shrink here (its label already
@@ -738,7 +738,7 @@
     min-height: 2rem;
     padding: 0.25rem 0.375rem 0.25rem 0.125rem;
     border-radius: 0.5rem;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
     font: inherit;
     font-size: 0.875rem;
@@ -748,11 +748,11 @@
 
   .planner-back:hover,
   .planner-back:focus-visible {
-    background-color: hsl(5, 53%, 96%);
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 96%));
   }
 
   .planner-back:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 1px;
   }
 
@@ -764,7 +764,7 @@
     font-size: 0.9375rem;
     font-weight: 700;
     line-height: 1.2;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -788,8 +788,8 @@
     padding: 0.375rem 0.625rem;
     border: 1px solid hsl(5, 53%, 62%);
     border-radius: 999px;
-    background: hsl(5, 53%, 97%);
-    color: hsl(5, 53%, 30%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 97%));
+    color: var(--theme-accent-text, hsl(5, 53%, 30%));
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
@@ -797,15 +797,15 @@
 
   .planner-action:hover:not(:disabled),
   .planner-action:focus-visible:not(:disabled) {
-    background: hsl(5, 53%, 92%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 92%));
   }
 
   .planner-action:disabled {
     opacity: 0.55;
     cursor: not-allowed;
-    border-color: hsl(0, 0%, 85%);
-    background: white;
-    color: hsl(0, 0%, 50%);
+    border-color: var(--theme-border, hsl(0, 0%, 85%));
+    background: var(--theme-surface, white);
+    color: var(--theme-text-muted, hsl(0, 0%, 50%));
   }
 
   .planner-action:disabled :global(svg) {
@@ -818,8 +818,8 @@
 
   .planner-notice {
     flex-shrink: 0;
-    background: hsl(38, 92%, 95%);
-    border-bottom: 1px solid hsl(38, 70%, 85%);
+    background: var(--theme-amber-soft, hsl(38, 92%, 95%));
+    border-bottom: 1px solid var(--theme-amber-border, hsl(38, 70%, 85%));
   }
 
   .planner-disclaimer {
@@ -828,7 +828,7 @@
     gap: 0.375rem;
     margin: 0;
     padding: 0.375rem 0.75rem;
-    color: hsl(32, 60%, 30%);
+    color: var(--theme-amber-text, hsl(32, 60%, 30%));
     font-size: 0.75rem;
     font-weight: 600;
     line-height: 1.35;
@@ -862,13 +862,13 @@
   .planner-save-note {
     margin: 0;
     padding: 0 0.75rem 0.5rem;
-    color: hsl(32, 30%, 30%);
+    color: var(--theme-text, hsl(32, 30%, 30%));
     font-size: 0.75rem;
     line-height: 1.35;
   }
 
   .planner-save-note strong {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .planner-tabs {
@@ -876,8 +876,8 @@
     flex-shrink: 0;
     gap: 0.125rem;
     padding-top: 0.25rem;
-    border-bottom: 1px solid hsl(0, 0%, 86%);
-    background: hsl(0, 0%, 94%);
+    border-bottom: 1px solid var(--theme-border, hsl(0, 0%, 86%));
+    background: var(--theme-surface-2, hsl(0, 0%, 94%));
     overflow-x: auto;
   }
 
@@ -893,26 +893,26 @@
     border-bottom: none;
     border-radius: 0.5rem 0.5rem 0 0;
     background: transparent;
-    color: hsl(0, 0%, 35%);
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
   }
 
   .planner-tab-item:hover {
-    background: hsl(0, 0%, 98%);
-    color: hsl(5, 53%, 28%);
+    background: var(--theme-surface, hsl(0, 0%, 98%));
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
   }
 
   .planner-tab-item--active {
     position: relative;
     z-index: 1;
     margin-bottom: -1px;
-    border-color: hsl(0, 0%, 86%);
-    background: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    color: hsl(5, 53%, 28%);
+    border-color: var(--theme-border, hsl(0, 0%, 86%));
+    background: var(--map-chrome-surface, var(--theme-surface-translucent, rgba(255, 255, 255, 0.98)));
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
   }
 
   .planner-tab-item--active:hover {
-    background: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-    color: hsl(5, 53%, 28%);
+    background: var(--map-chrome-surface, var(--theme-surface-translucent, rgba(255, 255, 255, 0.98)));
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
   }
 
   .planner-tab {
@@ -931,7 +931,7 @@
   }
 
   .planner-tab:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: -2px;
   }
 
@@ -968,18 +968,18 @@
 
   .planner-tab__action:hover,
   .planner-tab__action:focus-visible {
-    background: hsl(5, 30%, 90%);
-    color: hsl(5, 53%, 28%);
+    background: var(--theme-accent-soft, hsl(5, 30%, 90%));
+    color: var(--theme-accent-text, hsl(5, 53%, 28%));
   }
 
   .planner-tab__action--danger:hover,
   .planner-tab__action--danger:focus-visible {
-    background: hsl(0, 60%, 92%);
-    color: hsl(0, 60%, 32%);
+    background: var(--theme-accent-soft, hsl(0, 60%, 92%));
+    color: var(--theme-accent-text, hsl(0, 60%, 32%));
   }
 
   .planner-tab__action:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 1px;
   }
 
@@ -991,8 +991,8 @@
     padding: 0.5rem 0.75rem;
     border: none;
     border-radius: 0.5rem 0.5rem 0 0;
-    background: white;
-    color: hsl(0, 0%, 15%);
+    background: var(--theme-surface, white);
+    color: var(--theme-text, hsl(0, 0%, 15%));
     font: inherit;
     font-size: 0.75rem;
     font-weight: 600;
@@ -1001,8 +1001,8 @@
   }
 
   .planner-tab-item:has(.planner-tab--rename) {
-    border-color: hsl(5, 53%, 50%);
-    background: white;
+    border-color: var(--theme-accent-text, hsl(5, 53%, 50%));
+    background: var(--theme-surface, white);
   }
 
   .planner-tab__tool--new {
@@ -1022,11 +1022,11 @@
   .planner-tab__tool--new:hover,
   .planner-tab__tool--new:focus-visible {
     border-color: hsl(5, 53%, 55%);
-    background: hsl(5, 53%, 97%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 97%));
   }
 
   .planner-tab__tool--new:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 1px;
   }
 
@@ -1047,15 +1047,15 @@
     margin-inline-end: 0.25rem;
     padding: 0.25rem 0.625rem;
     border-radius: 999px;
-    background: hsl(0, 85%, 95%);
-    color: hsl(0, 85%, 35%);
+    background: var(--theme-accent-soft, hsl(0, 85%, 95%));
+    color: var(--theme-accent-text, hsl(0, 85%, 35%));
     font-size: 0.75rem;
     font-weight: 700;
   }
 
   .planner-conflict-badge--clear {
-    background: hsl(140, 60%, 94%);
-    color: hsl(140, 60%, 25%);
+    background: var(--theme-green-soft, hsl(140, 60%, 94%));
+    color: var(--theme-green-text, hsl(140, 60%, 25%));
   }
 
   .planner-body {
@@ -1091,7 +1091,7 @@
     margin: 0.75rem 0 0.375rem;
     font-size: 0.8125rem;
     font-weight: 700;
-    color: hsl(0, 0%, 25%);
+    color: var(--theme-text, hsl(0, 0%, 25%));
   }
 
   .planner-side__heading:first-child {
@@ -1103,8 +1103,8 @@
     margin: 0 0 0.5rem;
     padding: 0.5rem 0.625rem;
     border-radius: 0.5rem;
-    background: hsl(0, 85%, 97%);
-    color: hsl(0, 70%, 32%);
+    background: var(--theme-accent-soft, hsl(0, 85%, 97%));
+    color: var(--theme-accent-text, hsl(0, 70%, 32%));
     font-size: 0.75rem;
     line-height: 1.4;
   }
@@ -1113,7 +1113,7 @@
     margin: 0 0 0.5rem;
     font-size: 0.75rem;
     line-height: 1.45;
-    color: hsl(0, 0%, 38%);
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
   }
 
   .planner-offerings {
@@ -1131,9 +1131,9 @@
     justify-content: space-between;
     gap: 0.5rem;
     padding: 0.5rem 0.625rem;
-    border: 1px solid hsl(0, 0%, 90%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 90%));
     border-radius: 0.5rem;
-    background: white;
+    background: var(--theme-surface, white);
   }
 
   .planner-offering--group {
@@ -1157,7 +1157,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
-    border-left: 2px solid hsl(5, 40%, 82%);
+    border-left: 2px solid var(--theme-accent-border, hsl(5, 40%, 82%));
   }
 
   .planner-offering__part {
@@ -1176,7 +1176,7 @@
   }
 
   .planner-offering__part-time {
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   /* A visible (dashed) field, so it reads as something you can type in. */
@@ -1185,33 +1185,33 @@
     width: 100%;
     background: transparent;
     border: none;
-    border-bottom: 1px dashed hsl(0, 0%, 75%);
+    border-bottom: 1px dashed var(--theme-border, hsl(0, 0%, 75%));
     font-size: 0.75rem;
-    color: hsl(0, 0%, 25%);
+    color: var(--theme-text, hsl(0, 0%, 25%));
     padding: 0.25rem 0;
     margin: 0;
     font-family: inherit;
   }
 
   .planner-offering__part-note::placeholder {
-    color: hsl(0, 0%, 65%);
+    color: var(--theme-text-muted, hsl(0, 0%, 65%));
     font-style: italic;
   }
 
   .planner-offering__part-note:focus {
     outline: none;
-    border-bottom: 1px solid hsl(5, 53%, 42%);
-    color: hsl(0, 0%, 15%);
+    border-bottom: 1px solid var(--theme-accent-text, hsl(5, 53%, 42%));
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .planner-offering__part-type {
     min-width: 2.4rem;
     font-weight: 700;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .planner-offering__part-section {
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
   }
 
   .planner-offering__main {
@@ -1223,12 +1223,12 @@
   .planner-offering__course {
     font-size: 0.8125rem;
     font-weight: 700;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .planner-offering__title {
     font-size: 0.75rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
     line-height: 1.3;
     /* Show the full course title (its description) - wrap instead of truncate. */
     overflow-wrap: anywhere;
@@ -1242,13 +1242,13 @@
     border-radius: 999px;
     font-size: 0.6875rem;
     font-weight: 600;
-    color: hsl(0, 60%, 40%);
+    color: var(--theme-accent-text, hsl(0, 60%, 40%));
     cursor: pointer;
   }
 
   .planner-offering__remove:hover,
   .planner-offering__remove:focus-visible {
-    background: hsl(0, 60%, 96%);
+    background: var(--theme-accent-soft, hsl(0, 60%, 96%));
   }
 
   .planner-plain-list {
@@ -1259,17 +1259,17 @@
     flex-direction: column;
     gap: 0.25rem;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 35%);
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
   }
 
   .planner-plain-list--stale {
-    color: hsl(0, 60%, 40%);
+    color: var(--theme-accent-text, hsl(0, 60%, 40%));
   }
 
   .planner-finals-note {
     margin: 0.375rem 0 0;
     font-size: 0.6875rem;
-    color: hsl(0, 0%, 50%);
+    color: var(--theme-text-muted, hsl(0, 0%, 50%));
   }
 
   /* Landscape phones / small tablets: search beside the week, the Sections
@@ -1449,7 +1449,7 @@
       justify-content: center;
       min-height: 2.25rem;
       padding: 0.375rem 0.75rem;
-      border: 1px solid hsl(0, 60%, 80%);
+      border: 1px solid var(--theme-accent-border, hsl(0, 60%, 80%));
       font-size: 0.8125rem;
     }
 

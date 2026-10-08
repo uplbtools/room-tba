@@ -1,11 +1,14 @@
 <script lang="ts">
   import { queryStore } from "@lib/store.svelte";
+  import { normalizeCourseQuery } from "@lib/search-suggestions";
 
   function handleRoomSearchSuggestion() {
     queryStore.updateQuery({
       category: "class",
       type: "result",
-      value: queryStore.inputValue,
+      // "cmsc12" lists nothing; the class list matches "CMSC 12".
+      value:
+        normalizeCourseQuery(queryStore.inputValue) ?? queryStore.inputValue,
     });
   }
 </script>
@@ -39,7 +42,7 @@
     cursor: pointer;
     transition: background-color 0.2s;
     &:hover {
-      background-color: hsl(0, 0%, 95%);
+      background-color: var(--theme-surface-2, hsl(0, 0%, 95%));
       border-radius: 0.75rem;
     }
   }

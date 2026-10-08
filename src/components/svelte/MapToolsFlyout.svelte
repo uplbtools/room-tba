@@ -4,9 +4,10 @@
   import Route from "@lucide/svelte/icons/route";
   import Ruler from "@lucide/svelte/icons/ruler";
   import Timer from "@lucide/svelte/icons/timer";
-  // Wrench, not layers: this trigger opens a toolbox (travel time, measure
-  // route, legend), and `layers` is the legend chip sitting right beside it.
-  import Wrench from "@lucide/svelte/icons/wrench";
+  // One Layers button, Google Maps style: map type (default / satellite /
+  // 3D) on top, the map tools below. It replaced separate 3D, satellite and
+  // wrench buttons on the right edge.
+  import Layers from "@lucide/svelte/icons/layers";
   import {
     mapToolsStore,
     measureRouteStore,
@@ -24,6 +25,7 @@
   import JeepneyMenu from "@ui/JeepneyMenu.svelte";
   import ScheduleImportPanel from "@ui/ScheduleImportPanel.svelte";
   import MapChromeFabTrigger from "@ui/map-chrome/MapChromeFabTrigger.svelte";
+  import MapTypePicker from "@ui/map-chrome/MapTypePicker.svelte";
   import Dialog from "@ui/modal/Dialog.svelte";
   import { portal } from "@lib/portal";
   import "./map-chrome/map-chrome.css";
@@ -92,10 +94,10 @@
   <MapChromeFabTrigger
     ariaExpanded={mapToolsStore.open}
     ariaControls="map-tools-panel"
-    ariaLabel="Map tools"
+    ariaLabel="Layers"
     onclick={() => mapToolsStore.toggle()}
   >
-    <Wrench size={18} aria-hidden="true" />
+    <Layers size={18} aria-hidden="true" />
   </MapChromeFabTrigger>
 
   <!-- Portaled to the layout root: the trigger lives in the mobile controls
@@ -106,12 +108,16 @@
     open={mapToolsStore.open}
     onclose={() => mapToolsStore.close()}
     size="large"
-    ariaLabel="Map tools"
-    closeLabel="Close map tools"
+    ariaLabel="Layers"
+    closeLabel="Close layers"
   >
     <div class="map-tools-dialog" id="map-tools-panel">
-      <h2 class="map-tools-dialog__title">Map tools</h2>
+      <h2 class="map-tools-dialog__title">Layers</h2>
       <div class="map-tools-dialog__body">
+        <div class="map-tools-dialog__map-type">
+          <MapTypePicker />
+        </div>
+        <h3 class="map-tools-dialog__subheading">Map tools</h3>
         {#if dayRoutable}
           <button
             type="button"
@@ -226,7 +232,7 @@
     margin: 0 2.5rem 0.75rem 0.5rem;
     font-size: 1.125rem;
     font-weight: 700;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .map-tools-dialog__body {
@@ -249,8 +255,38 @@
       gap: 0.75rem 1rem;
     }
 
-    .map-tools-dialog__body :global(.accordion-section) {
+    .map-tools-dialog__body :global(.accordion-section),
+    .map-tools-dialog__map-type,
+    .map-tools-dialog__subheading {
       grid-column: 1 / -1;
+    }
+  }
+
+  .map-tools-dialog__map-type {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--theme-border, hsl(0, 0%, 90%));
+  }
+
+  .map-tools-dialog__subheading {
+    margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--theme-text, hsl(0, 0%, 25%));
+  }
+
+  /* Phones: a bottom sheet over the map, the way Google Maps opens its
+     layers, instead of a centred full-height dialog. */
+  @media (max-width: 48rem) {
+    .map-tools-dialog-host :global(.modal-set) {
+      align-items: flex-end;
+      padding: 0;
+    }
+
+    .map-tools-dialog-host :global(.modal-content--large) {
+      height: auto;
+      max-height: 85dvh;
+      border-radius: 1rem 1rem 0 0;
+      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
     }
   }
 
@@ -308,17 +344,17 @@
   }
 
   .map-tools-flyout__tool:hover {
-    background-color: hsl(5, 20%, 95%);
+    background-color: var(--theme-accent-soft, hsl(5, 20%, 95%));
   }
 
   .map-tools-flyout__tool:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 2px;
   }
 
   .map-tools-flyout__tool--active {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 30%, 95%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background-color: var(--theme-accent-soft, hsl(5, 30%, 95%));
   }
 
   .map-tools-flyout__tool-copy {
@@ -336,6 +372,6 @@
   .map-tools-flyout__tool-description {
     font-size: 0.8125rem;
     line-height: 1.3;
-    color: hsl(0, 0%, 32%);
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
   }
 </style>

@@ -19,11 +19,15 @@
     showHint?: boolean;
     hintClass?: string;
     fieldClass?: string;
+    /** Blank is allowed (the form credits "Anonymous"); says so in the label
+     * and hint. */
+    optional?: boolean;
   };
 
   let {
     id,
-    label = "What should we call you?",
+    optional = false,
+    label = optional ? "Your name (optional)" : "What should we call you?",
     placeholder = "First name or nickname",
     value = $bindable(""),
     variant = "editor",
@@ -74,8 +78,12 @@
       class:at-limit={atLimit}
       aria-live="polite"
     >
-      {value.length}/{MAX_SUBMITTER_NAME_LENGTH}
-      · at least {MIN_SUBMITTER_NAME_LENGTH} characters so editors can follow up
+      {#if optional}
+        Shown as the credit. Leave blank to send it anonymously.
+      {:else}
+        {value.length}/{MAX_SUBMITTER_NAME_LENGTH}
+        · at least {MIN_SUBMITTER_NAME_LENGTH} characters so editors can follow up
+      {/if}
     </p>
   {/if}
 </div>
@@ -98,10 +106,10 @@
     font-size: 0.8125rem;
     line-height: 1.4;
     font-weight: 500;
-    color: hsl(0, 0%, 34%);
+    color: var(--theme-text-2, hsl(0, 0%, 34%));
   }
 
   .submitter-name-hint.at-limit {
-    color: hsl(5, 53%, 38%);
+    color: var(--theme-accent-text, hsl(5, 53%, 38%));
   }
 </style>

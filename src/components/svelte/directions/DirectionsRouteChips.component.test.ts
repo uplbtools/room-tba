@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/svelte";
-import { beforeEach, describe, expect, test } from "vitest";
-import { directionsStore } from "@lib/store.svelte";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { directionsStore, locationStore } from "@lib/store.svelte";
 import {
   expectNoHorizontalOverflow,
   mountAtWidth,
@@ -26,9 +26,15 @@ function seedDirections() {
   directionsStore.navigating = false;
 }
 
+const startField = () =>
+  screen.getByRole("searchbox", { name: "Starting point" });
+const destinationField = () =>
+  screen.getByRole("searchbox", { name: "Destination" });
+
 describe("DirectionsRouteChips", () => {
   beforeEach(() => {
     directionsStore.close();
+    locationStore.failure = null;
   });
 
   test("hidden when directions are idle", () => {
@@ -37,17 +43,20 @@ describe("DirectionsRouteChips", () => {
   });
 
   test.each([320, 768])(
-    "lists origin, stop, destination with close under search at %ipx",
+    "editable From / To with stops, swap and close at %ipx",
     (width) => {
       mountAtWidth(width);
       seedDirections();
       const { container } = render(DirectionsRouteChips);
 
-      expect(screen.getByText("Your location")).toBeVisible();
+      expect(startField()).toHaveValue("Your location");
+      expect(destinationField()).toHaveValue("CDC Building");
       expect(screen.getByText("Main Library")).toBeVisible();
-      expect(screen.getByText("CDC Building")).toBeVisible();
       expect(
         screen.getByRole("button", { name: "Remove stop Main Library" }),
+      ).toBeVisible();
+      expect(
+        screen.getByRole("button", { name: "Swap start and destination" }),
       ).toBeVisible();
       expect(
         screen.getByRole("button", { name: "Close directions" }),
@@ -59,37 +68,80 @@ describe("DirectionsRouteChips", () => {
     },
   );
 
-  test("tapping the start row arms picking, and Use my location shows for a pinned start", async () => {
+  test("typing in a field arms that end and feeds the place search", async () => {
     mountAtWidth(320);
     seedDirections();
-    const { container } = render(DirectionsRouteChips);
+    const onSearchInput = vi.fn();
+    const onSearchFocus = vi.fn();
+    render(DirectionsRouteChips, { onSearchInput, onSearchFocus });
 
-    await fireEvent.click(
-      screen.getByRole("button", {
-        name: "Change starting point, now Your location",
-      }),
-    );
+    await fireEvent.focus(startField());
     expect(directionsStore.picking).toBe("origin");
-    expect(screen.getByText("Choose a starting point")).toBeVisible();
-    expect(screen.getByText(/Search above or tap the map/)).toBeVisible();
-    // GPS is already the start, so there is nothing to go back to.
-    expect(
-      screen.queryByRole("button", { name: "Use my location" }),
-    ).toBeNull();
+    expect(onSearchFocus).toHaveBeenCalled();
+    expect(onSearchInput).toHaveBeenLastCalledWith("");
 
-    directionsStore.originFixed = true;
-    expect(
-      await screen.findByRole("button", { name: "Use my location" }),
-    ).toBeVisible();
-    expectNoHorizontalOverflow(
-      container.querySelector(".directions-route-chips") as HTMLElement,
+    await fireEvent.input(startField(), { target: { value: "Physi" } });
+    expect(onSearchInput).toHaveBeenLastCalledWith("Physi");
+    expect(startField()).toHaveValue("Physi");
+
+    // A pick (here from the store, as a suggestion tap does) ends the edit.
+    await directionsStore.setOrigin({
+      lat: 14.162,
+      lng: 121.242,
+      label: "Physical Sciences Building",
+    });
+    await fireEvent.blur(startField());
+    expect(startField()).toHaveValue("Physical Sciences Building");
+  });
+
+  test("swap reverses the ends", async () => {
+    seedDirections();
+    directionsStore.waypoints = [];
+    render(DirectionsRouteChips);
+    await fireEvent.click(
+      screen.getByRole("button", { name: "Swap start and destination" }),
     );
+    expect(directionsStore.origin?.label).toBe("CDC Building");
+    expect(directionsStore.originFixed).toBe(true);
+    expect(directionsStore.destination?.label).toBe("Your location");
+  });
+
+  test("location denied: empty start with a retry", () => {
+    seedDirections();
+    directionsStore.origin = null;
+    locationStore.failure =
+      "Location access denied. Please enable it in your settings.";
+    render(DirectionsRouteChips);
+
+    expect(startField()).toHaveValue("");
+    expect(startField()).toHaveAttribute(
+      "placeholder",
+      "Choose starting point",
+    );
+    expect(
+      screen.getByRole("button", { name: "Use my location" }),
+    ).toBeVisible();
   });
 
   test("a session opened from a pin asks for the destination", () => {
     directionsStore.openFrom({ lat: 14.16, lng: 121.24, label: "Dropped pin" });
     render(DirectionsRouteChips);
-    expect(screen.getByText("Dropped pin")).toBeVisible();
-    expect(screen.getByText("Choose a destination")).toBeVisible();
+    expect(startField()).toHaveValue("Dropped pin");
+    expect(destinationField()).toHaveValue("");
+    expect(destinationField()).toHaveAttribute(
+      "placeholder",
+      "Choose destination",
+    );
+    // Straight to the empty destination, as GMaps does.
+    expect(destinationField()).toHaveFocus();
+  });
+
+  test("Add stop opens a stop field armed for search or a map tap", async () => {
+    seedDirections();
+    directionsStore.waypoints = [];
+    render(DirectionsRouteChips);
+    await fireEvent.click(screen.getByRole("button", { name: "Add stop" }));
+    expect(directionsStore.addingStop).toBe(true);
+    expect(screen.getByRole("searchbox", { name: "Add a stop" })).toBeVisible();
   });
 });

@@ -4,11 +4,8 @@
   import RotateCw from "@lucide/svelte/icons/rotate-cw";
   import ChevronUp from "@lucide/svelte/icons/chevron-up";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
-  import Box from "@lucide/svelte/icons/box";
   import MapPin from "@lucide/svelte/icons/map-pin";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
-  import MapIcon from "@lucide/svelte/icons/map";
-  import Satellite from "@lucide/svelte/icons/satellite";
   import Gauge from "@lucide/svelte/icons/gauge";
   import {
     mapStore,
@@ -75,22 +72,12 @@
         ? "Highlighting your class buildings. Switch back to normal pins."
         : "Highlight the buildings your planned classes are in.",
   );
-  const cameraModeTitle = $derived(
-    is2D
-      ? "Camera is flat 2D. Switch to tilted 3D."
-      : "Camera is tilted 3D. Switch to flat 2D.",
-  );
   // Satellite tiles need a working MapTiler key. Gate on the provider that
   // actually served the basemap: a configured-but-rejected key (#863) falls
   // back to a keyless basemap, and satellite would 403 the same way.
   let basemapProvider = $state(getBasemapProvider());
   onMount(() => onBasemapProviderChange((next) => (basemapProvider = next)));
   const satelliteAvailable = $derived(basemapProvider === "maptiler");
-  const satelliteTitle = $derived(
-    mapViewStore.satellite
-      ? "Showing satellite imagery. Switch to the standard map."
-      : "Showing the standard map. Switch to satellite imagery.",
-  );
   const cameraDebugTitle = $derived(
     mapViewStore.cameraDebug
       ? "Hide the live camera readout."
@@ -350,52 +337,8 @@
       <p class="control-hint">Add classes in the Planner first.</p>
     {/if}
 
-    <div class="divider"></div>
-
-    <button
-      class="control mode-toggle camera-toggle"
-      class:active={!is2D}
-      onclick={toggleView}
-      title={cameraModeTitle}
-      aria-label={cameraModeTitle}
-      aria-pressed={!is2D}
-    >
-      {#if is2D}
-        <MapIcon size={18} aria-hidden="true" />
-      {:else}
-        <Box size={18} aria-hidden="true" />
-      {/if}
-      <span class="control-copy">
-        <span class="control-kicker">Map style</span>
-        <span class="control-value">{is2D ? "2D flat" : "3D tilted"}</span>
-      </span>
-    </button>
-
-    {#if satelliteAvailable}
-      <div class="divider"></div>
-
-      <button
-        class="control mode-toggle satellite-toggle"
-        class:active={mapViewStore.satellite}
-        onclick={mapViewStore.toggleSatellite}
-        title={satelliteTitle}
-        aria-label={satelliteTitle}
-        aria-pressed={mapViewStore.satellite}
-      >
-        {#if mapViewStore.satellite}
-          <Satellite size={18} aria-hidden="true" />
-        {:else}
-          <MapIcon size={18} aria-hidden="true" />
-        {/if}
-        <span class="control-copy">
-          <span class="control-kicker">Basemap</span>
-          <span class="control-value">
-            {mapViewStore.satellite ? "Satellite" : "Standard"}
-          </span>
-        </span>
-      </button>
-    {/if}
-
+    <!-- Map style (2D / 3D) and basemap moved to the Map type tiles at the
+         top of the Layers sheet; the Settings variant keeps its rows. -->
     <div class="divider"></div>
 
     <button
@@ -480,9 +423,9 @@
     align-items: stretch;
     gap: 0.25rem;
     padding: 0.3125rem;
-    background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+    background-color: var(--map-chrome-surface, var(--theme-surface-translucent, rgba(255, 255, 255, 0.98)));
     backdrop-filter: blur(10px);
-    border: 1.5px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+    border: 1.5px solid var(--map-chrome-border, var(--theme-border-strong, hsl(0, 0%, 58%)));
     border-radius: 0.875rem;
     box-shadow: var(
       --map-chrome-shadow,
@@ -532,7 +475,7 @@
 
   .divider {
     height: 1px;
-    background-color: hsl(0, 0%, 90%);
+    background-color: var(--theme-surface-3, hsl(0, 0%, 90%));
     margin: 0 0.125rem;
   }
 
@@ -546,7 +489,7 @@
     border-radius: var(--map-chrome-toggle-radius, 0.5rem);
     background-color: transparent;
     box-sizing: border-box;
-    color: hsl(0, 0%, 28%);
+    color: var(--theme-text, hsl(0, 0%, 28%));
     cursor: pointer;
     transition:
       background-color 0.15s ease,
@@ -559,7 +502,7 @@
   }
 
   .control:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 1px;
   }
 
@@ -572,7 +515,7 @@
   }
 
   .control:disabled {
-    color: hsl(0, 0%, 52%);
+    color: var(--theme-text-muted, hsl(0, 0%, 52%));
     cursor: default;
     background-color: transparent;
   }
@@ -584,7 +527,7 @@
   }
 
   .north-btn {
-    color: hsl(5, 40%, 42%);
+    color: var(--theme-accent-text, hsl(5, 40%, 42%));
   }
 
   .north-icon {
@@ -609,13 +552,13 @@
     min-height: 2.125rem;
     height: auto;
     padding: 0.25rem 0.5rem;
-    border: 1px solid hsl(0, 0%, 88%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 88%));
     border-radius: 0.625rem;
     box-sizing: border-box;
     font-size: 0.75rem;
     font-weight: 600;
     line-height: 1.15;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     overflow: visible;
   }
 
@@ -657,55 +600,51 @@
   }
 
   .pin-toggle {
-    border-color: hsl(5, 34%, 78%);
-    background-color: hsl(0, 100%, 99%);
+    border-color: var(--theme-accent-border, hsl(5, 34%, 78%));
+    background-color: var(--theme-accent-soft, hsl(0, 100%, 99%));
   }
 
   .pin-toggle:hover {
-    border-color: hsl(5, 34%, 68%);
-    background-color: hsl(0, 78%, 97%);
+    border-color: var(--theme-accent-border, hsl(5, 34%, 68%));
+    background-color: var(--theme-accent-soft, hsl(0, 78%, 97%));
   }
 
   .class-highlight-toggle {
-    border-color: hsl(5, 34%, 78%);
-    background-color: hsl(0, 100%, 99%);
+    border-color: var(--theme-accent-border, hsl(5, 34%, 78%));
+    background-color: var(--theme-accent-soft, hsl(0, 100%, 99%));
   }
 
   .class-highlight-toggle:hover:not(:disabled) {
-    border-color: hsl(5, 34%, 68%);
-    background-color: hsl(0, 78%, 97%);
+    border-color: var(--theme-accent-border, hsl(5, 34%, 68%));
+    background-color: var(--theme-accent-soft, hsl(0, 78%, 97%));
   }
 
   .class-highlight-toggle:disabled {
-    border-color: hsl(0, 0%, 88%);
-    background-color: hsl(0, 0%, 98%);
+    border-color: var(--theme-border, hsl(0, 0%, 88%));
+    background-color: var(--theme-surface, hsl(0, 0%, 98%));
   }
 
   .control-hint {
     margin: 0;
     padding: 0 0.25rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     font-size: 0.625rem;
     line-height: 1.3;
   }
 
-  .camera-toggle,
-  .satellite-toggle,
   .camera-debug-toggle {
-    border-color: hsl(5, 34%, 78%);
-    background-color: hsl(0, 100%, 99%);
+    border-color: var(--theme-accent-border, hsl(5, 34%, 78%));
+    background-color: var(--theme-accent-soft, hsl(0, 100%, 99%));
   }
 
-  .camera-toggle:hover,
-  .satellite-toggle:hover,
   .camera-debug-toggle:hover {
-    border-color: hsl(5, 34%, 68%);
-    background-color: hsl(0, 78%, 97%);
+    border-color: var(--theme-accent-border, hsl(5, 34%, 68%));
+    background-color: var(--theme-accent-soft, hsl(0, 78%, 97%));
   }
 
   .mode-toggle.active {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 32%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
   }
 
@@ -719,8 +658,8 @@
   }
 
   .mode-toggle.active:hover:not(:disabled) {
-    border-color: hsl(5, 53%, 32%);
-    background-color: hsl(5, 53%, 38%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 38%));
   }
 
   @media (max-width: 48rem) {

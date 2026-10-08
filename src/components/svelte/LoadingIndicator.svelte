@@ -36,8 +36,8 @@
     height: 0.875em;
     flex: 0 0 auto;
     border-radius: 50%;
-    border: 2px solid hsl(5, 30%, 85%);
-    border-top-color: hsl(5, 53%, 32%);
+    border: 2px solid var(--theme-accent-border, hsl(5, 30%, 85%));
+    border-top-color: var(--theme-accent-text, hsl(5, 53%, 32%));
     animation: loading-indicator-spin 0.8s linear infinite;
   }
 
@@ -96,14 +96,14 @@
     width: 40%;
     height: 100%;
     border-radius: 999px;
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     animation: loading-indicator-slide 1.1s ease-in-out infinite;
   }
 
   .loading-block__label {
     font-size: 0.8125rem;
     font-weight: 600;
-    color: hsl(5, 12%, 42%);
+    color: var(--theme-accent-text, hsl(5, 12%, 42%));
   }
 
   @keyframes loading-indicator-spin {

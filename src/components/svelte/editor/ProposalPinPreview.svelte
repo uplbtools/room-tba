@@ -119,7 +119,7 @@
   .proposal-pin-preview__canvas {
     height: 9rem;
     overflow: hidden;
-    border: 1px solid hsl(0, 0%, 84%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 84%));
     border-radius: 6px;
   }
 
@@ -131,11 +131,11 @@
   .proposal-pin-preview__fallback {
     margin: 0;
     padding: 0.35rem 0.5rem;
-    border: 1px solid hsl(0, 0%, 88%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 88%));
     border-radius: 6px;
-    background: hsl(0, 0%, 98%);
+    background: var(--theme-surface, hsl(0, 0%, 98%));
     font-size: 0.8rem;
-    color: hsl(0, 0%, 35%);
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
   }
 
   .proposal-pin-preview__legend {
@@ -145,7 +145,7 @@
     gap: 0.25rem;
     margin: 0.25rem 0 0;
     font-size: 0.75rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .proposal-pin {

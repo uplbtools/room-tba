@@ -7,11 +7,17 @@
  * without a store.
  */
 
-import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
 import {
-  type Journey,
-  type LatLng,
-  type PlanStatus,
+  JEEPNEY_ROUTES,
+  resolveRouteGeometry,
+  type StoredRouteGeometry,
+} from "@constants/jeepney-routes";
+import jeepneyGeometries from "@constants/jeepney-geometries.json";
+import type {
+  Journey,
+  LatLng,
+  PlanStatus,
+  RouteLines,
 } from "../travel-graph/journey";
 import { planMultiLegJourneys } from "../travel-graph/plan-multi-leg";
 import { journeyLineCoordinates } from "../travel-graph/route-proximity";
@@ -30,6 +36,44 @@ export type DirectionsPick = "origin" | "destination";
 
 /** Max intermediate stops between origin and destination. */
 export const MAX_DIRECTIONS_WAYPOINTS = 3;
+
+/** Label for an origin that follows the GPS fix. */
+export const YOUR_LOCATION_LABEL = "Your location";
+
+/**
+ * Road geometry per campus route, so a ride leg follows the street rather
+ * than a chord between stops. Stops-only routes are left out on purpose: a
+ * guessed line is no better than the chord.
+ */
+const ROUTE_LINES: RouteLines = Object.fromEntries(
+  JEEPNEY_ROUTES.flatMap((route) => {
+    const { source, line } = resolveRouteGeometry(
+      route,
+      jeepneyGeometries as Record<string, StoredRouteGeometry>,
+    );
+    return source !== "stops-only" && line
+      ? [[route.id, line.coordinates as [number, number][]]]
+      : [];
+  }),
+);
+
+/** Travel-mode tab: the kinds a journey can be. */
+export type DirectionsMode = Journey["kind"];
+
+/**
+ * Plain snapshot of a directions session, for a URL or history entry. The
+ * store does not write the URL itself; whoever owns routing reads
+ * getSnapshot() and hands it back to restore().
+ */
+export type DirectionsSnapshot = {
+  origin: DirectionsEndpoint | null;
+  /** False when the origin follows GPS ("Your location"). */
+  originFixed: boolean;
+  destination: DirectionsEndpoint | null;
+  waypoints: DirectionsEndpoint[];
+  mode: DirectionsMode | null;
+  navigating: boolean;
+};
 
 export class DirectionsStore {
   phase: DirectionsPhase = $state("idle");
@@ -81,6 +125,39 @@ export class DirectionsStore {
       this.journeys[0]
     );
   }
+
+  /** The quickest option, marked "Fastest" on its card. */
+  get fastestId(): string | null {
+    // Plans arrive ranked fastest first.
+    return this.journeys[0]?.id ?? null;
+  }
+
+  /** One tab per mode that has an option, with its quickest time. */
+  get modes(): { mode: DirectionsMode; seconds: number }[] {
+    const out: { mode: DirectionsMode; seconds: number }[] = [];
+    for (const mode of ["walk", "transit"] as const) {
+      const best = this.journeys.find((journey) => journey.kind === mode);
+      if (best) out.push({ mode, seconds: best.seconds });
+    }
+    return out;
+  }
+
+  /** The selected option's mode drives which tab is active. */
+  get mode(): DirectionsMode | null {
+    return this.selected?.kind ?? null;
+  }
+
+  /** The session as plain data (copies, safe to serialise). */
+  getSnapshot = (): DirectionsSnapshot => {
+    return {
+      origin: this.origin ? { ...this.origin } : null,
+      originFixed: this.originFixed,
+      destination: this.destination ? { ...this.destination } : null,
+      waypoints: this.waypoints.map((stop) => ({ ...stop })),
+      mode: this.mode,
+      navigating: this.navigating,
+    };
+  };
 
   /** Total seconds for the selected option — the "12 min" headline. */
   get selectedSeconds(): number | null {
@@ -144,19 +221,17 @@ export class DirectionsStore {
         graph,
         points,
         routes: JEEPNEY_ROUTES,
+        routeLines: ROUTE_LINES,
       });
 
+      // Ranked fastest first, so the default pick is the quickest way there.
+      // A replan keeps the rider's mode tab when that mode still has options.
+      const keepMode = this.mode;
       this.journeys = plan.journeys;
       this.status = plan.status;
-      // Walk is pinned as the first card (the baseline), but the option drawn
-      // and started by default is the fastest: a 15-minute jeep used to sit
-      // unselected under a 27-minute walk.
       this.selectedId =
-        plan.journeys.reduce<(typeof plan.journeys)[number] | null>(
-          (best, journey) =>
-            best === null || journey.seconds < best.seconds ? journey : best,
-          null,
-        )?.id ?? null;
+        (keepMode && plan.journeys.find((j) => j.kind === keepMode)?.id) ||
+        (plan.journeys[0]?.id ?? null);
       this.phase = "ready";
     } catch {
       if (token !== this.#planToken) return;
@@ -176,6 +251,74 @@ export class DirectionsStore {
     this.originFixed = true;
     this.picking = "destination";
     this.phase = "planning";
+  };
+
+  /**
+   * Directions from the home screen: start at the GPS fix (or wait for it)
+   * and ask where to. Like openFrom, but the start follows the blue dot.
+   */
+  openEmpty = (origin: DirectionsEndpoint | null) => {
+    this.close();
+    this.origin = origin;
+    this.originFixed = false;
+    this.picking = "destination";
+    this.phase = "planning";
+  };
+
+  /**
+   * Swap start and end (⇅). A GPS start becomes a fixed end at the current
+   * fix; with no start yet the old end becomes the start and the end is asked
+   * for again.
+   */
+  swap = async () => {
+    const origin = this.origin;
+    const destination = this.destination;
+    this.picking = null;
+    this.addingStop = false;
+    this.waypoints = [...this.waypoints].reverse();
+    this.origin = destination;
+    this.originFixed = destination !== null;
+    this.destination = origin;
+    if (!this.origin || !this.destination) {
+      // Nothing to plan from yet: drop the stale route and ask for the gap.
+      this.#planToken++;
+      this.journeys = [];
+      this.selectedId = null;
+      this.status = null;
+      this.phase = "planning";
+      this.picking = this.origin ? "destination" : "origin";
+      return;
+    }
+    await this.replan(this.origin, this.destination);
+  };
+
+  /**
+   * Rebuild a session from getSnapshot(), e.g. on Back or a shared link. A
+   * GPS start ("Your location") with no fix yet waits for one, as open() does.
+   */
+  restore = async (snapshot: DirectionsSnapshot) => {
+    this.close();
+    this.origin = snapshot.origin ? { ...snapshot.origin } : null;
+    this.originFixed = snapshot.originFixed && snapshot.origin !== null;
+    this.destination = snapshot.destination
+      ? { ...snapshot.destination }
+      : null;
+    this.waypoints = snapshot.waypoints.map((stop) => ({ ...stop }));
+    this.phase = "planning";
+    if (!this.destination) {
+      this.picking = "destination";
+      return;
+    }
+    if (!this.origin) return;
+    await this.replan(this.origin, this.destination);
+    if (snapshot.mode) this.selectMode(snapshot.mode);
+    if (snapshot.navigating) this.startNavigation();
+  };
+
+  /** Show the quickest option of a travel mode (the mode tabs). */
+  selectMode = (mode: DirectionsMode) => {
+    const best = this.journeys.find((journey) => journey.kind === mode);
+    if (best) this.selectedId = best.id;
   };
 
   /**

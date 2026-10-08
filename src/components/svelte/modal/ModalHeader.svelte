@@ -48,14 +48,14 @@
     font-size: 1.0625rem;
     font-weight: 700;
     line-height: 1.25;
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .modal-header__description {
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.4;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .modal-header__actions {

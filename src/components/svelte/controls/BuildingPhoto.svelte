@@ -135,18 +135,18 @@
     padding: 0;
     border: none;
     border-radius: 50%;
-    background-color: hsla(0, 0%, 100%, 0.85);
-    color: hsl(0, 0%, 20%);
+    background-color: var(--theme-surface-translucent, hsla(0, 0%, 100%, 0.85));
+    color: var(--theme-text, hsl(0, 0%, 20%));
     cursor: pointer;
     box-shadow: 0 1px 4px hsla(0, 0%, 0%, 0.3);
   }
 
   .building-photo__nav:hover {
-    background-color: white;
+    background-color: var(--theme-surface, white);
   }
 
   .building-photo__nav:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 1px;
   }
 
@@ -176,7 +176,7 @@
     gap: 0.4rem;
     justify-content: space-between;
     padding: 0.25rem 0.1rem 0;
-    color: #6b6265;
+    color: var(--theme-text-2, #6b6265);
     font-size: 0.6875rem;
     line-height: 1.3;
   }

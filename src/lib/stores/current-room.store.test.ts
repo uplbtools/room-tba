@@ -1,10 +1,15 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { RoomData } from "@lib/types";
 
-const { getJSONFetch, getLocalRoomByCode } = vi.hoisted(() => ({
-  getJSONFetch: vi.fn(),
-  getLocalRoomByCode: vi.fn(),
-}));
+const { getJSONFetch, getLocalRoomByCode, isLocalCacheReady } = vi.hoisted(
+  () => ({
+    getJSONFetch: vi.fn(),
+    getLocalRoomByCode: vi.fn(),
+    isLocalCacheReady: vi.fn(() => true),
+  }),
+);
+
+vi.mock("../local/data/pgliteDB.js", () => ({ isLocalCacheReady }));
 
 vi.mock("../local/data/utils.js", () => ({
   getJSONFetch,
@@ -31,6 +36,7 @@ function deferred<T>() {
 describe("currentRoom.notFound", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    isLocalCacheReady.mockReturnValue(true);
     currentRoom.setRoom(room("RESET"));
   });
 
@@ -85,6 +91,33 @@ describe("currentRoom.notFound", () => {
     await stale;
 
     expect(currentRoom.value?.roomCode).toBe("FAST");
+    expect(currentRoom.notFound).toBe(false);
+  });
+});
+
+describe("currentRoom.getRoomByCode with a cold local cache", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    isLocalCacheReady.mockReturnValue(false);
+    currentRoom.setRoom(room("RESET"));
+  });
+
+  test("asks the network first instead of booting the cache (deep-link skeleton)", async () => {
+    getJSONFetch.mockResolvedValue({ data: room("PS 105") });
+
+    await currentRoom.getRoomByCode("PS 105");
+
+    expect(getLocalRoomByCode).not.toHaveBeenCalled();
+    expect(currentRoom.value).toMatchObject({ roomCode: "PS 105" });
+  });
+
+  test("falls back to the cache when offline", async () => {
+    getJSONFetch.mockRejectedValue(new Error("offline"));
+    getLocalRoomByCode.mockResolvedValue(room("PS 105"));
+
+    await currentRoom.getRoomByCode("PS 105");
+
+    expect(currentRoom.value).toMatchObject({ roomCode: "PS 105" });
     expect(currentRoom.notFound).toBe(false);
   });
 });

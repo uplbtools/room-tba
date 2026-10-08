@@ -5,6 +5,7 @@ import AppRoot from "@ui/AppRoot.svelte";
 import Layout from "@layouts/Layout.astro";
 import { getTransitRouteForPage } from "@lib/services/transit-service";
 import { routeFareInfo, transitRouteNoun } from "@lib/transit-route-kind";
+import { routeScheduleSummary } from "@lib/transit-schedule";
 import { breadcrumbSchema, jsonLd, ogCardPath, webpageSchema } from "@lib/site";
 import { campusTransit } from "../../campus.config";
 
@@ -21,6 +22,12 @@ const fareText =
     : fare?.kind === "fixed" || fare?.kind === "end-to-end"
       ? `Fare ₱${fare.fare.regular} (₱${fare.fare.discounted} student, senior or PWD). ${fare.note}`
       : (fare?.note ?? "");
+const schedule = route ? routeScheduleSummary(route.id) : null;
+const scheduleText = schedule
+  ? schedule.published
+    ? `${schedule.hours}. ${schedule.frequency}.${schedule.note ? ` ${schedule.note}` : ""}`
+    : `${schedule.hours}.`
+  : "";
 const routeName = route?.name ?? "UPLB transit route";
 const routeNoun = route ? transitRouteNoun(route) : "transit route";
 const canonicalPath = `/transit/${encodeURIComponent(routeId ?? "")}/`;
@@ -63,6 +70,12 @@ const structuredData = jsonLd(
           {route.stops.length} stops.{" "}
           {fareText}
         </p>
+      )}
+      {route && <p>{scheduleText}</p>}
+      {route && (
+        <ol>
+          {route.stops.map((stop) => <li>{stop.name}</li>)}
+        </ol>
       )}
     </article>
     <AppRoot client:only="svelte" suppressLandingModal={true} />

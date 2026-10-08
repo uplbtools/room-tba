@@ -355,7 +355,7 @@
     background-color: hsla(0, 0%, 0%, 0.1);
   }
   .offline-trigger:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: -2px; /* status-bar badges row clips outward rings */
   }
 
@@ -417,7 +417,7 @@
     flex-direction: column;
     gap: 0.375rem;
     padding-top: 0.25rem;
-    border-top: 1px solid hsl(0, 0%, 88%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 88%));
   }
 
   .offline-category__head {
@@ -436,14 +436,14 @@
 
   .offline-category__meta {
     font-size: 0.6875rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
     text-align: right;
   }
 
   .offline-error {
     margin: 0;
     font-size: 0.75rem;
-    color: hsl(5, 53%, 38%);
+    color: var(--theme-accent-text, hsl(5, 53%, 38%));
   }
 
   .offline-btn {
@@ -459,7 +459,7 @@
     border: none;
     border-radius: 0.5rem;
     padding: 0.4375rem 0.75rem;
-    background-color: hsl(5, 53%, 32%);
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
     font: inherit;
     font-size: 0.8125rem;
@@ -473,18 +473,18 @@
     flex-shrink: 0;
   }
   .offline-btn:hover {
-    background-color: hsl(5, 53%, 40%);
+    background-color: var(--theme-accent-fill, hsl(5, 53%, 40%));
   }
   .offline-btn:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 2px;
   }
   .offline-btn.ghost {
-    background-color: white;
-    color: hsl(5, 53%, 32%);
-    border: 1px solid hsl(5, 53%, 75%);
+    background-color: var(--theme-surface, white);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    border: 1px solid var(--theme-accent-border, hsl(5, 53%, 75%));
   }
   .offline-btn.ghost:hover {
-    background-color: hsl(5, 53%, 97%);
+    background-color: var(--theme-accent-soft, hsl(5, 53%, 97%));
   }
 </style>

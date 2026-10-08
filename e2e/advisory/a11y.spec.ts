@@ -46,8 +46,8 @@ test.describe("a11y @advisory", () => {
   test("map tools flyout has no serious axe violations", async ({ page }) => {
     await page.goto("/");
     await waitForAppBoot(page);
-    await page.getByRole("button", { name: /map tools/i }).click();
-    await page.getByRole("dialog", { name: /map tools/i }).waitFor({
+    await page.getByRole("button", { name: /^layers$/i }).click();
+    await page.getByRole("dialog", { name: /^layers$/i }).waitFor({
       state: "visible",
     });
     await assertNoSeriousViolations(page);

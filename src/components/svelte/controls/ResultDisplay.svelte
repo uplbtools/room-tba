@@ -1,13 +1,12 @@
 <script lang="ts">
   import EntityEmptyState from "./EntityEmptyState.svelte";
-  import EntityPagination from "./EntityPagination.svelte";
   import { queryStore } from "@lib/store.svelte";
   import type { RoomData } from "@lib/types";
   import RoomDisplay from "./RoomDisplay.svelte";
   import TermSelector from "@ui/TermSelector.svelte";
 
-  const MAX_DISPLAY_RESULT = 12;
-  let paginateOffset = $state(0);
+  /** Rows shown before "Show all N rooms"; the rest append in place. */
+  const INITIAL_ROOMS = 12;
 
   interface Props {
     filteredRooms: RoomData[];
@@ -55,19 +54,17 @@
       });
   });
 
-  const paginatedRooms = $derived(
-    filteredRooms.slice(
-      paginateOffset * MAX_DISPLAY_RESULT,
-      (paginateOffset + 1) * MAX_DISPLAY_RESULT,
-    ),
+  // One continuous list instead of "1–10 of 17" pages (GMaps never pages a
+  // place's contents). Expansion is tied to the list it was made for, so the
+  // next building opens collapsed again without an effect to reset it (and a
+  // background refresh of the same rooms keeps it open).
+  const listKey = $derived(filteredRooms.map((room) => room.id).join(","));
+  let expandedKey = $state<string | null>(null);
+  const showAll = $derived(expandedKey === listKey);
+  const visibleRooms = $derived(
+    showAll ? filteredRooms : filteredRooms.slice(0, INITIAL_ROOMS),
   );
-  const maxPaginateOffset = $derived(
-    Math.max(1, Math.ceil(filteredRooms.length / MAX_DISPLAY_RESULT)),
-  );
-  const pageStart = $derived(paginateOffset * MAX_DISPLAY_RESULT + 1);
-  const pageEnd = $derived(
-    Math.min((paginateOffset + 1) * MAX_DISPLAY_RESULT, filteredRooms.length),
-  );
+  const hiddenCount = $derived(filteredRooms.length - visibleRooms.length);
 
   function openBuilding(buildingName: string) {
     queryStore.updateQuery({
@@ -161,13 +158,23 @@
     {/if}
   {:else}
     <div class="room-list">
-      {#each paginatedRooms as room (room.id)}
+      {#each visibleRooms as room (room.id)}
         <RoomDisplay
           {room}
           searchInput=""
           classCount={classCounts?.get(room.id)}
         />
       {/each}
+
+      {#if hiddenCount > 0}
+        <button
+          type="button"
+          class="rooms-show-all"
+          onclick={() => (expandedKey = listKey)}
+        >
+          Show all {filteredRooms.length} rooms
+        </button>
+      {/if}
 
       {#if filteredRooms.length === 0}
         <EntityEmptyState
@@ -179,18 +186,6 @@
     </div>
   {/if}
 </section>
-
-{#if !groupByBuilding && maxPaginateOffset > 1}
-  <EntityPagination
-    rangeStart={pageStart}
-    rangeEnd={pageEnd}
-    total={filteredRooms.length}
-    prevDisabled={paginateOffset === 0}
-    nextDisabled={paginateOffset === maxPaginateOffset - 1}
-    onPrevious={() => (paginateOffset -= 1)}
-    onNext={() => (paginateOffset += 1)}
-  />
-{/if}
 
 <style>
   @import "./entity-detail.css";
@@ -225,10 +220,34 @@
     padding: 0 0.5rem;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
   }
 
   .room-list--nested {
     flex: 0 0 auto;
+  }
+
+  .rooms-show-all {
+    align-self: stretch;
+    min-height: 2.75rem;
+    margin-top: 0.25rem;
+    border: 1px solid var(--theme-accent-border, #c58f91);
+    border-radius: 999px;
+    background: var(--theme-surface, #fff);
+    color: var(--theme-accent-text, hsl(5, 65%, 22%));
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .rooms-show-all:hover,
+  .rooms-show-all:focus-visible {
+    background: var(--theme-accent-soft, #fdf3f3);
+  }
+
+  .rooms-show-all:focus-visible {
+    outline: 2px solid var(--theme-accent-text, #7b1113);
+    outline-offset: 2px;
   }
 </style>

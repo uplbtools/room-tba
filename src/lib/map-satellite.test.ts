@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import type maplibregl from "maplibre-gl";
 import {
+  HYBRID_LABEL_PAINT,
   SATELLITE_LAYER_ID,
   SATELLITE_SOURCE_ID,
   syncSatelliteLayer,
@@ -8,7 +9,13 @@ import {
 
 const realKey = process.env.PUBLIC_MAPTILER_KEY;
 
-type FakeLayer = { id: string; type: string; visibility?: string };
+type FakeLayer = {
+  id: string;
+  type: string;
+  source?: string;
+  visibility?: string;
+  paint?: Record<string, unknown>;
+};
 
 /** The slice of maplibregl.Map the sync function touches, ordered like a style. */
 function fakeMap(layers: FakeLayer[]) {
@@ -34,6 +41,12 @@ function fakeMap(layers: FakeLayer[]) {
     setLayoutProperty: (id: string, _prop: string, value: string) => {
       const layer = layers.find((existing) => existing.id === id);
       if (layer) layer.visibility = value;
+    },
+    getPaintProperty: (id: string, prop: string) =>
+      layers.find((existing) => existing.id === id)?.paint?.[prop],
+    setPaintProperty: (id: string, prop: string, value: unknown) => {
+      const layer = layers.find((existing) => existing.id === id);
+      if (layer) layer.paint = { ...layer.paint, [prop]: value };
     },
   };
 }
@@ -113,5 +126,44 @@ describe("syncSatelliteLayer", () => {
       tiles: [waybackTileUrl],
       tileSize: 256,
     });
+  });
+
+  test("hybrid: imagery covers roads and buildings, labels stay on top", () => {
+    const map = fakeMap([
+      { id: "background", type: "background" },
+      { id: "road_minor", type: "line" },
+      { id: "road_one_way_arrow", type: "symbol" },
+      { id: "bridge_street", type: "line" },
+      { id: "building", type: "fill" },
+      { id: "building-3d", type: "fill-extrusion" },
+      { id: "road_label", type: "symbol" },
+      { id: "place_other", type: "symbol" },
+    ]);
+    syncSatelliteLayer(asMap(map), true);
+    const ids = map.layers.map((layer) => layer.id);
+    expect(ids.indexOf(SATELLITE_LAYER_ID)).toBe(ids.indexOf("road_label") - 1);
+    expect(ids.indexOf(SATELLITE_LAYER_ID)).toBeGreaterThan(
+      ids.indexOf("building-3d"),
+    );
+  });
+
+  test("hybrid: basemap labels turn light-on-dark and restore when off", () => {
+    const map = fakeMap([
+      { id: "background", type: "background" },
+      {
+        id: "road_label",
+        type: "symbol",
+        paint: { "text-color": "#666666" },
+      },
+      { id: "app-pins", type: "symbol", source: "app" },
+    ]);
+    map.sources.set("app", { type: "geojson" });
+    syncSatelliteLayer(asMap(map), true);
+    expect(map.getLayer("road_label")?.paint).toMatchObject(HYBRID_LABEL_PAINT);
+    // App label layers keep their own paint.
+    expect(map.getLayer("app-pins")?.paint).toBeUndefined();
+
+    syncSatelliteLayer(asMap(map), false);
+    expect(map.getLayer("road_label")?.paint?.["text-color"]).toBe("#666666");
   });
 });

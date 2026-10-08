@@ -67,9 +67,9 @@
   .settings-section {
     display: flex;
     flex-direction: column;
-    border: 1px solid hsl(0, 0%, 90%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 90%));
     border-radius: 0.625rem;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     overflow: hidden;
   }
 
@@ -84,20 +84,20 @@
     margin: 0;
     font-size: 0.9375rem;
     font-weight: 700;
-    color: hsl(0, 0%, 12%);
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .settings-section__description {
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.45;
-    color: hsl(0, 0%, 42%);
+    color: var(--theme-text-2, hsl(0, 0%, 42%));
   }
 
   .settings-section__meta {
     margin-top: 0.5rem;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 30%);
+    color: var(--theme-text, hsl(0, 0%, 30%));
   }
 
   .settings-section__body {
@@ -120,20 +120,20 @@
     justify-content: flex-end;
     gap: 0.5rem;
     padding: 0.625rem 1rem;
-    border-top: 1px solid hsl(0, 0%, 92%);
-    background: hsl(0, 0%, 98%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
+    background: var(--theme-surface, hsl(0, 0%, 98%));
   }
 
   .settings-section--danger {
-    border-color: #edc9c9;
+    border-color: var(--theme-accent-border, #edc9c9);
   }
 
   .settings-section--danger .settings-section__title {
-    color: #8f1d1d;
+    color: var(--theme-accent-text, #8f1d1d);
   }
 
   .settings-section--danger .settings-section__footer {
-    border-top-color: #f2d5d5;
-    background: #fdf7f7;
+    border-top-color: var(--theme-accent-border, #f2d5d5);
+    background: var(--theme-accent-soft, #fdf7f7);
   }
 </style>

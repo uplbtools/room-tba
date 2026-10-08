@@ -25,8 +25,15 @@ export async function dismissLandingIfPresent(page: Page) {
     }
   });
 
+  // First run shows a tip card over the map; the full welcome modal only
+  // opens from the menu now, but older flows may still surface it.
+  const gotIt = page.getByRole("button", { name: "Got it" });
+  if (await gotIt.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await gotIt.click();
+  }
+
   const getStarted = page.getByRole("button", { name: "Get Started" });
-  if (await getStarted.isVisible({ timeout: 5000 }).catch(() => false)) {
+  if (await getStarted.isVisible({ timeout: 2000 }).catch(() => false)) {
     await getStarted.click();
   }
 
@@ -47,6 +54,13 @@ export async function waitForAppBoot(page: Page, timeout = 120_000) {
   if ((await shell.count()) > 0) {
     await shell.waitFor({ state: "detached", timeout });
   }
+
+  // The shell now leaves as soon as the app mounts; campus data streams in
+  // behind the live map. Specs that boot and then search or browse need the
+  // rows, so also wait for the bootstrap phase AppRoot mirrors onto <html>.
+  await page
+    .locator('html[data-campus-data="ready"], html[data-campus-data="error"]')
+    .waitFor({ state: "attached", timeout });
 
   await dismissLandingIfPresent(page);
 

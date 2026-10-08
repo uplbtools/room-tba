@@ -22,6 +22,9 @@
     hovered?: boolean;
     label: string;
     labelVisible?: boolean;
+    /** Hosts one of the user's planner classes: blue ring, label always on,
+     * "Your class" tag. */
+    myClass?: boolean;
     onclick?: (event: MouseEvent | KeyboardEvent) => void;
     /** Hide inline pin label while the shared EntityHoverPreview is shown for this pin. */
     previewSuppressed?: boolean;
@@ -31,6 +34,8 @@
     /** Paid placement at the sponsor's real location (docs/ad-policy.md);
      * gold ring + always-visible "Sponsored" label. */
     sponsored?: boolean;
+    /** In the user's Saved places: small gold star on the pin's shoulder. */
+    starred?: boolean;
     tone?: EntityPinTone;
     /** Read mode: hover detail comes from EntityHoverPreview, not the pin label. */
     useCentralHoverPreview?: boolean;
@@ -46,18 +51,20 @@
     hovered = false,
     label,
     labelVisible = false,
+    myClass = false,
     onclick,
     previewSuppressed = false,
     onpointerenter,
     onpointerleave,
     saveState = "idle",
     sponsored = false,
+    starred = false,
     tone = "building",
     useCentralHoverPreview = false,
   }: Props = $props();
 
   const showPinLabel = $derived(
-    (labelVisible || active || sponsored) && !previewSuppressed,
+    (labelVisible || active || sponsored || myClass) && !previewSuppressed,
   );
 
   const statusLabel = $derived(
@@ -103,7 +110,15 @@
   class:saved={saveState === "saved"}
   class:failed={saveState === "failed"}
   class:sponsored
-  aria-label={sponsored ? `${label}, sponsored` : label}
+  class:my-class={myClass}
+  aria-label={[
+    label,
+    starred && "saved",
+    myClass && "your class",
+    sponsored && "sponsored",
+  ]
+    .filter(Boolean)
+    .join(", ")}
   role={onclick ? "button" : undefined}
   tabindex={onclick ? 0 : undefined}
   {onclick}
@@ -114,6 +129,16 @@
   <span class="pin-icon" aria-hidden="true">
     {@render children()}
   </span>
+  {#if starred}
+    <span class="pin-star" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="9" height="9">
+        <path
+          fill="currentColor"
+          d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z"
+        />
+      </svg>
+    </span>
+  {/if}
   {#if showDragAffordance}
     <span class="drag-handle" aria-hidden="true">
       <Move size={13} />
@@ -128,6 +153,8 @@
     {label}
     {#if sponsored}
       <span class="pin-status pin-sponsored">Sponsored</span>
+    {:else if myClass}
+      <span class="pin-status pin-my-class">Your class</span>
     {/if}
     {#if statusLabel}
       <span class="pin-status">{statusLabel}</span>
@@ -136,6 +163,15 @@
 </div>
 
 <style>
+  /* With 3D terrain on, MapLibre fades a marker to 0.2 (inline style) when
+     its DEM depth test says a hill covers it. Close in and tilted that test
+     misfires on campus, so pins seemed to vanish at high zoom. Place pins
+     stay solid, like Google Maps. */
+  :global(.maplibregl-marker.maplibregl-marker-covered:has(.map-entity-pin)) {
+    /* biome-ignore lint/complexity/noImportantStyles: beats MapLibre's inline opacity */
+    opacity: 1 !important;
+  }
+
   .map-entity-pin {
     position: relative;
     border: 2px solid white;
@@ -338,6 +374,17 @@
     color: hsl(42, 65%, 32%);
   }
 
+  .map-entity-pin.my-class {
+    z-index: 83;
+    box-shadow:
+      0 0 0 0.22rem hsl(214, 80%, 48%),
+      0 2px 0.25rem rgba(0, 0, 0, 0.3);
+  }
+
+  .pin-my-class {
+    color: hsl(214, 80%, 38%);
+  }
+
   .map-entity-pin.dimmed.event-linked {
     opacity: 1;
     filter: none;
@@ -369,21 +416,121 @@
     line-height: 0;
   }
 
+  .pin-star {
+    position: absolute;
+    top: -0.375rem;
+    right: -0.375rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 1.5px solid white;
+    border-radius: 50%;
+    background: hsl(42, 90%, 48%);
+    color: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+  }
+
+  /* Place name beside the pin, Google Maps style: tinted text on a white
+     halo rather than a card, so a map full of names stays readable. Right
+     of the pin by default; Map.svelte's collision pass moves it to the left,
+     below or above (pin-label--*) when the right side is taken. */
   .pin-label {
     position: absolute;
-    bottom: calc(100% + 0.5rem);
-    left: 50%;
+    top: 50%;
+    left: calc(100% + 0.25rem);
     z-index: 1;
     width: max-content;
+    max-width: 10rem;
+    color: var(--pin-label-color, hsl(5, 53%, 28%));
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    opacity: 0;
+    padding: 0;
+    pointer-events: none;
+    text-shadow:
+      0 0 2px #fff,
+      0 0 2px #fff,
+      0 0 3px #fff,
+      0 0 4px #fff;
+    transition: opacity 0.2s;
+    translate: 0 -50%;
+  }
+
+  .pin-label:global(.pin-label--left) {
+    left: auto;
+    right: calc(100% + 0.25rem);
+    text-align: right;
+  }
+
+  .pin-label:global(.pin-label--bottom),
+  .pin-label:global(.pin-label--top) {
+    left: 50%;
+    text-align: center;
+    translate: -50% 0;
+  }
+
+  .pin-label:global(.pin-label--bottom) {
+    top: calc(100% + 0.25rem);
+  }
+
+  .pin-label:global(.pin-label--top) {
+    top: auto;
+    bottom: calc(100% + 0.25rem);
+  }
+
+  .map-entity-pin.dorm {
+    --pin-label-color: hsl(170, 55%, 24%);
+  }
+
+  .map-entity-pin.private {
+    --pin-label-color: hsl(25, 75%, 32%);
+  }
+
+  .map-entity-pin.organization {
+    --pin-label-color: hsl(265, 45%, 38%);
+  }
+
+  .map-entity-pin.office {
+    --pin-label-color: hsl(208, 55%, 32%);
+  }
+
+  .map-entity-pin.landmark {
+    --pin-label-color: hsl(34, 70%, 28%);
+  }
+
+  .map-entity-pin.establishment {
+    --pin-label-color: hsl(334, 54%, 35%);
+  }
+
+  /* Dark map: a light tint of the category hue on a dark halo, as the light
+     map's dark tint sits on a white one. */
+  :global(:root[data-theme="dark"]) .pin-label {
+    color: color-mix(
+      in srgb,
+      var(--pin-label-color, hsl(5, 53%, 28%)) 35%,
+      #fff
+    );
+    text-shadow:
+      0 0 2px #000,
+      0 0 2px #000,
+      0 0 3px #000,
+      0 0 4px rgb(0 0 0 / 0.8);
+  }
+
+  /* The selected place keeps a filled name card so it stands out. */
+  .map-entity-pin.active .pin-label {
+    max-width: none;
+    padding: 0.25rem 0.75rem;
     border-radius: 0.5rem;
     background-color: white;
     color: black;
-    line-height: initial;
-    opacity: 0;
-    padding: 0.25rem 0.75rem;
-    pointer-events: none;
-    transition: opacity 0.2s;
-    translate: -50% 0;
+    font-size: 0.875rem;
+    text-shadow: none;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
   }
 
   .map-entity-pin.active.building .pin-label {
@@ -421,7 +568,7 @@
   }
 
   @media (max-width: 48rem) {
-    .pin-label {
+    .map-entity-pin.active .pin-label {
       max-width: min(11rem, calc(100vw - 1.5rem));
       overflow: hidden;
       text-overflow: ellipsis;

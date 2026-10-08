@@ -49,6 +49,7 @@
   import AcademicCalendarScreen from "@ui/calendar/AcademicCalendarScreen.svelte";
   import TodayScreen from "@ui/today/TodayScreen.svelte";
   import EntityUrlSync from "@ui/EntityUrlSync.svelte";
+  import AppUrlState from "@ui/AppUrlState.svelte";
   import EntityHoverPreview from "@ui/map/EntityHoverPreview.svelte";
   import "./map-chrome/map-chrome.css";
   import { observeBlockHeight } from "@lib/layout-css-vars";
@@ -57,9 +58,14 @@
     getGlobalShortcutAction,
   } from "@lib/keyboard-shortcuts";
   import { dismissEphemeralOverlays } from "@lib/overlay-stack";
+  import { trackOverlay } from "@lib/track-overlay.svelte";
   import { openCampusBrowse } from "@lib/browse-campus";
   import { getTransitRoutePath, getTransitStopPath } from "@lib/transit-urls";
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
+  import { appScreenFromPath } from "@lib/app-screen-path";
+  import CampusLoadProgress from "./CampusLoadProgress.svelte";
+  import OfflineBanner from "./OfflineBanner.svelte";
+  import FirstRunTips from "./FirstRunTips.svelte";
   import StagingBanner from "./StagingBanner.svelte";
   import AnnouncementBar from "./AnnouncementBar.svelte";
   import KeyboardShortcutsPopup from "./map-chrome/KeyboardShortcutsPopup.svelte";
@@ -82,12 +88,26 @@
   const mobile = new MediaQuery("max-width:48rem");
   const {
     initialSearch,
-    suppressLandingModal = false,
-    openToday = false,
-    openPlanner = false,
-    openFinals = false,
-    openCalendar = false,
+    suppressLandingModal: suppressLandingModalProp = false,
+    openToday: openTodayProp = false,
+    openPlanner: openPlannerProp = false,
+    openFinals: openFinalsProp = false,
+    openCalendar: openCalendarProp = false,
   }: Props = $props();
+
+  // Offline, the service worker answers /planner and friends with the map
+  // shell, which has no open* prop; the path still says which screen to open.
+  // Read at init: EntityUrlSync normalizes the URL in its onMount.
+  const initialScreen =
+    typeof window !== "undefined"
+      ? appScreenFromPath(window.location.pathname)
+      : null;
+  const openPlanner = openPlannerProp || initialScreen === "planner";
+  const openToday = openTodayProp || initialScreen === "today";
+  const openFinals = openFinalsProp || initialScreen === "finals";
+  const openCalendar = openCalendarProp || initialScreen === "calendar";
+  const suppressLandingModal =
+    suppressLandingModalProp || initialScreen !== null;
 
   const updateData = (queryHistory: RecentSearch[]) => {
     localStorage.setItem("recent-search", JSON.stringify(queryHistory));
@@ -115,7 +135,8 @@
     const recentSearchesLS = localStorage.getItem("recent-search");
     try {
       const parsedSearches: unknown[] = JSON.parse(recentSearchesLS ?? "[]");
-      parsedSearches.forEach((parsedSearch) => {
+      // addRecentSearch prepends, so replay oldest first to keep the order.
+      parsedSearches.reverse().forEach((parsedSearch) => {
         if (isRecentSearch(parsedSearch)) {
           queryStore.addRecentSearch(parsedSearch);
         }
@@ -287,7 +308,10 @@
   });
 
   let landingModalAutoOpenConsumed = $state(false);
+  let firstRunTipsOpen = $state(false);
 
+  // First run gets a light tip card over a usable map, not the full welcome
+  // modal; "How Room TBA works" in the menu still opens the whole tour.
   $effect(() => {
     if (
       !shouldAutoOpenLandingModal({
@@ -301,11 +325,22 @@
       return;
     }
     landingModalAutoOpenConsumed = true;
-    // Auto-open counts as seen: the welcome tour shows once per browser, not
-    // on every visit. Reopen stays available from the app menu.
-    localStorage.setItem("hideLandingModal", "true");
-    modalStore.openModal("landing");
+    firstRunTipsOpen = true;
   });
+
+  // Back dismisses the tips like "Got it". Tracked while they are pending,
+  // not while they step aside for a sheet, so their entry stays under it.
+  trackOverlay("first-run-tips", () => firstRunTipsOpen, dismissFirstRunTips);
+
+  function dismissFirstRunTips() {
+    firstRunTipsOpen = false;
+    // Seen once per browser, same key the welcome modal used.
+    try {
+      localStorage.setItem("hideLandingModal", "true");
+    } catch {
+      // Private mode: the card just comes back next visit.
+    }
+  }
   $effect(() => {
     updateData(queryStore.recentSearches);
   });
@@ -418,6 +453,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <EntityUrlSync />
+<AppUrlState />
 <EntityHoverPreview />
 
 <div
@@ -426,6 +462,7 @@
   class:redesign-desktop={!mobile.current}
 >
   <Map />
+  <CampusLoadProgress />
   <StagingBanner />
   <AnnouncementBar />
   <div class="ui-layer">
@@ -436,10 +473,12 @@
       {#if mobile.current}
         <div
           class="mobile-map-controls"
-          class:mobile-map-controls--sheet-open={sidePanelStore.mobileSheetSnap !==
-            "closed"}
+          class:mobile-map-controls--above-sheet={sidePanelStore.mobileSheetSnap ===
+            "peek"}
+          class:mobile-map-controls--sheet-open={sidePanelStore.mobileSheetSnap ===
+            "expanded"}
           bind:this={mapToolsStackEl}
-          aria-hidden={sidePanelStore.mobileSheetSnap !== "closed"}
+          aria-hidden={sidePanelStore.mobileSheetSnap === "expanded"}
         >
           <MapToolsFlyout />
           <MapControlsStack hideCompass />
@@ -489,8 +528,27 @@
     <Toast
       message={toastStore.message}
       type={toastStore.type}
+      action={toastStore.action}
       onclose={() => toastStore.clear()}
     />
+  {/if}
+  <OfflineBanner
+    placement={["map", "contributors", "settings"].includes(sidebarStore.panelOpen)
+      ? "map"
+      : "screen"}
+  />
+  {#if sidebarStore.panelOpen === "map"}
+    <!-- Steps aside while a sheet or form is up instead of covering it; it
+         returns when the map is idle again until "Got it". -->
+    {#if firstRunTipsOpen && !modalStore.open && !sidePanelStore.active && !editorChromeStore.additionModalOpen}
+      <FirstRunTips
+        ondismiss={dismissFirstRunTips}
+        onguide={() => {
+          dismissFirstRunTips();
+          modalStore.openModal("landing");
+        }}
+      />
+    {/if}
   {/if}
   <Modal />
   <KeyboardShortcutsPopup />
@@ -557,13 +615,13 @@
     --map-chrome-toggle-radius: 0.625rem;
     /* Map chrome contrast: warm off-white surfaces + stronger edges so controls
        float above light basemap tiles without dimming the map itself. */
-    --map-chrome-surface: hsl(5 20% 97%);
-    --map-chrome-panel-bg: hsl(5 18% 96%);
-    --map-chrome-border: hsl(5 10% 68%);
-    --map-chrome-border-accent: hsl(5 40% 42%);
-    --map-chrome-divider: hsl(5 12% 88%);
-    --map-chrome-panel-accent-border: hsl(5 15% 78%);
-    --map-chrome-band-backdrop: hsla(5, 22%, 96%, 0.82);
+    --map-chrome-surface: var(--theme-surface, hsl(5 20% 97%));
+    --map-chrome-panel-bg: var(--theme-surface, hsl(5 18% 96%));
+    --map-chrome-border: var(--theme-border-strong, hsl(5 10% 68%));
+    --map-chrome-border-accent: var(--theme-accent-text, hsl(5 40% 42%));
+    --map-chrome-divider: var(--theme-border, hsl(5 12% 88%));
+    --map-chrome-panel-accent-border: var(--theme-border, hsl(5 15% 78%));
+    --map-chrome-band-backdrop: var(--theme-surface-translucent, hsla(5, 22%, 96%, 0.82));
     --map-chrome-shadow:
       0 0 0 1px hsla(15, 8%, 20%, 0.14), 0 1px 3px hsla(0, 0%, 0%, 0.12),
       0 4px 12px hsla(0, 0%, 0%, 0.16), 0 10px 24px hsla(0, 0%, 0%, 0.1);
@@ -701,9 +759,9 @@
     min-width: 0;
     max-width: 100%;
     min-height: 2rem;
-    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-color: var(--map-chrome-surface, var(--theme-surface, hsl(5 20% 97%)));
     backdrop-filter: blur(10px);
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-radius: var(--map-chrome-radius, 1rem);
     padding: 0.125rem 0.375rem;
     box-shadow: var(
@@ -823,7 +881,7 @@
       to top,
       var(--map-chrome-surface) 0%,
       var(--map-chrome-band-backdrop) 14%,
-      hsla(5, 22%, 96%, 0.35) 54%,
+      var(--theme-surface-faint, hsla(5, 22%, 96%, 0.35)) 54%,
       transparent 100%
     );
     pointer-events: none;
@@ -865,9 +923,9 @@
     --map-ctrl-compass: 3.25rem;
     --map-ctrl-zoom-h: 4.875rem;
     /* Side panel matches search / chip floating cards. */
-    --map-chrome-surface: #fff;
-    --map-chrome-panel-bg: #fff;
-    --map-chrome-border: #e8e4e5;
+    --map-chrome-surface: var(--theme-surface, #fff);
+    --map-chrome-panel-bg: var(--theme-surface, #fff);
+    --map-chrome-border: var(--theme-border, #e8e4e5);
     --map-chrome-panel-accent-border: transparent;
     --map-chrome-panel-shadow: var(--shadow-results, 0 2px 6px rgb(36 37 46 / 0.2));
     --map-chrome-radius: 0.75rem;
@@ -882,8 +940,8 @@
     padding: 0 0.55rem;
     border: none;
     border-radius: 0.5rem;
-    background: #fff;
-    color: var(--color-brand, #8d1437);
+    background: var(--theme-surface, #fff);
+    color: var(--color-brand, var(--theme-accent-text, #8d1437));
     font-size: 0.75rem;
     font-weight: 500;
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
@@ -893,7 +951,7 @@
     :global(.drawer-card .entity-panel-close:hover),
   .app-layout.redesign-desktop
     :global(.drawer-card .entity-panel-close:focus-visible) {
-    background: #fff;
+    background: var(--theme-surface, #fff);
     border-color: transparent;
     box-shadow:
       var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2)),
@@ -932,8 +990,8 @@
     padding: 0.25rem 0.5rem;
     border: none;
     border-radius: 0.5rem;
-    background: #fff;
-    color: var(--color-ink, #332529);
+    background: var(--theme-surface, #fff);
+    color: var(--color-ink, var(--theme-text, #332529));
     font-size: 0.75rem;
     font-weight: 500;
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
@@ -946,7 +1004,7 @@
   .app-layout.redesign-desktop
     :global(.drawer-card .editor-toggle--toolbar:hover) {
     border-color: transparent;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     box-shadow:
       var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2)),
       0 0 0 1px var(--color-brand, #8d1437);
@@ -977,6 +1035,31 @@
     pointer-events: auto;
   }
 
+  /* Landscape phones wide enough for the desktop layout (844x390): the
+     bottom-anchored column grew up over the search pill and browse chips,
+     hiding the tools button under "Add". Start it below the chips and wrap
+     into further columns leftwards instead. */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .desktop-map-controls {
+      top: calc(
+        var(--desktop-top-bar-height, 3.5rem) +
+          var(--map-search-pill-height, 2.375rem) +
+          var(--map-chip-height, 2rem) + 1.75rem
+      );
+      bottom: calc(2.25rem + env(safe-area-inset-bottom, 0px));
+      flex-wrap: wrap-reverse;
+      align-content: flex-start;
+      justify-content: flex-end;
+    }
+
+    .desktop-map-controls :global(.map-controls-stack) {
+      flex-flow: column wrap-reverse;
+      justify-content: flex-end;
+      align-content: flex-start;
+      max-height: 100%;
+    }
+  }
+
   /* Mobile 393 frame: controls above bottom nav (Figma spacing). */
   .mobile-map-controls {
     position: fixed;
@@ -1005,21 +1088,78 @@
      bordered, heavier-shadowed style. */
   .mobile-map-controls :global(.map-chrome-fab-trigger:not([aria-expanded="true"])) {
     border: none;
-    background-color: #fff;
-    color: #8d1437;
+    background-color: var(--theme-surface, #fff);
+    color: var(--theme-accent-text, #8d1437);
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
   }
 
-  /* Entity sheet open (peek or expanded): hide locate / 3D / zoom — they sit
-     in the same corner as the sheet and otherwise paint on top of it. */
-  .mobile-map-controls--sheet-open {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
+  /* Sheet at peek: the locate button (and the compass, when the map is
+     turned) ride just above the sheet's top edge, Google Maps style, so
+     "where am I" stays one tap away while a place is open. BottomSheet
+     publishes --bottom-sheet-top. The Layers button waits for the map.
+     Sheet expanded: hide the controls — the sheet covers that corner and
+     they would otherwise paint on top of it. Neither applies in phone
+     landscape, where the sheet is a left side panel beside the controls. */
+  @media not all and (orientation: landscape) and (max-height: 500px) {
+    .mobile-map-controls--above-sheet {
+      top: calc(var(--bottom-sheet-top, 60dvh) - 0.75rem);
+      bottom: auto;
+      translate: 0 -100%;
+      transition:
+        top var(--motion-duration-sheet, 320ms) ease,
+        opacity var(--motion-duration-micro, 200ms) ease;
+    }
+
+    .mobile-map-controls--above-sheet > :global(.map-tools-flyout) {
+      display: none;
+    }
+
+    .mobile-map-controls--sheet-open {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    .mobile-map-controls--sheet-open > :global(*) {
+      pointer-events: none !important;
+    }
   }
 
-  .mobile-map-controls--sheet-open > :global(*) {
-    pointer-events: none !important;
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-map-controls--above-sheet {
+      transition: none;
+    }
+  }
+
+  /* Phone landscape (Jakob audit macro 14): the column of tools, locate, 3D
+     and zoom is taller than the map strip between the browse chips and the
+     bottom nav, and its top slid under the chips. Cap the column to that
+     strip and let it wrap into a second column leftwards. Details open as a
+     left side panel here (BottomSheet), so the controls stay usable beside
+     it instead of hiding (see the sheet-open rule above). */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .mobile-map-controls {
+      top: calc(
+        var(--staging-banner-height, 0px) + var(--search-block-height) +
+          var(--map-chip-height, 2.75rem) + 0.75rem
+      );
+      right: max(0.5rem, env(safe-area-inset-right, 0px));
+      bottom: calc(var(--mobile-bottom-nav-height, 2.75rem) + 0.5rem);
+      flex-wrap: wrap-reverse;
+      align-content: flex-start;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .mobile-map-controls :global(.map-controls-stack--mobile) {
+      --map-ctrl-size: 2.5rem;
+      --map-ctrl-compass: 2.5rem;
+      --map-ctrl-zoom-h: 5rem;
+      flex-flow: column wrap-reverse;
+      justify-content: flex-end;
+      align-content: flex-start;
+      max-height: 100%;
+    }
   }
 
   .mobile-bottom-nav-slot {
@@ -1078,6 +1218,16 @@
       box-sizing: border-box;
     }
 
+    /* Their sticky headers (the planner's weekday row is z 6) must stay
+       inside the screen, under the fixed bottom nav (z 5), not paint over it
+       when the screen scrolls in landscape. */
+    .ui-layer > :global(.planner-screen),
+    .ui-layer > :global(.finals-screen),
+    .ui-layer > :global(.today-screen),
+    .ui-layer > :global(.acal-screen) {
+      isolation: isolate;
+    }
+
     /* Today / Finals / Calendar ship z-index: 150 (for the desktop layout),
        which painted them over the fixed bottom nav (z 5) and left the phone
        with no tabs and no menu on those screens. Let the nav win here. */
@@ -1132,9 +1282,9 @@
     box-sizing: border-box;
     gap: 0.125rem;
     padding: 0.1875rem;
-    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
+    background-color: var(--map-chrome-surface, var(--theme-surface, hsl(5 20% 97%)));
     backdrop-filter: blur(10px);
-    border: 1.5px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border: 1.5px solid var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-radius: var(--map-chrome-toggle-radius, 0.625rem);
     box-shadow: var(
       --map-chrome-shadow,

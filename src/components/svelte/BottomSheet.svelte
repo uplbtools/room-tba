@@ -2,6 +2,7 @@
   import type { Snippet } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
   import {
+    LANDSCAPE_COMPACT_MEDIA,
     resolveBottomSheetRelease,
     sheetTranslateY,
     type BottomSheetSnap,
@@ -15,6 +16,7 @@
     expandedRatio = 0.92,
     topInset = "0px",
     bottomInset = "0px",
+    scrollResetKey,
     onDismiss,
     children,
   }: {
@@ -34,11 +36,19 @@
     expandedRatio?: number;
     topInset?: string;
     bottomInset?: string;
+    /**
+     * Scroll the body back to the top whenever this changes (another entity
+     * opened): a room opened from a long building sheet must start at its
+     * own name, not at the parent's scroll offset.
+     */
+    scrollResetKey?: unknown;
     onDismiss?: () => void;
     children: Snippet;
   } = $props();
 
   const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
+  /** Phone landscape: a full-height left side panel, no snaps or dragging. */
+  const sidePanel = new MediaQuery(LANDSCAPE_COMPACT_MEDIA);
 
   const DRAG_THRESHOLD = 6;
   const FOLLOW_THRESHOLD = 40;
@@ -144,6 +154,11 @@
   });
 
   $effect(() => {
+    void scrollResetKey;
+    if (contentEl) contentEl.scrollTop = 0;
+  });
+
+  $effect(() => {
     if (open) return;
     dragStartY = null;
     dragMoved = false;
@@ -168,7 +183,7 @@
   }
 
   function beginDrag(event: PointerEvent, fromHandle: boolean) {
-    if (!open) return;
+    if (!open || sidePanel.current) return;
     dragStartY = event.clientY;
     dragStartTime = performance.now();
     dragMoved = false;
@@ -265,11 +280,23 @@
   }
 
   const transitionMs = $derived(reducedMotion.current ? 0 : 320);
+
+  // Publish where the sheet's top edge rests so map controls can sit just
+  // above it (Entry's locate button at peek). The resting snap, not the live
+  // drag: controls should not chase the finger.
+  $effect(() => {
+    if (!open || !rootEl || availableH === 0) return;
+    const top = rootEl.getBoundingClientRect().top + baseTranslate;
+    const root = document.documentElement;
+    root.style.setProperty("--bottom-sheet-top", `${Math.round(top)}px`);
+    return () => root.style.removeProperty("--bottom-sheet-top");
+  });
 </script>
 
 {#if open}
   <div
     class="bottom-sheet-root"
+    class:bottom-sheet-root--side={sidePanel.current}
     bind:this={rootEl}
     style:--bs-top={topInset}
     style:--bs-bottom={bottomInset}
@@ -285,14 +312,17 @@
       class="bottom-sheet"
       class:bottom-sheet--dragging={isDragging}
       bind:this={sheetEl}
-      style:transform="translate3d(0, {liveTranslate}px, 0)"
-      style:height="{availableH || 0}px"
+      style:transform={sidePanel.current
+        ? undefined
+        : `translate3d(0, ${liveTranslate}px, 0)`}
+      style:height={sidePanel.current ? undefined : `${availableH || 0}px`}
       onpointerdown={onSheetPointerDown}
       onpointermove={onSheetPointerMove}
       onpointerup={onSheetPointerUp}
       onpointercancel={onSheetPointerCancel}
       onlostpointercapture={onSheetPointerCancel}
     >
+      {#if !sidePanel.current}
       <button
         type="button"
         class="bottom-sheet__handle"
@@ -305,6 +335,7 @@
       >
         <span class="bottom-sheet__grab" aria-hidden="true"></span>
       </button>
+      {/if}
 
       <div class="bottom-sheet__body" bind:this={contentEl}>
         {@render children()}
@@ -341,12 +372,12 @@
     flex-direction: column;
     min-height: 0;
     overflow: hidden;
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-bottom: none;
     /* Grounded: round only the top; flush to the screen bottom edge. */
     border-radius: var(--map-chrome-radius, 1rem) var(--map-chrome-radius, 1rem)
       0 0;
-    background: #fff;
+    background: var(--theme-surface, #fff);
     box-shadow: var(
       --shadow-results,
       0 2px 6px rgb(36 37 46 / 0.2)
@@ -386,7 +417,7 @@
     width: 2.75rem;
     height: 0.25rem;
     border-radius: 999px;
-    background: #d4d4d8;
+    background: var(--theme-surface-3, #d4d4d8);
   }
 
   .bottom-sheet__handle:hover .bottom-sheet__grab,
@@ -420,13 +451,38 @@
     z-index: 3;
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
-    border-top: 1px solid #ececec;
-    background: #fff;
+    border-top: 1px solid var(--theme-border, #ececec);
+    background: var(--theme-surface, #fff);
   }
 
   @media (prefers-reduced-motion: reduce) {
     .bottom-sheet {
       transition: none;
     }
+  }
+
+  /* Phone landscape: left side panel from under the search bar, sized to its
+     content and never past the (icon-only) bottom nav, so the nav never
+     covers route cards or the navigation ETA, and the map stays visible to
+     the right. The width is repeated by DirectionsRouteChips. */
+  .bottom-sheet-root--side {
+    right: auto;
+    bottom: var(--mobile-bottom-nav-height, 2.75rem);
+    left: max(0.375rem, env(safe-area-inset-left, 0px));
+    width: min(24rem, 52vw);
+    clip-path: none;
+  }
+
+  .bottom-sheet-root--side .bottom-sheet {
+    top: 0;
+    bottom: auto;
+    height: auto;
+    max-height: calc(100% - 0.375rem);
+    padding-top: 0.5rem;
+    border-bottom: 1px solid
+      var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
+    border-radius: var(--map-chrome-radius, 1rem);
+    touch-action: auto;
+    transition: none;
   }
 </style>

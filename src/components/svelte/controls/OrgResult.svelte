@@ -481,28 +481,28 @@
     width: 1.375rem;
     height: 1.375rem;
     border-radius: 999px;
-    color: hsl(265, 45%, 45%);
+    color: var(--theme-purple-text, hsl(265, 45%, 45%));
     cursor: pointer;
   }
 
   .org-info-btn:hover,
   .org-info-btn:focus-visible {
-    background-color: hsl(265, 45%, 94%);
+    background-color: var(--theme-purple-soft, hsl(265, 45%, 94%));
   }
 
   /* Tone only; .entity-meta-chip derives the border + wash. */
   .org-badge {
-    color: hsl(265, 45%, 36%);
+    color: var(--theme-purple-text, hsl(265, 45%, 36%));
   }
 
   .building-badge {
-    color: hsl(5, 45%, 34%);
+    color: var(--theme-accent-text, hsl(5, 45%, 34%));
     cursor: pointer;
   }
 
   .building-badge:hover,
   .building-badge:focus-visible {
-    background-color: color-mix(in srgb, currentColor 14%, white);
+    background-color: color-mix(in srgb, currentColor 14%, var(--theme-surface, white));
   }
 
   .org-about {
@@ -515,7 +515,7 @@
     margin: 0;
     font-size: 0.8125rem;
     font-weight: 700;
-    color: #27272a;
+    color: var(--theme-text, #27272a);
   }
 
   .org-field {
@@ -530,20 +530,20 @@
     width: 100%;
     min-width: 0;
     padding: 0.4rem 0.55rem;
-    border: 1px solid hsl(0, 0%, 62%);
+    border: 1px solid var(--theme-border-strong, hsl(0, 0%, 62%));
     border-radius: 0.375rem;
     font: inherit;
-    color: #18181b;
-    background: white;
+    color: var(--theme-text, #18181b);
+    background: var(--theme-surface, white);
   }
 
   /* Editor labels need real contrast on the warm panel background. */
   .org-field .entity-detail-row__label {
-    color: #3f3f46;
+    color: var(--theme-text, #3f3f46);
   }
 
   .org-error {
-    color: hsl(0, 65%, 45%);
+    color: var(--theme-accent-text, hsl(0, 65%, 45%));
     font-size: 0.8125rem;
     margin: 0.25rem 0;
   }
@@ -565,7 +565,7 @@
   }
 
   .no-results {
-    color: #666;
+    color: var(--theme-text-2, #666);
     font-size: 0.875rem;
     text-align: center;
     padding: 1rem 0;

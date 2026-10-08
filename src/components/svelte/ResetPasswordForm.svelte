@@ -92,7 +92,7 @@
   }
   .reset-password-link {
     align-self: flex-start;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-weight: 600;
     text-decoration: underline;
     text-underline-offset: 2px;

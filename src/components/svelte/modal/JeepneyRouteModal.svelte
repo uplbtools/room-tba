@@ -2,6 +2,9 @@
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import X from "@lucide/svelte/icons/x";
   import MapPinned from "@lucide/svelte/icons/map-pinned";
+  import MapPin from "@lucide/svelte/icons/map-pin";
+  import Clock from "@lucide/svelte/icons/clock";
+  import Banknote from "@lucide/svelte/icons/banknote";
   import { jeepneyStore, modalStore, transitStore } from "@lib/store.svelte";
   import {
     JEEPNEY_RIDING_NOTES,
@@ -21,6 +24,8 @@
     transitRouteKind,
     transitRouteNoun,
   } from "@lib/transit-route-kind";
+  import { routeDirections } from "@lib/transit-direction";
+  import { routeScheduleSummary } from "@lib/transit-schedule";
   import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
   import TransitStopEditor from "../controls/TransitStopEditor.svelte";
 
@@ -46,9 +51,13 @@
     onclose();
   }
 
+  // In the direction the rider picked, so stop numbers match the map pins.
   const route = $derived(
-    transitStore.getRoute(routeId ?? jeepneyStore.modalRouteId),
+    transitStore.displayRoute(routeId ?? jeepneyStore.modalRouteId),
   );
+  const directions = $derived(route ? routeDirections(route.id) : null);
+  const reversed = $derived(route ? transitStore.isReversed(route.id) : false);
+  const schedule = $derived(route ? routeScheduleSummary(route.id) : null);
 
   // Campus fares, tips and the transit-map credit are about campus jeeps;
   // buses and town jeeps get their own (or none).
@@ -73,6 +82,10 @@
         ).caveat
       : null,
   );
+
+  function setDirection(reverse: boolean) {
+    if (route) transitStore.setReversed(route.id, reverse);
+  }
 
   function viewOnMap() {
     if (!route) return;
@@ -132,53 +145,71 @@
     </header>
 
     <div class="jeepney-modal__scroll">
-      <p class="jeepney-modal__desc">{route.description}</p>
-
-      {#if ROUTE_BOARDING_NOTES[route.id]}
-        <p class="jeepney-modal__direction">{ROUTE_BOARDING_NOTES[route.id]}</p>
+      {#if directions}
+        <div class="jeepney-modal__directions">
+          <div
+            class="jeepney-modal__segmented"
+            role="group"
+            aria-label="Direction"
+          >
+            {#each [false, true] as isReverse (isReverse)}
+              {@const direction = isReverse
+                ? directions.reverse
+                : directions.forward}
+              <button
+                type="button"
+                class="jeepney-modal__segment"
+                aria-pressed={reversed === isReverse}
+                onclick={() => setDirection(isReverse)}
+                >{direction.label}</button
+              >
+            {/each}
+          </div>
+          <p class="jeepney-modal__direction-summary">
+            {reversed ? directions.reverse.summary : directions.forward.summary}
+          </p>
+        </div>
       {/if}
 
-      {#if route.directionNote}
-        <p class="jeepney-modal__direction">{route.directionNote}</p>
-      {/if}
-
-      {#if fare?.kind === "ticketed"}
-        <p class="jeepney-modal__ticketing">
-          Buy tickets on the
-          <a href={fare.ticketing.url} target="_blank" rel="noopener noreferrer"
-            >{fare.ticketing.operator} website</a
-          >, which also lists the current fare.
-        </p>
-      {:else if fare}
-        {#if fare.kind === "fixed" || fare.kind === "end-to-end"}
-          <dl class="jeepney-modal__fare">
-            <div>
-              <dt>{fare.kind === "end-to-end" ? "Whole route" : "Regular fare"}</dt>
-              <dd>₱{fare.fare.regular}</dd>
-            </div>
-            <div>
-              <dt>Student / PWD / senior</dt>
-              <dd>₱{fare.fare.discounted}</dd>
-            </div>
-          </dl>
-        {:else if fare.kind === "distance"}
-          <dl class="jeepney-modal__fare">
-            <div>
-              <dt>Minimum fare</dt>
-              <dd>₱{fare.minimum.regular}</dd>
-            </div>
-            <div>
-              <dt>Student / PWD / senior</dt>
-              <dd>₱{fare.minimum.discounted}</dd>
-            </div>
-          </dl>
+      <ul class="jeepney-modal__facts">
+        <li>
+          <Banknote size={16} aria-hidden="true" />
+          {#if fare?.kind === "ticketed"}
+            <span
+              >Buy tickets on the
+              <a
+                href={fare.ticketing.url}
+                target="_blank"
+                rel="noopener noreferrer">{fare.ticketing.operator} website</a
+              >, which also lists the current fare.</span
+            >
+          {:else if fare?.kind === "fixed" || fare?.kind === "end-to-end"}
+            <span
+              >{fare.kind === "end-to-end" ? "Whole route " : ""}<strong
+                >₱{fare.fare.regular}</strong
+              >
+              · <strong>₱{fare.fare.discounted}</strong> student / PWD / senior</span
+            >
+          {:else if fare?.kind === "distance"}
+            <span
+              >Minimum fare <strong>₱{fare.minimum.regular}</strong>
+              · <strong>₱{fare.minimum.discounted}</strong> student / PWD / senior</span
+            >
+          {:else if fare}
+            <span>{fare.note}</span>
+          {/if}
+        </li>
+        {#if schedule}
+          <li>
+            <Clock size={16} aria-hidden="true" />
+            <span
+              >{schedule.hours}{schedule.published
+                ? ` · ${schedule.frequency}`
+                : ""}{schedule.note ? `. ${schedule.note}` : ""}</span
+            >
+          </li>
         {/if}
-        <p class="jeepney-modal__fare-note">{fare.note}</p>
-      {/if}
-
-      {#if geometryNote}
-        <p class="jeepney-modal__geometry-note">{geometryNote}</p>
-      {/if}
+      </ul>
 
       <h3 class="jeepney-modal__stops-title">
         Stops <span
@@ -187,7 +218,10 @@
       </h3>
       <ol class="jeepney-modal__stops">
         {#each route.stops as stop, i (`${route.id}-${i}`)}
-          <li>
+          <li
+            class:jeepney-modal__terminal={i === 0 ||
+              i === route.stops.length - 1}
+          >
             <button
               type="button"
               class="jeepney-modal__stop"
@@ -205,19 +239,40 @@
           </li>
         {/each}
       </ol>
-      <TransitStopEditor routeId={route.id} routeName={route.name} />
 
-      {#if ridingNotes.length > 0}
-        <h3 class="jeepney-modal__stops-title">Riding tips</h3>
-        <ul class="jeepney-modal__tips">
-          {#each ridingNotes as note (note)}
-            <li>{note}</li>
-          {/each}
-        </ul>
+      {#if ROUTE_BOARDING_NOTES[route.id]}
+        <p class="jeepney-modal__boarding">
+          <MapPin size={16} aria-hidden="true" />
+          <span>{ROUTE_BOARDING_NOTES[route.id]}</span>
+        </p>
       {/if}
-      {#if kind === "campus"}
-        <p class="jeepney-modal__credit">{TRANSIT_DATA_CREDIT}</p>
-      {/if}
+
+      <details class="jeepney-modal__about">
+        <summary>About this route</summary>
+        <p>{route.description}</p>
+        {#if route.directionNote}
+          <p>{route.directionNote}</p>
+        {/if}
+        {#if fare && fare.kind !== "ticketed" && fare.kind !== "unverified"}
+          <p class="jeepney-modal__fare-note">{fare.note}</p>
+        {/if}
+        {#if geometryNote}
+          <p class="jeepney-modal__geometry-note">{geometryNote}</p>
+        {/if}
+        {#if ridingNotes.length > 0}
+          <h3 class="jeepney-modal__stops-title">Riding tips</h3>
+          <ul class="jeepney-modal__tips">
+            {#each ridingNotes as note (note)}
+              <li>{note}</li>
+            {/each}
+          </ul>
+        {/if}
+        {#if kind === "campus"}
+          <p class="jeepney-modal__credit">{TRANSIT_DATA_CREDIT}</p>
+        {/if}
+      </details>
+
+      <TransitStopEditor routeId={route.id} routeName={route.name} />
     </div>
 
     <div class="jeepney-modal__actions">
@@ -263,7 +318,7 @@
     min-height: 2.75rem;
     padding-right: 0.5rem;
     gap: 0.25rem;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     cursor: pointer;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -284,21 +339,21 @@
     height: 2.75rem;
     margin: -0.5rem -0.5rem -0.5rem auto;
     border-radius: 999px;
-    color: hsl(5, 12%, 30%);
+    color: var(--theme-text, hsl(5, 12%, 30%));
     cursor: pointer;
   }
 
   .jeepney-modal__close:hover {
-    background: hsl(5, 53%, 96%);
+    background: var(--theme-accent-soft, hsl(5, 53%, 96%));
   }
 
   .jeepney-modal__close:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: -2px;
   }
 
   .jeepney-modal__back:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: -2px;
     border-radius: 0.25rem;
   }
@@ -314,7 +369,7 @@
     margin: 0;
     font-size: 1.0625rem;
     font-weight: 700;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .jeepney-modal__scroll {
@@ -327,61 +382,118 @@
     padding-right: 0.375rem;
   }
 
-  .jeepney-modal__desc {
-    margin: 0;
-    font-size: 0.9375rem;
-    line-height: 1.5;
-    color: hsl(0, 0%, 12%);
-  }
-
-  .jeepney-modal__direction {
-    margin: 0;
-    font-size: 0.9375rem;
-    line-height: 1.5;
-    color: hsl(0, 0%, 12%);
-  }
-
-  .jeepney-modal__fare {
+  /* Kaliwa / Kanan: one loop, two directions; the toggle reorders the stops
+     and flips the map line. */
+  .jeepney-modal__directions {
     display: flex;
-    gap: 0.75rem;
-    margin: 0;
+    flex-direction: column;
+    gap: 0.375rem;
   }
 
-  .jeepney-modal__fare div {
+  .jeepney-modal__segmented {
+    display: flex;
+    padding: 0.1875rem;
+    border-radius: 999px;
+    background: var(--theme-surface-2, hsl(0, 0%, 94%));
+  }
+
+  .jeepney-modal__segment {
     flex: 1 1 0;
-    border: 1px solid hsl(0, 0%, 88%);
-    border-radius: 0.625rem;
-    padding: 0.5rem 0.75rem;
-  }
-
-  .jeepney-modal__fare dt {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: hsl(0, 0%, 28%);
-  }
-
-  .jeepney-modal__fare dd {
-    margin: 0.125rem 0 0;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: hsl(5, 53%, 32%);
-  }
-
-  .jeepney-modal__ticketing {
-    margin: 0;
+    min-height: 2.25rem;
+    padding: 0 0.75rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 0.875rem;
-    line-height: 1.45;
+    font-weight: 600;
+    color: var(--theme-text, hsl(0, 0%, 28%));
+    cursor: pointer;
   }
 
-  .jeepney-modal__ticketing a {
-    color: hsl(5, 53%, 32%);
+  .jeepney-modal__segment[aria-pressed="true"] {
+    background: var(--theme-surface, white);
+    color: var(--route-color, var(--theme-accent-text, hsl(5, 53%, 32%)));
+    box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.18);
+  }
+
+  .jeepney-modal__segment:focus-visible {
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
+    outline-offset: 1px;
+  }
+
+  .jeepney-modal__direction-summary {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
+  }
+
+  .jeepney-modal__facts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .jeepney-modal__facts li,
+  .jeepney-modal__boarding {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--theme-text, hsl(0, 0%, 20%));
+  }
+
+  .jeepney-modal__facts :global(svg),
+  .jeepney-modal__boarding :global(svg) {
+    flex-shrink: 0;
+    margin-top: 0.0625rem;
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
+  }
+
+  .jeepney-modal__facts strong {
+    font-weight: 700;
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
+  }
+
+  .jeepney-modal__facts a {
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-weight: 600;
+  }
+
+  .jeepney-modal__about {
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
+    padding-top: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--theme-text, hsl(0, 0%, 15%));
+  }
+
+  .jeepney-modal__about summary {
+    cursor: pointer;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    padding: 0.375rem 0;
+  }
+
+  .jeepney-modal__about[open] summary {
+    margin-bottom: 0.25rem;
+  }
+
+  .jeepney-modal__about > p,
+  .jeepney-modal__about > ul {
+    margin: 0 0 0.5rem;
   }
 
   .jeepney-modal__fare-note {
     margin: 0;
     font-size: 0.75rem;
-    color: hsl(0, 0%, 32%);
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
   }
 
   .jeepney-modal__tips {
@@ -391,22 +503,22 @@
     flex-direction: column;
     gap: 0.375rem;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 24%);
+    color: var(--theme-text, hsl(0, 0%, 24%));
   }
 
   .jeepney-modal__credit {
     margin: 0;
     font-size: 0.6875rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
 
   .jeepney-modal__geometry-note {
     margin: 0;
     padding-left: 0.5rem;
-    border-left: 2px solid hsl(0, 0%, 78%);
+    border-left: 2px solid var(--theme-border, hsl(0, 0%, 78%));
     font-size: 0.75rem;
     line-height: 1.45;
-    color: hsl(0, 0%, 32%);
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
   }
 
   .jeepney-modal__stops-title {
@@ -415,11 +527,11 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .jeepney-modal__stops-title span {
-    color: hsl(0, 0%, 60%);
+    color: var(--theme-text-muted, hsl(0, 0%, 60%));
   }
 
   /* Metro-map style: numbered dots in the route color, joined by a line. */
@@ -450,7 +562,7 @@
     font-size: 0.875rem;
     font-weight: 500;
     text-align: left;
-    color: hsl(0, 0%, 10%);
+    color: var(--theme-text, hsl(0, 0%, 10%));
     cursor: pointer;
   }
 
@@ -474,6 +586,10 @@
 
   .jeepney-modal__stops li:last-child::before {
     bottom: 50%;
+  }
+
+  .jeepney-modal__terminal .jeepney-modal__stop {
+    font-weight: 700;
   }
 
   .jeepney-modal__stop-index {
@@ -500,7 +616,7 @@
     justify-content: flex-end;
     gap: 0.5rem;
     padding: 0.25rem 0 0.375rem;
-    border-top: 1px solid hsl(0, 0%, 92%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
   }
 
   .jeepney-modal__actions :global(.map-chrome-action-chip) {
@@ -513,9 +629,9 @@
     gap: 0.375rem;
     min-height: 2.25rem;
     padding: 0.4rem 1rem;
-    border: 1px solid hsl(5, 53%, 32%);
+    border: 1px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     border-radius: 0.625rem;
-    background: hsl(5, 53%, 32%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 32%));
     color: white;
     font: inherit;
     font-size: 0.875rem;
@@ -524,12 +640,12 @@
   }
 
   .jeepney-modal__view:hover {
-    background: hsl(5, 53%, 38%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 38%));
   }
 
   .jeepney-modal__empty {
     padding: 1.5rem;
-    color: hsl(0, 0%, 45%);
+    color: var(--theme-text-2, hsl(0, 0%, 45%));
     text-align: center;
   }
 </style>

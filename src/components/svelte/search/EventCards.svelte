@@ -322,13 +322,13 @@
   }
   .empty-events {
     margin: 0;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
     font-size: 0.8125rem;
     line-height: 1.35;
   }
   .loading-events {
     margin: 0;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
     font-size: 0.8125rem;
     line-height: 1.35;
   }
@@ -339,7 +339,12 @@
   .event-skeleton-row {
     height: 3.75rem;
     border-radius: 0.875rem;
-    background: linear-gradient(90deg, #f4f4f5 25%, #ececee 50%, #f4f4f5 75%);
+    background: linear-gradient(
+      90deg,
+      var(--theme-surface-2, #f4f4f5) 25%,
+      var(--theme-surface-3, #ececee) 50%,
+      var(--theme-surface-2, #f4f4f5) 75%
+    );
     background-size: 200% 100%;
   }
   .event-card {
@@ -348,7 +353,7 @@
     align-items: start;
     gap: 0.5rem;
     padding: 0.375rem;
-    border: 1px solid #eee1e1;
+    border: 1px solid var(--theme-accent-border, #eee1e1);
     border-radius: 0.875rem;
     transition:
       background-color 0.2s,
@@ -356,11 +361,11 @@
   }
   .event-card:hover,
   .event-card:focus-within {
-    background-color: #fdf3f3;
-    border-color: #d8b9ba;
+    background-color: var(--theme-accent-soft, #fdf3f3);
+    border-color: var(--theme-accent-border, #d8b9ba);
   }
   .event-card:focus-within {
-    outline: 2px solid #7b1113;
+    outline: 2px solid var(--theme-accent-text, #7b1113);
     outline-offset: -2px; /* results scroll body clips outward rings */
   }
   .event-card-main {
@@ -388,13 +393,13 @@
   }
   .event-card-image {
     object-fit: contain;
-    background: hsl(0, 0%, 96%);
+    background: var(--theme-surface-2, hsl(0, 0%, 96%));
   }
   .event-card-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #7b1113;
+    background: var(--theme-accent-fill, #7b1113);
     color: white;
     font-size: 0.7rem;
     font-weight: 800;
@@ -407,7 +412,7 @@
   }
   .event-card-title {
     overflow: hidden;
-    color: #18181b;
+    color: var(--theme-text, #18181b);
     font-size: 0.875rem;
     font-weight: 800;
     line-height: 1.2;
@@ -416,7 +421,7 @@
   }
   .event-card-meta {
     overflow: hidden;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
     font-size: 0.75rem;
     line-height: 1.25;
     text-overflow: ellipsis;
@@ -424,7 +429,7 @@
   }
   .event-card-action {
     width: max-content;
-    color: #7b1113;
+    color: var(--theme-accent-text, #7b1113);
     font-size: 0.72rem;
     font-weight: 800;
     line-height: 1.2;

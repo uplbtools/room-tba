@@ -101,6 +101,90 @@ export const ROUTE_PRINT_NOTES: Readonly<Record<string, string>> = {
 export const FORESTRY_DIRECTION_NOTE =
   "Uphill trips start at the Forestry Jeep Terminal and serve the stops as listed. Past New FOREHA the jeep loops down Makiling Road, east along Valentin Sajor and back up Felix O. Chinte Sr. through MAREHA and FOREHA. Downhill trips start at the Upper Forestry Jeep Terminal and run back down to the Forestry Jeep Terminal, serving the same stops in reverse; going down, the jeep stays on Makiling Road instead of turning at the Admin Building.";
 
+/**
+ * When a route runs. Only what an operator or the maintainer has stated is
+ * filled in; a missing field means "not published", never a guess.
+ */
+export type RouteSchedule = {
+  /** "Daily", "Monday to Saturday". */
+  days: string;
+  /** Set departures from the first stop, for routes that run fixed trips. */
+  departures?: readonly string[];
+  /** First and last trip, for routes that run all day. */
+  hours?: { first: string; last: string };
+  /** Minutes between trips. No route publishes one yet. */
+  headwayMinutes?: number;
+  note?: string;
+};
+
+/**
+ * Keyed by route id, like the boarding notes, because database rows replace
+ * the bundled route objects and carry no schedule column. Sources: the DLTB
+ * Buendia note below and the UPD bus times in scripts/seed-transit-routes.ts.
+ */
+export const ROUTE_SCHEDULES: Readonly<Record<string, RouteSchedule>> = {
+  "uplb-to-buendia": {
+    days: "Daily",
+    departures: ["5:00 AM"],
+    note: "More trips may be added when demand is high.",
+  },
+  "buendia-to-uplb": {
+    days: "Daily",
+    departures: ["6:00 PM"],
+    note: "More trips may be added when demand is high.",
+  },
+  "uplb-to-upd": {
+    days: "Monday to Saturday",
+    departures: ["5:00 AM", "1:00 PM", "6:00 PM"],
+  },
+  "upd-to-uplb": {
+    days: "Monday to Saturday",
+    departures: ["5:00 AM", "9:00 AM", "6:00 PM"],
+  },
+  "buendia-to-lb": {
+    days: "Daily",
+    hours: { first: "about 4:00 AM", last: "about 10:00 PM" },
+    note: "Plus a midnight trip.",
+  },
+};
+
+export function routeSchedule(routeId: string): RouteSchedule | null {
+  return ROUTE_SCHEDULES[routeId] ?? null;
+}
+
+/** One way a two-way route runs; `reverse` serves the stops backwards. */
+export type RouteDirection = { label: string; summary: string };
+
+/**
+ * Routes that run the same stops both ways, named the way riders say them.
+ * Kaliwa/Kanan is one loop driven in opposite directions; UP Rural returns
+ * along the same road (see each route's direction note).
+ */
+export const ROUTE_DIRECTIONS: Readonly<
+  Record<string, { forward: RouteDirection; reverse: RouteDirection }>
+> = {
+  "kaliwa-kanan": {
+    forward: {
+      label: "Kanan",
+      summary: "Turns right after the gate: Carabao Park / DevCom first.",
+    },
+    reverse: {
+      label: "Kaliwa",
+      summary: "Turns left after the gate: Carabao Park / Landbank first.",
+    },
+  },
+  "up-rural": {
+    forward: {
+      label: "To Jubileeville",
+      summary: "Outbound from campus, ending at Jubileeville.",
+    },
+    reverse: {
+      label: "To campus",
+      summary: "Back from Jubileeville along the same road.",
+    },
+  },
+};
+
 export function routeTicketing(routeId: string): RouteTicketing | null {
   return ROUTE_TICKETING[routeId] ?? null;
 }

@@ -36,6 +36,7 @@
       !directionsStore.active,
   );
   let lastPanelIdentity = $state<string | null>(null);
+  let detailsEl = $state<HTMLElement | null>(null);
   /** Mobile sheet snap, independent of sidePanelStore.collapsed (Map.expand race). */
   let mobileSnap = $state<BottomSheetSnap>("peek");
 
@@ -57,8 +58,8 @@
         (queryStore.category === "browse" &&
           queryStore.queryValue !== "jeepney")),
   );
-  // Directions peek must clear the first option + Show on map / Start;
-  // 0.3 only showed the Walk card.
+  // Directions peek ends under the Start row (peekFitTo); the ratio is only
+  // the ceiling, and the fallback before that row exists.
   const sheetPeekRatio = $derived(
     navPeek ? 0.22 : directionsPeek ? 0.44 : listPeek ? 0.68 : 0.48,
   );
@@ -132,6 +133,8 @@
       // opened with, so a still-open review queue cannot outlive the query that
       // replaced it.
       sidePanelStore.state = null;
+      // A new entity starts at its own header, not the previous scroll offset.
+      if (detailsEl) detailsEl.scrollTop = 0;
       // Always open at peek on mobile, ignoring Map.expand() full-screen.
       mobileSnap = "peek";
       if (mobile.current) sidePanelStore.collapse();
@@ -195,13 +198,16 @@
     open={panelOpen}
     bind:snap={mobileSnap}
     peekRatio={sheetPeekRatio}
-    peekFitTo={navPeek || directionsPeek
-      ? undefined
-      : ".entity-actions, .sk-detail__actions"}
+    peekFitTo={navPeek
+      ? ".nav__bar"
+      : directionsPeek
+        ? ".directions__start-row"
+        : ".entity-actions, .sk-detail__actions"}
     topInset="var(--mobile-detail-sheet-top-inset, 0px)"
     bottomInset={browseSheet
       ? "calc(var(--mobile-bottom-nav-height, 4.5rem) + 0.25rem)"
       : "0px"}
+    scrollResetKey={panelIdentity}
     onDismiss={dismissMobileSheet}
   >
     {@render panelBody()}
@@ -226,6 +232,7 @@
       </button>
       <div class="drawer-card">
         <div
+          bind:this={detailsEl}
           id="side-panel-details"
           class="side-panel-details map-chrome-scroll"
           aria-hidden={sidePanelStore.collapsed}
@@ -270,14 +277,16 @@
   .drawer-card {
     pointer-events: auto;
     height: 100%;
-    background-color: var(--map-chrome-panel-bg, hsl(5 18% 96%));
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    background-color: var(--map-chrome-panel-bg, var(--theme-surface, hsl(5 18% 96%)));
+    border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-left: 3px solid
       var(--map-chrome-panel-accent-border, hsl(5 15% 78%));
     border-radius: 0.8125rem;
     padding: 1.125rem;
     box-shadow: var(--map-chrome-panel-shadow);
     overflow: hidden;
+    /* Backdrop for the sticky place-sheet header (entity-detail.css). */
+    --entity-sheet-bg: var(--map-chrome-panel-bg, hsl(5 18% 96%));
     display: flex;
     flex-direction: column;
   }
@@ -287,8 +296,9 @@
     border-left: none;
     border-radius: var(--map-chrome-radius, 0.75rem);
     padding: 0.75rem 0.875rem;
-    background-color: #fff;
+    background-color: var(--theme-surface, #fff);
     box-shadow: var(--shadow-results, 0 2px 6px rgb(36 37 46 / 0.2));
+    --entity-sheet-bg: #fff;
   }
 
   :global(.app-layout.redesign-desktop) .drawer-handle {
@@ -298,14 +308,14 @@
     height: 3.25rem;
     border: none;
     border-radius: 0 0.625rem 0.625rem 0;
-    background-color: #fff;
-    color: var(--color-brand, #8d1437);
+    background-color: var(--theme-surface, #fff);
+    color: var(--color-brand, var(--theme-accent-text, #8d1437));
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.2));
   }
 
   :global(.app-layout.redesign-desktop) .drawer-handle:hover,
   :global(.app-layout.redesign-desktop) .drawer-handle:focus-visible {
-    background-color: #fff;
+    background-color: var(--theme-surface, #fff);
   }
 
   .drawer-sheet {
@@ -350,19 +360,19 @@
     align-items: center;
     justify-content: center;
     pointer-events: auto;
-    border: 1px solid var(--map-chrome-border, hsl(5 10% 68%));
+    border: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(5 10% 68%)));
     border-left: none;
     border-radius: 0 0.75rem 0.75rem 0;
-    background-color: var(--map-chrome-surface, hsl(5 20% 97%));
-    color: #7b1113;
+    background-color: var(--map-chrome-surface, var(--theme-surface, hsl(5 20% 97%)));
+    color: var(--theme-accent-text, #7b1113);
     cursor: pointer;
   }
   .drawer-handle:hover,
   .drawer-handle:focus-visible {
-    background-color: #fdf3f3;
+    background-color: var(--theme-accent-soft, #fdf3f3);
   }
   .drawer-handle:focus-visible {
-    outline: 2px solid #7b1113;
+    outline: 2px solid var(--theme-accent-text, #7b1113);
     outline-offset: 2px;
   }
 

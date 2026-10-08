@@ -1,3 +1,10 @@
+import {
+  type BrowseParam,
+  isUnknownAppPath,
+  readAppState,
+  stripOverlayParams,
+  withAppState,
+} from "./app-url-state";
 import type { AppContextData } from "./context";
 import {
   getEntityCanonicalPath,
@@ -7,7 +14,9 @@ import {
   resolveQueryFromEntityPath,
   type RoutableQueryState,
 } from "./entity-urls";
-import { getLocalRoomById } from "./local/data/utils";
+import { getJSONFetch, getLocalRoomById } from "./local/data/utils";
+import { isLocalCacheReady } from "./local/data/pgliteDB";
+import { installOverlayHistory, navigateAppHistory } from "./overlay-history";
 import { currentRoom, termStore } from "./store.svelte";
 import { parseTermIdFromSearch, withTermQuery } from "./term-url";
 import {
@@ -33,6 +42,8 @@ export type EntityUrlSyncContext = {
   /** Open/close a full screen (planner, finals) in response to its path navigations (back/forward). */
   setScreen: (screen: ScreenId | null) => void;
   setTransit: (transit: TransitPath) => void;
+  /** The URL names a place that does not exist (bad slug, unknown path). */
+  onNotFound: () => void;
 };
 
 export type EntityUrlSyncSnapshot = RoutableQueryState & {
@@ -47,6 +58,17 @@ export type EntityUrlSyncSnapshot = RoutableQueryState & {
 };
 
 const HOME_PATH = "/";
+
+/** The query a ?browse= URL stands for (chip and menu lists). */
+export function browseQuery(browse: BrowseParam): RoutableQueryState {
+  if (browse === "events") {
+    return { type: "result", category: "events", value: "Campus events" };
+  }
+  if (browse === "classes") {
+    return { type: "result", category: "classes", value: "All classes" };
+  }
+  return { type: "result", category: "browse", value: browse };
+}
 // Full-screen overlays that own the URL while open (see the planner deep-link
 // notes: bare island props, trailing slash, and the SW denylist in
 // astro.config.mjs must cover each path here).
@@ -80,9 +102,40 @@ const SCREEN_BY_NORMALIZED_PATH = new Map(
   ),
 );
 
+type LocalRoom = Awaited<ReturnType<typeof getLocalRoomById>>;
+
+/**
+ * A room deep link's row: the local cache when it is already up, else the
+ * network, else (offline) wait for the cache. Booting the cache first kept a
+ * cold second tab on a skeleton for seconds.
+ */
+async function loadRoomById(id: number): Promise<LocalRoom> {
+  if (isLocalCacheReady()) {
+    const local = await getLocalRoomById(id);
+    if (local) return local;
+  }
+  try {
+    const res = await getJSONFetch<{ data: LocalRoom }>(
+      `/api/rooms?id=${id}`,
+      10_000,
+    );
+    if (res.data) return res.data;
+  } catch {
+    // Offline: fall through to the local cache.
+  }
+  return isLocalCacheReady() ? null : getLocalRoomById(id);
+}
+
 export function createEntityUrlSync(context: EntityUrlSyncContext) {
   let applyingFromHistory = false;
   let initialized = false;
+  /**
+   * An entity path the page booted on without a server-hydrated query: the
+   * service worker serves the "/" app shell for /room/…, /building/… in any
+   * tab it controls. Until it resolves, syncing must not push "/" (the
+   * deep-link bounce home).
+   */
+  let pendingPath: string | null = null;
 
   function currentPathname() {
     return normalizePathname(window.location.pathname);
@@ -114,6 +167,16 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
         ? (appData.places?.find((entry) => entry.name === query.value) ?? null)
         : null;
 
+    if (query.type === "result" && query.category === "browse") {
+      return withAppState(HOME_PATH, { browse: query.value });
+    }
+    if (
+      query.type === "result" &&
+      (query.category === "events" || query.category === "classes")
+    ) {
+      return withAppState(HOME_PATH, { browse: query.category });
+    }
+
     return getEntityCanonicalPath(query, {
       room: currentRoom.value,
       dorm,
@@ -130,26 +193,28 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
     await currentRoom.getRoomByCode(query.value);
   }
 
-  async function hydrateFromPathname(pathname: string) {
+  /** Resolve an entity path into a query; false when it can't (yet). */
+  async function hydrateFromPathname(pathname: string): Promise<boolean> {
     const parsed = parseEntityPathname(pathname);
     if (!parsed) {
       context.clearQuery();
-      return;
+      return true;
     }
 
     if (parsed.category === "room") {
       const { id } = parseRouteSlug(parsed.slug);
-      if (id === null) return;
-      const localRoom = await getLocalRoomById(id);
-      if (!localRoom) return;
-      const query: RoutableQueryState = {
+      if (id === null) return false;
+      const room = await loadRoomById(id);
+      if (!room) return false;
+      // Room first, so the URL sync the query triggers can already build
+      // /room/<slug>/ and the map doesn't refetch it (skeleton flash).
+      currentRoom.setRoom(room);
+      context.hydrateQuery({
         type: "result",
         category: "room",
-        value: localRoom.code,
-      };
-      context.hydrateQuery(query);
-      currentRoom.setRoom(localRoom);
-      return;
+        value: room.code,
+      });
+      return true;
     }
 
     const appData = context.getAppData();
@@ -162,21 +227,43 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
       places: appData.places,
     });
 
-    if (!resolved) return;
+    if (!resolved) return false;
 
     if (parsed.category === "event") {
       const event = appData.events?.find((entry) => entry.slug === parsed.slug);
+      if (!event && appData.events) return false;
       context.hydrateQuery({
         type: "result",
         category: "event",
         value: event?.title ?? parsed.slug,
         eventSlug: parsed.slug,
       });
-      return;
+      return true;
     }
 
     context.hydrateQuery(resolved);
     await hydrateRoomSelection(resolved);
+    return true;
+  }
+
+  /**
+   * Retry the boot path. `dataReady` = campus data is in, so a path that still
+   * doesn't resolve never will; it names nothing: say so and go home.
+   */
+  async function resolvePendingPath(dataReady: boolean) {
+    const path = pendingPath;
+    if (!path) return;
+    const resolved = await hydrateFromPathname(path);
+    if (pendingPath !== path) return;
+    if (resolved || dataReady) pendingPath = null;
+    if (resolved || !dataReady) return;
+    context.onNotFound();
+    context.clearQuery();
+    window.history.replaceState(
+      buildHistoryState(null, HOME_PATH),
+      "",
+      HOME_PATH,
+    );
   }
 
   function handlePopState(event: PopStateEvent) {
@@ -201,6 +288,11 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
 
       const pathname = currentPathname();
       if (pathname === HOME_PATH) {
+        const browse = readAppState(window.location.search).browse;
+        if (browse) {
+          context.hydrateQuery(browseQuery(browse));
+          return;
+        }
         context.clearQuery();
         return;
       }
@@ -214,6 +306,7 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
   function init() {
     if (initialized || typeof window === "undefined") return;
     initialized = true;
+    installOverlayHistory();
 
     const pathname = currentPathname();
     const transit = parseTransitPathname(pathname);
@@ -232,7 +325,7 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
       pathname === HOME_PATH ||
       SCREEN_BY_NORMALIZED_PATH.has(pathname) ||
       pathname.startsWith("/room/");
-    const initialPath = initialTermAware
+    const termPath = initialTermAware
       ? withTermQuery(
           pathname,
           parseTermIdFromSearch(window.location.search) ??
@@ -240,9 +333,33 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
           termStore.defaultTermId,
         )
       : pathname;
+    // Keep URL-borne map state (?q=, ?dir=, ?browse=, #map=) for Entry and
+    // the map to restore; dropping it here made those links open bare.
+    const appState = new URLSearchParams(window.location.search);
+    const initialPath = `${withAppState(termPath, {
+      q: appState.get("q"),
+      dir: appState.get("dir"),
+      browse: appState.get("browse"),
+      mode: appState.get("mode"),
+    })}${window.location.hash}`;
 
     window.history.replaceState(initialState, "", initialPath);
     window.addEventListener("popstate", handlePopState);
+
+    if (isUnknownAppPath(pathname)) {
+      context.onNotFound();
+      window.history.replaceState(
+        buildHistoryState(null, HOME_PATH),
+        "",
+        HOME_PATH,
+      );
+      return;
+    }
+
+    if (!transit && !initialState.query && parseEntityPathname(pathname)) {
+      pendingPath = pathname;
+      void resolvePendingPath(false);
+    }
   }
 
   function destroy() {
@@ -253,6 +370,12 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
 
   function syncFromQuery(snapshot: EntityUrlSyncSnapshot) {
     if (!initialized || applyingFromHistory || snapshot.editMode) return;
+    if (snapshot.type === "result" && snapshot.category !== null) {
+      // A result (hydrated or picked) supersedes the boot path.
+      pendingPath = null;
+    } else if (pendingPath !== null && !snapshot.screen) {
+      return;
+    }
 
     // A full screen takes over the URL while open, so clicking "Class Planner"
     // moves to /planner (shareable, refreshable). Closing falls through to the
@@ -269,7 +392,7 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
       if (
         currentPathname() !==
           normalizePathname(SCREEN_PATHS[snapshot.screen]) ||
-        window.location.search !== screenSearch
+        stripOverlayParams(window.location.search) !== screenSearch
       ) {
         const carried =
           snapshot.type === "result" && snapshot.category !== null
@@ -280,11 +403,7 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
                 eventSlug: snapshot.eventSlug,
               }
             : null;
-        window.history.pushState(
-          buildHistoryState(carried, HOME_PATH),
-          "",
-          screenPath,
-        );
+        navigateAppHistory(buildHistoryState(carried, HOME_PATH), screenPath);
       }
       return;
     }
@@ -303,12 +422,11 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
             )
           : getTransitRoutePath(snapshot.transitRouteId)
         : TRANSIT_INDEX_PATH;
-      if (currentPathname() !== transitPath || window.location.search !== "") {
-        window.history.pushState(
-          buildHistoryState(null, transitPath),
-          "",
-          transitPath,
-        );
+      if (
+        currentPathname() !== transitPath ||
+        stripOverlayParams(window.location.search) !== ""
+      ) {
+        navigateAppHistory(buildHistoryState(null, transitPath), transitPath);
       }
       return;
     }
@@ -324,12 +442,11 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
       const homeSearch = homePath.includes("?")
         ? homePath.slice(homePath.indexOf("?"))
         : "";
-      if (pathname !== homePathname || window.location.search !== homeSearch) {
-        window.history.pushState(
-          buildHistoryState(null, HOME_PATH),
-          "",
-          homePath,
-        );
+      if (
+        pathname !== homePathname ||
+        stripOverlayParams(window.location.search) !== homeSearch
+      ) {
+        navigateAppHistory(buildHistoryState(null, HOME_PATH), homePath);
       }
       return;
     }
@@ -341,7 +458,7 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
       ? withTermQuery(path, snapshot.termId, snapshot.defaultTermId)
       : path;
     const pathname = currentPathname();
-    const currentSearch = window.location.search;
+    const currentSearch = stripOverlayParams(window.location.search);
     const targetPath = pathWithTerm;
     const targetSearch = targetPath.includes("?")
       ? targetPath.slice(targetPath.indexOf("?"))
@@ -360,11 +477,11 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
       category: snapshot.category,
       value: snapshot.value,
       eventSlug: snapshot.eventSlug,
+      browseOrigin: snapshot.browseOrigin ?? null,
     };
 
-    window.history.pushState(
+    navigateAppHistory(
       buildHistoryState(historyQuery, HOME_PATH),
-      "",
       pathWithTerm,
     );
   }
@@ -373,5 +490,6 @@ export function createEntityUrlSync(context: EntityUrlSyncContext) {
     init,
     destroy,
     syncFromQuery,
+    resolvePendingPath,
   };
 }

@@ -15,11 +15,14 @@
   import { jeepneyStore, transitStore } from "@lib/store.svelte";
   import { darkenForWhiteText } from "@lib/color-contrast";
   import { distinctStopCount, isLoopRoute } from "@lib/transit-route-kind";
+  import { activeDirection, routesAtStop } from "@lib/transit-direction";
+  import { getTransitRoutePath } from "@lib/transit-urls";
   import MapChromeActionChip from "@ui/map-chrome/MapChromeActionChip.svelte";
   import "@ui/map-chrome/map-chrome.css";
 
+  // Oriented like the route page, so stop N here is pin N on the map.
   const route = $derived(
-    transitStore.getRoute(jeepneyStore.selectedRouteId),
+    transitStore.displayRoute(jeepneyStore.selectedRouteId),
   );
 
   const stopIndex = $derived(jeepneyStore.selectedStopIndex);
@@ -39,6 +42,28 @@
         ? "End of the loop (back at stop 1)"
         : `Stop ${stopIndex + 1} of ${distinctStopCount(route)}${loop ? " on the loop" : ""}`,
   );
+
+  const direction = $derived(
+    route ? activeDirection(route.id, transitStore.isReversed(route.id)) : null,
+  );
+
+  /** Every route serving this kerb, the open one first. */
+  const servingRoutes = $derived.by(() => {
+    if (!route || !stop) return [];
+    return routesAtStop(transitStore.routes, stop).sort(
+      (a, b) =>
+        Number(b.route.id === route.id) - Number(a.route.id === route.id),
+    );
+  });
+
+  function openServingRoute(event: MouseEvent, id: string) {
+    // Plain clicks stay in the app; modified clicks open the link normally.
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0)
+      return;
+    event.preventDefault();
+    jeepneyStore.openRouteOnMap(id);
+    jeepneyStore.closeStop();
+  }
 
   function openPreviousStop() {
     if (route === null || stopIndex === null || stopIndex <= 0) return;
@@ -75,12 +100,44 @@
         <EntityPanelClose ariaLabel="Close stop details" onclick={closeStop} />
       </div>
       <h2 class="entity-header__title">{stop.name}</h2>
-      <p class="entity-header__context">{stopPosition}</p>
+      <p class="entity-header__context">
+        {stopPosition}{direction ? ` · ${direction.label}` : ""}
+      </p>
       <MapChromeActionChip toolbar onclick={openRouteDetails}>
         <ChevronLeft size={14} aria-hidden="true" />
         Back to {route.name} route
       </MapChromeActionChip>
     </header>
+
+    {#if servingRoutes.length > 0}
+      <section class="jeepney-stop-panel__serving" aria-label="Routes at this stop">
+        <h3 class="jeepney-stop-panel__serving-title">Routes at this stop</h3>
+        <ul class="jeepney-stop-panel__chips">
+          {#each servingRoutes as entry (entry.route.id)}
+            <li>
+              <a
+                class="jeepney-stop-panel__chip"
+                href={getTransitRoutePath(entry.route.id)}
+                aria-current={entry.route.id === route.id ? "page" : undefined}
+                onclick={(event) => openServingRoute(event, entry.route.id)}
+              >
+                <span
+                  class="jeepney-stop-panel__chip-dot"
+                  style:background-color={entry.route.color}
+                  aria-hidden="true"
+                ></span>
+                <span class="jeepney-stop-panel__chip-name"
+                  >{entry.route.name}</span
+                >
+                <span class="jeepney-stop-panel__chip-direction"
+                  >{entry.direction}</span
+                >
+              </a>
+            </li>
+          {/each}
+        </ul>
+      </section>
+    {/if}
 
     <!-- Right under the header: in the half-open phone sheet these sat below
          the descriptions, out of reach without dragging the sheet up. -->
@@ -175,6 +232,92 @@
     text-overflow: ellipsis;
   }
 
+  .jeepney-stop-panel__serving {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    min-width: 0;
+  }
+
+  .jeepney-stop-panel__serving-title {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
+  }
+
+  .jeepney-stop-panel__chips {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    min-width: 0;
+  }
+
+  .jeepney-stop-panel__chips li {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .jeepney-stop-panel__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    max-width: 100%;
+    min-height: 2.25rem;
+    box-sizing: border-box;
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--theme-border, hsl(0, 0%, 84%));
+    border-radius: 999px;
+    background: var(--theme-surface, white);
+    color: var(--theme-text, hsl(0, 0%, 12%));
+    font-size: 0.8125rem;
+    text-decoration: none;
+  }
+
+  .jeepney-stop-panel__chip:hover {
+    border-color: var(--theme-accent-border, hsl(5, 40%, 72%));
+    background: var(--theme-accent-soft, hsl(5, 53%, 98%));
+  }
+
+  .jeepney-stop-panel__chip:focus-visible {
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
+    outline-offset: 1px;
+  }
+
+  .jeepney-stop-panel__chip[aria-current="page"] {
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background: var(--theme-accent-soft, hsl(5, 53%, 96%));
+  }
+
+  .jeepney-stop-panel__chip-dot {
+    flex-shrink: 0;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 50%;
+  }
+
+  .jeepney-stop-panel__chip-name {
+    font-weight: 700;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .jeepney-stop-panel__chip-direction {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
+    font-size: 0.75rem;
+  }
+
   .jeepney-stop-panel__coords {
     display: inline-flex;
     align-items: center;
@@ -182,14 +325,14 @@
     margin: 0;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
   }
 
   .jeepney-stop-panel__pager {
     display: inline-flex;
     gap: 0.25rem;
     padding-right: 0.5rem;
-    border-right: 1px solid hsl(0 0% 86%);
+    border-right: 1px solid var(--theme-border, hsl(0 0% 86%));
   }
 
   @media (max-width: 30rem) {
@@ -197,7 +340,7 @@
       width: 100%;
       padding: 0 0 0.5rem;
       border: 0;
-      border-bottom: 1px solid hsl(0 0% 86%);
+      border-bottom: 1px solid var(--theme-border, hsl(0 0% 86%));
     }
   }
 
