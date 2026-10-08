@@ -127,7 +127,7 @@
     type TravelMode,
   } from "@lib/travel-graph/engine";
   import { loadTravelGraph } from "@lib/travel-graph/load";
-  import { applyBasemapPalette } from "@lib/map-basemap-palette";
+  import { syncBasemapPalette } from "@lib/map-basemap-palette";
   import { getResolvedTheme, onThemeChange } from "@lib/theme";
   import { syncSatelliteLayer } from "@lib/map-satellite";
   import { pointsBounds } from "@lib/map-fit";
@@ -2500,23 +2500,13 @@
     const map = mapStore.mapInstance;
     if (!map) return;
 
-    let cancelled = false;
-    let loaded = false;
-    const applyPalette = () => {
-      loaded = true;
-      if (!cancelled) applyBasemapPalette(map, getResolvedTheme());
-    };
-    if (map.isStyleLoaded()) {
-      applyPalette();
-    } else {
-      map.once("load", applyPalette);
-    }
+    // Applies once the style's layers exist and whenever basemap layers are
+    // (re)added; see syncBasemapPalette for why "load" alone missed deep links.
+    const palette = syncBasemapPalette(map, getResolvedTheme);
     // Dark mode swaps the basemap palette live (Settings or the OS switch).
-    const offTheme = onThemeChange(() => {
-      if (loaded) applyPalette();
-    });
+    const offTheme = onThemeChange(palette.sync);
     return () => {
-      cancelled = true;
+      palette.stop();
       offTheme();
     };
   });
