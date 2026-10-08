@@ -59,6 +59,8 @@
   } from "@lib/keyboard-shortcuts";
   import { dismissEphemeralOverlays } from "@lib/overlay-stack";
   import { trackOverlay } from "@lib/track-overlay.svelte";
+  import { installMapOverlays, mapIsBare } from "@lib/map-overlay-sources.svelte";
+  import { mapOverlays } from "@lib/stores/map-overlays.svelte";
   import { openCampusBrowse } from "@lib/browse-campus";
   import { getTransitRoutePath, getTransitStopPath } from "@lib/transit-urls";
   import { shouldAutoOpenLandingModal } from "@lib/landing-modal-auto-open";
@@ -123,6 +125,8 @@
   const appData = getAppData();
 
   onMount(() => {
+    installMapOverlays();
+
     // Session state drives account-backed planner sync too. This belongs at the
     // app root: /planner renders without the map-only location control that
     // used to hydrate auth, so direct planner visits were treated as guests.
@@ -433,10 +437,6 @@
         editorChromeStore.closeAdditionModal();
       } else if (mapToolsStore.open) {
         mapToolsStore.close();
-      } else if (travelTimeStore.active) {
-        travelTimeStore.disable();
-      } else if (measureRouteStore.active) {
-        measureRouteStore.disable();
       } else if (jeepneyStore.selectedStopIndex !== null) {
         jeepneyStore.closeStop();
       } else if (queryStore.inputValue !== "" || queryStore.type === "result") {
@@ -444,6 +444,9 @@
         if (locationStore.destination) {
           locationStore.clearDestination();
         }
+      } else if (mapIsBare()) {
+        // Nothing open but the map: take the newest overlay off it.
+        mapOverlays.clearMostRecent();
       }
       sidePanelStore.closePanel();
     }
