@@ -103,17 +103,20 @@ test.describe("today day route", () => {
     });
   });
 
-  test("Map tools routes today's classes from the map", async ({ page }) => {
+  test("routes today's classes after opening Today from the map", async ({
+    page,
+  }) => {
     await prepareDayRoutePage(page);
     await page.goto("/");
     await waitForAppBoot(page);
 
-    // The day route moved into the Map tools toolbox with the chrome
-    // redesign. Hidden-not-disabled: the tool only exists with routable
-    // classes today.
-    await page.getByRole("button", { name: "Layers" }).first().click();
-    const tool = page.getByRole("button", { name: /Route my day/ });
-    await expect(tool).toBeVisible({ timeout: 30_000 });
+    // Day routing lives in Today, not in Layers (the Layers sheet only holds
+    // map type and details). Reach Today the way a visitor does, from the map.
+    await openDestination(page, /^today$/i);
+    const today = page.getByRole("dialog", { name: "Today" });
+    await expect(today).toBeVisible();
+    const tool = today.getByRole("button", { name: "Route my day" });
+    await expect(tool).toBeEnabled({ timeout: 30_000 });
     await tool.click();
     await expect(page.locator(".schedule-route-stop-pin")).toHaveCount(2, {
       timeout: 30_000,
