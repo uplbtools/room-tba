@@ -300,6 +300,6 @@ describe("LeaderboardPanel", () => {
       await screen.findByRole("heading", { name: "Buildings needing work" }),
     ).toBeTruthy();
     expect(screen.getByText("Missing 6 directions, 9 room pins")).toBeTruthy();
-    expect(container.textContent).not.toContain("·");
+    expect(container.textContent).not.toContain("\u00b7");
   });
 });

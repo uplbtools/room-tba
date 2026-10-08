@@ -69,7 +69,7 @@ describe("How Room TBA works", () => {
     openFromMenu();
     const text = document.body.textContent ?? "";
     expect(text).not.toMatch(/visitors?|stars? on github/i);
-    expect(text).not.toContain("·");
+    expect(text).not.toContain("\u00b7");
     expect(screen.getByRole("link", { name: "Privacy" })).toHaveAttribute(
       "href",
       "/privacy",
