@@ -99,19 +99,31 @@
     flex-direction: column;
     gap: 0.5rem;
   }
+  .review-filters-search,
+  .review-filters-row select {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 2.5rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--theme-border-strong, hsl(0, 0%, 75%));
+    border-radius: 0.5rem;
+    background: var(--theme-surface, #fff);
+    color: var(--theme-text, hsl(0, 0%, 12%));
+    font: inherit;
+    font-size: 0.875rem;
+  }
   .review-filters-search {
     width: 100%;
-    box-sizing: border-box;
-    min-height: 2.5rem;
+  }
+  .review-filters-search:focus-visible,
+  .review-filters-row select:focus-visible {
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
+    outline-offset: 1px;
   }
   .review-filters-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
     gap: 0.5rem;
-  }
-  .review-filters-row select {
-    min-width: 0;
-    min-height: 2.5rem;
   }
   .review-filters-summary {
     margin: 0;

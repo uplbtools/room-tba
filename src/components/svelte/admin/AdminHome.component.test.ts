@@ -77,7 +77,7 @@ describe("AdminHome (auth audit item 15)", () => {
   });
 
   test("contributor: sends an in-app editor access request", async () => {
-    const fn = stub((url, init) => {
+    const fn = stub((_url, init) => {
       if (init?.method === "POST") {
         return new Response(
           JSON.stringify({

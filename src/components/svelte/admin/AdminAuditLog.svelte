@@ -100,7 +100,7 @@
           <small class="audit-meta">
             {when(entry.createdAt)}{entry.actorLabel
               ? `, by ${entry.actorLabel}`
-              : ""}{entry.ip ? `, ${entry.ip}` : ""}
+              : ""}{entry.ip && entry.ip !== "unknown" ? `, ${entry.ip}` : ""}
           </small>
         </li>
       {/each}

@@ -84,7 +84,9 @@ describe("ManageUsersModal (auth audit items 18 and 19)", () => {
     await fireEvent.click(screen.getByRole("button", { name: "Make admin" }));
     await waitFor(() => expect(patchCalls()).toHaveLength(1));
     expect(
-      JSON.parse(String((patchCalls()[0]?.[1] as RequestInit).body)),
+      JSON.parse(
+        String((patchCalls()[0]?.[1] as RequestInit | undefined)?.body),
+      ),
     ).toEqual({
       role: "admin",
     });

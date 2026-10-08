@@ -38,10 +38,15 @@ test.describe("admin landing page", () => {
     await expect(
       page.getByRole("link", { name: "Open review queue" }),
     ).toHaveAttribute("href", "/?review=1");
-    await expect(page.getByRole("link", { name: "Manage users" })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Manage users" }),
+    ).toBeVisible();
     // The sign-in this test just did is the newest audit entry.
     await expect(
-      page.getByRole("list", { name: "Audit log entries" }).getByText("Signed in").first(),
+      page
+        .getByRole("list", { name: "Audit log entries" })
+        .getByText("Signed in")
+        .first(),
     ).toBeVisible();
   });
 
