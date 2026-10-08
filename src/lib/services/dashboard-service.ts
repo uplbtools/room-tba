@@ -9,10 +9,16 @@ import {
   type PendingAccessRequest,
 } from "@lib/services/access-request-service";
 import { DIGEST_JOB, listStaffRecipients } from "@lib/services/digest-service";
-import { type CronRunRow, latestCronRuns } from "@lib/services/cron-run-service";
+import {
+  type CronRunRow,
+  latestCronRuns,
+} from "@lib/services/cron-run-service";
 import { getNotificationPreferences } from "@lib/services/notification-preferences-service";
 import { countPendingProposals } from "@lib/services/proposal-service";
-import { getMfaStatus, type MfaStatus } from "@lib/services/staff-security-service";
+import {
+  getMfaStatus,
+  type MfaStatus,
+} from "@lib/services/staff-security-service";
 
 export type RecentActivity = {
   id: number;
@@ -40,7 +46,10 @@ export type StaffDashboard = {
   accessRequests: PendingAccessRequest[] | null;
 };
 
-async function settle<T>(label: string, work: () => Promise<T>): Promise<T | null> {
+async function settle<T>(
+  label: string,
+  work: () => Promise<T>,
+): Promise<T | null> {
   try {
     return await work();
   } catch (error) {
@@ -55,34 +64,47 @@ function stripRedundantActor(actor: string): string {
   return match?.[1] ?? actor;
 }
 
-export async function getStaffDashboard(user: SessionUser): Promise<StaffDashboard> {
+export async function getStaffDashboard(
+  user: SessionUser,
+): Promise<StaffDashboard> {
   const isAdmin = user.role === "admin";
-  const [pendingReviews, recent, runs, recipients, prefs, email, outbox, mfa, access] =
-    await Promise.all([
-      settle("pending", countPendingProposals),
-      settle("activity", () =>
-        db
-          .select({
-            id: editorHistoryTable.id,
-            entityType: editorHistoryTable.entityType,
-            entityId: editorHistoryTable.entityId,
-            action: editorHistoryTable.action,
-            editedBy: editorHistoryTable.editedBy,
-            summary: editorHistoryTable.summary,
-            createdAt: editorHistoryTable.createdAt,
-          })
-          .from(editorHistoryTable)
-          .orderBy(desc(editorHistoryTable.createdAt))
-          .limit(8),
-      ),
-      settle("digest-runs", () => latestCronRuns(DIGEST_JOB, 3)),
-      settle("digest-recipients", () => listStaffRecipients("digest")),
-      settle("prefs", () => getNotificationPreferences(user.id)),
-      settle("email", emailHealth),
-      settle("outbox", outboxHealth),
-      settle("mfa", () => getMfaStatus(user)),
-      isAdmin ? settle("access", listPendingAccessRequests) : Promise.resolve(null),
-    ]);
+  const [
+    pendingReviews,
+    recent,
+    runs,
+    recipients,
+    prefs,
+    email,
+    outbox,
+    mfa,
+    access,
+  ] = await Promise.all([
+    settle("pending", countPendingProposals),
+    settle("activity", () =>
+      db
+        .select({
+          id: editorHistoryTable.id,
+          entityType: editorHistoryTable.entityType,
+          entityId: editorHistoryTable.entityId,
+          action: editorHistoryTable.action,
+          editedBy: editorHistoryTable.editedBy,
+          summary: editorHistoryTable.summary,
+          createdAt: editorHistoryTable.createdAt,
+        })
+        .from(editorHistoryTable)
+        .orderBy(desc(editorHistoryTable.createdAt))
+        .limit(8),
+    ),
+    settle("digest-runs", () => latestCronRuns(DIGEST_JOB, 3)),
+    settle("digest-recipients", () => listStaffRecipients("digest")),
+    settle("prefs", () => getNotificationPreferences(user.id)),
+    settle("email", emailHealth),
+    settle("outbox", outboxHealth),
+    settle("mfa", () => getMfaStatus(user)),
+    isAdmin
+      ? settle("access", listPendingAccessRequests)
+      : Promise.resolve(null),
+  ]);
 
   return {
     pendingReviews,

@@ -31,7 +31,8 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
     const decided = await decideAccessRequest(id, body.decision, auth.session);
     const ip = clientIp(request);
     await recordAudit({
-      action: body.decision === "approved" ? "access.approved" : "access.declined",
+      action:
+        body.decision === "approved" ? "access.approved" : "access.declined",
       actor: auth.session,
       targetUserId: decided.userId,
       targetLabel: decided.username,

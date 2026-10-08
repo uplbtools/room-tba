@@ -79,7 +79,7 @@ export const POST: APIRoute = async ({ request }) => {
   const done: LoginStep[] = [...challenge.done];
   let open = remainingSteps(plan.steps, done);
   const step = open[0];
-  const extra: Record<string, unknown> = {};
+  const extra: { recoveryCodes?: string[] } = {};
 
   try {
     switch (str(body.action)) {

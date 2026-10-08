@@ -130,7 +130,7 @@ export async function retryDueNotifications(
     )
     RETURNING id
   `);
-  const ids = claimed.rows.map((r) => Number(r.id));
+  const ids = claimed.rows.map((r: { id: number }) => Number(r.id));
   let sent = 0;
   for (const id of ids) {
     const [row] = await db

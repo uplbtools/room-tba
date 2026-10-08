@@ -19,7 +19,8 @@ export const GET: APIRoute = async ({ cookies, url }) => {
     });
     return json(page);
   } catch (error) {
-    if (isMissingSchemaError(error)) return json({ entries: [], nextBefore: null });
+    if (isMissingSchemaError(error))
+      return json({ entries: [], nextBefore: null });
     console.error("Audit log read failed:", error);
     return json({ error: "Could not load the audit log." }, 500);
   }

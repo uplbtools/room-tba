@@ -16,6 +16,11 @@ import {
   roomsTable,
 } from "@drizzle/schema";
 import { normalizeAlias } from "@lib/site";
+import { escapeLikePattern } from "@lib/like-escape";
+import {
+  encodeReviewCursor,
+  type ReviewQueueQuery,
+} from "@lib/proposals/review-queue-params";
 import type { SessionUser } from "@lib/admin/auth";
 import { db } from "@lib/db";
 import {
@@ -424,7 +429,279 @@ export async function listPendingProposals(): Promise<EditProposalSummary[]> {
     )
     .orderBy(desc(editProposalsTable.createdAt));
 
-  return Promise.all(rows.map(withEntityLabel));
+  return withEntityLabels(rows);
+}
+
+// ── Batched review queue (auth audit item 17) ──
+// One query per entity type on the page instead of one or two per proposal.
+
+const UPDATE_ENTITY_TABLES = {
+  building: { table: buildingsTable, label: "buildingName", noun: "Building" },
+  dorm: { table: dormsTable, label: "dormName", noun: "Dorm" },
+  place: { table: placesTable, label: "name", noun: "Place" },
+  room: { table: roomsTable, label: "roomCode", noun: "Room" },
+  college: { table: collegesTable, label: "collegeName", noun: "College" },
+  division: { table: divisionsTable, label: "divisionName", noun: "Division" },
+  event: { table: eventsTable, label: "title", noun: "Event" },
+  event_locations: { table: eventsTable, label: "title", noun: "Event" },
+  organization: {
+    table: organizationsTable,
+    label: "name",
+    noun: "Organization",
+  },
+  jeepney_stop: {
+    table: jeepneyStopsTable,
+    label: "name",
+    noun: "Jeepney stop",
+  },
+} as const satisfies Record<
+  ProposalUpdateType,
+  { table: unknown; label: string; noun: string }
+>;
+
+type EntityRow = Record<string, unknown>;
+
+/** Published rows for every update proposal on the page, keyed type then id. */
+async function loadEntityRows(
+  rows: EditProposalRow[],
+  withLocations: boolean,
+): Promise<Map<string, Map<number, EntityRow>>> {
+  const idsByType = new Map<ProposalUpdateType, Set<number>>();
+  for (const row of rows) {
+    if (!isUpdateProposalType(row.entityType)) continue;
+    const ids = idsByType.get(row.entityType) ?? new Set<number>();
+    ids.add(row.entityId);
+    idsByType.set(row.entityType, ids);
+  }
+  const out = new Map<string, Map<number, EntityRow>>();
+  await Promise.all(
+    [...idsByType].map(async ([type, ids]) => {
+      const { table } = UPDATE_ENTITY_TABLES[type];
+      const idColumn = (table as unknown as { id: typeof buildingsTable.id })
+        .id;
+      const found = (await db
+        .select()
+        .from(table as typeof buildingsTable)
+        .where(inArray(idColumn, [...ids]))) as unknown as EntityRow[];
+      const byId = new Map<number, EntityRow>();
+      for (const entity of found)
+        byId.set(Number((entity as { id?: unknown }).id), entity);
+      if (type === "event_locations" && withLocations && byId.size > 0) {
+        const locations = await db
+          .select()
+          .from(eventLocationsTable)
+          .where(inArray(eventLocationsTable.eventId, [...byId.keys()]))
+          .orderBy(eventLocationsTable.sortOrder, eventLocationsTable.id);
+        for (const [eventId, entity] of byId) {
+          byId.set(eventId, {
+            ...entity,
+            locations: locations.filter((l) => l.eventId === eventId),
+          });
+        }
+      }
+      out.set(type, byId);
+    }),
+  );
+  return out;
+}
+
+/** Building names that create_room labels mention, in one query. */
+async function loadCreateRoomBuildingNames(
+  rows: EditProposalRow[],
+): Promise<Map<number, string>> {
+  const ids = new Set<number>();
+  for (const row of rows) {
+    if (row.entityType !== "create_room") continue;
+    const buildingId = Number(
+      (row.proposedPatch as { buildingId?: unknown } | null)?.buildingId,
+    );
+    if (Number.isInteger(buildingId) && buildingId >= 1) ids.add(buildingId);
+  }
+  if (ids.size === 0) return new Map();
+  const found = await db
+    .select({ id: buildingsTable.id, name: buildingsTable.buildingName })
+    .from(buildingsTable)
+    .where(inArray(buildingsTable.id, [...ids]));
+  return new Map(found.map((b) => [b.id, b.name]));
+}
+
+function batchedLabel(
+  row: EditProposalRow,
+  entities: Map<string, Map<number, EntityRow>>,
+  buildingNames: Map<number, string>,
+): Promise<string> | string {
+  if (isUpdateProposalType(row.entityType)) {
+    const spec = UPDATE_ENTITY_TABLES[row.entityType];
+    const entity = entities.get(row.entityType)?.get(row.entityId);
+    const label = entity?.[spec.label];
+    return typeof label === "string" && label
+      ? label
+      : `${spec.noun} #${row.entityId}`;
+  }
+  if (row.entityType === "create_room") {
+    const p = (row.proposedPatch ?? {}) as {
+      roomCode?: unknown;
+      buildingId?: unknown;
+    };
+    const code =
+      typeof p.roomCode === "string" && p.roomCode.trim()
+        ? p.roomCode.trim()
+        : null;
+    const building = buildingNames.get(Number(p.buildingId));
+    if (code && building) return `New room: ${code} (${building})`;
+    return code ? `New room: ${code}` : "New room";
+  }
+  // Other create_* labels come from the patch alone (no query).
+  return getEntityLabel(
+    row.entityType as ProposalEntityType,
+    row.entityId,
+    row.proposedPatch as Record<string, unknown>,
+  );
+}
+
+export async function withEntityLabels(
+  rows: EditProposalRow[],
+): Promise<EditProposalSummary[]> {
+  const [entities, buildingNames] = await Promise.all([
+    loadEntityRows(rows, false),
+    loadCreateRoomBuildingNames(rows),
+  ]);
+  return Promise.all(
+    rows.map(async (row) => ({
+      ...row,
+      entityLabel: await batchedLabel(row, entities, buildingNames),
+    })),
+  );
+}
+
+/** Labels plus current published values for the diff, batched. */
+async function withReviewContext(
+  rows: EditProposalRow[],
+): Promise<ReviewProposalSummary[]> {
+  const [entities, buildingNames] = await Promise.all([
+    loadEntityRows(rows, true),
+    loadCreateRoomBuildingNames(rows),
+  ]);
+  return Promise.all(
+    rows.map(async (row) => {
+      const entityLabel = await batchedLabel(row, entities, buildingNames);
+      const current = isUpdateProposalType(row.entityType)
+        ? entities.get(row.entityType)?.get(row.entityId)
+        : undefined;
+      if (!current) {
+        return {
+          ...row,
+          entityLabel,
+          currentValues: null,
+          currentVersion: null,
+        };
+      }
+      const patch = row.proposedPatch as Record<string, unknown>;
+      const currentValues = Object.fromEntries(
+        Object.keys(patch)
+          .filter((key) => key in current)
+          .map((key) => [key, current[key]]),
+      );
+      const version = current.version;
+      return {
+        ...row,
+        entityLabel,
+        currentValues,
+        currentVersion: typeof version === "number" ? version : null,
+      };
+    }),
+  );
+}
+
+/** Proposals whose entity label matches `pattern`, as a SQL condition. */
+function labelSearchCondition(pattern: string) {
+  return sql.join(
+    Object.entries(UPDATE_ENTITY_TABLES).map(([type, spec]) => {
+      const table = spec.table as unknown as Record<string, unknown>;
+      const idColumn = table.id as typeof buildingsTable.id;
+      const labelColumn = table[
+        spec.label
+      ] as typeof buildingsTable.buildingName;
+      return sql`(${editProposalsTable.entityType} = ${type} AND ${editProposalsTable.entityId} IN (SELECT ${idColumn} FROM ${spec.table as typeof buildingsTable} WHERE ${labelColumn} ILIKE ${pattern}))`;
+    }),
+    sql` OR `,
+  );
+}
+
+export type ReviewQueuePage = {
+  proposals: ReviewProposalSummary[];
+  nextCursor: string | null;
+  /** Matching proposals across all pages (with the filters applied). */
+  matchCount: number;
+  /** Submitters with open proposals, for the filter menu. */
+  submitters: string[];
+};
+
+export async function listReviewQueue(
+  query: ReviewQueueQuery,
+): Promise<ReviewQueuePage> {
+  const conditions = [
+    inArray(editProposalsTable.status, ["pending", "needs_changes"] as const),
+  ];
+  if (query.entityType) {
+    conditions.push(eq(editProposalsTable.entityType, query.entityType));
+  }
+  if (query.submitter) {
+    conditions.push(eq(editProposalsTable.submitterName, query.submitter));
+  }
+  if (query.olderThanDays) {
+    conditions.push(
+      sql`${editProposalsTable.createdAt} <= now() - make_interval(days => ${query.olderThanDays})`,
+    );
+  }
+  if (query.q) {
+    const pattern = `%${escapeLikePattern(query.q)}%`;
+    conditions.push(
+      sql`(${editProposalsTable.submitterName} ILIKE ${pattern} OR ${editProposalsTable.submitterNote} ILIKE ${pattern} OR ${editProposalsTable.proposedPatch}::text ILIKE ${pattern} OR ${labelSearchCondition(pattern)})`,
+    );
+  }
+  const filtered = and(...conditions);
+  const pageConditions = query.cursor
+    ? and(
+        filtered,
+        sql`(${editProposalsTable.createdAt}, ${editProposalsTable.id}) < (${query.cursor.createdAt}::timestamp, ${query.cursor.id})`,
+      )
+    : filtered;
+
+  const [rows, [countRow], submitterRows] = await Promise.all([
+    db
+      .select()
+      .from(editProposalsTable)
+      .where(pageConditions)
+      .orderBy(desc(editProposalsTable.createdAt), desc(editProposalsTable.id))
+      .limit(query.limit + 1),
+    db
+      .select({ c: sql<number>`count(*)` })
+      .from(editProposalsTable)
+      .where(filtered),
+    db
+      .selectDistinct({ name: editProposalsTable.submitterName })
+      .from(editProposalsTable)
+      .where(
+        inArray(editProposalsTable.status, [
+          "pending",
+          "needs_changes",
+        ] as const),
+      )
+      .orderBy(editProposalsTable.submitterName),
+  ]);
+
+  const page = rows.slice(0, query.limit);
+  const last = page[page.length - 1];
+  return {
+    proposals: await withReviewContext(page),
+    nextCursor:
+      rows.length > query.limit && last
+        ? encodeReviewCursor({ createdAt: last.createdAt, id: last.id })
+        : null,
+    matchCount: Number(countRow?.c ?? 0),
+    submitters: submitterRows.map((r) => r.name),
+  };
 }
 
 export async function getCurrentEntityValues(
@@ -532,33 +809,14 @@ export type ReviewProposalSummary = EditProposalSummary & {
 export async function listPendingProposalsForReview(): Promise<
   ReviewProposalSummary[]
 > {
-  const rows = await listPendingProposals();
-  return Promise.all(
-    rows.map(async (row) => {
-      if (isCreateProposalType(row.entityType)) {
-        return { ...row, currentValues: null, currentVersion: null };
-      }
-      const current = await getCurrentEntityValues(
-        row.entityType as ProposalUpdateType,
-        row.entityId,
-      );
-      if (!current) {
-        return { ...row, currentValues: null, currentVersion: null };
-      }
-      const patch = row.proposedPatch as Record<string, unknown>;
-      const currentValues = Object.fromEntries(
-        Object.keys(patch)
-          .filter((key) => key in current)
-          .map((key) => [key, current[key]]),
-      );
-      const version = current.version;
-      return {
-        ...row,
-        currentValues,
-        currentVersion: typeof version === "number" ? version : null,
-      };
-    }),
-  );
+  const rows = await db
+    .select()
+    .from(editProposalsTable)
+    .where(
+      inArray(editProposalsTable.status, ["pending", "needs_changes"] as const),
+    )
+    .orderBy(desc(editProposalsTable.createdAt));
+  return withReviewContext(rows);
 }
 
 export async function countPendingProposals(): Promise<number> {

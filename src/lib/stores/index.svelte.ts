@@ -533,6 +533,12 @@ class JeepneyStore {
   };
 }
 
+import {
+  EMPTY_REVIEW_FILTERS,
+  type ReviewQueueFilters,
+  reviewQueueSearchParams,
+} from "@lib/proposals/review-queue-params";
+
 export type LoginStepState = {
   step: "mfa" | "enroll_mfa" | "change_password";
   steps: string[];
@@ -715,7 +721,11 @@ class AdminAuthStore {
 
   /** Answer the open login step. Resolves to an error message or null. */
   submitLoginStep = async (
-    action: "verify_mfa" | "enroll_start" | "enroll_confirm" | "change_password",
+    action:
+      | "verify_mfa"
+      | "enroll_start"
+      | "enroll_confirm"
+      | "change_password",
     fields: { code?: string; newPassword?: string } = {},
   ): Promise<string | null> => {
     const current = this.loginStep;
@@ -735,9 +745,9 @@ class AdminAuthStore {
             action === "change_password" ? this._pendingPassword : undefined,
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as Partial<
-        LoginStepState
-      > & {
+      const data = (await res
+        .json()
+        .catch(() => ({}))) as Partial<LoginStepState> & {
         error?: string;
         success?: boolean;
         username?: string;
@@ -760,12 +770,15 @@ class AdminAuthStore {
           step: data.step,
           steps: data.steps ?? [data.step],
           challenge: data.challenge,
-          secret: data.secret ?? (data.step === current.step ? current.secret : undefined),
+          secret:
+            data.secret ??
+            (data.step === current.step ? current.secret : undefined),
           otpauthUri:
             data.otpauthUri ??
             (data.step === current.step ? current.otpauthUri : undefined),
         };
-        if (data.recoveryCodes?.length) this.loginRecoveryCodes = data.recoveryCodes;
+        if (data.recoveryCodes?.length)
+          this.loginRecoveryCodes = data.recoveryCodes;
       }
       return null;
     } catch {
@@ -979,29 +992,84 @@ class ProposalsStore {
     }>
   >([]);
 
+  /** Review queue filters (auth audit item 17); applied server-side. */
+  filters = $state<ReviewQueueFilters>({ ...EMPTY_REVIEW_FILTERS });
+  /** Keyset cursor for the next page, null on the last page. */
+  nextCursor = $state<string | null>(null);
+  /** Proposals matching the filters across all pages. */
+  matchCount = $state(0);
+  /** Submitters with open proposals, for the filter menu. */
+  submitters = $state<string[]>([]);
+  loadingMore = $state(false);
+
+  private async fetchPage(cursor: string | null) {
+    const params = reviewQueueSearchParams(this.filters, cursor);
+    const qs = params.toString();
+    const res = await fetch(`/api/admin/proposals${qs ? `?${qs}` : ""}`, {
+      credentials: "same-origin",
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as {
+      pendingCount?: number;
+      proposals?: ProposalsStore["proposals"];
+      nextCursor?: string | null;
+      matchCount?: number;
+      submitters?: string[];
+    };
+  }
+
   refresh = async () => {
     if (!adminAuthStore.canReview) {
       this.pendingCount = 0;
       this.proposals = [];
+      this.nextCursor = null;
       return;
     }
     this.loading = true;
     try {
-      const res = await fetch("/api/admin/proposals", {
-        credentials: "same-origin",
-      });
-      if (!res.ok) return;
-      const data = (await res.json()) as {
-        pendingCount?: number;
-        proposals?: ProposalsStore["proposals"];
-      };
+      const data = await this.fetchPage(null);
+      if (!data) return;
       this.pendingCount = data.pendingCount ?? 0;
       this.proposals = data.proposals ?? [];
+      this.nextCursor = data.nextCursor ?? null;
+      this.matchCount = data.matchCount ?? this.proposals.length;
+      this.submitters = data.submitters ?? [];
     } catch {
       // ignore
     } finally {
       this.loading = false;
     }
+  };
+
+  /** Append the next page of the current filter. */
+  loadMore = async () => {
+    if (!this.nextCursor || this.loadingMore) return;
+    this.loadingMore = true;
+    try {
+      const data = await this.fetchPage(this.nextCursor);
+      if (!data) return;
+      const seen = new Set(this.proposals.map((p) => p.id));
+      this.proposals = [
+        ...this.proposals,
+        ...(data.proposals ?? []).filter((p) => !seen.has(p.id)),
+      ];
+      this.nextCursor = data.nextCursor ?? null;
+      this.pendingCount = data.pendingCount ?? this.pendingCount;
+    } catch {
+      // ignore
+    } finally {
+      this.loadingMore = false;
+    }
+  };
+
+  setFilters = (patch: Partial<ReviewQueueFilters>) => {
+    this.filters = { ...this.filters, ...patch };
+    void this.refresh();
+  };
+
+  clearFilters = () => {
+    this.filters = { ...EMPTY_REVIEW_FILTERS };
+    void this.refresh();
   };
 
   toggle = () => {

@@ -1,24 +1,32 @@
 import type { APIRoute } from "astro";
 import { editorSessionOrUnauthorized } from "@lib/admin/require-editor";
+import { parseReviewQueueQuery } from "@lib/proposals/review-queue-params";
 import {
   countPendingProposals,
-  listPendingProposalsForReview,
+  listReviewQueue,
+  PROPOSAL_ENTITY_TYPES,
 } from "@lib/services/proposal-service";
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ cookies }) => {
+/**
+ * Review queue page (auth audit item 17): filters `entityType`,
+ * `submitter`, `olderThanDays`, `q`, keyset `cursor`, `limit`.
+ * `pendingCount` is always the whole open queue, for the badge.
+ */
+export const GET: APIRoute = async ({ cookies, url }) => {
   const auth = await editorSessionOrUnauthorized(cookies, {
     requireReview: true,
   });
   if (auth instanceof Response) return auth;
 
-  const [proposals, pendingCount] = await Promise.all([
-    listPendingProposalsForReview(),
+  const query = parseReviewQueueQuery(url.searchParams, PROPOSAL_ENTITY_TYPES);
+  const [page, pendingCount] = await Promise.all([
+    listReviewQueue(query),
     countPendingProposals(),
   ]);
 
-  return json({ proposals, pendingCount });
+  return json({ ...page, pendingCount });
 };
 
 function json(body: unknown, status = 200) {

@@ -18,8 +18,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   // /admin itself is a landing page that also serves signed-out and
   // non-staff visitors (roles explainer); only deeper pages need a session.
-  const isAdminPage =
-    pathname.startsWith("/admin/") && pathname !== "/admin/";
+  const isAdminPage = pathname.startsWith("/admin/") && pathname !== "/admin/";
   const isAdminApi =
     pathname.startsWith("/api/admin") && pathname !== "/api/admin/auth";
 

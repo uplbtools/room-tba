@@ -152,7 +152,7 @@
               id="login-step-code"
               autocomplete="one-time-code"
               inputmode="numeric"
-              pattern="[0-9 ]{6,7}"
+              pattern={"[0-9 ]{6,7}"}
               maxlength="7"
               bind:value={code}
               required

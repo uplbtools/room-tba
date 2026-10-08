@@ -67,9 +67,7 @@ async function adminEmails(): Promise<string[]> {
         sql`${adminUsersTable.email} <> ''`,
       ),
     );
-  return rows
-    .map((r) => r.email?.trim().toLowerCase() ?? "")
-    .filter(Boolean);
+  return rows.map((r) => r.email?.trim().toLowerCase() ?? "").filter(Boolean);
 }
 
 async function notifyAdmins(payload: AccessRequestedPayload): Promise<void> {
@@ -113,7 +111,10 @@ export async function createAccessRequest(
   rawMessage: string,
 ): Promise<MyAccessRequest> {
   if (user.role !== "contributor") {
-    throw new AccountActionError("Your account already has editor access.", 409);
+    throw new AccountActionError(
+      "Your account already has editor access.",
+      409,
+    );
   }
   const message = rawMessage.trim();
   if (message.length < 10) {
@@ -144,7 +145,8 @@ export async function createAccessRequest(
     }
     throw error;
   }
-  if (!created) throw new AccountActionError("Could not save the request.", 500);
+  if (!created)
+    throw new AccountActionError("Could not save the request.", 500);
   await notifyAdmins({
     requestId: created.id,
     username: user.username,
@@ -160,7 +162,9 @@ export async function createAccessRequest(
   };
 }
 
-export async function listPendingAccessRequests(): Promise<PendingAccessRequest[]> {
+export async function listPendingAccessRequests(): Promise<
+  PendingAccessRequest[]
+> {
   const rows = await db
     .select({
       id: editorAccessRequestsTable.id,
