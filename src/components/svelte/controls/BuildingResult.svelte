@@ -135,6 +135,27 @@
   let photoEl = $state<HTMLElement | null>(null);
   let tabsEl = $state<HTMLElement | null>(null);
 
+  // The tab strip sticks under the sticky place header so every tab stays
+  // reachable after a jump. Track the header's height (it shrinks once the
+  // sheet scrolls) for the strip's offset and the jump's scroll margin.
+  $effect(() => {
+    const header = tabsEl?.previousElementSibling;
+    const host = tabsEl?.parentElement;
+    if (!header || !host || typeof ResizeObserver === "undefined") return;
+    const sync = () => {
+      const top = header.getBoundingClientRect().height;
+      tabsEl?.style.setProperty("--place-header-h", `${top}px`);
+      host.style.setProperty(
+        "--place-sticky-h",
+        `${top + (tabsEl?.getBoundingClientRect().height ?? 0)}px`,
+      );
+    };
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(header);
+    return () => ro.disconnect();
+  });
+
   async function selectTab(id: string) {
     activeTab = id;
     if (id !== "overview") sidePanelStore.requestSheetSnap("expanded");
@@ -732,7 +753,7 @@
     </PlaceSheetHeader>
 
     {#if !editing}
-      <div bind:this={tabsEl}>
+      <div class="building-tabs" bind:this={tabsEl}>
         <PlaceSheetTabs
           tabs={PLACE_TABS}
           active={activeTab}
@@ -1039,10 +1060,28 @@
   @import "../editor/entity-editor.css";
   @import "../map-chrome/map-chrome.css";
 
-  /* Leave room for the sticky place header when a tab scrolls here. */
+  /* Leave room for the sticky header and tab strip when a tab scrolls here. */
   .building-photo-anchor,
   .building-rooms-anchor {
-    scroll-margin-top: 7.5rem;
+    scroll-margin-top: var(--place-sticky-h, 10.5rem);
+  }
+
+  .building-tabs {
+    position: sticky;
+    top: var(--place-header-h, 6.5rem);
+    z-index: 3;
+    background: var(--entity-sheet-bg, var(--theme-surface, #fff));
+  }
+
+  /* Landscape phones leave too little height to pin the strip. */
+  @media (max-height: 480px) {
+    .building-tabs {
+      position: static;
+    }
+    .building-photo-anchor,
+    .building-rooms-anchor {
+      scroll-margin-top: 7.5rem;
+    }
   }
 
   .building-orgs {
