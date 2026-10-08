@@ -26,7 +26,9 @@ describe("enhanceWikiHtml", () => {
 
   test("keeps existing ids and adds permalinks", () => {
     const out = enhanceWikiHtml(html).html;
-    expect(out).toContain('<h2 id="first">First<a class="heading-anchor" href="#first"');
+    expect(out).toContain(
+      '<h2 id="first">First<a class="heading-anchor" href="#first"',
+    );
     expect(out).toContain('aria-label="Permalink to First"');
   });
 

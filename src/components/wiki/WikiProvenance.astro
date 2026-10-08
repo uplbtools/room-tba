@@ -27,7 +27,8 @@ const dateFormat = new Intl.DateTimeFormat("en-PH", { dateStyle: "long" });
 const format = (iso: string | null) =>
   iso ? dateFormat.format(new Date(iso)) : null;
 const lastEditedLabel = format(lastEdited);
-const dataChangedLabel = format(dataProvenance?.lastEdited ?? null);
+const dataIso = dataProvenance?.lastEdited ?? undefined;
+const dataChangedLabel = format(dataIso ?? null);
 ---
 
 <div class="wiki-provenance">
@@ -75,20 +76,17 @@ const dataChangedLabel = format(dataProvenance?.lastEdited ?? null);
   {
     unverifiedDataPath && (
       <p class="wiki-provenance__verify" role="note">
-        <strong>Needs verification.</strong> These values come from Room TBA's
-        own data file, not from a published official notice.{" "}
-        {dataProvenance?.lastEdited && dataChangedLabel ? (
-          <>
-            Last updated in Room TBA on{" "}
-            <time datetime={dataProvenance.lastEdited}>{dataChangedLabel}</time>.{" "}
-          </>
-        ) : null}
-        Confirm with the office concerned before relying on them, and{" "}
-        {correctionUrl ? (
+        <strong>Needs verification.</strong> These values come from Room TBA’s
+        own data file, not from a published official notice.
+        {dataChangedLabel && (
+          <span>
+            Last updated in Room TBA on <time datetime={dataIso}>{dataChangedLabel}</time>.
+          </span>
+        )}
+        Confirm with the office concerned before relying on them, and
+        {correctionUrl && (
           <a class="wiki-link" href={correctionUrl} target="_blank" rel="noopener noreferrer">report a correction</a>
-        ) : (
-          "report a correction"
-        )}{" "}
+        )}
         if one is out of date.
       </p>
     )

@@ -15,7 +15,10 @@ export function extractIds(html: string): Set<string> {
 }
 
 /** dist file for a site path, or null when nothing is served there. */
-export function resolveBuiltFile(distDir: string, pathname: string): string | null {
+export function resolveBuiltFile(
+  distDir: string,
+  pathname: string,
+): string | null {
   const clean = decodeURIComponent(pathname).replace(/^\/+/, "");
   const candidates = [
     join(distDir, clean, "index.html"),
@@ -63,12 +66,15 @@ export function checkWikiLinks(
     const html = readFileSync(file, "utf8");
     const from = `/${file.slice(distDir.length + 1).replace(/index\.html$/, "")}`;
     for (const href of new Set(extractHrefs(html))) {
-      if (!href || /^(https?:|mailto:|tel:|data:|javascript:)/.test(href)) continue;
+      if (!href || /^(https?:|mailto:|tel:|data:|javascript:)/.test(href))
+        continue;
       const url = new URL(href, `https://example.test${from}`);
       if (url.host !== "example.test") continue;
-      const target = url.pathname === from ? file : resolveBuiltFile(distDir, url.pathname);
+      const target =
+        url.pathname === from ? file : resolveBuiltFile(distDir, url.pathname);
       if (!target) {
-        if (knownElsewhere.some((pattern) => pattern.test(url.pathname))) continue;
+        if (knownElsewhere.some((pattern) => pattern.test(url.pathname)))
+          continue;
         broken.push({ from, href, reason: "page not found" });
         continue;
       }

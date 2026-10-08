@@ -139,7 +139,7 @@ const structuredData = [
     <header class="wiki-masthead">
       <a class="wiki-brand" href="/wiki">
         <img
-          src="/pwa-64x64.png"
+          src="/favicon.svg"
           alt=""
           width="28"
           height="28"
@@ -198,9 +198,9 @@ const structuredData = [
 </Layout>
 
 <style is:global>
-  /* Hallmark · genre: editorial · macrostructure: Long Document (articles) +
-     Index-First (hub) · nav: N6 masthead · footer: Ft4 dense colophon
-     tone: reference · anchor hue: brick red (brand, preserved)
+  /* Hallmark; genre: editorial; macrostructure: Long Document (articles) +
+     Index-First (hub); nav: N6 masthead; footer: Ft4 dense colophon
+     tone: reference; anchor hue: brick red (brand, preserved)
      pre-emit critique: P5 H5 E4 S5 R5 V4 */
 
   :root {
@@ -662,6 +662,14 @@ const structuredData = [
     padding-left: 1.35rem;
   }
 
+  .wiki-article ul {
+    list-style: disc;
+  }
+
+  .wiki-article ol {
+    list-style: decimal;
+  }
+
   .wiki-article li {
     margin: 0.3rem 0;
   }
@@ -857,7 +865,7 @@ const structuredData = [
   }
 
   /* Wide screens: the article's own contents list becomes a sticky rail, the
-     way Wikipedia and MDN park it. Pure CSS, so each article keeps one inline
+     way Wikipedia and MDN park it. Pure CSS, so each article gets one inline
      TOC in the markup and it still reads in order without this stylesheet. */
   @media (min-width: 68rem) {
     .wiki-page:has(article.wiki-article > .toc) {

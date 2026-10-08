@@ -33,10 +33,9 @@ afterAll(() => rmSync(dist, { recursive: true, force: true }));
 
 describe("wiki link check", () => {
   test("extracts hrefs and ids", () => {
-    expect(extractHrefs('<a class="x" href="/a">a</a><a href="#b">b</a>')).toEqual([
-      "/a",
-      "#b",
-    ]);
+    expect(
+      extractHrefs('<a class="x" href="/a">a</a><a href="#b">b</a>'),
+    ).toEqual(["/a", "#b"]);
     expect([...extractIds('<h2 id="x"></h2><p id="y">')]).toEqual(["x", "y"]);
   });
 

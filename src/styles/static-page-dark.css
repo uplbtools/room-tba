@@ -1,0 +1,76 @@
+/*
+ * Dark mode for the plain content pages (FAQ, privacy, terms, changelog).
+ * They style themselves with fixed light colors, so this sheet repaints them
+ * from the Appearance choice (data-theme on <html>, set before first paint by
+ * Layout.astro). Same palette as the wiki so a reader moving between them sees one site. Screen only:
+ * print stays light.
+ */
+
+@media screen {
+  :root[data-theme="dark"]:has(.legal-page, .changelog-page) {
+    color-scheme: dark;
+    --static-paper: hsl(20, 8%, 11%);
+    --static-card: hsl(20, 7%, 15%);
+    --static-ink: hsl(30, 12%, 91%);
+    --static-ink-2: hsl(30, 7%, 68%);
+    --static-rule: hsl(20, 7%, 26%);
+    --static-accent: hsl(6, 68%, 74%);
+  }
+
+  :root[data-theme="dark"]:has(.legal-page, .changelog-page) body {
+    background: var(--static-paper);
+    color: var(--static-ink);
+  }
+
+  :root[data-theme="dark"] :is(.legal-page, .changelog-page) {
+    color: var(--static-ink);
+  }
+
+  :root[data-theme="dark"] :is(.legal-page, .changelog-page) h1,
+  :root[data-theme="dark"] .legal-body h3 {
+    color: var(--static-ink);
+  }
+
+  :root[data-theme="dark"]
+    :is(.eyebrow, .lede, .hero__lede, .faq-answer, .entry ul) {
+    color: var(--static-ink-2);
+  }
+
+  :root[data-theme="dark"] .legal-body {
+    color: var(--static-ink);
+  }
+
+  :root[data-theme="dark"] :is(.legal-body h2, .faq-item summary) {
+    color: var(--static-accent) !important;
+  }
+
+  :root[data-theme="dark"]
+    :is(.legal-page, .changelog-page)
+    :is(a, .back-link, .lede a, .legal-body a, .faq-answer a, .entry a) {
+    color: var(--static-accent);
+  }
+
+  :root[data-theme="dark"] .back-link {
+    background: hsl(6 68% 74% / 0.1);
+    border-color: hsl(6 68% 74% / 0.35);
+  }
+
+  :root[data-theme="dark"] :is(.faq-item, .entry) {
+    background: var(--static-card);
+    border-color: var(--static-rule);
+    box-shadow: none;
+  }
+
+  :root[data-theme="dark"] .faq-item summary::after {
+    color: var(--static-ink-2);
+  }
+
+  :root[data-theme="dark"] .faq-answer code {
+    background: var(--static-paper);
+    color: var(--static-ink);
+  }
+
+  :root[data-theme="dark"] .hero__follow {
+    border-color: var(--static-rule);
+  }
+}
