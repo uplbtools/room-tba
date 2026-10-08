@@ -3,7 +3,11 @@ import { expect, type Locator, type Page } from "@playwright/test";
 /** Open You (the bottom-bar tab on phones, the top-bar avatar on desktop). */
 export async function openAppMenu(page: Page): Promise<Locator> {
   const trigger = page.getByRole("button", { name: "You", exact: true });
-  await page.keyboard.press("Escape");
+  // Escape on a bare map clears the newest map overlay (a drawn route), so
+  // press it only to close something that is open.
+  if (await page.getByRole("dialog").count()) {
+    await page.keyboard.press("Escape");
+  }
   await trigger.click({ force: true });
   const menu = page.getByRole("dialog", { name: "You", exact: true });
   await expect(menu).toBeVisible();

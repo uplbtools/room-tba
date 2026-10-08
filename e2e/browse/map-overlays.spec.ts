@@ -49,8 +49,11 @@ test.describe("map overlays", () => {
     await waitForAppBoot(page);
 
     await page.getByRole("button", { name: "Layers", exact: true }).click();
-    // View > Pins cycles All / Events only.
-    await page.locator("#map-tools-panel .pin-toggle").click();
+    // Layers > Pins: All / Events only.
+    await page
+      .getByRole("dialog", { name: /^layers$/i })
+      .getByRole("radio", { name: "Events only" })
+      .click();
     await page.getByRole("button", { name: "Close layers" }).click();
 
     const bar = page.getByRole("toolbar", { name: "On the map" });
