@@ -55,7 +55,7 @@
   .campus-load-progress__fill {
     display: block;
     height: 100%;
-    background: hsl(5, 53%, 38%);
+    background: var(--theme-accent-fill, hsl(5, 53%, 38%));
     transition: width 0.3s ease;
   }
 

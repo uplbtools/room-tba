@@ -131,7 +131,7 @@
 
   .dropped-pin__coords {
     margin: 0.125rem 0 0.5rem;
-    color: hsl(0, 0%, 32%);
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
     font-size: 0.875rem;
     font-variant-numeric: tabular-nums;
   }

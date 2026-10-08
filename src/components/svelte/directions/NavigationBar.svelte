@@ -133,7 +133,7 @@
     padding: 0 1rem 0 0.75rem;
     border: none;
     border-radius: 999px;
-    background: #b91c1c;
+    background: var(--theme-accent-fill, #b91c1c);
     color: #fff;
     font-size: 0.9375rem;
     font-weight: 600;
@@ -142,7 +142,7 @@
 
   .nav__exit:hover,
   .nav__exit:focus-visible {
-    background: #991b1b;
+    background: var(--theme-accent-fill, #991b1b);
   }
 
   .nav__summary {
@@ -155,7 +155,7 @@
     align-items: center;
     gap: 0.375rem;
     margin: 0;
-    color: #15803d;
+    color: var(--theme-green-text, #15803d);
     font-size: 1.375rem;
     font-weight: 700;
     line-height: 1.15;
@@ -183,7 +183,7 @@
     flex-direction: column;
     margin: 0.25rem 0 0;
     padding: 0.5rem 0 0;
-    border-top: 1px solid #e4e4e7;
+    border-top: 1px solid var(--theme-border, #e4e4e7);
     list-style: none;
   }
 
@@ -195,7 +195,7 @@
   }
 
   .nav__step--current {
-    background: #f0fdf4;
+    background: var(--theme-green-soft, #f0fdf4);
   }
 
   .nav__step--done {
@@ -216,13 +216,13 @@
   }
 
   .nav__step-text {
-    color: #18181b;
+    color: var(--theme-text, #18181b);
     font-size: 0.9375rem;
     font-weight: 600;
   }
 
   .nav__step-detail {
-    color: #52525b;
+    color: var(--theme-text-2, #52525b);
     font-size: 0.8125rem;
   }
 </style>

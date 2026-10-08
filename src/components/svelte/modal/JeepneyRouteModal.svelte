@@ -394,7 +394,7 @@
     display: flex;
     padding: 0.1875rem;
     border-radius: 999px;
-    background: hsl(0, 0%, 94%);
+    background: var(--theme-surface-2, hsl(0, 0%, 94%));
   }
 
   .jeepney-modal__segment {
@@ -407,25 +407,25 @@
     justify-content: center;
     font-size: 0.875rem;
     font-weight: 600;
-    color: hsl(0, 0%, 28%);
+    color: var(--theme-text, hsl(0, 0%, 28%));
     cursor: pointer;
   }
 
   .jeepney-modal__segment[aria-pressed="true"] {
-    background: white;
-    color: var(--route-color, hsl(5, 53%, 32%));
+    background: var(--theme-surface, white);
+    color: var(--route-color, var(--theme-accent-text, hsl(5, 53%, 32%)));
     box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.18);
   }
 
   .jeepney-modal__segment:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 1px;
   }
 
   .jeepney-modal__direction-summary {
     margin: 0;
     font-size: 0.8125rem;
-    color: hsl(0, 0%, 32%);
+    color: var(--theme-text-2, hsl(0, 0%, 32%));
   }
 
   .jeepney-modal__facts {
@@ -445,14 +445,14 @@
     margin: 0;
     font-size: 0.8125rem;
     line-height: 1.4;
-    color: hsl(0, 0%, 20%);
+    color: var(--theme-text, hsl(0, 0%, 20%));
   }
 
   .jeepney-modal__facts :global(svg),
   .jeepney-modal__boarding :global(svg) {
     flex-shrink: 0;
     margin-top: 0.0625rem;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .jeepney-modal__facts strong {
@@ -461,23 +461,23 @@
   }
 
   .jeepney-modal__facts a {
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     font-weight: 600;
   }
 
   .jeepney-modal__about {
-    border-top: 1px solid hsl(0, 0%, 92%);
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 92%));
     padding-top: 0.5rem;
     font-size: 0.875rem;
     line-height: 1.5;
-    color: hsl(0, 0%, 15%);
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .jeepney-modal__about summary {
     cursor: pointer;
     font-size: 0.8125rem;
     font-weight: 700;
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
     padding: 0.375rem 0;
   }
 

@@ -473,10 +473,10 @@
     min-width: 0;
     min-height: 2.75rem;
     padding: 0.375rem 0.875rem;
-    border: 1px solid #e4e4e7;
+    border: 1px solid var(--theme-border, #e4e4e7);
     border-radius: 999px;
-    background: #fff;
-    color: #3f3f46;
+    background: var(--theme-surface, #fff);
+    color: var(--theme-text, #3f3f46);
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
@@ -484,8 +484,8 @@
 
   .directions__mode[aria-selected="true"] {
     border-color: transparent;
-    background: #fbe9ee;
-    color: var(--color-brand, #8d1437);
+    background: var(--theme-accent-soft, #fbe9ee);
+    color: var(--color-brand, var(--theme-accent-text, #8d1437));
   }
 
   .directions__start-row {
@@ -503,26 +503,26 @@
 
   .directions__summary-time {
     margin: 0;
-    color: #18181b;
+    color: var(--theme-text, #18181b);
     font-size: 1.25rem;
     font-weight: 700;
     line-height: 1.2;
   }
 
   .directions__summary-meters {
-    color: #52525b;
+    color: var(--theme-text-2, #52525b);
     font-size: 0.9375rem;
     font-weight: 500;
   }
 
   .directions__summary-meta {
     margin: 0;
-    color: #52525b;
+    color: var(--theme-text-2, #52525b);
     font-size: 0.8125rem;
   }
 
   .directions__fastest {
-    color: #15803d;
+    color: var(--theme-green-text, #15803d);
     font-weight: 700;
     letter-spacing: normal;
     text-transform: none;

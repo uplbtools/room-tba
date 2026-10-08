@@ -366,8 +366,8 @@
     min-width: 0;
     padding: 0.5rem 0.375rem 0.5rem 0.625rem;
     border-radius: 1rem;
-    background: #fff;
-    border: 1px solid hsl(5 10% 86%);
+    background: var(--theme-surface, #fff);
+    border: 1px solid var(--theme-border, hsl(5 10% 86%));
     box-shadow: var(--shadow-search, 0 1px 3.5px rgb(58 58 71 / 0.12));
     pointer-events: auto;
   }
@@ -401,11 +401,11 @@
   .directions-route-chips__glyph {
     display: flex;
     flex: 0 0 auto;
-    color: #52525b;
+    color: var(--theme-text-2, #52525b);
   }
 
   .directions-route-chips__glyph--to {
-    color: var(--color-brand, #8d1437);
+    color: var(--color-brand, var(--theme-accent-text, #8d1437));
   }
 
   .directions-route-chips__field {
@@ -416,10 +416,10 @@
     height: 2.5rem;
     margin: 0;
     padding: 0 0.75rem;
-    border: 1px solid #e4e4e7;
+    border: 1px solid var(--theme-border, #e4e4e7);
     border-radius: 0.625rem;
-    background: #f4f4f5;
-    color: #18181b;
+    background: var(--theme-surface-2, #f4f4f5);
+    color: var(--theme-text, #18181b);
     font: inherit;
     /* 16px stops iOS zooming the page on focus. */
     font-size: 1rem;
@@ -427,17 +427,17 @@
   }
 
   .directions-route-chips__field::placeholder {
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
   }
 
   .directions-route-chips__field:focus {
     outline: none;
-    border-color: var(--color-brand, #8d1437);
-    background: #fff;
+    border-color: var(--color-brand, var(--theme-accent-text, #8d1437));
+    background: var(--theme-surface, #fff);
   }
 
   .directions-route-chips__field--picking {
-    border-color: var(--color-brand, #8d1437);
+    border-color: var(--color-brand, var(--theme-accent-text, #8d1437));
   }
 
   .directions-route-chips__field--to {
@@ -457,10 +457,10 @@
     gap: 0.3rem;
     min-height: 2rem;
     padding: 0.25rem 0.75rem;
-    border: 1px solid #e4e4e7;
+    border: 1px solid var(--theme-border, #e4e4e7);
     border-radius: 999px;
-    background: #fff;
-    color: #18181b;
+    background: var(--theme-surface, #fff);
+    color: var(--theme-text, #18181b);
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 600;
@@ -469,7 +469,7 @@
 
   .directions-route-chips__pill:hover,
   .directions-route-chips__pill:focus-visible {
-    background: #f4f4f5;
+    background: var(--theme-surface-2, #f4f4f5);
   }
 
   .directions-route-chips__stop {
@@ -500,7 +500,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: #18181b;
+    color: var(--theme-text, #18181b);
     font-size: 0.875rem;
     font-weight: 500;
   }
@@ -521,8 +521,8 @@
     padding: 0;
     border: none;
     border-radius: 0.4rem;
-    background: #f4f4f5;
-    color: #3f3f46;
+    background: var(--theme-surface-2, #f4f4f5);
+    color: var(--theme-text, #3f3f46);
     cursor: pointer;
   }
 
@@ -556,7 +556,7 @@
     border: none;
     border-radius: 999px;
     background: transparent;
-    color: #3f3f46;
+    color: var(--theme-text, #3f3f46);
     cursor: pointer;
   }
 
@@ -567,7 +567,7 @@
 
   .directions-route-chips__icon-btn:not(:disabled):hover,
   .directions-route-chips__icon-btn:not(:disabled):focus-visible {
-    background: #f4f4f5;
+    background: var(--theme-surface-2, #f4f4f5);
   }
 
   /* Phone landscape: as wide as the left side panel below it (BottomSheet),

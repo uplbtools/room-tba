@@ -111,7 +111,7 @@
     margin: 0;
     font-size: 0.8125rem;
     font-weight: 700;
-    color: hsl(0, 0%, 25%);
+    color: var(--theme-text, hsl(0, 0%, 25%));
   }
 
   .map-type-picker__tiles {
@@ -128,7 +128,7 @@
     padding: 0;
     border: none;
     background: none;
-    color: hsl(0, 0%, 20%);
+    color: var(--theme-text, hsl(0, 0%, 20%));
     font: inherit;
     cursor: pointer;
   }
@@ -145,7 +145,7 @@
 
   .map-type-tile__swatch--default {
     background: linear-gradient(135deg, #eef4ec 0 55%, #c5c5c0 55% 62%, #8fbf8a 62%);
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .map-type-tile__swatch--satellite {
@@ -155,16 +155,16 @@
 
   .map-type-tile__swatch--3d {
     background: linear-gradient(160deg, #e8e4dc 0 50%, #d8d4cc 50%);
-    color: hsl(5, 53%, 32%);
+    color: var(--theme-accent-text, hsl(5, 53%, 32%));
   }
 
   .map-type-tile[aria-pressed="true"] .map-type-tile__swatch {
-    border-color: #1a73e8;
+    border-color: var(--theme-blue-text, #1a73e8);
     box-shadow: none;
   }
 
   .map-type-tile[aria-pressed="true"] .map-type-tile__label {
-    color: #1a73e8;
+    color: var(--theme-blue-text, #1a73e8);
     font-weight: 700;
   }
 
@@ -173,7 +173,7 @@
   }
 
   .map-type-tile:focus-visible .map-type-tile__swatch {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 2px;
   }
 

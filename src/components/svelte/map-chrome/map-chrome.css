@@ -272,15 +272,15 @@ button.chrome-toggle-btn[aria-expanded="true"] {
 .map-chrome-action-chip--primary,
 .map-chrome-action-chip--primary:hover:not(:disabled),
 .map-chrome-action-chip--primary:focus-visible {
-  border-color: #7b1113;
+  border-color: var(--theme-accent-text, #7b1113);
   border-radius: 999px;
-  background: #7b1113;
+  background: var(--theme-accent-fill, #7b1113);
   color: #fff;
 }
 
 .map-chrome-action-chip--primary:hover:not(:disabled) {
-  border-color: hsl(359, 75%, 22%);
-  background: hsl(359, 75%, 22%);
+  border-color: var(--theme-accent-text, hsl(359, 75%, 22%));
+  background: var(--theme-accent-fill, hsl(359, 75%, 22%));
 }
 
 .map-chrome-action-chip--primary.map-chrome-action-chip--toolbar {
@@ -302,7 +302,7 @@ button.chrome-toggle-btn[aria-expanded="true"] {
   min-height: 2rem;
   padding: 0.375rem 0.75rem;
   border-radius: 999px;
-  background: #7b1113;
+  background: var(--theme-accent-fill, #7b1113);
   color: #fff;
   font-weight: 700;
 }

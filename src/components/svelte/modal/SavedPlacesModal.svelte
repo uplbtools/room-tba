@@ -138,7 +138,7 @@
 
   h3 {
     margin: 0;
-    color: hsl(5 53% 28%);
+    color: var(--theme-accent-text, hsl(5 53% 28%));
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -177,7 +177,7 @@
     border: none;
     border-radius: 0.625rem;
     background: transparent;
-    color: hsl(0 0% 15%);
+    color: var(--theme-text, hsl(0 0% 15%));
     font: inherit;
     text-align: left;
     cursor: pointer;
@@ -191,8 +191,8 @@
     width: 2rem;
     height: 2rem;
     border-radius: 50%;
-    background: hsl(5 53% 95%);
-    color: hsl(5 53% 32%);
+    background: var(--theme-accent-soft, hsl(5 53% 95%));
+    color: var(--theme-accent-text, hsl(5 53% 32%));
   }
 
   .saved-places__text {
@@ -213,7 +213,7 @@
   }
 
   .saved-places__subtitle {
-    color: hsl(0 0% 40%);
+    color: var(--theme-text-2, hsl(0 0% 40%));
     font-size: 0.75rem;
   }
 
@@ -228,7 +228,7 @@
     border: none;
     border-radius: 0.625rem;
     background: transparent;
-    color: hsl(0 0% 35%);
+    color: var(--theme-text-2, hsl(0 0% 35%));
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -237,13 +237,13 @@
 
   .saved-places__clear {
     min-height: 2rem;
-    color: hsl(5 53% 32%);
+    color: var(--theme-accent-text, hsl(5 53% 32%));
   }
 
   .saved-places__empty {
     margin: 0;
     padding: 0.25rem 0.5rem;
-    color: hsl(0 0% 40%);
+    color: var(--theme-text-2, hsl(0 0% 40%));
     font-size: 0.8125rem;
     line-height: 1.4;
   }
@@ -256,14 +256,14 @@
     .saved-places__open:hover,
     .saved-places__remove:hover,
     .saved-places__clear:hover {
-      background: hsl(0 78% 97%);
+      background: var(--theme-accent-soft, hsl(0 78% 97%));
     }
   }
 
   .saved-places__open:focus-visible,
   .saved-places__remove:focus-visible,
   .saved-places__clear:focus-visible {
-    outline: 2px solid hsl(5 53% 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5 53% 32%));
     outline-offset: -2px;
   }
 </style>

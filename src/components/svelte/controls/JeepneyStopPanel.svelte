@@ -245,7 +245,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    color: hsl(0, 0%, 40%);
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .jeepney-stop-panel__chips {
@@ -271,27 +271,27 @@
     min-height: 2.25rem;
     box-sizing: border-box;
     padding: 0.25rem 0.625rem;
-    border: 1px solid hsl(0, 0%, 84%);
+    border: 1px solid var(--theme-border, hsl(0, 0%, 84%));
     border-radius: 999px;
-    background: white;
-    color: hsl(0, 0%, 12%);
+    background: var(--theme-surface, white);
+    color: var(--theme-text, hsl(0, 0%, 12%));
     font-size: 0.8125rem;
     text-decoration: none;
   }
 
   .jeepney-stop-panel__chip:hover {
-    border-color: hsl(5, 40%, 72%);
-    background: hsl(5, 53%, 98%);
+    border-color: var(--theme-accent-border, hsl(5, 40%, 72%));
+    background: var(--theme-accent-soft, hsl(5, 53%, 98%));
   }
 
   .jeepney-stop-panel__chip:focus-visible {
-    outline: 2px solid hsl(5, 53%, 32%);
+    outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
     outline-offset: 1px;
   }
 
   .jeepney-stop-panel__chip[aria-current="page"] {
-    border-color: hsl(5, 53%, 32%);
-    background: hsl(5, 53%, 96%);
+    border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
+    background: var(--theme-accent-soft, hsl(5, 53%, 96%));
   }
 
   .jeepney-stop-panel__chip-dot {
@@ -314,7 +314,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: hsl(0, 0%, 38%);
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
     font-size: 0.75rem;
   }
 

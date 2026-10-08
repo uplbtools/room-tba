@@ -115,7 +115,7 @@
     flex-direction: column;
     font-size: 0.8125rem;
     line-height: 1.35;
-    color: #3f3f46;
+    color: var(--theme-text, #3f3f46);
   }
 
   /* The rail: dotted for walking, solid route colour for the ride. */
@@ -134,7 +134,7 @@
     left: calc(0.625rem - 1px);
     top: 0;
     bottom: 0;
-    border-left: 2px dotted #a1a1aa;
+    border-left: 2px dotted var(--theme-border-strong, #a1a1aa);
   }
 
   .itinerary__step:first-child::before {
@@ -147,7 +147,7 @@
 
   .itinerary__step--ride::before,
   .itinerary__step--board::before {
-    border-left: 3px solid var(--leg-color, #8d1437);
+    border-left: 3px solid var(--leg-color, var(--theme-accent-text, #8d1437));
     left: calc(0.625rem - 1.5px);
   }
 
@@ -156,7 +156,7 @@
   }
 
   .itinerary__step--alight::before {
-    border-left: 3px solid var(--leg-color, #8d1437);
+    border-left: 3px solid var(--leg-color, var(--theme-accent-text, #8d1437));
     left: calc(0.625rem - 1.5px);
     bottom: 50%;
   }
@@ -167,7 +167,7 @@
     left: calc(0.625rem - 1px);
     top: 50%;
     bottom: 0;
-    border-left: 2px dotted #a1a1aa;
+    border-left: 2px dotted var(--theme-border-strong, #a1a1aa);
   }
 
   .itinerary__icon,
@@ -180,12 +180,12 @@
     width: 1.25rem;
     height: 1.25rem;
     border-radius: 999px;
-    background: white;
-    color: #52525b;
+    background: var(--theme-surface, white);
+    color: var(--theme-text-2, #52525b);
   }
 
   .itinerary__icon--ride {
-    background: var(--leg-color, #8d1437);
+    background: var(--leg-color, var(--theme-accent-fill, #8d1437));
     color: white;
   }
 
@@ -194,25 +194,25 @@
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 999px;
-    border: 2px solid var(--leg-color, #8d1437);
-    background: white;
+    border: 2px solid var(--leg-color, var(--theme-accent-text, #8d1437));
+    background: var(--theme-surface, white);
   }
 
   .itinerary__meta {
-    color: #71717a;
+    color: var(--theme-text-2, #71717a);
   }
 
   .itinerary__stop {
     all: unset;
     box-sizing: border-box;
-    color: var(--color-brand, #8d1437);
+    color: var(--color-brand, var(--theme-accent-text, #8d1437));
     font-weight: 600;
     text-decoration: underline;
     cursor: pointer;
   }
 
   .itinerary__stop:focus-visible {
-    outline: 2px solid var(--color-brand, #8d1437);
+    outline: 2px solid var(--color-brand, var(--theme-accent-text, #8d1437));
     outline-offset: 1px;
   }
 
@@ -225,7 +225,7 @@
     margin: 0 0 0.25rem;
     padding: 0;
     list-style: none;
-    color: #52525b;
+    color: var(--theme-text-2, #52525b);
     font-size: 0.75rem;
   }
 

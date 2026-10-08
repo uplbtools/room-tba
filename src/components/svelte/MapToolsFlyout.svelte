@@ -264,14 +264,14 @@
 
   .map-tools-dialog__map-type {
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid hsl(0, 0%, 90%);
+    border-bottom: 1px solid var(--theme-border, hsl(0, 0%, 90%));
   }
 
   .map-tools-dialog__subheading {
     margin: 0.25rem 0 0;
     font-size: 0.8125rem;
     font-weight: 700;
-    color: hsl(0, 0%, 25%);
+    color: var(--theme-text, hsl(0, 0%, 25%));
   }
 
   /* Phones: a bottom sheet over the map, the way Google Maps opens its

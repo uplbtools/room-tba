@@ -248,7 +248,7 @@
 
   .events-section-heading {
     margin: 0;
-    color: #3f3f46;
+    color: var(--theme-text, #3f3f46);
     font-size: 0.8125rem;
     font-weight: 800;
     letter-spacing: 0.02em;
@@ -258,10 +258,10 @@
     justify-self: start;
     min-height: 2.25rem;
     padding: 0 0.75rem;
-    border: 1px solid #eee1e1;
+    border: 1px solid var(--theme-accent-border, #eee1e1);
     border-radius: 999px;
-    background: #fff;
-    color: #7b1113;
+    background: var(--theme-surface, #fff);
+    color: var(--theme-accent-text, #7b1113);
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -404,9 +404,9 @@
 
   .empty-events {
     padding: 0.75rem;
-    border: 1px dashed #e4d4d4;
+    border: 1px dashed var(--theme-accent-border, #e4d4d4);
     border-radius: 0.75rem;
-    color: #3f3f46;
+    color: var(--theme-text, #3f3f46);
     font-size: 0.875rem;
     font-weight: 600;
   }

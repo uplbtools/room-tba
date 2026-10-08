@@ -360,7 +360,7 @@
     border: none;
     border-radius: 0.5rem;
     background: none;
-    color: hsl(0, 0%, 13%);
+    color: var(--theme-text, hsl(0, 0%, 13%));
     font: inherit;
     font-size: 0.875rem;
     font-weight: 600;
@@ -370,12 +370,12 @@
 
   .map-filter-more__item:hover,
   .map-filter-more__item:focus-visible {
-    background-color: hsl(5, 20%, 95%);
+    background-color: var(--theme-accent-soft, hsl(5, 20%, 95%));
     outline: none;
   }
 
   .map-filter-more__item--active {
-    color: #8d1437;
+    color: var(--theme-accent-text, #8d1437);
   }
 
   .map-filter-chips {

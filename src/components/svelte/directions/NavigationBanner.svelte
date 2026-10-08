@@ -166,8 +166,8 @@
     padding: 0.375rem 0.875rem;
     border: none;
     border-radius: 999px;
-    background: #fff;
-    color: var(--color-brand, #8d1437);
+    background: var(--theme-surface, #fff);
+    color: var(--color-brand, var(--theme-accent-text, #8d1437));
     font-size: 0.875rem;
     font-weight: 600;
     white-space: nowrap;

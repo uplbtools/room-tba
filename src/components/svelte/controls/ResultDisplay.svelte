@@ -231,10 +231,10 @@
     align-self: stretch;
     min-height: 2.75rem;
     margin-top: 0.25rem;
-    border: 1px solid #c58f91;
+    border: 1px solid var(--theme-accent-border, #c58f91);
     border-radius: 999px;
-    background: #fff;
-    color: hsl(5, 65%, 22%);
+    background: var(--theme-surface, #fff);
+    color: var(--theme-accent-text, hsl(5, 65%, 22%));
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -243,11 +243,11 @@
 
   .rooms-show-all:hover,
   .rooms-show-all:focus-visible {
-    background: #fdf3f3;
+    background: var(--theme-accent-soft, #fdf3f3);
   }
 
   .rooms-show-all:focus-visible {
-    outline: 2px solid #7b1113;
+    outline: 2px solid var(--theme-accent-text, #7b1113);
     outline-offset: 2px;
   }
 </style>

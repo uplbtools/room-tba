@@ -163,7 +163,7 @@
   top: 0;
   z-index: 4;
   padding-top: 0.25rem;
-  background: var(--entity-sheet-bg, #fff);
+  background: var(--entity-sheet-bg, var(--theme-surface, #fff));
   /* Paint the sheet's side gutters too, so rows scrolling under the header
      do not peek out at its edges (the scroll container clips the rest). */
   box-shadow:
@@ -184,7 +184,7 @@
   border-color: transparent;
   border-radius: 50%;
   background: transparent;
-  color: hsl(0, 0%, 30%);
+  color: var(--theme-text-2, hsl(0, 0%, 30%));
 }
 
 .entity-header__title-row--with-close :global(.entity-panel-close span) {
