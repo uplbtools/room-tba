@@ -15,7 +15,7 @@
   import {
     ProposalValidationError,
     validateCreateProposalPatch,
-  } from "$lib/utils/proposals/create-proposal-validation";
+  } from "$lib/schema/proposals";
   import EntityEditorFormField from "$lib/components/editor/EntityEditorFormField.svelte";
   import EntityEditorPanel from "$lib/components/editor/EntityEditorPanel.svelte";
   import EntityEditorPinRow from "$lib/components/editor/EntityEditorPinRow.svelte";

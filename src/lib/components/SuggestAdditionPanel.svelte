@@ -33,12 +33,12 @@
   import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
   import PhotoCollectionUpload from "$lib/components/editor/PhotoCollectionUpload.svelte";
   import ContributorPendingProposals from "./ContributorPendingProposals.svelte";
-  import type { BundledRoomDraft } from "$lib/utils/proposals/create-proposal-validation";
+  import type { BundledRoomDraft } from "$lib/schema/proposals";
   import {
     parseBundledRooms,
     ProposalValidationError,
     validateBundledRooms,
-  } from "$lib/utils/proposals/create-proposal-validation";
+  } from "$lib/schema/proposals";
   import { PLACE_CATEGORIES, type PlaceCategory } from "$lib/constants/content/categories/place"
   import {
     ORG_CATEGORIES,

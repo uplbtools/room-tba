@@ -79,7 +79,7 @@ import {
 	ProposalValidationError,
 	parseBundledRooms,
 	validateCreateProposalPatch
-} from '$lib/utils/proposals/create-proposal-validation';
+} from '$lib/schema/proposals';
 
 export const PROPOSAL_UPDATE_TYPES = [
 	'building',
@@ -733,7 +733,7 @@ export {
 	parseBundledRooms,
 	validateBundledRooms,
 	type BundledRoomDraft
-} from '$lib/utils/proposals/create-proposal-validation';
+} from '$lib/schema/proposals';
 
 export class ProposalActionError extends Error {
 	status: number;
