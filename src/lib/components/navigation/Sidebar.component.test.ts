@@ -1,7 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/svelte';
 import { describe, expect, test } from 'vitest';
 import Sidebar from './Sidebar.svelte';
-import { sidebarStore } from '$lib/stores.svelte';
 import { mountAtWidth } from '@test/layout-assertions';
 
 describe('Sidebar', () => {

@@ -1,13 +1,8 @@
 <script lang="ts">
-	import { adminAuthStore, mapProposalStore, searchInfo, toastStore } from '$lib/stores.svelte';
-	import { getAppActions, getAppData } from '$lib/utils/context';
 	import Users from '@lucide/svelte/icons/users';
-	import Mail from '@lucide/svelte/icons/mail';
-	import Phone from '@lucide/svelte/icons/phone';
 	import Building2 from '@lucide/svelte/icons/building-2';
-	import EntityGoogleMapsLink from '../../../../../lib/components/controls/EntityGoogleMapsLink.svelte';
-	import EntityStreetAddress from '../../../../../lib/components/controls/EntityStreetAddress.svelte';
-	// import EntityDirectionsChip from './EntityDirectionsChip.svelte';
+	import EntityGoogleMapsLink from '$lib/components/controls/EntityGoogleMapsLink.svelte';
+	import EntityStreetAddress from '$lib/components/controls/EntityStreetAddress.svelte';
 	import BadgeCheck from '@lucide/svelte/icons/badge-check';
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import CircleDollarSign from '@lucide/svelte/icons/circle-dollar-sign';
@@ -26,19 +21,18 @@
 		readEntityContributorDraft,
 		scheduleEntityContributorDraftSave
 	} from '$lib/utils/contributor-drafts';
-	import DormEditorPanel from '$lib/components/controls/DormEditorPanel.svelte';
-	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
-	import EntityPhotoGallery from '../../../../../lib/components/controls/EntityPhotoGallery.svelte';
-	import EntityLastUpdated from '../../../../../lib/components/EntityLastUpdated.svelte';
-	import EntityShareCopyLink from '../../../../../lib/components/controls/EntityShareCopyLink.svelte';
-	import EntityBackToList from '../../../../../lib/components/controls/EntityBackToList.svelte';
-	import EntityExternalLink from '../../../../../lib/components/controls/EntityExternalLink.svelte';
-	import { getDormShareUrl } from '$lib/utils/share-links';
+	// import DormEditorPanel from '$lib/components/controls/DormEditorPanel.svelte';
+	// import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
+	import EntityPhotoGallery from '$lib/components/controls/EntityPhotoGallery.svelte';
+	import EntityLastUpdated from '$lib/components/EntityLastUpdated.svelte';
+	import EntityShareCopyLink from '$lib/components/controls/EntityShareCopyLink.svelte';
+	import EntityExternalLink from '$lib/components/controls/EntityExternalLink.svelte';
 	import {
 		getKuboDormCta,
 		kuboDormDirectory,
 		loadKuboDormDirectory
 	} from '$lib/utils/integrations/kubo/kubo-dorms';
+	import { page } from '$app/state';
 	type DormEditableField =
 		| 'dormName'
 		| 'shortName'
@@ -72,35 +66,35 @@
 
 	// const dorm = $derived(dorms?.find((d) => d.dormName === searchInfo.queryValue));
 
-	// let editing = $state(false);
-	// let draftDormId = $state<number | null>(null);
-	// let draftVersion = $state<number | null>(null);
-	// let nameDraft = $state('');
-	// let shortNameDraft = $state('');
-	// let descriptionDraft = $state('');
-	// let genderDraft = $state('');
-	// let isUpManagedDraft = $state(true);
-	// let capacityDraft = $state('');
-	// let priceRangeDraft = $state('');
-	// let managingOfficeDraft = $state('');
-	// let contactEmailDraft = $state('');
-	// let contactPhoneDraft = $state('');
-	// let amenitiesDraft = $state('');
-	// let facebookLinkDraft = $state('');
-	// let osmLinkDraft = $state('');
-	// let photosDraft = $state<EntityPhoto[]>([]);
-	// let savingField = $state<DormEditableField | null>(null);
-	// let savedField = $state<DormEditableField | null>(null);
-	// let fieldError = $state<string | null>(null);
-	// let submitterNameDraft = $state('');
-	// let proposalStatus = $state<string | null>(null);
-	// let activeProposalId = $state<number | null>(null);
-	// let mergePrompt = $state<{
-	// 	candidate: DormData;
-	// 	attemptedName: string;
-	// 	sourceVersion: number;
-	// } | null>(null);
-	// let mergingEntity = $state(false);
+	let editing = $state(false);
+	let draftDormId = $state<number | null>(null);
+	let draftVersion = $state<number | null>(null);
+	let nameDraft = $state('');
+	let shortNameDraft = $state('');
+	let descriptionDraft = $state('');
+	let genderDraft = $state('');
+	let isUpManagedDraft = $state(true);
+	let capacityDraft = $state('');
+	let priceRangeDraft = $state('');
+	let managingOfficeDraft = $state('');
+	let contactEmailDraft = $state('');
+	let contactPhoneDraft = $state('');
+	let amenitiesDraft = $state('');
+	let facebookLinkDraft = $state('');
+	let osmLinkDraft = $state('');
+	let photosDraft = $state<EntityPhoto[]>([]);
+	let savingField = $state<DormEditableField | null>(null);
+	let savedField = $state<DormEditableField | null>(null);
+	let fieldError = $state<string | null>(null);
+	let submitterNameDraft = $state('');
+	let proposalStatus = $state<string | null>(null);
+	let activeProposalId = $state<number | null>(null);
+	let mergePrompt = $state<{
+		candidate: DormData;
+		attemptedName: string;
+		sourceVersion: number;
+	} | null>(null);
+	let mergingEntity = $state(false);
 	// const canPublish = $derived(adminAuthStore.canPublish);
 	// const dormShareUrl = $derived(dorm ? getDormShareUrl(dorm) : '');
 	// const kuboDormCta = $derived(
@@ -166,11 +160,6 @@
 	// );
 
 	// /** Only show shortName when it's a real abbreviation, not just the first word */
-	// const showShortName = $derived.by(() => {
-	// 	if (!dorm?.shortName) return false;
-	// 	const first = dorm.dormName.split(/\s+/)[0].toLowerCase();
-	// 	return dorm.shortName.toLowerCase() !== first;
-	// });
 
 	// function linesToList(text: string) {
 	// 	return text
@@ -631,12 +620,38 @@
 	// 	}
 	// }
 	const { dorm }: Props = $props();
+
+	const showShortName = $derived.by(() => {
+		if (!dorm.shortName) return false;
+		const first = dorm.dormName.split(/\s+/)[0].toLowerCase();
+		return dorm.shortName.toLowerCase() !== first;
+	});
+	const genderLabel = $derived(
+		dorm?.gender === 'male'
+			? 'Male-exclusive'
+			: dorm?.gender === 'female'
+				? 'Female-exclusive'
+				: dorm?.gender === 'coed'
+					? 'Co-ed'
+					: null
+	);
+
+	const kuboDormCta = $derived(
+		dorm ? getKuboDormCta($kuboDormDirectory, dorm.id, dorm.dormName) : null
+	);
+
+	const genderColor = $derived(
+		dorm?.gender === 'male'
+			? 'hsl(210, 65%, 50%)'
+			: dorm?.gender === 'female'
+				? 'hsl(330, 65%, 50%)'
+				: 'hsl(150, 55%, 40%)'
+	);
 </script>
 
 <div class="entity-detail">
 	{#if dorm}
 		<header class="entity-header">
-			<EntityBackToList tab="dorms" label="Back to dormitories" />
 			<div class="entity-header__title-row">
 				<h2 class="entity-header__title">
 					{dorm.dormName}
@@ -680,14 +695,14 @@
 
 			<div class="entity-actions">
 				{#if dorm.lon && dorm.lat}
-					<EntityDirectionsChip lat={dorm.lat} lon={dorm.lon} destinationLabel={dorm.dormName} />
+					<!-- <EntityDirectionsChip lat={dorm.lat} lon={dorm.lon} destinationLabel={dorm.dormName} /> -->
 					<EntityGoogleMapsLink
 						lat={dorm.lat}
 						lon={dorm.lon}
 						ariaLabel={`Open ${dorm.dormName} in Google Maps`}
 					/>
 				{/if}
-				<EntityShareCopyLink url={dormShareUrl} entityLabel={dorm.dormName} />
+				<EntityShareCopyLink url={page.url.href} entityLabel={dorm.dormName} />
 				{#if kuboDormCta}
 					<EntityExternalLink
 						href={kuboDormCta.href}
@@ -697,14 +712,14 @@
 						iconSrc="/kubo-logo.png"
 					/>
 				{/if}
-				<EntityEditorToggle
+				<!-- <EntityEditorToggle
 					expanded={editing}
 					{canPublish}
 					publishOpenLabel="Edit dorm"
 					closeLabel={canPublish ? 'Close editor' : 'Close'}
 					variant="toolbar"
 					onclick={() => (editing = !editing)}
-				/>
+				/> -->
 			</div>
 		</header>
 
@@ -724,7 +739,7 @@
 			<EntityPhotoGallery name={dorm.dormName} photos={dorm.photos} imageUrl={dorm.imageUrl} />
 		{/if}
 
-		{#if editing}
+		<!-- {#if editing}
 			<section
 				class="entity-editor"
 				aria-label={canPublish ? 'Edit dorm details' : 'Suggest dorm edits'}
@@ -778,9 +793,9 @@
 					/>
 				{/if}
 			</section>
-		{/if}
+		{/if} -->
 
-		{#if !editing && showDormDetails}
+		<!-- {#if !editing && showDormDetails}
 			<section class="entity-dorm-details" aria-label="Details and amenities">
 				<h3 class="entity-section-heading">Details & amenities</h3>
 
@@ -854,7 +869,7 @@
 					</div>
 				{/if}
 			</section>
-		{/if}
+		{/if} -->
 	{:else}
 		<div class="no-results">Dorm not found.</div>
 	{/if}

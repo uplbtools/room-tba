@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { navigating } from '$app/state';
+	import InfoPanel from '$lib/components/controls/InfoPanel.svelte';
 	import { getDormById } from '$lib/functions/dorms.remote.js';
 	import { getMapStore, getSearchInfo } from '$lib/utils/context';
 	import { onMount, untrack } from 'svelte';
+	import DormResult from './DormResult.svelte';
 	// import { onMount, untrack } from 'svelte';
 
 	const { params } = $props();
@@ -35,3 +37,15 @@
 <svelte:head>
 	<title>{(await dorm).dormName} | Room TBA Dorm</title>
 </svelte:head>
+
+<InfoPanel>
+	<svelte:boundary>
+		{#snippet failed()}
+			failed to load
+		{/snippet}
+		{#snippet pending()}
+			Loading...
+		{/snippet}
+		<DormResult dorm={await dorm} />
+	</svelte:boundary>
+</InfoPanel>

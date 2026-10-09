@@ -78,12 +78,8 @@ export const getUnionSuggestions = query(
             .from(roomsTable)
             .where(like(lower(roomsTable.code), `%${query}%`)).limit(3);
 
-        
-
-        console.time('union select');
         const results = await unionAll(buildings, colleges, divisions, dorms, events, orgs, places, rooms);
 
-        console.timeEnd('union select')
 
         return results;
     }

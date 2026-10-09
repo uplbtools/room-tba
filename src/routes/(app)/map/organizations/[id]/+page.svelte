@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { navigating } from '$app/state';
+	import InfoPanel from '$lib/components/controls/InfoPanel.svelte';
+	import OrgResult from './OrgResult.svelte';
 	import { getOrgById } from '$lib/functions/organizations.remote.js';
 	import { getMapStore, getSearchInfo } from '$lib/utils/context';
 	import { onMount, untrack } from 'svelte';
@@ -35,3 +37,15 @@
 <svelte:head>
 	<title>{(await org).name} | Room TBA Organization</title>
 </svelte:head>
+
+<InfoPanel>
+	<svelte:boundary>
+		{#snippet failed()}
+			failed to load
+		{/snippet}
+		{#snippet pending()}
+			Loading...
+		{/snippet}
+		<OrgResult organization={await org} />
+	</svelte:boundary>
+</InfoPanel>

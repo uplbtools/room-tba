@@ -11,14 +11,6 @@
 		readProposeEventDraft,
 		scheduleProposeEventDraftSave
 	} from '$lib/utils/contributor-drafts';
-	import {
-		adminAuthStore,
-		eventPlacementStore,
-		searchInfo,
-		sidePanelStore,
-		syncToastStore,
-		toastStore
-	} from '$lib/stores.svelte';
 	import type { EventData } from '$lib/utils/types';
 	import { onMount } from 'svelte';
 

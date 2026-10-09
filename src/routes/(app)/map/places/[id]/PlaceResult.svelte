@@ -1,11 +1,11 @@
-<!-- <script lang="ts">
-	import {
-		additionProposalStore,
-		searchInfo,
-		adminAuthStore,
-		sidePanelStore,
-		toastStore
-	} from '$lib/stores.svelte';
+<script lang="ts">
+	// import {
+	// 	additionProposalStore,
+	// 	searchInfo,
+	// 	adminAuthStore,
+	// 	sidePanelStore,
+	// 	toastStore
+	// } from '$lib/stores.svelte';
 	import { getAppActions, getAppData } from '$lib/utils/context';
 	import { persistEntityChange } from '$lib/utils/proposals/client';
 	import {
@@ -17,23 +17,23 @@
 	import type { PlaceData } from '$lib/utils/types';
 	import EntityEditorPinRow from '$lib/components/editor/EntityEditorPinRow.svelte';
 	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
-	import EntityDirectionsChip from './EntityDirectionsChip.svelte';
-	import EntityGoogleMapsLink from './EntityGoogleMapsLink.svelte';
-	import EntityStreetAddress from './EntityStreetAddress.svelte';
-	import EntityShareCopyLink from './EntityShareCopyLink.svelte';
-	import EntityExternalLink from './EntityExternalLink.svelte';
-	import EntityBackToList from './EntityBackToList.svelte';
-	import { getPlaceShareUrl } from '$lib/utils/share-links';
+	import EntityDirectionsChip from '$lib/components/controls/EntityDirectionsChip.svelte';
+	import EntityGoogleMapsLink from '$lib/components/controls/EntityGoogleMapsLink.svelte';
+	import EntityStreetAddress from '$lib/components/controls/EntityStreetAddress.svelte';
+	import EntityShareCopyLink from '$lib/components/controls/EntityShareCopyLink.svelte';
+	import EntityExternalLink from '$lib/components/controls/EntityExternalLink.svelte';
+	import { page } from '$app/state';
 
-	const appData = getAppData();
-	const appActions = getAppActions();
-	const app = $derived(appData());
-	const place = $derived(
-		app.loaded ? (app.places.find((p) => p.name === searchInfo.queryValue) ?? null) : null
-	);
-	const canPublish = $derived(adminAuthStore.canPublish);
-	const draftPin = $derived(additionProposalStore.draftPin);
-	const placeShareUrl = $derived(place ? getPlaceShareUrl(place) : '');
+	interface Props {
+		place: PlaceData;
+	}
+	const { place }: Props = $props();
+	// const place = $derived(
+	// 	app.loaded ? (app.places.find((p) => p.name === searchInfo.queryValue) ?? null) : null
+	// );
+	// const canPublish = $derived(adminAuthStore.canPublish);
+	// const draftPin = $derived(additionProposalStore.draftPin);
+	// const placeShareUrl = $derived(place ? getPlaceShareUrl(place) : '');
 
 	let editing = $state(false);
 	let submitting = $state(false);
@@ -45,95 +45,90 @@
 	let facebookDraft = $state('');
 	let submitterName = $state('');
 
-	function startEdit() {
-		if (!place) return;
-		nameDraft = place.name;
-		categoryDraft = place.category;
-		descriptionDraft = place.description ?? '';
-		hoursDraft = place.hours ?? '';
-		websiteDraft = place.websiteLink ?? '';
-		facebookDraft = place.facebookLink ?? '';
-		additionProposalStore.setDraftPin(
-			place.lat !== null && place.lon !== null ? { lat: place.lat, lon: place.lon } : null
-		);
-		editing = true;
-	}
+	// function startEdit() {
+	// 	if (!place) return;
+	// 	nameDraft = place.name;
+	// 	categoryDraft = place.category;
+	// 	descriptionDraft = place.description ?? '';
+	// 	hoursDraft = place.hours ?? '';
+	// 	websiteDraft = place.websiteLink ?? '';
+	// 	facebookDraft = place.facebookLink ?? '';
+	// 	additionProposalStore.setDraftPin(
+	// 		place.lat !== null && place.lon !== null ? { lat: place.lat, lon: place.lon } : null
+	// 	);
+	// 	editing = true;
+	// }
 
-	async function pickOnMap() {
-		sidePanelStore.collapse();
-		try {
-			await additionProposalStore.requestMapPin();
-		} catch {
-			// The map picker was cancelled.
-		} finally {
-			sidePanelStore.expand();
-		}
-	}
+	// async function pickOnMap() {
+	// 	sidePanelStore.collapse();
+	// 	try {
+	// 		await additionProposalStore.requestMapPin();
+	// 	} catch {
+	// 		// The map picker was cancelled.
+	// 	} finally {
+	// 		sidePanelStore.expand();
+	// 	}
+	// }
 
-	async function submit() {
-		const current = place;
-		if (!current || submitting) return;
+	// async function submit() {
+	// 	const current = place;
+	// 	if (!current || submitting) return;
 
-		const patch: Record<string, unknown> = {};
-		if (nameDraft.trim() && nameDraft.trim() !== current.name) patch.name = nameDraft.trim();
-		if (categoryDraft && categoryDraft !== current.category) patch.category = categoryDraft;
-		if (descriptionDraft.trim() !== (current.description ?? ''))
-			patch.description = descriptionDraft.trim() || null;
-		if (hoursDraft.trim() !== (current.hours ?? '')) patch.hours = hoursDraft.trim() || null;
-		if (websiteDraft.trim() !== (current.websiteLink ?? ''))
-			patch.websiteLink = websiteDraft.trim() || null;
-		if (facebookDraft.trim() !== (current.facebookLink ?? ''))
-			patch.facebookLink = facebookDraft.trim() || null;
-		if (draftPin?.lat !== current.lat || draftPin?.lon !== current.lon) {
-			patch.lat = draftPin?.lat ?? null;
-			patch.lon = draftPin?.lon ?? null;
-		}
+	// 	const patch: Record<string, unknown> = {};
+	// 	if (nameDraft.trim() && nameDraft.trim() !== current.name) patch.name = nameDraft.trim();
+	// 	if (categoryDraft && categoryDraft !== current.category) patch.category = categoryDraft;
+	// 	if (descriptionDraft.trim() !== (current.description ?? ''))
+	// 		patch.description = descriptionDraft.trim() || null;
+	// 	if (hoursDraft.trim() !== (current.hours ?? '')) patch.hours = hoursDraft.trim() || null;
+	// 	if (websiteDraft.trim() !== (current.websiteLink ?? ''))
+	// 		patch.websiteLink = websiteDraft.trim() || null;
+	// 	if (facebookDraft.trim() !== (current.facebookLink ?? ''))
+	// 		patch.facebookLink = facebookDraft.trim() || null;
+	// 	if (draftPin?.lat !== current.lat || draftPin?.lon !== current.lon) {
+	// 		patch.lat = draftPin?.lat ?? null;
+	// 		patch.lon = draftPin?.lon ?? null;
+	// 	}
 
-		if (Object.keys(patch).length === 0) {
-			editing = false;
-			additionProposalStore.clearDraftPin();
-			return;
-		}
+	// 	if (Object.keys(patch).length === 0) {
+	// 		editing = false;
+	// 		additionProposalStore.clearDraftPin();
+	// 		return;
+	// 	}
 
-		submitting = true;
-		try {
-			const result = await persistEntityChange({
-				entityType: 'place',
-				entityId: current.id,
-				baseVersion: current.version,
-				patch,
-				entityLabel: current.name,
-				canPublish,
-				submitterName: adminAuthStore.displayName ?? adminAuthStore.username ?? submitterName
-			});
-			if (result.ok) {
-				if (result.published) {
-					appActions.upsertPlace(result.published as PlaceData);
-					toastStore.show(`${current.name} updated.`, 'success');
-				} else {
-					toastStore.show(`Suggestion for ${current.name} submitted for review.`, 'success');
-				}
-				editing = false;
-				additionProposalStore.clearDraftPin();
-			} else {
-				toastStore.show(result.error ?? 'Could not save changes.', 'error');
-			}
-		} catch {
-			toastStore.show('Could not save changes.', 'error');
-		} finally {
-			submitting = false;
-		}
-	}
+	// 	submitting = true;
+	// 	try {
+	// 		const result = await persistEntityChange({
+	// 			entityType: 'place',
+	// 			entityId: current.id,
+	// 			baseVersion: current.version,
+	// 			patch,
+	// 			entityLabel: current.name,
+	// 			canPublish,
+	// 			submitterName: adminAuthStore.displayName ?? adminAuthStore.username ?? submitterName
+	// 		});
+	// 		if (result.ok) {
+	// 			if (result.published) {
+	// 				appActions.upsertPlace(result.published as PlaceData);
+	// 				toastStore.show(`${current.name} updated.`, 'success');
+	// 			} else {
+	// 				toastStore.show(`Suggestion for ${current.name} submitted for review.`, 'success');
+	// 			}
+	// 			editing = false;
+	// 			additionProposalStore.clearDraftPin();
+	// 		} else {
+	// 			toastStore.show(result.error ?? 'Could not save changes.', 'error');
+	// 		}
+	// 	} catch {
+	// 		toastStore.show('Could not save changes.', 'error');
+	// 	} finally {
+	// 		submitting = false;
+	// 	}
+	// }
 </script>
 
 {#if place}
 	<div class="entity-detail">
 		<header class="entity-header">
-			{#if isPlaceLandmark(place.category)}
-				<EntityBackToList tab="landmarks" label="Back to landmarks" />
-			{:else}
-				<EntityBackToList tab="services" label="Back to establishments" />
-			{/if}
 			<h2 class="entity-header__title">{place.name}</h2>
 			{#if placeDirectoryLabel(place.category)}
 				<span class="place-category-badge">{placeDirectoryLabel(place.category)}</span>
@@ -147,8 +142,8 @@
 						ariaLabel={`Open ${place.name} in Google Maps`}
 					/>
 				{/if}
-				<EntityShareCopyLink url={placeShareUrl} entityLabel={place.name} />
-				<EntityEditorToggle
+				<EntityShareCopyLink url={page.url.href} entityLabel={place.name} />
+				<!-- <EntityEditorToggle
 					expanded={editing}
 					{canPublish}
 					publishOpenLabel="Edit place"
@@ -162,7 +157,7 @@
 							startEdit();
 						}
 					}}
-				/>
+				/> -->
 			</div>
 		</header>
 
@@ -189,7 +184,7 @@
 				{/if}
 			</ul>
 		{:else}
-			<div class="place-form">
+			<!-- <div class="place-form">
 				<label>Name<input bind:value={nameDraft} /></label>
 				<label
 					>Category
@@ -230,7 +225,7 @@
 						Cancel
 					</button>
 				</div>
-			</div>
+			</div> -->
 		{/if}
 	</div>
 {:else}
@@ -238,8 +233,7 @@
 {/if}
 
 <style>
-	@import './entity-detail.css';
-
+	/* @import './entity-detail.css'; */
 	.place-category-badge {
 		display: inline-block;
 		align-self: flex-start;
@@ -312,4 +306,4 @@
 		padding: 1rem;
 		color: hsl(0, 0%, 45%);
 	}
-</style> -->
+</style>

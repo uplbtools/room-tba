@@ -42,7 +42,6 @@
 		mergeEntityRecord,
 		persistEntityChange
 	} from '$lib/utils/proposals/client';
-	import { getBuildingShareUrl } from '$lib/utils/share-links';
 	import { normalizeEntityPhotos, type EntityPhoto } from '$lib/utils/entity/entity-photos';
 	import type { Building, Room } from '$lib/utils/types';
 	import ResultDisplay from '$lib/components/controls/ResultDisplay.svelte';
@@ -52,7 +51,6 @@
 	// import EntityDirectionsChip from '$lib/components/controls/EntityDirectionsChip.svelte';
 	// import EntityGoogleMapsLink from '$lib/components/controls/EntityGoogleMapsLink.svelte';
 	// import EntityShareCopyLink from '$lib/components/controls/EntityShareCopyLink.svelte';
-	// import EntityBackToList from '$lib/components/controls/EntityBackToList.svelte';
 	import { getOrgsByBuildingId } from '$lib/functions/organizations.remote';
 	import { getRoomsByBuildingId } from '$lib/functions/rooms.remote';
 	import EntityDirectionsChip from '$lib/components/controls/EntityDirectionsChip.svelte';
@@ -61,7 +59,6 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	// import EntityBackToList from './EntityBackToList.svelte';
 	// // import EntityDirectionsChip from './EntityDirectionsChip.svelte';
 	// import EntityGoogleMapsLink from './EntityGoogleMapsLink.svelte';
 	// import EntityShareCopyLink from './EntityShareCopyLink.svelte';
@@ -607,7 +604,6 @@
 {#key building}
 	<div class="entity-detail building-query-wrapper">
 		<header class="entity-header">
-			<!-- <EntityBackToList tab="buildings" label="Back to buildings" /> -->
 			<div class="entity-header__title-row">
 				<h2 class="entity-header__title">{building.buildingName}</h2>
 				<span class="entity-header__badge">{buildingTypeLabel}</span>

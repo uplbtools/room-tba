@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { navigating } from '$app/state';
+	import InfoPanel from '$lib/components/controls/InfoPanel.svelte';
 	import { getPlaceById } from '$lib/functions/places.remote.js';
 	import { getMapStore, getSearchInfo } from '$lib/utils/context';
 	import { onMount } from 'svelte';
+	import PlaceResult from './PlaceResult.svelte';
 	// import { onMount, untrack } from 'svelte';
 
 	const { params } = $props();
@@ -35,3 +37,15 @@
 <svelte:head>
 	<title>{(await place).name} | Room TBA Place</title>
 </svelte:head>
+
+<InfoPanel>
+	<svelte:boundary>
+		{#snippet failed()}
+			failed to load
+		{/snippet}
+		{#snippet pending()}
+			Loading...
+		{/snippet}
+		<PlaceResult place={await place} />
+	</svelte:boundary>
+</InfoPanel>

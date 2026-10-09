@@ -1,0 +1,503 @@
+<script lang="ts">
+	// import {
+	// 	adminAuthStore,
+	// 	additionProposalStore,
+	// 	modalStore,
+	// 	searchInfo,
+	// 	sidePanelStore,
+	// 	toastStore
+	// } from '$lib/stores.svelte';
+	import { getAppActions, getAppData, getSearchInfo } from '$lib/utils/context';
+	import Users from '@lucide/svelte/icons/users';
+	import Mail from '@lucide/svelte/icons/mail';
+	import Info from '@lucide/svelte/icons/info';
+	import Building2 from '@lucide/svelte/icons/building-2';
+	import EntityGoogleMapsLink from '$lib/components/controls/EntityGoogleMapsLink.svelte';
+	import EntityStreetAddress from '$lib/components/controls/EntityStreetAddress.svelte';
+	import EntityDirectionsChip from '$lib/components/controls/EntityDirectionsChip.svelte';
+	import EntityExternalLink from '$lib/components/controls/EntityExternalLink.svelte';
+	import EntityLastUpdated from '$lib/components/EntityLastUpdated.svelte';
+	import EntityShareCopyLink from '$lib/components/controls/EntityShareCopyLink.svelte';
+	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
+	import EntityEditorPinRow from '$lib/components/editor/EntityEditorPinRow.svelte';
+	import type { OrgData } from '$lib/utils/types';
+	import {
+		isStudentOrganization,
+		orgCategoryLabel,
+		ORG_CATEGORIES
+	} from '$lib/constants/content/categories/org';
+	import { persistEntityChange } from '$lib/utils/proposals/client';
+	import { handlePersistEntityResult } from '$lib/utils/editor/handle-persist-result';
+	import { goto } from '$app/navigation';
+	import { getBuildingById } from '$lib/functions/buildings.remote';
+	import { page } from '$app/state';
+
+	interface Props {
+		organization: OrgData;
+	}
+
+	const { organization: org }: Props = $props();
+	const searchInfo = getSearchInfo();
+
+	const categoryLabel = $derived(org ? orgCategoryLabel(org.category) : null);
+	const isStudentOrg = $derived(isStudentOrganization(org.category));
+
+	// Resolve the host building (for the "located in" link and coord fallback).
+	const hostBuilding = $derived(org.buildingId ? await getBuildingById(org.buildingId) : null);
+	const resolvedLat = $derived(org?.lat ?? hostBuilding?.lat ?? null);
+	const resolvedLon = $derived(org?.lon ?? hostBuilding?.lon ?? null);
+
+	// const canPublish = $derived(adminAuthStore.canPublish);
+	// const draftPin = $derived(additionProposalStore.draftPin);
+
+	// let editing = $state(false);
+	// let draftId = $state<number | null>(null);
+	// let draftVersion = $state<number | null>(null);
+	// let nameDraft = $state('');
+	// let categoryDraft = $state('');
+	// let descriptionDraft = $state('');
+	// let websiteDraft = $state('');
+	// let facebookDraft = $state('');
+	// let emailDraft = $state('');
+	// let submitterNameDraft = $state('');
+	// let saving = $state(false);
+	// let fieldError = $state<string | null>(null);
+
+	// $effect(() => {
+	// 	const current = org;
+	// 	if (!current) return;
+	// 	if (draftId === current.id && draftVersion === current.version) return;
+	// 	draftId = current.id;
+	// 	draftVersion = current.version;
+	// 	nameDraft = current.name;
+	// 	categoryDraft = current.category;
+	// 	descriptionDraft = current.description ?? '';
+	// 	websiteDraft = current.websiteLink ?? '';
+	// 	facebookDraft = current.facebookLink ?? '';
+	// 	emailDraft = current.email ?? '';
+	// 	fieldError = null;
+	// });
+
+	// $effect(() => {
+	// 	if (!editing || !org) return;
+	// 	additionProposalStore.setDraftPin(
+	// 		org.lat !== null && org.lon !== null ? { lat: org.lat, lon: org.lon } : null
+	// 	);
+	// });
+
+	// function syncFromServer(updated: OrgData) {
+	// 	appActions.upsertOrganization(updated);
+	// 	searchInfo.hydrateQuery({
+	// 		type: 'result',
+	// 		category: 'organization',
+	// 		value: updated.name
+	// 	});
+	// }
+
+	// function buildPatch(current: OrgData): Record<string, unknown> | null {
+	// 	const patch: Record<string, unknown> = {};
+	// 	const name = nameDraft.trim();
+	// 	if (name !== current.name) {
+	// 		if (!name) {
+	// 			fieldError = 'Name cannot be empty.';
+	// 			return null;
+	// 		}
+	// 		patch.name = name;
+	// 	}
+	// 	if (categoryDraft !== current.category) patch.category = categoryDraft;
+	// 	if (descriptionDraft.trim() !== (current.description ?? '')) {
+	// 		patch.description = descriptionDraft.trim() || null;
+	// 	}
+	// 	if (websiteDraft.trim() !== (current.websiteLink ?? '')) {
+	// 		patch.websiteLink = websiteDraft.trim() || null;
+	// 	}
+	// 	if (facebookDraft.trim() !== (current.facebookLink ?? '')) {
+	// 		patch.facebookLink = facebookDraft.trim() || null;
+	// 	}
+	// 	if (emailDraft.trim() !== (current.email ?? '')) {
+	// 		patch.email = emailDraft.trim() || null;
+	// 	}
+	// 	if (draftPin?.lat !== current.lat || draftPin?.lon !== current.lon) {
+	// 		patch.lat = draftPin?.lat ?? null;
+	// 		patch.lon = draftPin?.lon ?? null;
+	// 	}
+	// 	return patch;
+	// }
+
+	// async function pickOnMap() {
+	// 	sidePanelStore.collapse();
+	// 	try {
+	// 		await additionProposalStore.requestMapPin();
+	// 	} catch {
+	// 		// The map picker was cancelled.
+	// 	} finally {
+	// 		sidePanelStore.expand();
+	// 	}
+	// }
+
+	// async function submitChanges() {
+	// 	const current = org;
+	// 	if (!current) return;
+	// 	fieldError = null;
+	// 	const patch = buildPatch(current);
+	// 	if (!patch) return;
+	// 	if (Object.keys(patch).length === 0) {
+	// 		editing = false;
+	// 		additionProposalStore.clearDraftPin();
+	// 		return;
+	// 	}
+
+	// 	saving = true;
+	// 	try {
+	// 		const result = await persistEntityChange({
+	// 			entityType: 'organization',
+	// 			entityId: current.id,
+	// 			baseVersion: current.version,
+	// 			patch,
+	// 			entityLabel: current.name,
+	// 			canPublish,
+	// 			submitterName: adminAuthStore.displayName ?? adminAuthStore.username ?? submitterNameDraft
+	// 		});
+
+	// 		const outcome = handlePersistEntityResult<OrgData>(result, {
+	// 			syncFromServer,
+	// 			fallbackError: `${current.name} could not be saved.`
+	// 		});
+
+	// 		if (outcome.error) {
+	// 			fieldError = outcome.error;
+	// 			return;
+	// 		}
+	// 		if (outcome.proposal) {
+	// 			toastStore.show(`Suggestion for ${current.name} submitted for review.`, 'success');
+	// 		} else {
+	// 			toastStore.show(`${current.name} updated.`, 'success');
+	// 		}
+	// 		editing = false;
+	// 		additionProposalStore.clearDraftPin();
+	// 	} catch (error) {
+	// 		const reason = error instanceof Error ? error.message : 'Network error';
+	// 		fieldError = `${current.name} failed to save: ${reason}`;
+	// 	} finally {
+	// 		saving = false;
+	// 	}
+	// }
+	async function openHostBuilding() {
+		if (!hostBuilding) return null;
+		await goto(`/map/buildings/${hostBuilding.id}`);
+	}
+</script>
+
+<div class="entity-detail">
+	{#if org}
+		<header class="entity-header">
+			<div class="entity-header__title-row">
+				<h2 class="entity-header__title">{org.name}</h2>
+			</div>
+
+			<div class="entity-meta-row">
+				{#if categoryLabel}
+					<span class="entity-meta-chip org-badge">
+						{#if isStudentOrg}
+							<Users size={12} />
+						{:else}
+							<Building2 size={12} />
+						{/if}
+						{categoryLabel}
+					</span>
+				{/if}
+				{#if org.orgType && org.orgType !== categoryLabel}
+					<span class="entity-meta-chip org-badge">{org.orgType}</span>
+				{/if}
+				{#if org.establishedYear}
+					<span class="entity-meta-chip org-badge">Est. {org.establishedYear}</span>
+				{/if}
+				{#if org.memberCount}
+					<span class="entity-meta-chip org-badge">{org.memberCount} members</span>
+				{/if}
+				{#if hostBuilding}
+					<button type="button" class="entity-meta-chip building-badge" onclick={openHostBuilding}>
+						<Building2 size={12} />
+						{hostBuilding.buildingName}
+					</button>
+				{/if}
+				{#if isStudentOrg}
+					<button
+						type="button"
+						class="org-info-btn"
+						// onclick={() => modalStore.openModal('student-orgs')}
+						aria-label="About student organization listings"
+						title="About student organization listings"
+					>
+						<Info size={14} aria-hidden="true" />
+					</button>
+				{/if}
+			</div>
+
+			<div class="entity-actions">
+				{#if resolvedLat != null && resolvedLon != null}
+					<EntityDirectionsChip lat={resolvedLat} lon={resolvedLon} destinationLabel={org.name} />
+					<EntityGoogleMapsLink
+						lat={resolvedLat}
+						lon={resolvedLon}
+						ariaLabel={`Open ${org.name} in Google Maps`}
+					/>
+				{/if}
+				<EntityShareCopyLink url={page.url.href} entityLabel={org.name} />
+				<!-- <EntityEditorToggle
+					expanded={editing}
+					{canPublish}
+					publishOpenLabel="Edit"
+					closeLabel={canPublish ? 'Close editor' : 'Close'}
+					variant="toolbar"
+					onclick={() => {
+						editing = !editing;
+						if (!editing) additionProposalStore.clearDraftPin();
+					}}
+				/> -->
+			</div>
+		</header>
+
+		<div class="entity-body entity-body--compact">
+			{#if resolvedLat != null && resolvedLon != null}
+				<EntityStreetAddress lat={resolvedLat} lon={resolvedLon} />
+			{/if}
+			{#if org.bio}
+				<section class="org-about">
+					<h3 class="org-about__title">About the org</h3>
+					<p class="entity-directions__text">{org.bio}</p>
+				</section>
+			{:else if org.description}
+				<p class="entity-directions__text">{org.description}</p>
+			{/if}
+			{#if org.bio && org.description && org.description !== org.bio && !org.description.startsWith('Recognized UPLB student organization')}
+				<p class="entity-directions__text">{org.description}</p>
+			{/if}
+
+			{#if org.email || org.websiteLink || org.facebookLink}
+				<div class="entity-dorm-details__links">
+					{#if org.websiteLink}
+						<EntityExternalLink
+							href={org.websiteLink}
+							label="Website"
+							ariaLabel={`Open ${org.name} website (opens in new tab)`}
+						/>
+					{/if}
+					{#if org.facebookLink}
+						<EntityExternalLink
+							href={org.facebookLink}
+							label="Facebook"
+							ariaLabel={`Open ${org.name} Facebook page (opens in new tab)`}
+						/>
+					{/if}
+				</div>
+			{/if}
+
+			{#if org.email}
+				<div class="entity-detail-row">
+					<Mail size={14} />
+					<div class="entity-detail-row__content">
+						<span class="entity-detail-row__label">Email</span>
+						<a
+							href="mailto:{org.email}"
+							class="entity-detail-row__value entity-detail-row__value--link"
+						>
+							{org.email}
+						</a>
+					</div>
+				</div>
+			{/if}
+
+			<EntityLastUpdated updatedAt={org.updatedAt} entityType="organization" entityId={org.id} />
+		</div>
+
+		<img
+			class="entity-image"
+			src={org.imageUrl}
+			alt={org.name}
+			width="800"
+			height="450"
+			loading="lazy"
+			decoding="async"
+		/>
+		<!-- {#if !editing && org.imageUrl} -->
+		<!-- {/if} -->
+
+		<!-- {#if editing}
+			<section
+				class="entity-editor"
+				aria-label={canPublish ? 'Edit organization' : 'Suggest organization edits'}
+			>
+				<label class="org-field">
+					<span class="entity-detail-row__label">Name</span>
+					<input class="org-input" type="text" bind:value={nameDraft} />
+				</label>
+				<EntityEditorPinRow
+					label={draftPin
+						? `Pin set · ${draftPin.lat.toFixed(5)}, ${draftPin.lon.toFixed(5)}`
+						: 'Drop a pin on the map'}
+					pickLabel={draftPin ? 'Move pin' : 'Pick on map'}
+					disabled={saving}
+					onclick={pickOnMap}
+				/>
+				<label class="org-field">
+					<span class="entity-detail-row__label">Category</span>
+					<select class="org-input" bind:value={categoryDraft}>
+						{#each ORG_CATEGORIES as category}
+							<option value={category}>{orgCategoryLabel(category)}</option>
+						{/each}
+					</select>
+				</label>
+				<label class="org-field">
+					<span class="entity-detail-row__label">Description</span>
+					<textarea class="org-input" rows="3" bind:value={descriptionDraft}></textarea>
+				</label>
+				<label class="org-field">
+					<span class="entity-detail-row__label">Website</span>
+					<input class="org-input" type="url" placeholder="https://…" bind:value={websiteDraft} />
+				</label>
+				<label class="org-field">
+					<span class="entity-detail-row__label">Facebook</span>
+					<input
+						class="org-input"
+						type="url"
+						placeholder="https://facebook.com/…"
+						bind:value={facebookDraft}
+					/>
+				</label>
+				<label class="org-field">
+					<span class="entity-detail-row__label">Email</span>
+					<input class="org-input" type="email" bind:value={emailDraft} />
+				</label>
+
+				{#if !canPublish}
+					<label class="org-field">
+						<span class="entity-detail-row__label">Your name (optional)</span>
+						<input class="org-input" type="text" bind:value={submitterNameDraft} />
+					</label>
+				{/if}
+
+				{#if fieldError}
+					<p class="org-error" role="alert">{fieldError}</p>
+				{/if}
+
+				<button type="button" class="org-submit" disabled={saving} onclick={submitChanges}>
+					{saving ? 'Saving…' : canPublish ? 'Save changes' : 'Submit suggestion'}
+				</button>
+			</section>
+		{/if} -->
+	{:else}
+		<div class="no-results">Organization not found.</div>
+	{/if}
+</div>
+
+<style>
+	/* 
+	@import './entity-detail.css';
+	@import '../editor/entity-editor.css';
+	@import '../map-chrome/map-chrome.css'; */
+
+	.entity-header__title-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.org-info-btn {
+		all: unset;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.375rem;
+		height: 1.375rem;
+		border-radius: 999px;
+		color: hsl(265, 45%, 45%);
+		cursor: pointer;
+	}
+
+	.org-info-btn:hover,
+	.org-info-btn:focus-visible {
+		background-color: hsl(265, 45%, 94%);
+	}
+
+	/* Tone only; .entity-meta-chip derives the border + wash. */
+	.org-badge {
+		color: hsl(265, 45%, 36%);
+	}
+
+	.building-badge {
+		color: hsl(5, 45%, 34%);
+		cursor: pointer;
+	}
+
+	.building-badge:hover,
+	.building-badge:focus-visible {
+		background-color: color-mix(in srgb, currentColor 14%, white);
+	}
+
+	.org-about {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.org-about__title {
+		margin: 0;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #27272a;
+	}
+
+	.org-field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		margin-bottom: 0.6rem;
+	}
+
+	.org-input {
+		box-sizing: border-box;
+		width: 100%;
+		min-width: 0;
+		padding: 0.4rem 0.55rem;
+		border: 1px solid hsl(0, 0%, 62%);
+		border-radius: 0.375rem;
+		font: inherit;
+		color: #18181b;
+		background: white;
+	}
+
+	/* Editor labels need real contrast on the warm panel background. */
+	.org-field .entity-detail-row__label {
+		color: #3f3f46;
+	}
+
+	.org-error {
+		color: hsl(0, 65%, 45%);
+		font-size: 0.8125rem;
+		margin: 0.25rem 0;
+	}
+
+	.org-submit {
+		margin-top: 0.25rem;
+		padding: 0.45rem 0.9rem;
+		border: none;
+		border-radius: 0.375rem;
+		background-color: hsl(265, 45%, 48%);
+		color: white;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.org-submit:disabled {
+		opacity: 0.6;
+		cursor: default;
+	}
+
+	.no-results {
+		color: #666;
+		font-size: 0.875rem;
+		text-align: center;
+		padding: 1rem 0;
+	}
+</style>
