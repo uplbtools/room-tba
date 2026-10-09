@@ -1,4 +1,3 @@
-import { ImageResponse } from '@vercel/og';
 import type { RequestHandler } from './$types';
 
 // Hyperscript so we can build Satori elements without JSX in a .ts endpoint.
@@ -251,6 +250,9 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 		)
 	);
 
+	// Imported lazily: @vercel/og's bundled harfbuzz does require('fs') at
+	// module load, which crashes SvelteKit's build-time route analysis.
+	const { ImageResponse } = await import('@vercel/og');
 	const image = new ImageResponse(card as unknown as never, {
 		width: WIDTH,
 		height: HEIGHT,
