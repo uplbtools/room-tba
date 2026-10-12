@@ -13,7 +13,7 @@
         "@datadog/browser-rum": "^7.15.0",
         "@electric-sql/pglite": "^0.5.8",
         "@esri/wayback-core": "^1.1.0",
-        "@lucide/svelte": "^1.49.0",
+        "@lucide/svelte": "^1.53.0",
         "@maplibre/maplibre-gl-directions": "^0.10.1",
         "@supabase/ssr": "^0.12.7",
         "@supabase/supabase-js": "^2.117.3",
@@ -29,7 +29,7 @@
         "maplibre-gl": "^6.13.0",
         "pdf-lib": "^1.17.1",
         "pg": "^8.23.1",
-        "svelte": "^5.57.1",
+        "svelte": "^5.57.2",
         "svelte-maplibre": "^2.0.1",
         "tailwindcss": "^4.3.3",
         "three": "^0.186.1",
@@ -572,7 +572,7 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@lucide/svelte": ["@lucide/svelte@1.49.0", "", { "peerDependencies": { "svelte": "^5" } }, "sha512-RFH6Vx7dj6hshcBa1qJ0nKAWwkh385jJbDwF1WVg7yflC89310BsA55SEmJnaSRfr03dAyZMMLUC1EMGBu0Z0Q=="],
+    "@lucide/svelte": ["@lucide/svelte@1.53.0", "", { "peerDependencies": { "svelte": "^5" } }, "sha512-RZTHcLAwwjAz+rO1S4IPQSTzDycGZWhSYa0GS3sXAoJ3GTHdBZyHCXutIxJketIAoaIkcmFK5Ucfo2+WBYpKLA=="],
 
     "@mapbox/jsonlint-lines-primitives": ["@mapbox/jsonlint-lines-primitives@2.0.3", "", {}, "sha512-0SElaV0uMxEnxzBhhX9WTuPyUeMsAN/SS0i16tjuba4/mio63MG9khjC1a0JAiPGXAwvwm4UfHJURCN7nyudQg=="],
 
@@ -2236,7 +2236,7 @@
 
     "supports-preserve-symlinks-flag": ["supports-preserve-symlinks-flag@1.0.0", "", {}, "sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w=="],
 
-    "svelte": ["svelte@5.57.1", "", { "dependencies": { "@jridgewell/remapping": "^2.3.5", "@jridgewell/sourcemap-codec": "^1.6.0", "@sveltejs/acorn-typescript": "^1.0.13", "@types/estree": "^1.0.9", "acorn": "^8.18.0", "aria-query": "5.3.1", "axobject-query": "^4.1.0", "clsx": "^2.1.1", "devalue": "^5.9.2", "esm-env": "^1.2.1", "esrap": "^2.3.6", "is-reference": "^3.0.3", "locate-character": "^3.0.0", "magic-string": "^0.30.11", "zimmerframe": "^1.1.2" } }, "sha512-Uqj49lWKB+iSSnneuwiYYJ7MZgkB+eXr0LXBhv4uDuAkXqnWmq65Sxflfvp0Lc6MdKjMUxGaeOKWJqz5SNiVIA=="],
+    "svelte": ["svelte@5.57.2", "", { "dependencies": { "@jridgewell/remapping": "^2.3.5", "@jridgewell/sourcemap-codec": "^1.6.0", "@sveltejs/acorn-typescript": "^1.0.13", "@types/estree": "^1.0.9", "acorn": "^8.18.0", "aria-query": "5.3.1", "axobject-query": "^4.1.0", "clsx": "^2.1.1", "devalue": "^5.9.2", "esm-env": "^1.2.1", "esrap": "^2.3.6", "is-reference": "^3.0.3", "locate-character": "^3.0.0", "magic-string": "^0.30.11", "zimmerframe": "^1.1.2" } }, "sha512-1YiPCAXT0Ct6g1vOMmSLa0Nsc3QRMvtDF32ihgglGVrugIuIK38RyDiFNXVDhtQ81TJjSO57NdMw6DyYLqSGDQ=="],
 
     "svelte-maplibre": ["svelte-maplibre@2.0.1", "", { "dependencies": { "d3-geo": "^3.1.0", "dequal": "^2.0.3", "just-compare": "^2.3.0", "maplibre-gl": "^6.7.0", "pmtiles": "^3.0.3" }, "peerDependencies": { "@deck.gl/core": "^9", "@deck.gl/layers": "^9", "@deck.gl/mapbox": "^9", "svelte": "^5.0.0", "topojson-client": "^3.0.0" }, "optionalPeers": ["@deck.gl/core", "@deck.gl/layers", "@deck.gl/mapbox", "topojson-client"] }, "sha512-bBWmpRSgRTBTx9+GaO5nd10RfnM/CEonVcxKH+grCCI7VWL9pUGt65cDHTqaZIS0xgzT+8bryEFyNIw2p0mynQ=="],
 
