@@ -59,6 +59,9 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import ResultAction from '$lib/components/new/ResultAction.svelte';
+	import { CopyIcon, MapIcon, MapPin, PinIcon } from '@lucide/svelte';
+	import { copyTextToClipboard } from '$lib/utils/clipboard';
 	// // import EntityDirectionsChip from './EntityDirectionsChip.svelte';
 	// import EntityGoogleMapsLink from './EntityGoogleMapsLink.svelte';
 	// import EntityShareCopyLink from './EntityShareCopyLink.svelte';
@@ -609,7 +612,7 @@
 				<span class="entity-header__badge">{buildingTypeLabel}</span>
 			</div>
 
-			<div class="entity-actions">
+			<div class="flex gap-1">
 				{#if hasMapPin}
 					<!-- <MapChromeActionChip
 						toolbar
@@ -619,7 +622,7 @@
 						<Box size={14} aria-hidden="true" />
 						3D view
 					</MapChromeActionChip> -->
-					<EntityDirectionsChip
+					<!-- <EntityDirectionsChip
 						lat={building.lat ?? 0}
 						lon={building.lon ?? 0}
 						destinationLabel={building.buildingName}
@@ -628,8 +631,27 @@
 						lat={building.lat ?? 0}
 						lon={building.lon ?? 0}
 						ariaLabel={`Open ${building.buildingName} in Google Maps`}
-					/>
+					/> -->
+
+					{#snippet mapPinIcon()}
+						<MapPin size={18} />
+					{/snippet}
+					<ResultAction
+						icon={mapPinIcon}
+						onclick={() => {
+							alert('It works?');
+						}}>Google Maps</ResultAction
+					>
 				{/if}
+				{#snippet copyIcon()}
+					<CopyIcon size={18} />
+				{/snippet}
+				<ResultAction
+					icon={copyIcon}
+					onclick={async () => {
+						await copyTextToClipboard(page.url.href);
+					}}>Copy Link</ResultAction
+				>
 				<EntityShareCopyLink url={page.url.href} entityLabel={building.buildingName} />
 				<!-- <EntityEditorToggle
 					expanded={editing}
