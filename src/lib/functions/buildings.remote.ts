@@ -1,25 +1,28 @@
-import { query } from "$app/server";
+import { form, query } from "$app/server";
 import { db } from "$lib/utils/db";
-import { buildingsTable } from "$lib/server/db/schema";
+import { buildingsTable, editProposalsTable } from "$lib/server/db/schema";
 import { eq } from "drizzle-orm";
 import { error } from "@sveltejs/kit";
-import { TableId } from "$lib/schema/functions";
+import { BuildingProposalSchema, ProposalMetaSchema, TableIdSchema } from "$lib/schema/functions";
+import * as v from "valibot"
+import { client } from "$lib/server/db";
 
 export const getMapBuildingsData = query(
     async () => {
-        const rows = await db.select({
+        const rows: any[] = [];/* await db.select({
             id: buildingsTable.id,
             lon: buildingsTable.lon,
             lat: buildingsTable.lat,
             buildingName: buildingsTable.buildingName,
-        }).from(buildingsTable);
+        }).from(buildingsTable); */
         return rows;
     }
 )
 
 export const getBuildingById = query(
-    TableId,
+    TableIdSchema,
     async (id) => {
+        
         const [entry] = await db
             .select()
             .from(buildingsTable)
@@ -29,3 +32,21 @@ export const getBuildingById = query(
         return entry;
     }
 )
+
+export const addBuildingSuggestion = form(BuildingProposalSchema, async ({ meta, body: proposedPatch }) => {
+    try {
+        await db
+            .insert(editProposalsTable)
+            .values({
+                entityType: "create_building",
+                entityId: meta.entityId,
+                baseVersion: meta.baseVersion,
+                submitterName: meta.submitterName,
+                proposedPatch,
+            });
+    } catch {
+        error(500, {
+            message: "SERVER ERROR: Cannot add building suggestion"
+        })
+    }
+})

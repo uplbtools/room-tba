@@ -71,12 +71,12 @@ export const getUnionSuggestions = query(
             .where(like(lower(placesTable.name), `%${query}%`)).limit(3)
         const rooms = db
             .select({
-                name: roomsTable.code,
+                name: roomsTable.roomCode,
                 id: roomsTable.id,
                 type: sql<EntityType>`'room'`
             })
             .from(roomsTable)
-            .where(like(lower(roomsTable.code), `%${query}%`)).limit(3);
+            .where(like(lower(roomsTable.roomCode), `%${query}%`)).limit(3);
 
         const results = await unionAll(buildings, colleges, divisions, dorms, events, orgs, places, rooms);
 

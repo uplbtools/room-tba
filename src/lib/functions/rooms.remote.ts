@@ -1,16 +1,14 @@
-import { query } from "$app/server";
-import { roomsTable } from "$lib/server/db/schema";
+import { form, query } from "$app/server";
+import { QueryPaginationSchema, RoomProposalSchema } from "$lib/schema/functions";
+import { editProposalsTable, roomsTable } from "$lib/server/db/schema";
 import { db } from "$lib/utils/db";
+import { error } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
-import * as v from "valibot";
 
 
 export const getRoomsByBuildingId = query(
-    v.object({
-        id: v.pipe(v.number(), v.integer()),
-        offset: v.pipe(v.optional(v.number()), v.toNumber(), v.integer(), v.minValue(0))
-    }),
-    async ({id, offset = 0}) => {
+    QueryPaginationSchema,
+    async ({ id, offset = 0 }) => {
         const rows = await db
             .select()
             .from(roomsTable)
@@ -20,3 +18,21 @@ export const getRoomsByBuildingId = query(
             .offset(offset);
         return rows;
     })
+
+export const addRoomSuggestion = form(RoomProposalSchema, async ({ meta, body: proposedPatch }) => {
+    try {
+        await db
+            .insert(editProposalsTable)
+            .values({
+                entityType: "create_room",
+                entityId: meta.entityId,
+                baseVersion: meta.baseVersion,
+                submitterName: meta.submitterName,
+                proposedPatch,
+            });
+    } catch {
+        error(500, {
+            message: "SERVER ERROR: Cannot add room suggestion"
+        })
+    }
+})

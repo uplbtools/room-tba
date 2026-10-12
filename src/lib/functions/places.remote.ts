@@ -1,6 +1,6 @@
-import { query } from "$app/server";
-import { TableId } from "$lib/schema/functions";
-import { placesTable } from "$lib/server/db/schema";
+import { form, query } from "$app/server";
+import { PlaceProposalSchema, TableIdSchema } from "$lib/schema/functions";
+import { editProposalsTable, placesTable } from "$lib/server/db/schema";
 import { db } from "$lib/utils/db";
 import { error } from "@sveltejs/kit";
 import { eq, isNotNull, or } from "drizzle-orm";
@@ -17,7 +17,7 @@ export const getMapPlacesData = query(async () => {
 });
 
 export const getPlaceById = query(
-    TableId,
+    TableIdSchema,
     async (id) => {
         const [entry] = await db
             .select()
@@ -29,3 +29,21 @@ export const getPlaceById = query(
         return entry;
     }
 )
+
+export const addPlaceSuggestion = form(PlaceProposalSchema, async ({meta, body: proposedPatch}) => {
+    try {
+        await db
+            .insert(editProposalsTable)
+            .values({
+                entityType: "create_place",
+                entityId: meta.entityId,
+                baseVersion: meta.baseVersion,
+                submitterName: meta.submitterName,
+                proposedPatch,
+            });
+    } catch {
+        error(500, {
+            message: "SERVER ERROR: Cannot add place suggestion"
+        })
+    }
+})
