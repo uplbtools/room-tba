@@ -51,7 +51,6 @@
 	function handleMapKeydown(event: KeyboardEvent & { currentTarget: EventTarget & Window }) {
 		if (event.key === 'Escape' && page.route.id !== '/(app)/map') {
 			goto(resolve('/map'));
-			searchInfo.clearSearch();
 		}
 	}
 </script>

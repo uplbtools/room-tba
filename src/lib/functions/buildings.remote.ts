@@ -3,18 +3,16 @@ import { db } from "$lib/utils/db";
 import { buildingsTable, editProposalsTable } from "$lib/server/db/schema";
 import { eq } from "drizzle-orm";
 import { error } from "@sveltejs/kit";
-import { BuildingProposalSchema, ProposalMetaSchema, TableIdSchema } from "$lib/schema/functions";
-import * as v from "valibot"
-import { client } from "$lib/server/db";
+import { BuildingProposalSchema, TableIdSchema } from "$lib/schema/functions";
 
 export const getMapBuildingsData = query(
     async () => {
-        const rows: any[] = [];/* await db.select({
+        const rows = await db.select({
             id: buildingsTable.id,
             lon: buildingsTable.lon,
             lat: buildingsTable.lat,
             buildingName: buildingsTable.buildingName,
-        }).from(buildingsTable); */
+        }).from(buildingsTable);
         return rows;
     }
 )

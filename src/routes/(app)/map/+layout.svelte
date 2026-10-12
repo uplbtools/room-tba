@@ -2,7 +2,12 @@
 	import Search from '$lib/components/search/Search.svelte';
 	import { MapStore } from '$lib/stores/map/map-stores.svelte';
 	import UserLocation from '$lib/stores/map/UserLocation.svelte';
-	import { initMapStore, initSearchInfo, initUserLocation } from '$lib/utils/context';
+	import {
+		getSearchInfo,
+		initMapStore,
+		initSearchInfo,
+		initUserLocation
+	} from '$lib/utils/context';
 	import type { Snippet } from 'svelte';
 	import UIMap from './Map.svelte';
 	import SearchInfo from '$lib/stores/SearchInfo.svelte';
@@ -10,6 +15,7 @@
 	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
 	import UILayer from './UILayer.svelte';
 	import MapControlsStack from '$lib/components/map-chrome/MapControlsStack.svelte';
+	import { afterNavigate } from '$app/navigation';
 	/* import { onMount, type Snippet } from 'svelte';
 	import { page } from '$app/state';
 	import { campusCommunity } from '$lib/campus.config';

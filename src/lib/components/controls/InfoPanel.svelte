@@ -105,7 +105,7 @@
 	const { children }: { children?: Snippet } = $props();
 </script>
 
-<div class="pointer-events-auto mr-auto basis-96 self-stretch bg-white">
+<div class="pointer-events-auto mr-auto basis-96 self-stretch bg-white p-6">
 	{@render children?.()}
 </div>
 
