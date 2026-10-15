@@ -1,4 +1,4 @@
-import type { ClassMapValue } from '$lib/utils/types.js';
+import type { ClassMapValue } from '#lib/utils/types.js';
 import { offeringGroupKey, parentLectureSection } from '../utils/class-offering-groups.js';
 import { findConflicts } from '../utils/planner/conflicts.js';
 import { mergePlannerState, parsePlanner, serializePlanner } from '../utils/planner/persist.js';

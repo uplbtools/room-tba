@@ -1,10 +1,10 @@
 <script lang="ts">
 	import Locate from '@lucide/svelte/icons/locate';
 	import LocateFixed from '@lucide/svelte/icons/locate-fixed';
-	import { isMap2DPitch } from '$lib/constants/map/dimension';
-	// import { userLocation, map } from '$lib/stores.svelte';
+	import { isMap2DPitch } from '#lib/constants/map/dimension.js';
+	// import { userLocation, map } from '#lib/stores.svelte.js';
 	import compassIcon from '../../../assets/icons/compass.svg?url';
-	import { getMapStore, getUserLocation } from '$lib/utils/context';
+	import { getMapStore, getUserLocation } from '#lib/utils/context.js';
 
 	type Props = {
 		/** Mobile Figma: locate / 2D / zoom only (no compass). */

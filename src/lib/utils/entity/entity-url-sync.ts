@@ -1,4 +1,4 @@
-import type { JeepneyRoute } from '$lib/constants/map/jeepney-routes';
+import type { JeepneyRoute } from '#lib/constants/map/jeepney-routes.js';
 import type { AppContextData } from '../context';
 import {
 	getEntityCanonicalPath,
@@ -9,7 +9,7 @@ import {
 	resolveQueryFromEntityPath
 } from './entity-urls';
 import { getLocalRoomById } from '../local/data/utils';
-import { currentRoom, termStore } from '$lib/stores.svelte';
+import { currentRoom, termStore } from '#lib/stores.svelte.js';
 import { parseTermIdFromSearch, withTermQuery } from '../term/term-url';
 import {
 	getTransitRoutePath,

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import {
-    CONTRIBUTOR_LICENSE_CONSENT,
-    DATA_LICENSE_TERMS_PATH,
-  } from "$lib/constants/data-license";
+	import {
+		CONTRIBUTOR_LICENSE_CONSENT,
+		DATA_LICENSE_TERMS_PATH
+	} from '#lib/constants/data-license.js';
 </script>
 
 <p class="proposal-license-note">

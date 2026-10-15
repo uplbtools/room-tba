@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-import { buildingTypeFilter, searchInfo, sidebarStore } from '$lib/stores.svelte';
+import { buildingTypeFilter, searchInfo, sidebarStore } from '#lib/stores.svelte.js';
 
 describe('searchInfo pin filter reset (#chip mislabel)', () => {
 	beforeEach(() => {

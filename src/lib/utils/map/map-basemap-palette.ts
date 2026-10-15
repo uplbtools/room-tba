@@ -1,5 +1,5 @@
 import type maplibregl from 'maplibre-gl';
-import { BASEMAP_LAYER_PAINT, BASEMAP_RECESS_LAYER_IDS } from '$lib/constants/map/base-palette';
+import { BASEMAP_LAYER_PAINT, BASEMAP_RECESS_LAYER_IDS } from '#lib/constants/map/base-palette.js';
 
 /** Apply basemap paint overrides after the style loads. Idempotent. */
 export function applyBasemapPalette(map: maplibregl.Map): void {

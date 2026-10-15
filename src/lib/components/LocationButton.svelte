@@ -9,7 +9,7 @@
 		userLocation,
 		map,
 		toastStore
-	} from '$lib/stores.svelte';
+	} from '#lib/stores.svelte.js';
 
 	type Props = {
 		/** When true, render as inline actions inside the bottom chrome tray. */

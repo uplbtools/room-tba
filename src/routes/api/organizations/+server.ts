@@ -1,6 +1,6 @@
 import { error, json } from '@sveltejs/kit';
-import { db } from '$lib/server/db';
-import { collegesTable, organizationsTable } from '$lib/server/db/schema';
+import { db } from '#lib/server/db/index.js';
+import { collegesTable, organizationsTable } from '#lib/server/db/schema.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async () => {

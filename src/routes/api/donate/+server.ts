@@ -1,4 +1,4 @@
-import { env } from '$env/dynamic/private';
+import { PAYMONGO_SECRET_KEY } from '$app/env/private';
 import type { RequestHandler } from './$types';
 
 const MIN_PESOS = 10;
@@ -31,7 +31,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		});
 	}
 
-	const secretKey = env.PAYMONGO_SECRET_KEY;
+	const secretKey = PAYMONGO_SECRET_KEY;
 	if (!secretKey) {
 		return json(503, { error: 'Donations are not configured yet' });
 	}

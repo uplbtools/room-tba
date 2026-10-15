@@ -1,660 +1,634 @@
 <script lang="ts">
-  import {
-    adminAuthStore,
-    additionProposalStore,
-    toastStore,
-  } from "$lib/stores.svelte";
-  import { getAppData } from "$lib/utils/context";
-  import SubmitterNameField from "./SubmitterNameField.svelte";
-  import {
-    resolveSubmitterName,
-    publishEntityCreate,
-    submitCreateProposal,
-    getStoredPendingCreateProposal,
-    fetchPublicProposalSummary,
-    type ProposalCreateType,
-  } from "$lib/utils/proposals/client";
-  import {
-    MAX_SUBMITTER_NOTE_LENGTH,
-    validateSubmitterName,
-  } from "$lib/constants/contribute/proposals";
-  import { instantToCampusWallString } from "$lib/utils/event/event-time";
-  import { slugifySegment } from "$lib/utils/site";
-  import {
-    clearSuggestAdditionDraft,
-    readSuggestAdditionDraft,
-    scheduleSuggestAdditionDraftSave,
-  } from "$lib/utils/contributor-drafts";
-  import EntityEditorFormField from "$lib/components/editor/EntityEditorFormField.svelte";
-  import EntityEditorSubmitButton from "$lib/components/editor/EntityEditorSubmitButton.svelte";
-  import ProposalLicenseNote from "$lib/components/editor/ProposalLicenseNote.svelte";
-  import EntityEditorPinRow from "$lib/components/editor/EntityEditorPinRow.svelte";
-  import EntityEditorMessage from "$lib/components/editor/EntityEditorMessage.svelte";
-  import ImageUpload from "$lib/components/editor/ImageUpload.svelte";
-  import PhotoCollectionUpload from "$lib/components/editor/PhotoCollectionUpload.svelte";
-  import ContributorPendingProposals from "./ContributorPendingProposals.svelte";
-  import type { BundledRoomDraft } from "$lib/utils/proposals/create-proposal-validation";
-  import {
-    parseBundledRooms,
-    ProposalValidationError,
-    validateBundledRooms,
-  } from "$lib/utils/proposals/create-proposal-validation";
-  import { PLACE_CATEGORIES, type PlaceCategory } from "$lib/constants/content/categories/place"
-  import {
-    ORG_CATEGORIES,
-    type OrgCategory,
-    orgCategoryLabel,
-  } from "$lib/constants/content/categories/org"
-  import { onMount } from "svelte";
-  import {
-    buildDraftPinPreview,
-    draftPinRowLabel,
-  } from "$lib/utils/editor/draft-pin-preview";
+	import { adminAuthStore, additionProposalStore, toastStore } from '#lib/stores.svelte.js';
+	import { getAppData } from '#lib/utils/context.js';
+	import SubmitterNameField from './SubmitterNameField.svelte';
+	import {
+		resolveSubmitterName,
+		publishEntityCreate,
+		submitCreateProposal,
+		getStoredPendingCreateProposal,
+		fetchPublicProposalSummary,
+		type ProposalCreateType
+	} from '#lib/utils/proposals/client.js';
+	import {
+		MAX_SUBMITTER_NOTE_LENGTH,
+		validateSubmitterName
+	} from '#lib/constants/contribute/proposals.js';
+	import { instantToCampusWallString } from '#lib/utils/event/event-time.js';
+	import { slugifySegment } from '#lib/utils/site.js';
+	import {
+		clearSuggestAdditionDraft,
+		readSuggestAdditionDraft,
+		scheduleSuggestAdditionDraftSave
+	} from '#lib/utils/contributor-drafts.js';
+	import EntityEditorFormField from '#lib/components/editor/EntityEditorFormField.svelte';
+	import EntityEditorSubmitButton from '#lib/components/editor/EntityEditorSubmitButton.svelte';
+	import ProposalLicenseNote from '#lib/components/editor/ProposalLicenseNote.svelte';
+	import EntityEditorPinRow from '#lib/components/editor/EntityEditorPinRow.svelte';
+	import EntityEditorMessage from '#lib/components/editor/EntityEditorMessage.svelte';
+	import ImageUpload from '#lib/components/editor/ImageUpload.svelte';
+	import PhotoCollectionUpload from '#lib/components/editor/PhotoCollectionUpload.svelte';
+	import ContributorPendingProposals from './ContributorPendingProposals.svelte';
+	import type { BundledRoomDraft } from '#lib/utils/proposals/create-proposal-validation.js';
+	import {
+		parseBundledRooms,
+		ProposalValidationError,
+		validateBundledRooms
+	} from '#lib/utils/proposals/create-proposal-validation.js';
+	import { PLACE_CATEGORIES, type PlaceCategory } from '#lib/constants/content/categories/place.js';
+	import {
+		ORG_CATEGORIES,
+		type OrgCategory,
+		orgCategoryLabel
+	} from '#lib/constants/content/categories/org.js';
+	import { onMount } from 'svelte';
+	import { buildDraftPinPreview, draftPinRowLabel } from '#lib/utils/editor/draft-pin-preview.js';
 
-  type AdditionOption = {
-    value: ProposalCreateType;
-    label: string;
-  };
+	type AdditionOption = {
+		value: ProposalCreateType;
+		label: string;
+	};
 
-  let {
-    mode = "proposal",
-    onDismiss,
-    onRestore,
-  }: {
-    mode?: "proposal" | "publish";
-    onDismiss?: () => void;
-    onRestore?: () => void;
-  } = $props();
+	let {
+		mode = 'proposal',
+		onDismiss,
+		onRestore
+	}: {
+		mode?: 'proposal' | 'publish';
+		onDismiss?: () => void;
+		onRestore?: () => void;
+	} = $props();
 
-  const PROPOSAL_OPTIONS: AdditionOption[] = [
-    { value: "create_building", label: "Building" },
-    { value: "create_event", label: "Campus event" },
-    { value: "create_dorm", label: "Dorm" },
-    { value: "create_place", label: "Landmark or establishment" },
-    { value: "create_organization", label: "Organization, office, or unit" },
-    { value: "create_room", label: "Room" },
-    { value: "create_college", label: "College" },
-    { value: "create_division", label: "Division" },
-  ];
+	const PROPOSAL_OPTIONS: AdditionOption[] = [
+		{ value: 'create_building', label: 'Building' },
+		{ value: 'create_event', label: 'Campus event' },
+		{ value: 'create_dorm', label: 'Dorm' },
+		{ value: 'create_place', label: 'Landmark or establishment' },
+		{ value: 'create_organization', label: 'Organization, office, or unit' },
+		{ value: 'create_room', label: 'Room' },
+		{ value: 'create_college', label: 'College' },
+		{ value: 'create_division', label: 'Division' }
+	];
 
-  const PUBLISH_OPTIONS: AdditionOption[] = [
-    { value: "create_building", label: "Building" },
-    { value: "create_dorm", label: "Dorm" },
-    { value: "create_place", label: "Landmark or establishment" },
-    { value: "create_organization", label: "Organization, office, or unit" },
-    { value: "create_room", label: "Room" },
-    { value: "create_college", label: "College" },
-    { value: "create_division", label: "Division" },
-  ];
+	const PUBLISH_OPTIONS: AdditionOption[] = [
+		{ value: 'create_building', label: 'Building' },
+		{ value: 'create_dorm', label: 'Dorm' },
+		{ value: 'create_place', label: 'Landmark or establishment' },
+		{ value: 'create_organization', label: 'Organization, office, or unit' },
+		{ value: 'create_room', label: 'Room' },
+		{ value: 'create_college', label: 'College' },
+		{ value: 'create_division', label: 'Division' }
+	];
 
-  const options = $derived(
-    mode === "publish" ? PUBLISH_OPTIONS : PROPOSAL_OPTIONS,
-  );
-  const isPublish = $derived(mode === "publish");
+	const options = $derived(mode === 'publish' ? PUBLISH_OPTIONS : PROPOSAL_OPTIONS);
+	const isPublish = $derived(mode === 'publish');
 
-  let kind = $state<ProposalCreateType>("create_building");
-  let submitterName = $state("");
-  let submitterNote = $state("");
-  let buildingName = $state("");
-  let buildingDirections = $state("");
-  let buildingType = $state<"admin" | "non-admin">("non-admin");
-  let buildingPhotos = $state<string[]>([]);
-  let eventTitle = $state("");
-  let eventStartsAt = $state("");
-  let eventEndsAt = $state("");
-  let eventCategory = $state<
-    "tradition" | "fair" | "ceremony" | "sports" | "other"
-  >("other");
-  let eventImageUrl = $state<string | null>(null);
-  let dormName = $state("");
-  let dormGender = $state("");
-  let dormPhotos = $state<string[]>([]);
-  let placeName = $state("");
-  let placeCategory = $state<PlaceCategory>("landmark");
-  let placeDescription = $state("");
-  let placeHours = $state("");
-  let organizationName = $state("");
-  let organizationCategory = $state<OrgCategory>("student-org");
-  let organizationDescription = $state("");
-  let organizationBuildingDraft = $state("");
-  let roomCode = $state("");
-  let roomDirections = $state("");
-  let roomPhotos = $state<string[]>([]);
-  let roomBuildingDraft = $state("");
-  let collegeName = $state("");
-  let divisionCollegeDraft = $state("");
-  let divisionName = $state("");
-  let submitting = $state(false);
-  let error = $state<string | null>(null);
-  let draftReady = $state(false);
-  let pendingBuildingLabel = $state<string | null>(null);
-  let pendingListVersion = $state(0);
-  let bundledRooms = $state<BundledRoomDraft[]>([]);
+	let kind = $state<ProposalCreateType>('create_building');
+	let submitterName = $state('');
+	let submitterNote = $state('');
+	let buildingName = $state('');
+	let buildingDirections = $state('');
+	let buildingType = $state<'admin' | 'non-admin'>('non-admin');
+	let buildingPhotos = $state<string[]>([]);
+	let eventTitle = $state('');
+	let eventStartsAt = $state('');
+	let eventEndsAt = $state('');
+	let eventCategory = $state<'tradition' | 'fair' | 'ceremony' | 'sports' | 'other'>('other');
+	let eventImageUrl = $state<string | null>(null);
+	let dormName = $state('');
+	let dormGender = $state('');
+	let dormPhotos = $state<string[]>([]);
+	let placeName = $state('');
+	let placeCategory = $state<PlaceCategory>('landmark');
+	let placeDescription = $state('');
+	let placeHours = $state('');
+	let organizationName = $state('');
+	let organizationCategory = $state<OrgCategory>('student-org');
+	let organizationDescription = $state('');
+	let organizationBuildingDraft = $state('');
+	let roomCode = $state('');
+	let roomDirections = $state('');
+	let roomPhotos = $state<string[]>([]);
+	let roomBuildingDraft = $state('');
+	let collegeName = $state('');
+	let divisionCollegeDraft = $state('');
+	let divisionName = $state('');
+	let submitting = $state(false);
+	let error = $state<string | null>(null);
+	let draftReady = $state(false);
+	let pendingBuildingLabel = $state<string | null>(null);
+	let pendingListVersion = $state(0);
+	let bundledRooms = $state<BundledRoomDraft[]>([]);
 
-  const appData = getAppData();
-  const colleges = $derived(appData().loaded ? appData().colleges : []);
-  const buildings = $derived(
-    appData().loaded
-      ? [...(appData().buildings ?? [])].sort((a, b) =>
-          a.buildingName.localeCompare(b.buildingName),
-        )
-      : [],
-  );
+	const appData = getAppData();
+	const colleges = $derived(appData().loaded ? appData().colleges : []);
+	const buildings = $derived(
+		appData().loaded
+			? [...(appData().buildings ?? [])].sort((a, b) =>
+					a.buildingName.localeCompare(b.buildingName)
+				)
+			: []
+	);
 
-  const roomBuildingNotice = $derived.by(() => {
-    if (kind !== "create_room" || isPublish) return null;
-    if (pendingBuildingLabel) {
-      return `Your building suggestion "${pendingBuildingLabel}" is still waiting for editor review. You can add rooms in that building after it is approved and appears on the map.`;
-    }
-    if (buildings.length === 0) {
-      return "Rooms must belong to a building that is already on the map. Suggest a building first, then come back to add rooms after editors approve it.";
-    }
-    return "Rooms must belong to a building that is already on the map. Pick one below, or open a building in the side panel and use Suggest an edit on an existing room.";
-  });
+	const roomBuildingNotice = $derived.by(() => {
+		if (kind !== 'create_room' || isPublish) return null;
+		if (pendingBuildingLabel) {
+			return `Your building suggestion "${pendingBuildingLabel}" is still waiting for editor review. You can add rooms in that building after it is approved and appears on the map.`;
+		}
+		if (buildings.length === 0) {
+			return 'Rooms must belong to a building that is already on the map. Suggest a building first, then come back to add rooms after editors approve it.';
+		}
+		return 'Rooms must belong to a building that is already on the map. Pick one below, or open a building in the side panel and use Suggest an edit on an existing room.';
+	});
 
-  const needsPin = $derived(
-    kind === "create_building" ||
-      kind === "create_dorm" ||
-      kind === "create_place" ||
-      kind === "create_organization" ||
-      kind === "create_event",
-  );
+	const needsPin = $derived(
+		kind === 'create_building' ||
+			kind === 'create_dorm' ||
+			kind === 'create_place' ||
+			kind === 'create_organization' ||
+			kind === 'create_event'
+	);
 
-  const draftPin = $derived(additionProposalStore.draftPin);
-  const draftPinPreview = $derived(additionProposalStore.draftPinPreview);
-  const draftPinRowText = $derived(
-    draftPinRowLabel(draftPinPreview, Boolean(draftPin)),
-  );
+	const draftPin = $derived(additionProposalStore.draftPin);
+	const draftPinPreview = $derived(additionProposalStore.draftPinPreview);
+	const draftPinRowText = $derived(draftPinRowLabel(draftPinPreview, Boolean(draftPin)));
 
-  function resetFields(clearPin = true) {
-    buildingName = "";
-    buildingDirections = "";
-    buildingType = "non-admin";
-    buildingPhotos = [];
-    if (clearPin) additionProposalStore.clearDraftPin();
-    eventTitle = "";
-    eventStartsAt = "";
-    eventEndsAt = "";
-    eventCategory = "other";
-    eventImageUrl = null;
-    dormName = "";
-    dormGender = "";
-    dormPhotos = [];
-    placeName = "";
-    placeCategory = "landmark";
-    placeDescription = "";
-    placeHours = "";
-    organizationName = "";
-    organizationCategory = "student-org";
-    organizationDescription = "";
-    organizationBuildingDraft = "";
-    roomCode = "";
-    roomDirections = "";
-    roomPhotos = [];
-    roomBuildingDraft = "";
-    collegeName = "";
-    divisionCollegeDraft = "";
-    divisionName = "";
-    bundledRooms = [];
-    error = null;
-  }
+	function resetFields(clearPin = true) {
+		buildingName = '';
+		buildingDirections = '';
+		buildingType = 'non-admin';
+		buildingPhotos = [];
+		if (clearPin) additionProposalStore.clearDraftPin();
+		eventTitle = '';
+		eventStartsAt = '';
+		eventEndsAt = '';
+		eventCategory = 'other';
+		eventImageUrl = null;
+		dormName = '';
+		dormGender = '';
+		dormPhotos = [];
+		placeName = '';
+		placeCategory = 'landmark';
+		placeDescription = '';
+		placeHours = '';
+		organizationName = '';
+		organizationCategory = 'student-org';
+		organizationDescription = '';
+		organizationBuildingDraft = '';
+		roomCode = '';
+		roomDirections = '';
+		roomPhotos = [];
+		roomBuildingDraft = '';
+		collegeName = '';
+		divisionCollegeDraft = '';
+		divisionName = '';
+		bundledRooms = [];
+		error = null;
+	}
 
-  function addBundledRoom() {
-    bundledRooms = [
-      ...bundledRooms,
-      { roomCode: "", directions: "", photoUrls: [] },
-    ];
-  }
+	function addBundledRoom() {
+		bundledRooms = [...bundledRooms, { roomCode: '', directions: '', photoUrls: [] }];
+	}
 
-  function removeBundledRoom(index: number) {
-    bundledRooms = bundledRooms.filter((_, i) => i !== index);
-  }
+	function removeBundledRoom(index: number) {
+		bundledRooms = bundledRooms.filter((_, i) => i !== index);
+	}
 
-  function snapshotAdditionDraft() {
-    return {
-      kind,
-      buildingName,
-      buildingDirections,
-      buildingType,
-      buildingPhotos,
-      eventTitle,
-      eventStartsAt,
-      eventEndsAt,
-      eventCategory,
-      eventImageUrl,
-      dormName,
-      dormGender,
-      dormPhotos,
-      placeName,
-      placeCategory,
-      placeDescription,
-      placeHours,
-      organizationName,
-      organizationCategory,
-      organizationDescription,
-      organizationBuildingDraft,
-      roomCode,
-      roomDirections,
-      roomPhotos,
-      roomBuildingDraft,
-      collegeName,
-      divisionCollegeDraft,
-      divisionName,
-      bundledRooms,
-      draftPin: additionProposalStore.draftPin,
-    };
-  }
+	function snapshotAdditionDraft() {
+		return {
+			kind,
+			buildingName,
+			buildingDirections,
+			buildingType,
+			buildingPhotos,
+			eventTitle,
+			eventStartsAt,
+			eventEndsAt,
+			eventCategory,
+			eventImageUrl,
+			dormName,
+			dormGender,
+			dormPhotos,
+			placeName,
+			placeCategory,
+			placeDescription,
+			placeHours,
+			organizationName,
+			organizationCategory,
+			organizationDescription,
+			organizationBuildingDraft,
+			roomCode,
+			roomDirections,
+			roomPhotos,
+			roomBuildingDraft,
+			collegeName,
+			divisionCollegeDraft,
+			divisionName,
+			bundledRooms,
+			draftPin: additionProposalStore.draftPin
+		};
+	}
 
-  function restoreAdditionDraft() {
-    const saved = readSuggestAdditionDraft();
-    if (!saved) return;
-    kind = saved.kind;
-    buildingName = saved.buildingName;
-    buildingDirections = saved.buildingDirections;
-    buildingType = saved.buildingType;
-    buildingPhotos = saved.buildingPhotos ?? [];
-    eventTitle = saved.eventTitle;
-    eventStartsAt = saved.eventStartsAt;
-    eventEndsAt = saved.eventEndsAt;
-    eventCategory = saved.eventCategory;
-    eventImageUrl = saved.eventImageUrl;
-    dormName = saved.dormName;
-    dormGender = saved.dormGender;
-    dormPhotos = saved.dormPhotos ?? [];
-    placeName = saved.placeName ?? "";
-    placeCategory = saved.placeCategory ?? "landmark";
-    placeDescription = saved.placeDescription ?? "";
-    placeHours = saved.placeHours ?? "";
-    organizationName = saved.organizationName ?? "";
-    organizationCategory = saved.organizationCategory ?? "student-org";
-    organizationDescription = saved.organizationDescription ?? "";
-    organizationBuildingDraft = saved.organizationBuildingDraft ?? "";
-    roomCode = saved.roomCode;
-    roomDirections = saved.roomDirections;
-    roomPhotos = saved.roomPhotos ?? [];
-    roomBuildingDraft = saved.roomBuildingDraft ?? "";
-    collegeName = saved.collegeName;
-    divisionCollegeDraft = saved.divisionCollegeDraft;
-    divisionName = saved.divisionName;
-    bundledRooms = (saved.bundledRooms ?? []).map((room) => ({
-      ...room,
-      photoUrls: room.photoUrls ?? [],
-    }));
-    if (saved.draftPin) {
-      additionProposalStore.setDraftPin(saved.draftPin);
-    }
-  }
+	function restoreAdditionDraft() {
+		const saved = readSuggestAdditionDraft();
+		if (!saved) return;
+		kind = saved.kind;
+		buildingName = saved.buildingName;
+		buildingDirections = saved.buildingDirections;
+		buildingType = saved.buildingType;
+		buildingPhotos = saved.buildingPhotos ?? [];
+		eventTitle = saved.eventTitle;
+		eventStartsAt = saved.eventStartsAt;
+		eventEndsAt = saved.eventEndsAt;
+		eventCategory = saved.eventCategory;
+		eventImageUrl = saved.eventImageUrl;
+		dormName = saved.dormName;
+		dormGender = saved.dormGender;
+		dormPhotos = saved.dormPhotos ?? [];
+		placeName = saved.placeName ?? '';
+		placeCategory = saved.placeCategory ?? 'landmark';
+		placeDescription = saved.placeDescription ?? '';
+		placeHours = saved.placeHours ?? '';
+		organizationName = saved.organizationName ?? '';
+		organizationCategory = saved.organizationCategory ?? 'student-org';
+		organizationDescription = saved.organizationDescription ?? '';
+		organizationBuildingDraft = saved.organizationBuildingDraft ?? '';
+		roomCode = saved.roomCode;
+		roomDirections = saved.roomDirections;
+		roomPhotos = saved.roomPhotos ?? [];
+		roomBuildingDraft = saved.roomBuildingDraft ?? '';
+		collegeName = saved.collegeName;
+		divisionCollegeDraft = saved.divisionCollegeDraft;
+		divisionName = saved.divisionName;
+		bundledRooms = (saved.bundledRooms ?? []).map((room) => ({
+			...room,
+			photoUrls: room.photoUrls ?? []
+		}));
+		if (saved.draftPin) {
+			additionProposalStore.setDraftPin(saved.draftPin);
+		}
+	}
 
-  async function refreshPendingCreateProposal() {
-    pendingBuildingLabel = null;
+	async function refreshPendingCreateProposal() {
+		pendingBuildingLabel = null;
 
-    if (isPublish) return;
+		if (isPublish) return;
 
-    if (kind === "create_room") {
-      const pendingBuilding = getStoredPendingCreateProposal("create_building");
-      if (!pendingBuilding) return;
-      const summary = await fetchPublicProposalSummary(pendingBuilding.id);
-      pendingBuildingLabel = summary?.entityLabel ?? "New building";
-    }
-  }
+		if (kind === 'create_room') {
+			const pendingBuilding = getStoredPendingCreateProposal('create_building');
+			if (!pendingBuilding) return;
+			const summary = await fetchPublicProposalSummary(pendingBuilding.id);
+			pendingBuildingLabel = summary?.entityLabel ?? 'New building';
+		}
+	}
 
-  function bumpPendingList() {
-    pendingListVersion += 1;
-    void refreshPendingCreateProposal();
-  }
+	function bumpPendingList() {
+		pendingListVersion += 1;
+		void refreshPendingCreateProposal();
+	}
 
-  onMount(() => {
-    if (!isPublish) restoreAdditionDraft();
-    draftReady = true;
-    void refreshPendingCreateProposal();
-  });
+	onMount(() => {
+		if (!isPublish) restoreAdditionDraft();
+		draftReady = true;
+		void refreshPendingCreateProposal();
+	});
 
-  $effect(() => {
-    if (isPublish || !draftReady) return;
-    kind;
-    void refreshPendingCreateProposal();
-  });
+	$effect(() => {
+		if (isPublish || !draftReady) return;
+		kind;
+		void refreshPendingCreateProposal();
+	});
 
-  $effect(() => {
-    if (isPublish || !draftReady || typeof localStorage === "undefined") return;
-    kind;
-    buildingName;
-    buildingDirections;
-    buildingType;
-    buildingPhotos;
-    eventTitle;
-    eventStartsAt;
-    eventEndsAt;
-    eventCategory;
-    eventImageUrl;
-    dormName;
-    dormGender;
-    dormPhotos;
-    placeName;
-    placeCategory;
-    placeDescription;
-    placeHours;
-    organizationName;
-    organizationCategory;
-    organizationDescription;
-    organizationBuildingDraft;
-    roomCode;
-    roomDirections;
-    roomPhotos;
-    roomBuildingDraft;
-    collegeName;
-    divisionCollegeDraft;
-    divisionName;
-    bundledRooms;
-    additionProposalStore.draftPin;
-    scheduleSuggestAdditionDraftSave(snapshotAdditionDraft);
-  });
+	$effect(() => {
+		if (isPublish || !draftReady || typeof localStorage === 'undefined') return;
+		kind;
+		buildingName;
+		buildingDirections;
+		buildingType;
+		buildingPhotos;
+		eventTitle;
+		eventStartsAt;
+		eventEndsAt;
+		eventCategory;
+		eventImageUrl;
+		dormName;
+		dormGender;
+		dormPhotos;
+		placeName;
+		placeCategory;
+		placeDescription;
+		placeHours;
+		organizationName;
+		organizationCategory;
+		organizationDescription;
+		organizationBuildingDraft;
+		roomCode;
+		roomDirections;
+		roomPhotos;
+		roomBuildingDraft;
+		collegeName;
+		divisionCollegeDraft;
+		divisionName;
+		bundledRooms;
+		additionProposalStore.draftPin;
+		scheduleSuggestAdditionDraftSave(snapshotAdditionDraft);
+	});
 
-  $effect(() => {
-    if (!draftReady) return;
-    if (!needsPin) {
-      additionProposalStore.setDraftPinPreview(null);
-      return;
-    }
-    additionProposalStore.setDraftPinPreview(
-      buildDraftPinPreview({
-        kind,
-        buildingName,
-        dormName,
-        placeName,
-        placeCategory,
-        organizationName,
-        organizationCategory,
-        eventTitle,
-        eventStartsAt,
-        eventImageUrl,
-      }),
-    );
-  });
+	$effect(() => {
+		if (!draftReady) return;
+		if (!needsPin) {
+			additionProposalStore.setDraftPinPreview(null);
+			return;
+		}
+		additionProposalStore.setDraftPinPreview(
+			buildDraftPinPreview({
+				kind,
+				buildingName,
+				dormName,
+				placeName,
+				placeCategory,
+				organizationName,
+				organizationCategory,
+				eventTitle,
+				eventStartsAt,
+				eventImageUrl
+			})
+		);
+	});
 
-  function dismissHost() {
-    onDismiss?.();
-  }
+	function dismissHost() {
+		onDismiss?.();
+	}
 
-  function restoreHost() {
-    onRestore?.();
-  }
+	function restoreHost() {
+		onRestore?.();
+	}
 
-  const pickPinBlockedMessage =
-    "You must add all information before picking location on map";
+	const pickPinBlockedMessage = 'You must add all information before picking location on map';
 
-  function blockPickOnMap(message = pickPinBlockedMessage) {
-    error = message;
-    toastStore.show(message, "error");
-  }
+	function blockPickOnMap(message = pickPinBlockedMessage) {
+		error = message;
+		toastStore.show(message, 'error');
+	}
 
-  async function pickOnMap() {
-    error = null;
-    // Require basic identity before dropping a pin so the map interaction has
-    // context and the user doesn't place a pin for an empty form (#283).
-    if (kind === "create_building" && !buildingName.trim()) {
-      blockPickOnMap();
-      return;
-    }
-    if (kind === "create_event" && !eventTitle.trim()) {
-      blockPickOnMap();
-      return;
-    }
-    if (kind === "create_dorm" && !dormName.trim()) {
-      blockPickOnMap();
-      return;
-    }
-    if (kind === "create_place" && !placeName.trim()) {
-      blockPickOnMap();
-      return;
-    }
-    if (kind === "create_organization" && !organizationName.trim()) {
-      blockPickOnMap();
-      return;
-    }
-    dismissHost();
-    try {
-      await additionProposalStore.requestMapPin();
-    } catch {
-      // cancelled
-    } finally {
-      restoreHost();
-    }
-  }
+	async function pickOnMap() {
+		error = null;
+		// Require basic identity before dropping a pin so the map interaction has
+		// context and the user doesn't place a pin for an empty form (#283).
+		if (kind === 'create_building' && !buildingName.trim()) {
+			blockPickOnMap();
+			return;
+		}
+		if (kind === 'create_event' && !eventTitle.trim()) {
+			blockPickOnMap();
+			return;
+		}
+		if (kind === 'create_dorm' && !dormName.trim()) {
+			blockPickOnMap();
+			return;
+		}
+		if (kind === 'create_place' && !placeName.trim()) {
+			blockPickOnMap();
+			return;
+		}
+		if (kind === 'create_organization' && !organizationName.trim()) {
+			blockPickOnMap();
+			return;
+		}
+		dismissHost();
+		try {
+			await additionProposalStore.requestMapPin();
+		} catch {
+			// cancelled
+		} finally {
+			restoreHost();
+		}
+	}
 
-  function campusTimestamp(value: string) {
-    if (!value) return "";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "";
-    return instantToCampusWallString(date);
-  }
+	function campusTimestamp(value: string) {
+		if (!value) return '';
+		const date = new Date(value);
+		if (Number.isNaN(date.getTime())) return '';
+		return instantToCampusWallString(date);
+	}
 
-  function buildPatch(): Record<string, unknown> {
-    switch (kind) {
-      case "create_building": {
-        const rooms = bundledRooms
-          .map((room) => ({
-            roomCode: room.roomCode.trim(),
-            directions: room.directions.trim() || null,
-            ...(room.photoUrls.length > 0
-              ? { photoUrls: room.photoUrls }
-              : {}),
-          }))
-          .filter((room) => room.roomCode);
-        return {
-          buildingName: buildingName.trim(),
-          directions: buildingDirections.trim(),
-          buildingType,
-          lat: draftPin?.lat,
-          lon: draftPin?.lon,
-          ...(buildingPhotos.length > 0
-            ? { photoUrls: buildingPhotos }
-            : {}),
-          ...(rooms.length > 0 ? { rooms } : {}),
-        };
-      }
-      case "create_event": {
-        const title = eventTitle.trim();
-        return {
-          slug: `${slugifySegment(title || "event")}-${Date.now()}`,
-          title,
-          startsAt: campusTimestamp(eventStartsAt),
-          endsAt: campusTimestamp(eventEndsAt),
-          category: eventCategory,
-          recurrence: "none",
-          isActive: true,
-          includeInSeo: true,
-          imageUrl: eventImageUrl,
-          locations: draftPin
-            ? [
-                {
-                  anchorType: "custom",
-                  buildingId: null,
-                  dormId: null,
-                  label: "Event marker",
-                  lat: draftPin.lat,
-                  lon: draftPin.lon,
-                  isPrimary: true,
-                  sortOrder: 0,
-                },
-              ]
-            : [],
-          routes: [],
-        };
-      }
-      case "create_dorm":
-        return {
-          dormName: dormName.trim(),
-          // Blank stays null: an unknown policy is not a co-ed one.
-          gender: dormGender.trim() || null,
-          lat: draftPin?.lat ?? null,
-          lon: draftPin?.lon ?? null,
-          ...(dormPhotos.length > 0 ? { photoUrls: dormPhotos } : {}),
-        };
-      case "create_place":
-        return {
-          name: placeName.trim(),
-          category: placeCategory,
-          description: placeDescription.trim() || null,
-          hours: placeHours.trim() || null,
-          lat: draftPin?.lat ?? null,
-          lon: draftPin?.lon ?? null,
-        };
-      case "create_organization":
-        return {
-          name: organizationName.trim(),
-          category: organizationCategory,
-          description: organizationDescription.trim() || null,
-          buildingId:
-            organizationBuildingDraft === ""
-              ? null
-              : Number(organizationBuildingDraft),
-          lat: draftPin?.lat ?? null,
-          lon: draftPin?.lon ?? null,
-        };
-      case "create_room":
-        return {
-          roomCode: roomCode.trim(),
-          directions: roomDirections.trim() || null,
-          buildingId: Number(roomBuildingDraft),
-          ...(roomPhotos.length > 0 ? { photoUrls: roomPhotos } : {}),
-        };
-      case "create_college":
-        return { collegeName: collegeName.trim() };
-      case "create_division":
-        return {
-          divisionName: divisionName.trim(),
-          collegeId:
-            divisionCollegeDraft === "" ? null : Number(divisionCollegeDraft),
-        };
-      default:
-        // The panel only offers the kinds above; anything else is a bug.
-        throw new Error(`Unsupported suggestion kind: ${kind}`);
-    }
-  }
+	function buildPatch(): Record<string, unknown> {
+		switch (kind) {
+			case 'create_building': {
+				const rooms = bundledRooms
+					.map((room) => ({
+						roomCode: room.roomCode.trim(),
+						directions: room.directions.trim() || null,
+						...(room.photoUrls.length > 0 ? { photoUrls: room.photoUrls } : {})
+					}))
+					.filter((room) => room.roomCode);
+				return {
+					buildingName: buildingName.trim(),
+					directions: buildingDirections.trim(),
+					buildingType,
+					lat: draftPin?.lat,
+					lon: draftPin?.lon,
+					...(buildingPhotos.length > 0 ? { photoUrls: buildingPhotos } : {}),
+					...(rooms.length > 0 ? { rooms } : {})
+				};
+			}
+			case 'create_event': {
+				const title = eventTitle.trim();
+				return {
+					slug: `${slugifySegment(title || 'event')}-${Date.now()}`,
+					title,
+					startsAt: campusTimestamp(eventStartsAt),
+					endsAt: campusTimestamp(eventEndsAt),
+					category: eventCategory,
+					recurrence: 'none',
+					isActive: true,
+					includeInSeo: true,
+					imageUrl: eventImageUrl,
+					locations: draftPin
+						? [
+								{
+									anchorType: 'custom',
+									buildingId: null,
+									dormId: null,
+									label: 'Event marker',
+									lat: draftPin.lat,
+									lon: draftPin.lon,
+									isPrimary: true,
+									sortOrder: 0
+								}
+							]
+						: [],
+					routes: []
+				};
+			}
+			case 'create_dorm':
+				return {
+					dormName: dormName.trim(),
+					// Blank stays null: an unknown policy is not a co-ed one.
+					gender: dormGender.trim() || null,
+					lat: draftPin?.lat ?? null,
+					lon: draftPin?.lon ?? null,
+					...(dormPhotos.length > 0 ? { photoUrls: dormPhotos } : {})
+				};
+			case 'create_place':
+				return {
+					name: placeName.trim(),
+					category: placeCategory,
+					description: placeDescription.trim() || null,
+					hours: placeHours.trim() || null,
+					lat: draftPin?.lat ?? null,
+					lon: draftPin?.lon ?? null
+				};
+			case 'create_organization':
+				return {
+					name: organizationName.trim(),
+					category: organizationCategory,
+					description: organizationDescription.trim() || null,
+					buildingId: organizationBuildingDraft === '' ? null : Number(organizationBuildingDraft),
+					lat: draftPin?.lat ?? null,
+					lon: draftPin?.lon ?? null
+				};
+			case 'create_room':
+				return {
+					roomCode: roomCode.trim(),
+					directions: roomDirections.trim() || null,
+					buildingId: Number(roomBuildingDraft),
+					...(roomPhotos.length > 0 ? { photoUrls: roomPhotos } : {})
+				};
+			case 'create_college':
+				return { collegeName: collegeName.trim() };
+			case 'create_division':
+				return {
+					divisionName: divisionName.trim(),
+					collegeId: divisionCollegeDraft === '' ? null : Number(divisionCollegeDraft)
+				};
+			default:
+				// The panel only offers the kinds above; anything else is a bug.
+				throw new Error(`Unsupported suggestion kind: ${kind}`);
+		}
+	}
 
-  async function submit() {
-    error = null;
-    if (!isPublish) {
-      const name = resolveSubmitterName({
-        displayName: adminAuthStore.displayName,
-        username: adminAuthStore.username,
-        draftName: submitterName,
-      });
-      const validation = validateSubmitterName(name);
-      if (!validation.ok) {
-        error = validation.error;
-        return;
-      }
-    }
-    if (needsPin && !draftPin) {
-      error = "Pick a map location first.";
-      return;
-    }
-    if (kind === "create_building" && !buildingName.trim()) {
-      error = "Building name is required.";
-      return;
-    }
-    if (kind === "create_room" && !roomCode.trim()) {
-      error = "Room code is required.";
-      return;
-    }
-    if (kind === "create_room") {
-      const buildingId = Number(roomBuildingDraft);
-      if (!Number.isInteger(buildingId) || buildingId < 1) {
-        error = "Pick the building this room belongs to.";
-        return;
-      }
-    }
-    if (kind === "create_dorm" && !dormName.trim()) {
-      error = "Dorm name is required.";
-      return;
-    }
-    if (kind === "create_place" && !placeName.trim()) {
-      error = "Place name is required.";
-      return;
-    }
-    if (kind === "create_organization" && !organizationName.trim()) {
-      error = "Organization, office, or unit name is required.";
-      return;
-    }
-    if (kind === "create_college" && !collegeName.trim()) {
-      error = "College name is required.";
-      return;
-    }
-    if (kind === "create_division" && !divisionName.trim()) {
-      error = "Division name is required.";
-      return;
-    }
+	async function submit() {
+		error = null;
+		if (!isPublish) {
+			const name = resolveSubmitterName({
+				displayName: adminAuthStore.displayName,
+				username: adminAuthStore.username,
+				draftName: submitterName
+			});
+			const validation = validateSubmitterName(name);
+			if (!validation.ok) {
+				error = validation.error;
+				return;
+			}
+		}
+		if (needsPin && !draftPin) {
+			error = 'Pick a map location first.';
+			return;
+		}
+		if (kind === 'create_building' && !buildingName.trim()) {
+			error = 'Building name is required.';
+			return;
+		}
+		if (kind === 'create_room' && !roomCode.trim()) {
+			error = 'Room code is required.';
+			return;
+		}
+		if (kind === 'create_room') {
+			const buildingId = Number(roomBuildingDraft);
+			if (!Number.isInteger(buildingId) || buildingId < 1) {
+				error = 'Pick the building this room belongs to.';
+				return;
+			}
+		}
+		if (kind === 'create_dorm' && !dormName.trim()) {
+			error = 'Dorm name is required.';
+			return;
+		}
+		if (kind === 'create_place' && !placeName.trim()) {
+			error = 'Place name is required.';
+			return;
+		}
+		if (kind === 'create_organization' && !organizationName.trim()) {
+			error = 'Organization, office, or unit name is required.';
+			return;
+		}
+		if (kind === 'create_college' && !collegeName.trim()) {
+			error = 'College name is required.';
+			return;
+		}
+		if (kind === 'create_division' && !divisionName.trim()) {
+			error = 'Division name is required.';
+			return;
+		}
 
-    submitting = true;
-    try {
-      const patch = buildPatch();
-      if (kind === "create_building" && !isPublish) {
-        try {
-          validateBundledRooms(parseBundledRooms(patch));
-        } catch (err) {
-          error =
-            err instanceof ProposalValidationError
-              ? err.message
-              : "Check the room list and try again.";
-          return;
-        }
-      }
-      if (isPublish) {
-        const result = await publishEntityCreate(kind, patch);
-        if (!result.ok) {
-          error = result.error ?? "Could not create entry.";
-          return;
-        }
-        toastStore.show(
-          `${options.find((o) => o.value === kind)?.label ?? "Entry"} created.`,
-          "success",
-        );
-        clearSuggestAdditionDraft();
-        resetFields();
-        dismissHost();
-        return;
-      }
+		submitting = true;
+		try {
+			const patch = buildPatch();
+			if (kind === 'create_building' && !isPublish) {
+				try {
+					validateBundledRooms(parseBundledRooms(patch));
+				} catch (err) {
+					error =
+						err instanceof ProposalValidationError
+							? err.message
+							: 'Check the room list and try again.';
+					return;
+				}
+			}
+			if (isPublish) {
+				const result = await publishEntityCreate(kind, patch);
+				if (!result.ok) {
+					error = result.error ?? 'Could not create entry.';
+					return;
+				}
+				toastStore.show(
+					`${options.find((o) => o.value === kind)?.label ?? 'Entry'} created.`,
+					'success'
+				);
+				clearSuggestAdditionDraft();
+				resetFields();
+				dismissHost();
+				return;
+			}
 
-      const name = resolveSubmitterName({
-        displayName: adminAuthStore.displayName,
-        username: adminAuthStore.username,
-        draftName: submitterName,
-      })!;
-      const pendingCreate = getStoredPendingCreateProposal(kind);
-      const result = await submitCreateProposal({
-        entityType: kind,
-        patch,
-        submitterName: name,
-        submitterNote,
-        proposalId:
-          pendingCreate?.status === "needs_changes" ? pendingCreate.id : null,
-      });
-      if (!result.ok) {
-        error = result.error ?? "Could not submit proposal.";
-        return;
-      }
-      if (kind === "create_building") {
-        const hasBundledRooms = parseBundledRooms(patch).length > 0;
-        toastStore.show(
-          hasBundledRooms
-            ? "Thanks. We'll review your building and room suggestions together."
-            : "Thanks. We will review your building suggestion soon. You can add rooms in that building after editors approve it.",
-          "success",
-        );
-        await refreshPendingCreateProposal();
-      } else {
-        toastStore.show("Thanks. We'll review your suggestion soon.", "success");
-      }
-      clearSuggestAdditionDraft();
-      resetFields();
-      bumpPendingList();
-      dismissHost();
-    } finally {
-      submitting = false;
-    }
-  }
+			const name = resolveSubmitterName({
+				displayName: adminAuthStore.displayName,
+				username: adminAuthStore.username,
+				draftName: submitterName
+			})!;
+			const pendingCreate = getStoredPendingCreateProposal(kind);
+			const result = await submitCreateProposal({
+				entityType: kind,
+				patch,
+				submitterName: name,
+				submitterNote,
+				proposalId: pendingCreate?.status === 'needs_changes' ? pendingCreate.id : null
+			});
+			if (!result.ok) {
+				error = result.error ?? 'Could not submit proposal.';
+				return;
+			}
+			if (kind === 'create_building') {
+				const hasBundledRooms = parseBundledRooms(patch).length > 0;
+				toastStore.show(
+					hasBundledRooms
+						? "Thanks. We'll review your building and room suggestions together."
+						: 'Thanks. We will review your building suggestion soon. You can add rooms in that building after editors approve it.',
+					'success'
+				);
+				await refreshPendingCreateProposal();
+			} else {
+				toastStore.show("Thanks. We'll review your suggestion soon.", 'success');
+			}
+			clearSuggestAdditionDraft();
+			resetFields();
+			bumpPendingList();
+			dismissHost();
+		} finally {
+			submitting = false;
+		}
+	}
 </script>
 
 <section

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ContributorProgressPanel from '$lib/components/status-bar/ContributorProgressPanel.svelte';
+	import ContributorProgressPanel from '#lib/components/status-bar/ContributorProgressPanel.svelte';
 </script>
 
 <div class="coverage-modal">

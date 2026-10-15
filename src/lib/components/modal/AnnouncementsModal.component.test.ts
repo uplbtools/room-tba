@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test } from 'vitest';
 import AnnouncementsModal from './AnnouncementsModal.svelte';
-import { adminAuthStore, announcementsStore } from '$lib/stores.svelte';
-import type { AnnouncementData } from '$lib/utils/types';
+import { adminAuthStore, announcementsStore } from '#lib/stores.svelte.js';
+import type { AnnouncementData } from '#lib/utils/types';
 
 const row = (id: number, overrides: Partial<AnnouncementData> = {}): AnnouncementData =>
 	({

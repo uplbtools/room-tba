@@ -1,4 +1,4 @@
-import { normalizeFacilityKey } from '$lib/amis/normalize-class';
+import { normalizeFacilityKey } from '#lib/amis/normalize-class.js';
 
 export type FinalExamImportRow = {
 	course_code?: unknown;

@@ -13,7 +13,7 @@ import {
 	roomPositionsTable,
 	roomsTable,
 	termsTable
-} from '$lib/server/db/schema';
+} from '#lib/server/db/schema.js';
 import type { SearchInfoState } from '../stores/store-types';
 import type { EntityPhoto } from './entity/entity-photos';
 
@@ -49,7 +49,7 @@ export type AppData = {
 	};
 };
 
-type Room = typeof roomsTable.$inferSelect
+type Room = typeof roomsTable.$inferSelect;
 
 type Building = typeof buildingsTable.$inferSelect;
 
@@ -88,8 +88,8 @@ type College = typeof collegesTable.$inferSelect;
 
 type Division = typeof divisionsTable.$inferSelect;
 
-type DormData = Omit<typeof dormsTable.$inferSelect, "photos"> & {
-  photos?: EntityPhoto[];
+type DormData = Omit<typeof dormsTable.$inferSelect, 'photos'> & {
+	photos?: EntityPhoto[];
 };
 
 type OrgData = typeof organizationsTable.$inferSelect;
@@ -167,5 +167,12 @@ type EntityLoadResult<T> = {
 	source: 'remote' | 'cache';
 };
 
-
-export type EntityType = 'building' | 'college' | 'division' | 'dorm' | 'organization' | 'event' | 'place' | 'room'
+export type EntityType =
+	| 'building'
+	| 'college'
+	| 'division'
+	| 'dorm'
+	| 'organization'
+	| 'event'
+	| 'place'
+	| 'room';

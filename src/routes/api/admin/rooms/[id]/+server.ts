@@ -1,8 +1,8 @@
-import { env } from '$env/dynamic/private';
-import { parseRequiredEditorVersion } from '$lib/admin/expected-version';
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { parseEntityPhotoUrls, reconcileEntityPhotos } from '$lib/utils/entity/entity-photos';
-import { resolvePhotoAttribution } from '$lib/services/contribution/entity-photo';
+import { R2_PUBLIC_URL } from '$app/env/private';
+import { parseRequiredEditorVersion } from '#lib/admin/expected-version.js';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { parseEntityPhotoUrls, reconcileEntityPhotos } from '#lib/utils/entity/entity-photos.js';
+import { resolvePhotoAttribution } from '#lib/services/contribution/entity-photo.js';
 import {
 	DuplicateNameError,
 	EditConflictError,
@@ -10,7 +10,7 @@ import {
 	getRoomById,
 	updateRoom,
 	updateRoomPosition
-} from '$lib/services/admin/actions';
+} from '#lib/services/admin/actions.js';
 import type { RequestHandler } from './$types';
 
 type RoomPatchBody = {
@@ -44,6 +44,7 @@ function invalidPosition(value: unknown) {
 	if (value === undefined) return false;
 	if (!value || typeof value !== 'object') return true;
 	const position = value as NonNullable<RoomPatchBody['position']>;
+
 	return (
 		!Number.isInteger(position.floor) ||
 		position.floor < 1 ||
@@ -90,7 +91,7 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 		return json({ error: 'Position must include a valid floor, posX, and posY' }, 400);
 	}
 
-	const parsedPhotoUrls = parseEntityPhotoUrls(body.photoUrls, env.R2_PUBLIC_URL);
+	const parsedPhotoUrls = parseEntityPhotoUrls(body.photoUrls, R2_PUBLIC_URL);
 	if (!parsedPhotoUrls.ok) {
 		return json({ error: parsedPhotoUrls.error }, 400);
 	}
@@ -110,10 +111,7 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 		if (body.divisionId !== undefined) updates.divisionId = body.divisionId;
 		if (parsedPhotoUrls.provided) {
 			const current = await getRoomById(id);
-			const attribution = await resolvePhotoAttribution(
-				auth.session.id,
-				auth.session.displayName
-			);
+			const attribution = await resolvePhotoAttribution(auth.session.id, auth.session.displayName);
 			updates.photos = reconcileEntityPhotos(
 				current?.photos ?? [],
 				parsedPhotoUrls.photoUrls,

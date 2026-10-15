@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import MapEntityPin from '$lib/components/map/MapEntityPin.svelte';
-	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
-	import { isStudentOrganization } from '$lib/constants/content/categories/org';
-	import { getMapOrgsData } from '$lib/functions/organizations.remote';
-	import { getMapStore, getSearchInfo } from '$lib/utils/context';
-	import { slugifySegment } from '$lib/utils/site';
-	import type { OrgData } from '$lib/utils/types';
+	import MapEntityPin from '#lib/components/map/MapEntityPin.svelte';
+	import PinGlyph from '#lib/components/map/PinGlyph.svelte';
+	import { isStudentOrganization } from '#lib/constants/content/categories/org.js';
+	import { getMapOrgsData } from '#lib/functions/organizations.remote.js';
+	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
+	import { slugifySegment } from '#lib/utils/site.js';
+	import type { OrgData } from '#lib/utils/types';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {
@@ -38,7 +38,7 @@
 
 	function handleMarkerClick(org: (typeof filteredOrganizations)[number]) {
 		return async () => {
-			await goto(resolve(`/map/organizations/${org.id}`));
+			await goto(resolve(`map/organizations/${org.id}`));
 			if (org.lon && org.lat) map.centerMarker([org.lon, org.lat]);
 		};
 	}
@@ -56,11 +56,11 @@
 					tone={isStudentOrganization(org.category) ? 'organization' : 'office'}
 					active={searchInfo.isActiveMarker(org.name, 'organization')}
 					dimmed={searchInfo.hasActiveResult()}
-					// active={searchInfo.isActiveMarker(org.name, 'organization')}
+				>
+					{#if // active={searchInfo.isActiveMarker(org.name, 'organization')}
 					// dimmed={searchInfo.hasActiveMarker()}
 					// labelVisible={(isStudentOrganization(org.category)
-				>
-					{#if isStudentOrganization(org.category)}
+					isStudentOrganization(org.category)}
 						<PinGlyph name="organization" size={16} />
 					{:else}
 						<PinGlyph name="office" size={16} />

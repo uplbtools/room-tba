@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { navigating } from '$app/state';
-	import { getBuildingById } from '$lib/functions/buildings.remote';
-	import { getMapStore, getSearchInfo } from '$lib/utils/context';
+	import { getBuildingById } from '#lib/functions/buildings.remote.js';
+	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
 	import { onMount } from 'svelte';
 	import BuildingResult from './BuildingResult.svelte';
-	import InfoPanel from '$lib/components/controls/InfoPanel.svelte';
+	import InfoPanel from '#lib/components/controls/InfoPanel.svelte';
 
 	const { params } = $props();
 	const searchInfo = getSearchInfo();

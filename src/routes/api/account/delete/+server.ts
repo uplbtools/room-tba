@@ -1,7 +1,7 @@
-import { clearSessionCookie } from '$lib/admin/auth';
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { checkRateLimit, clientIp, rateLimitResponse } from '$lib/api/rate-limit';
-import { AccountActionError, softDeleteAccount } from '$lib/services/admin/user';
+import { clearSessionCookie } from '#lib/admin/auth.js';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { checkRateLimit, clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { AccountActionError, softDeleteAccount } from '#lib/services/admin/user.js';
 import type { RequestHandler } from './$types';
 
 const LIMIT = { max: 5, windowMs: 60 * 1000 };

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import Search from '$lib/components/search/Search.svelte';
+	import Search from '#lib/components/search/Search.svelte';
 	import InfoPanel from './InfoPanel.svelte';
 
 	// Forwarded to the panel so a browse route can supply its own body.

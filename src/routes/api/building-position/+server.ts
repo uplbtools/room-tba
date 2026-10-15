@@ -1,11 +1,11 @@
 import type { Cookies } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
-import { canPublishDirectly } from '$lib/admin/auth';
-import { getEditorSession } from '$lib/admin/require-editor';
-import { CAMPUS_BOUNDS } from '$lib/constants/map/terrain';
-import { db } from '$lib/utils/db';
-import { buildingsTable } from '$lib/server/db/schema';
-import { refreshSyncKey } from '$lib/services/admin/actions';
+import { canPublishDirectly } from '#lib/admin/auth.js';
+import { getEditorSession } from '#lib/admin/require-editor.js';
+import { CAMPUS_BOUNDS } from '#lib/constants/map/terrain.js';
+import { db } from '#lib/utils/db.js';
+import { buildingsTable } from '#lib/server/db/schema.js';
+import { refreshSyncKey } from '#lib/services/admin/actions.js';
 import type { RequestHandler } from './$types';
 
 function jsonError(status: number, error: string): Response {

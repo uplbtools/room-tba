@@ -1,5 +1,5 @@
-import { isRoomScheduledClassType, NON_ROOM_CLASS_TYPES } from '$lib/amis/room-scheduled-types';
-import type { ClassMapValue } from '$lib/utils/types';
+import { isRoomScheduledClassType, NON_ROOM_CLASS_TYPES } from '#lib/amis/room-scheduled-types.js';
+import type { ClassMapValue } from '#lib/utils/types';
 import type { ImportedScheduleRow, ScheduleMatchResult } from './types';
 
 export function matchKey(courseCode: string, section: string, type: string): string {

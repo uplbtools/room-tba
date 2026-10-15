@@ -1,6 +1,6 @@
-import { env } from '$env/dynamic/private';
-import { checkRateLimit, clientIp, rateLimitResponse } from '$lib/api/rate-limit';
-import { json, errorResponse } from '$lib/api/json';
+import { R2_PUBLIC_URL } from '$app/env/private';
+import { checkRateLimit, clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { json, errorResponse } from '#lib/api/json.js';
 import {
 	buildUploadKey,
 	detectImageContentType,
@@ -8,13 +8,10 @@ import {
 	UPLOAD_MAX_BYTES,
 	uploadImageToR2,
 	sanitizeUploadPrefix
-} from '$lib/utils/r2-upload';
+} from '#lib/utils/r2-upload.js';
 
 export const UPLOAD_LIMIT = { max: 30, windowMs: 10 * 60 * 1000 };
-
-export type UploadPrefixSource =
-	| string
-	| ((formData: FormData) => string | Response);
+export type UploadPrefixSource = string | ((formData: FormData) => string | Response);
 
 export function uploadConfigurationResponse() {
 	return json({
@@ -63,7 +60,8 @@ export async function uploadImageRequest(options: {
 			503
 		);
 	}
-	if (!env.R2_PUBLIC_URL?.trim()) {
+
+	if (!R2_PUBLIC_URL?.trim()) {
 		return errorResponse(
 			'Image uploads require R2_PUBLIC_URL so saved URLs can be validated.',
 			503
@@ -89,15 +87,18 @@ export async function uploadImageRequest(options: {
 		return errorResponse('Only JPEG, PNG, and WebP images are allowed', 415);
 	}
 
-	const prefix = typeof options.prefix === 'function'
-		? options.prefix(formData)
-		: options.prefix;
+	const prefix = typeof options.prefix === 'function' ? options.prefix(formData) : options.prefix;
 	if (prefix instanceof Response) return prefix;
 
 	try {
 		const key = buildUploadKey(prefix, contentType);
 		const uploaded = await uploadImageToR2({ key, body: bytes, contentType });
-		return json({ success: true, url: uploaded.url, key: uploaded.key, uploadedBy: options.uploadedBy });
+		return json({
+			success: true,
+			url: uploaded.url,
+			key: uploaded.key,
+			uploadedBy: options.uploadedBy
+		});
 	} catch (error) {
 		console.error('Failed to upload image:', error);
 		return errorResponse('Failed to upload image', 500);

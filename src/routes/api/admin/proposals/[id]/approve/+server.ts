@@ -1,9 +1,12 @@
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import {
 	emitProposalReviewed,
 	logNotificationEmitFailure
-} from '$lib/utils/notifications/proposal-events';
-import { approveProposal, ProposalActionError } from '$lib/services/contribution/proposal-action';
+} from '#lib/utils/notifications/proposal-events.js';
+import {
+	approveProposal,
+	ProposalActionError
+} from '#lib/services/contribution/proposal-action.js';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ cookies, params }) => {

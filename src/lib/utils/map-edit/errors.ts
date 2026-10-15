@@ -1,4 +1,4 @@
-import type { EventData } from '$lib/utils/types';
+import type { EventData } from '#lib/utils/types';
 import type { EditableVersionedPosition } from './types';
 
 export class ClientEditConflictError extends Error {

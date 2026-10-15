@@ -1,7 +1,12 @@
 import { eq, sql } from 'drizzle-orm';
-import { db } from '$lib/server/db';
-import { buildingsTable, collegesTable, divisionsTable, roomsTable } from '$lib/server/db/schema';
-import type { Room } from '$lib/utils/types';
+import { db } from '#lib/server/db/index.js';
+import {
+	buildingsTable,
+	collegesTable,
+	divisionsTable,
+	roomsTable
+} from '#lib/server/db/schema.js';
+import type { Room } from '#lib/utils/types';
 
 /** Escape LIKE wildcards so user input matches literally. */
 function escapeLikePattern(value: string): string {

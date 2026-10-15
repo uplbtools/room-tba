@@ -1,13 +1,10 @@
 <script lang="ts">
-  import X from "@lucide/svelte/icons/x";
-  import { travelTimeStore } from "$lib/stores.svelte";
-  import {
-    ISOCHRONE_CAP_MINUTES,
-    VIRIDIS_STOPS,
-  } from "$lib/constants/travel-modes";
+	import X from '@lucide/svelte/icons/x';
+	import { travelTimeStore } from '#lib/stores.svelte.js';
+	import { ISOCHRONE_CAP_MINUTES, VIRIDIS_STOPS } from '#lib/constants/travel-modes.js';
 
-  const gradient = `linear-gradient(90deg, ${VIRIDIS_STOPS.join(", ")})`;
-  const ticks = ["0", "10", "20", `${ISOCHRONE_CAP_MINUTES}+ min`];
+	const gradient = `linear-gradient(90deg, ${VIRIDIS_STOPS.join(', ')})`;
+	const ticks = ['0', '10', '20', `${ISOCHRONE_CAP_MINUTES}+ min`];
 </script>
 
 <section class="travel-time-legend" aria-label="Walking time legend">

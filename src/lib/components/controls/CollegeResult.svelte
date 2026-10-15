@@ -1,40 +1,40 @@
 <!-- <script lang="ts">
-	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
-	import { adminAuthStore, searchInfo, toastStore, termStore } from '$lib/stores.svelte';
+	import EntitySkeleton from '#lib/components/EntitySkeleton.svelte';
+	import { adminAuthStore, searchInfo, toastStore, termStore } from '#lib/stores.svelte.js';
 	import {
 		getStoredProposalForEntity,
 		persistEntityChange,
 		mergeEntityRecord
-	} from '$lib/utils/proposals/client';
-	import { handlePersistEntityResult } from '$lib/utils/editor/handle-persist-result';
-	import MergeEntityPrompt from '$lib/components/editor/MergeEntityPrompt.svelte';
+	} from '#lib/utils/proposals/client.js';
+	import { handlePersistEntityResult } from '#lib/utils/editor/handle-persist-result.js';
+	import MergeEntityPrompt from '#lib/components/editor/MergeEntityPrompt.svelte';
 	import {
 		clearEntityContributorDraft,
 		readEntityContributorDraft,
 		scheduleEntityContributorDraftSave
-	} from '$lib/utils/contributor-drafts';
-	import { getAppActions, getAppData } from '$lib/utils/context';
+	} from '#lib/utils/contributor-drafts.js';
+	import { getAppActions, getAppData } from '#lib/utils/context.js';
 	import {
 		getCollegeRooms,
 		fetchRoomClassCounts,
 		fetchEntityRoomsRemote
-	} from '$lib/utils/local/data/utils';
-	import type { College, Room } from '$lib/utils/types';
+	} from '#lib/utils/local/data/utils.js';
+	import type { College, Room } from '#lib/utils/types';
 	import ResultDisplay from './ResultDisplay.svelte';
 	import EntityShareCopyLink from './EntityShareCopyLink.svelte';
 	import EntityBackToList from './EntityBackToList.svelte';
 	import EntityExternalLink from './EntityExternalLink.svelte';
 	import EntityLastUpdated from '../EntityLastUpdated.svelte';
-	import { getCollegeShareUrl } from '$lib/utils/share-links';
-	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
-	import EntityEditorPanel from '$lib/components/editor/EntityEditorPanel.svelte';
-	import EntityEditorField from '$lib/components/editor/EntityEditorField.svelte';
-	import { entityEditorSavedMessage } from '$lib/utils/editor/field-action-label';
+	import { getCollegeShareUrl } from '#lib/utils/share-links';
+	import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
+	import EntityEditorPanel from '#lib/components/editor/EntityEditorPanel.svelte';
+	import EntityEditorField from '#lib/components/editor/EntityEditorField.svelte';
+	import { entityEditorSavedMessage } from '#lib/utils/editor/field-action-label.js';
 	import {
 		checkLocalCollegeRoom,
 		getLocalCollegeRooms,
 		syncCollegeRooms
-	} from '$lib/utils/local/data/sync';
+	} from '#lib/utils/local/data/sync.js';
 
 	type CollegePatchResponse = {
 		success?: boolean;

@@ -1,8 +1,8 @@
 import { and, desc, eq, inArray } from 'drizzle-orm';
-import { getEditorSession } from '$lib/admin/require-editor';
-import { db } from '$lib/utils/db';
-import { editProposalsTable } from '$lib/server/db/schema';
-import { withEntityLabel } from '$lib/services/contribution/proposal-action';
+import { getEditorSession } from '#lib/admin/require-editor.js';
+import { db } from '#lib/utils/db.js';
+import { editProposalsTable } from '#lib/server/db/schema.js';
+import { withEntityLabel } from '#lib/services/contribution/proposal-action.js';
 import type { RequestHandler } from './$types';
 
 const OPEN_STATUSES = ['pending', 'needs_changes'] as const;

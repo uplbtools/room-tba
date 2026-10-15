@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test } from 'vitest';
-import { mapToolsStore, travelTimeStore } from '$lib/stores.svelte';
+import { mapToolsStore, travelTimeStore } from '#lib/stores.svelte.js';
 import { mountAtWidth } from '@test/layout-assertions';
 import MapToolsFlyout from './MapToolsFlyout.svelte';
 

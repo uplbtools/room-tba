@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeRoomCode, canonicalKey } from '$lib/utils/normalize-room-code';
+import { normalizeRoomCode, canonicalKey } from '#lib/utils/normalize-room-code.js';
 
 describe('normalizeRoomCode', () => {
 	it('trims whitespace', () => {

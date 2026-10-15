@@ -1,8 +1,8 @@
-import { env } from '$env/dynamic/private';
-import { parseEntityPhotoUrls, reconcileEntityPhotos } from '$lib/utils/entity/entity-photos';
-import { resolvePhotoAttribution } from '$lib/services/contribution/entity-photo';
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { createDorm } from '$lib/services/admin/actions';
+import { R2_PUBLIC_URL } from '$app/env/private';
+import { parseEntityPhotoUrls, reconcileEntityPhotos } from '#lib/utils/entity/entity-photos.js';
+import { resolvePhotoAttribution } from '#lib/services/contribution/entity-photo.js';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { createDorm } from '#lib/services/admin/actions.js';
 import type { RequestHandler } from './$types';
 
 function json(data: unknown, status = 200) {
@@ -41,14 +41,11 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	if ((lat !== null && !Number.isFinite(lat)) || (lon !== null && !Number.isFinite(lon))) {
 		return json({ error: 'Invalid dorm map pin' }, 400);
 	}
-	const parsedPhotoUrls = parseEntityPhotoUrls(body.photoUrls, env.R2_PUBLIC_URL);
+	const parsedPhotoUrls = parseEntityPhotoUrls(body.photoUrls, R2_PUBLIC_URL);
 	if (!parsedPhotoUrls.ok) return json({ error: parsedPhotoUrls.error }, 400);
 
 	try {
-		const attribution = await resolvePhotoAttribution(
-			auth.session.id,
-			auth.session.displayName
-		);
+		const attribution = await resolvePhotoAttribution(auth.session.id, auth.session.displayName);
 		const photos = reconcileEntityPhotos([], parsedPhotoUrls.photoUrls, attribution);
 		const dorm = await createDorm(
 			{

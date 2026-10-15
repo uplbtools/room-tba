@@ -1,5 +1,5 @@
-import type { ProposalCreateType } from '$lib/services/contribution/proposal-action';
-import type { EventPlacementDraft } from '$lib/stores/store-types';
+import type { ProposalCreateType } from '#lib/services/contribution/proposal-action.js';
+import type { EventPlacementDraft } from '#lib/stores/store-types.js';
 
 const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const DRAFT_DEBOUNCE_MS = 400;
@@ -37,7 +37,7 @@ export type SuggestAdditionDraft = {
 	placeDescription?: string;
 	placeHours?: string;
 	organizationName?: string;
-	organizationCategory?: import('$lib/constants/content/categories/org').OrgCategory;
+	organizationCategory?: import('#lib/constants/content/categories/org.js').OrgCategory;
 	organizationDescription?: string;
 	organizationBuildingDraft?: string;
 	roomCode: string;

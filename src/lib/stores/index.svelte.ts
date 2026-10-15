@@ -1,9 +1,7 @@
 // src/lib/store.svelte.ts
 
 import { deactivateMapModesExcept, registerMapMode } from './map/map-modes.js';
-import {
-	syncTableLabel,
-} from './store-types.js';
+import { syncTableLabel } from './store-types.js';
 // import AnnouncementsStore from './AnnouncementStore.svelte';
 // import RoomClassesStore from './data/RoomClassesStore.svelte.js';
 // import ClassVenuesStore from './data/ClassVenuesStore.svelte.js';
@@ -37,7 +35,6 @@ export type { MeasureLeg, MeasureSummaries } from './map/map-stores.svelte';
 
 export { deactivateMapModesExcept, syncTableLabel };
 
-
 export {
 	buildingTypeFilter,
 	type DormFilterType,
@@ -54,7 +51,6 @@ export {
 // import PlannerBuildingsStore from './data/PlannerBuildingsStore.svelte.js';
 // import { currentRoom } from './current-room-store.svelte';
 // import UserLocation from './map/UserLocation.svelte.js';
-
 
 // export { currentRoom }
 // export const searchInfo = new searchInfo();

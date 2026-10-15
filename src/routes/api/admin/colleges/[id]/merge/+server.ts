@@ -1,5 +1,5 @@
-import { createEntityMergeRoute } from '$lib/admin/entity-merge-route';
-import { mergeColleges } from '$lib/services/contribution/merge';
+import { createEntityMergeRoute } from '#lib/admin/entity-merge-route.js';
+import { mergeColleges } from '#lib/services/contribution/merge.js';
 
 export const POST = createEntityMergeRoute({
 	entityLabel: 'college',

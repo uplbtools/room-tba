@@ -1,6 +1,6 @@
-import { getEventSlug } from '$lib/utils/app-data';
-import { campusTransit } from '$lib/campus.config';
-import { JEEPNEY_ROUTES } from '$lib/constants/map/jeepney-routes';
+import { getEventSlug } from '#lib/utils/app-data.js';
+import { campusTransit } from '#lib/campus.config.js';
+import { JEEPNEY_ROUTES } from '#lib/constants/map/jeepney-routes.js';
 import {
 	entityIndexPath,
 	getBuildingCanonicalPath,
@@ -11,7 +11,7 @@ import {
 	getOrganizationCanonicalPath,
 	getPlaceCanonicalPath,
 	getRoomCanonicalPath
-} from '$lib/utils/entity/entity-urls';
+} from '#lib/utils/entity/entity-urls.js';
 import {
 	getAllBuildings,
 	getAllColleges,
@@ -20,10 +20,14 @@ import {
 	getAllOrganizations,
 	getAllPlaces,
 	getAllRooms
-} from '$lib/services/entity/map-data';
-import { getSeoEvents } from '$lib/services/entity/event';
-import { absoluteUrl } from '$lib/utils/site';
-import { getTransitRoutePath, getTransitStopPath, TRANSIT_INDEX_PATH } from '$lib/utils/transit-urls';
+} from '#lib/services/entity/map-data.js';
+import { getSeoEvents } from '#lib/services/entity/event.js';
+import { absoluteUrl } from '#lib/utils/site.js';
+import {
+	getTransitRoutePath,
+	getTransitStopPath,
+	TRANSIT_INDEX_PATH
+} from '#lib/utils/transit-urls.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async () => {

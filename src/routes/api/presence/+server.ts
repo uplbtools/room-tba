@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
-import { db } from '$lib/server/db';
-import { presenceTable } from '$lib/server/db/schema';
+import { db } from '#lib/server/db/index.js';
+import { presenceTable } from '#lib/server/db/schema.js';
 import type { RequestHandler } from './$types';
 
 // Constants + sid validation inlined from astro/src/lib/presence.ts.

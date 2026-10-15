@@ -1,19 +1,19 @@
 <script lang="ts">
-  import ExternalLink from "@lucide/svelte/icons/external-link";
-  import GitFork from "@lucide/svelte/icons/git-fork";
-  import CommunityBrandIcon from "$lib/components/community/CommunityBrandIcon.svelte";
-  import MapChromeGhostButton from "$lib/components/map-chrome/MapChromeGhostButton.svelte";
-  import type {
-    StatusBarNavGroup,
-    StatusBarActionItem,
-  } from "$lib/constants/content/links/status-bar"
+	import ExternalLink from '@lucide/svelte/icons/external-link';
+	import GitFork from '@lucide/svelte/icons/git-fork';
+	import CommunityBrandIcon from '#lib/components/community/CommunityBrandIcon.svelte';
+	import MapChromeGhostButton from '#lib/components/map-chrome/MapChromeGhostButton.svelte';
+	import type {
+		StatusBarNavGroup,
+		StatusBarActionItem
+	} from '#lib/constants/content/links/status-bar.js';
 
-  type Props = {
-    groups: StatusBarNavGroup[];
-    onAction: (id: StatusBarActionItem["id"]) => void;
-  };
+	type Props = {
+		groups: StatusBarNavGroup[];
+		onAction: (id: StatusBarActionItem['id']) => void;
+	};
 
-  const { groups, onAction }: Props = $props();
+	const { groups, onAction }: Props = $props();
 </script>
 
 {#each groups as group (group.id)}

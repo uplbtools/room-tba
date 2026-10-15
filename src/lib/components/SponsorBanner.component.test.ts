@@ -1,20 +1,20 @@
 import { render, screen } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import type { Sponsor, SponsorsData } from '$lib/utils/sponsors';
+import type { Sponsor, SponsorsData } from '#lib/utils/sponsors.js';
 
-vi.mock('$lib/utils/sponsor-tracking', () => ({
+vi.mock('#lib/utils/sponsor-tracking.js', () => ({
 	trackSponsorImpression: vi.fn(),
 	trackSponsorClick: vi.fn()
 }));
 
 const loadSponsorsMock = vi.hoisted(() => vi.fn<() => Promise<SponsorsData | null>>());
-vi.mock('$lib/utils/sponsors', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/utils/sponsors')>()),
+vi.mock('#lib/utils/sponsors.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/utils/sponsors.js')>()),
 	loadSponsors: loadSponsorsMock
 }));
 
-import SponsorBanner from '$lib/components/SponsorBanner.svelte';
+import SponsorBanner from '#lib/components/SponsorBanner.svelte';
 
 function sponsorsData(overrides: Partial<Sponsor> = {}): SponsorsData {
 	const start = new Date(Date.now() - 86400000).toISOString().slice(0, 10);

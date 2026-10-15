@@ -1,17 +1,17 @@
 <!-- <script lang="ts">
-	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
-	import Classes from '$lib/components/room/Classes.svelte';
+	import EntitySkeleton from '#lib/components/EntitySkeleton.svelte';
+	import Classes from '#lib/components/room/Classes.svelte';
 	import EntityEmptyState from './EntityEmptyState.svelte';
 	import EntityPanelFilter from './EntityPanelFilter.svelte';
 	import EntityPanelHeader from './EntityPanelHeader.svelte';
 	import EntityPagination from './EntityPagination.svelte';
-	import { fetchClassPage } from '$lib/utils/classes-api';
-	import { CLASS_BROWSE_SCOPE_NOTE } from '$lib/amis/room-scheduled-types';
-	import { searchInfo, termStore } from '$lib/stores.svelte';
-	import ScheduleFreshnessNote from '$lib/components/ScheduleFreshnessNote.svelte';
-	import type { ClassMapValue } from '$lib/utils/types';
+	import { fetchClassPage } from '#lib/utils/classes-api.js';
+	import { CLASS_BROWSE_SCOPE_NOTE } from '#lib/amis/room-scheduled-types.js';
+	import { searchInfo, termStore } from '#lib/stores.svelte.js';
+	import ScheduleFreshnessNote from '#lib/components/ScheduleFreshnessNote.svelte';
+	import type { ClassMapValue } from '#lib/utils/types';
 	import { onMount } from 'svelte';
-	import TermSelector from '$lib/components/TermSelector.svelte';
+	import TermSelector from '#lib/components/TermSelector.svelte';
 
 	const PAGE_SIZE = 25;
 

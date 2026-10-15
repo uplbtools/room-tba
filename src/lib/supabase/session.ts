@@ -1,4 +1,5 @@
-import type { Handle, RequestEvent } from '@sveltejs/kit';
+import type { Handle } from '@sveltejs/kit/hooks';
+import type { RequestEvent } from '@sveltejs/kit';
 import { isSupabaseConfigured } from './env';
 import { createServerSupabaseClient } from './server';
 

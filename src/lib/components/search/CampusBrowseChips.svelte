@@ -9,8 +9,8 @@
 		openBrowseClasses,
 		openCampusBrowse,
 		type CampusBrowseTab
-	} from '$lib/utils/campus/browse-campus';
-	import { searchInfo, sidePanelStore } from '$lib/stores.svelte';
+	} from '#lib/utils/campus/browse-campus.js';
+	import { searchInfo, sidePanelStore } from '#lib/stores.svelte.js';
 	import '../map-chrome/map-chrome.css';
 
 	type ChipId = CampusBrowseTab | 'classes';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import rawAcadOrgs from '$lib/data/acad-orgs.json';
+import rawAcadOrgs from '#lib/data/acad-orgs.json';
 import { decodeAcadOrg } from './acad-orgs';
 
 describe('decodeAcadOrg (#846)', () => {

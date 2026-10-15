@@ -1,10 +1,10 @@
-import { createEntityPatchRoute } from '$lib/admin/entity-patch-route';
-import { errorResponse } from '$lib/api/json';
+import { createEntityPatchRoute } from '#lib/admin/entity-patch-route.js';
+import { errorResponse } from '#lib/api/json.js';
 import {
 	type DivisionAdmin,
 	type DivisionUpdateInput,
 	updateDivision
-} from '$lib/services/admin/actions';
+} from '#lib/services/admin/actions.js';
 import type { RequestHandler } from './$types';
 
 type DivisionPatchBody = {

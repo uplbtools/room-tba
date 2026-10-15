@@ -1,9 +1,9 @@
-import { env } from '$env/dynamic/private';
-import { parseRequiredEditorVersion } from '$lib/admin/expected-version';
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { ORG_CATEGORIES, type OrgCategory } from '$lib/constants/content/categories/org';
-import { parseImageUrl } from '$lib/utils/r2-upload-core';
-import { EditConflictError, updateOrganization } from '$lib/services/admin/actions';
+import { R2_PUBLIC_URL } from '$app/env/private';
+import { parseRequiredEditorVersion } from '#lib/admin/expected-version.js';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { ORG_CATEGORIES, type OrgCategory } from '#lib/constants/content/categories/org.js';
+import { parseImageUrl } from '#lib/utils/r2-upload-core.js';
+import { EditConflictError, updateOrganization } from '#lib/services/admin/actions.js';
 import type { RequestHandler } from './$types';
 
 type OrgPatchBody = {
@@ -58,7 +58,7 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 		});
 	}
 
-	const parsedImageUrl = parseImageUrl(body.imageUrl, env.R2_PUBLIC_URL, 'Organization image');
+	const parsedImageUrl = parseImageUrl(body.imageUrl, R2_PUBLIC_URL, 'Organization image');
 	if (!parsedImageUrl.ok) {
 		return new Response(JSON.stringify({ error: parsedImageUrl.error }), {
 			status: 400,

@@ -1,4 +1,4 @@
-import { parseDays, parseScheduleTime } from '$lib/utils/schedule-renderer.js';
+import { parseDays, parseScheduleTime } from '#lib/utils/schedule-renderer.js';
 import { sectionNaturalKey, type PlannedSection } from './types.js';
 
 export type ScheduleBlock = {

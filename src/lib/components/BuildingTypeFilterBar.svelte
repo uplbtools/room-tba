@@ -7,14 +7,14 @@
 	import {
 		getBuildingTypeFilterOptions,
 		type BuildingTypeFilter
-	} from '$lib/constants/content/categories/building';
-	import { getAppData } from '$lib/utils/context';
+	} from '#lib/constants/content/categories/building.js';
+	import { getAppData } from '#lib/utils/context.js';
 	import {
 		buildingTypeFilter,
 		jeepneyStore,
 		searchInfo,
 		classVenuesStore
-	} from '$lib/stores.svelte';
+	} from '#lib/stores.svelte.js';
 	import './map-chrome/map-chrome.css';
 
 	const appData = getAppData();

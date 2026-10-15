@@ -1,11 +1,11 @@
-import { canReviewProposals } from '$lib/admin/auth';
-import { getEditorSession } from '$lib/admin/require-editor';
+import { canReviewProposals } from '#lib/admin/auth.js';
+import { getEditorSession } from '#lib/admin/require-editor.js';
 import {
 	canViewProposalSubmitterDetails,
 	getProposalById,
 	toPublicProposalView,
 	toSubmitterProposalView
-} from '$lib/services/contribution/proposal-action';
+} from '#lib/services/contribution/proposal-action.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ cookies, params }) => {

@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { onMount, untrack } from 'svelte';
-	import IconButton from '$lib/components/IconButton.svelte';
+	import IconButton from '#lib/components/IconButton.svelte';
 	import { fade, fly } from 'svelte/transition';
 	import { X, Building2, Loader, RotateCcw, Pencil } from '@lucide/svelte';
-	import { building3DStore, adminAuthStore } from '$lib/stores.svelte';
-	import { modalContentDismiss, modalContentReveal, overlayFade } from '$lib/utils/motion';
+	import { building3DStore, adminAuthStore } from '#lib/stores.svelte.js';
+	import { modalContentDismiss, modalContentReveal, overlayFade } from '#lib/utils/motion.js';
 	import { MediaQuery } from 'svelte/reactivity';
-	import { getAppData } from '$lib/utils/context';
-	import type { Room } from '$lib/utils/types';
-	import { getBuildingRooms } from '$lib/utils/local/data/utils';
-	import { checkLocalBuildingRoom, syncBuildingRooms } from '$lib/utils/local/data/sync';
-	import { fetchBuildingFootprint } from '$lib/utils/overpass';
-	import { fetchBasemap } from '$lib/utils/osm-basemap';
-	import { trapFocus } from '$lib/utils/focus-trap';
+	import { getAppData } from '#lib/utils/context.js';
+	import type { Room } from '#lib/utils/types';
+	import { getBuildingRooms } from '#lib/utils/local/data/utils.js';
+	import { checkLocalBuildingRoom, syncBuildingRooms } from '#lib/utils/local/data/sync.js';
+	import { fetchBuildingFootprint } from '#lib/utils/overpass.js';
+	import { fetchBasemap } from '#lib/utils/osm-basemap.js';
+	import { trapFocus } from '#lib/utils/focus-trap.js';
 	import {
 		footprintToLocalPolygon,
 		placeRooms,
@@ -23,12 +23,12 @@
 		type LabelBox,
 		type LocalPolygonData,
 		type RoomPlacement
-	} from '$lib/utils/building-3d';
+	} from '#lib/utils/building-3d.js';
 	import {
 		inferBuildingPlacements,
 		type InferredPlacement,
 		type RoomPlacementInput
-	} from '$lib/utils/room-placement';
+	} from '#lib/utils/room-placement.js';
 
 	const appData = getAppData();
 	const buildings = $derived(appData().loaded ? appData().buildings : []);

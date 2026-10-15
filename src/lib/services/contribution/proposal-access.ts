@@ -1,5 +1,5 @@
-import type { SessionUser } from '$lib/admin/auth';
-import { canReviewProposals } from '$lib/admin/roles';
+import type { SessionUser } from '#lib/admin/auth.js';
+import { canReviewProposals } from '#lib/admin/roles.js';
 
 type ProposalAccessRow = {
 	submitterUserId: number | null;

@@ -2,66 +2,66 @@
 	import Box from '@lucide/svelte/icons/box';
 
 	import { tick } from 'svelte';
-	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
-	import EntityEditorField from '$lib/components/editor/EntityEditorField.svelte';
-	import EntityEditorPanel from '$lib/components/editor/EntityEditorPanel.svelte';
-	import EntityEditorPinRow from '$lib/components/editor/EntityEditorPinRow.svelte';
-	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
-	import MergeEntityPrompt from '$lib/components/editor/MergeEntityPrompt.svelte';
-	import EntityPhotoUpload from '$lib/components/editor/EntityPhotoUpload.svelte';
+	import EntitySkeleton from '#lib/components/EntitySkeleton.svelte';
+	import EntityEditorField from '#lib/components/editor/EntityEditorField.svelte';
+	import EntityEditorPanel from '#lib/components/editor/EntityEditorPanel.svelte';
+	import EntityEditorPinRow from '#lib/components/editor/EntityEditorPinRow.svelte';
+	import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
+	import MergeEntityPrompt from '#lib/components/editor/MergeEntityPrompt.svelte';
+	import EntityPhotoUpload from '#lib/components/editor/EntityPhotoUpload.svelte';
 	// import BuildingPhoto from './BuildingPhoto.svelte';
-	import MapChromeActionChip from '$lib/components/map-chrome/MapChromeActionChip.svelte';
+	import MapChromeActionChip from '#lib/components/map-chrome/MapChromeActionChip.svelte';
 	import {
 		CR_FACILITIES,
 		crFacilityLabel,
 		sanitizeCrFacilities
-	} from '$lib/constants/map/cr-facilities';
-	import { getAppActions, getAppData, getSearchInfo } from '$lib/utils/context';
+	} from '#lib/constants/map/cr-facilities.js';
+	import { getAppActions, getAppData, getSearchInfo } from '#lib/utils/context.js';
 	import {
 		clearEntityContributorDraft,
 		readEntityContributorDraft,
 		scheduleEntityContributorDraftSave
-	} from '$lib/utils/contributor-drafts';
+	} from '#lib/utils/contributor-drafts.js';
 	import {
 		entityEditorSavedMessage,
 		fieldSaveActionLabel
-	} from '$lib/utils/editor/field-action-label';
-	import { handlePersistEntityResult } from '$lib/utils/editor/handle-persist-result';
+	} from '#lib/utils/editor/field-action-label.js';
+	import { handlePersistEntityResult } from '#lib/utils/editor/handle-persist-result.js';
 	import {
 		checkLocalBuildingRoom,
 		getLocalBuildingRooms,
 		syncBuildingRooms
-	} from '$lib/utils/local/data/sync';
+	} from '#lib/utils/local/data/sync.js';
 	import {
 		fetchEntityRoomsRemote,
 		fetchRoomClassCounts,
 		getBuildingRooms
-	} from '$lib/utils/local/data/utils';
+	} from '#lib/utils/local/data/utils.js';
 	import {
 		getStoredProposalForEntity,
 		mergeEntityRecord,
 		persistEntityChange
-	} from '$lib/utils/proposals/client';
-	import { normalizeEntityPhotos, type EntityPhoto } from '$lib/utils/entity/entity-photos';
-	import type { Building, Room } from '$lib/utils/types';
-	import ResultDisplay from '$lib/components/controls/ResultDisplay.svelte';
-	// import EntityLastUpdated from '$lib/components/EntityLastUpdated.svelte';
-	// import EntityStreetAddress from '$lib/components/controls/EntityStreetAddress.svelte';
-	// import BuildingPhoto from '$lib/components/controls/BuildingPhoto.svelte';
-	// import EntityDirectionsChip from '$lib/components/controls/EntityDirectionsChip.svelte';
-	// import EntityGoogleMapsLink from '$lib/components/controls/EntityGoogleMapsLink.svelte';
-	// import EntityShareCopyLink from '$lib/components/controls/EntityShareCopyLink.svelte';
-	import { getOrgsByBuildingId } from '$lib/functions/organizations.remote';
-	import { getRoomsByBuildingId } from '$lib/functions/rooms.remote';
-	import EntityDirectionsChip from '$lib/components/controls/EntityDirectionsChip.svelte';
-	import EntityGoogleMapsLink from '$lib/components/controls/EntityGoogleMapsLink.svelte';
-	import EntityShareCopyLink from '$lib/components/controls/EntityShareCopyLink.svelte';
+	} from '#lib/utils/proposals/client.js';
+	import { normalizeEntityPhotos, type EntityPhoto } from '#lib/utils/entity/entity-photos.js';
+	import type { Building, Room } from '#lib/utils/types';
+	import ResultDisplay from '#lib/components/controls/ResultDisplay.svelte';
+	// import EntityLastUpdated from '#lib/components/EntityLastUpdated.svelte';
+	// import EntityStreetAddress from '#lib/components/controls/EntityStreetAddress.svelte';
+	// import BuildingPhoto from '#lib/components/controls/BuildingPhoto.svelte';
+	// import EntityDirectionsChip from '#lib/components/controls/EntityDirectionsChip.svelte';
+	// import EntityGoogleMapsLink from '#lib/components/controls/EntityGoogleMapsLink.svelte';
+	// import EntityShareCopyLink from '#lib/components/controls/EntityShareCopyLink.svelte';
+	import { getOrgsByBuildingId } from '#lib/functions/organizations.remote.js';
+	import { getRoomsByBuildingId } from '#lib/functions/rooms.remote.js';
+	import EntityDirectionsChip from '#lib/components/controls/EntityDirectionsChip.svelte';
+	import EntityGoogleMapsLink from '#lib/components/controls/EntityGoogleMapsLink.svelte';
+	import EntityShareCopyLink from '#lib/components/controls/EntityShareCopyLink.svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import ResultAction from '$lib/components/new/ResultAction.svelte';
+	import ResultAction from '#lib/components/new/ResultAction.svelte';
 	import { CopyIcon, MapIcon, MapPin, PinIcon } from '@lucide/svelte';
-	import { copyTextToClipboard } from '$lib/utils/clipboard';
+	import { copyTextToClipboard } from '#lib/utils/clipboard.js';
 	// // import EntityDirectionsChip from './EntityDirectionsChip.svelte';
 	// import EntityGoogleMapsLink from './EntityGoogleMapsLink.svelte';
 	// import EntityShareCopyLink from './EntityShareCopyLink.svelte';
@@ -597,7 +597,7 @@
 	const buildingRooms = $derived(await getRoomsByBuildingId({ id: building.id }));
 	const buildingTypeLabel = $derived.by(() => {
 		const isAdmin = building.buildingType === 'admin';
-		if (isAdmin /* && hostsClasses */) return 'Administrative · Class venue';
+		if (isAdmin) /* && hostsClasses */ return 'Administrative · Class venue';
 		return isAdmin ? 'Administrative' : 'Class building';
 	});
 	const hasMapPin = $derived(Boolean(building.lat && building.lon));
@@ -891,14 +891,15 @@
 
 		{#if buildingOrgs.length > 0}
 			<section class="building-orgs" aria-label="Organizations and offices here">
-				<h3 class="entity-section-heading">Orgs &amp; offices here</h3>
+				<h3 class="entity-section-heading">Orgs & offices here</h3>
+
 				<div class="entity-tag-list">
 					{#each buildingOrgs as org (org.id)}
 						<button
 							type="button"
 							class="entity-tag-chip building-orgs__chip"
 							onclick={async () => {
-								await goto(resolve(`/map/organizations/${org.id}`));
+								await goto(resolve(`map/organizations/${org.id}`));
 							}}
 						>
 							{org.name}
@@ -908,8 +909,8 @@
 			</section>
 		{/if}
 		{#if buildingRooms}
-			<ResultDisplay filteredRooms={buildingRooms} /* {classCounts} */ />
-		{:else if building}
+			<ResultDisplay filteredRooms={buildingRooms} />
+		{:else if /* {classCounts} */ building}
 			<EntitySkeleton
 				variant="rooms"
 				heading="Rooms in the building"

@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
-import { plannerPlansTable } from '$lib/server/db/schema';
-import { db } from '$lib/utils/db';
+import { plannerPlansTable } from '#lib/server/db/schema.js';
+import { db } from '#lib/utils/db.js';
 
 /** The stored planner blob for a user, or null if they've never saved one. */
 export async function getPlannerData(userId: number): Promise<unknown | null> {

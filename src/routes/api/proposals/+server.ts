@@ -1,15 +1,18 @@
-import { getEditorSession } from '$lib/admin/require-editor';
+import { getEditorSession } from '#lib/admin/require-editor.js';
 import {
 	enforceProposalSubmitLimits,
 	isProposalHoneypotTripped
-} from '$lib/api/proposal-rate-limit';
-import { clientIp, rateLimitResponse } from '$lib/api/rate-limit';
-import { validateSubmitterName } from '$lib/constants/contribute/proposals';
+} from '#lib/api/proposal-rate-limit.js';
+import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { validateSubmitterName } from '#lib/constants/contribute/proposals.js';
 import {
 	emitProposalSubmitted,
 	logNotificationEmitFailure
-} from '$lib/utils/notifications/proposal-events';
-import { ProposalValidationError, submitProposal } from '$lib/services/contribution/proposal-action';
+} from '#lib/utils/notifications/proposal-events.js';
+import {
+	ProposalValidationError,
+	submitProposal
+} from '#lib/services/contribution/proposal-action.js';
 import type { RequestHandler } from './$types';
 
 type ProposalBody = {

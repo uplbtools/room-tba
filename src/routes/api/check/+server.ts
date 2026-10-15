@@ -1,5 +1,5 @@
-import { db } from '$lib/server/db';
-import { updateTable } from '$lib/server/db/schema';
+import { db } from '#lib/server/db/index.js';
+import { updateTable } from '#lib/server/db/schema.js';
 import type { RequestHandler } from './$types';
 
 /**

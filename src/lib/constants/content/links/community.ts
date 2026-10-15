@@ -3,7 +3,7 @@
  * Campus-specific values live in src/campus.config.ts — a fork edits that one
  * file. This module re-exports them under the names the rest of the app imports
  * and derives the app-stable redirect URLs from the site URL. */
-import { campusCommunity, campusSite } from '$lib/campus.config';
+import { campusCommunity, campusSite } from '#lib/campus.config.js';
 
 /** Canonical production origin. */
 const ROOM_TBA_SITE_URL = campusSite.url;

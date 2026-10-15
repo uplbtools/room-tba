@@ -1,5 +1,5 @@
-import academicCalendar2024 from '$lib/data/academic-calendar-2024-2025.json';
-import academicCalendar2026 from '$lib/data/academic-calendar-2026-2027.json';
+import academicCalendar2024 from '#lib/data/academic-calendar-2024-2025.json';
+import academicCalendar2026 from '#lib/data/academic-calendar-2026-2027.json';
 import type { Milestone, MilestoneKind } from './academic-calendar-pdf';
 
 /**

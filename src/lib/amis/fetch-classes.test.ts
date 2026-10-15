@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readAmisPageMeta } from '$lib/amis/fetch-classes';
+import { readAmisPageMeta } from '#lib/amis/fetch-classes.js';
 
 describe('readAmisPageMeta', () => {
 	it('reads nested classes pagination fields', () => {

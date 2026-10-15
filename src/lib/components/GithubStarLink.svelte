@@ -1,34 +1,32 @@
 <script lang="ts">
-  import Star from "@lucide/svelte/icons/star";
-  import { GITHUB_ROOM_TBA_URL } from "$lib/constants/content/links/community"
-  import { fetchGithubStarCountCached } from "$lib/utils/github-stars";
+	import Star from '@lucide/svelte/icons/star';
+	import { GITHUB_ROOM_TBA_URL } from '#lib/constants/content/links/community.js';
+	import { fetchGithubStarCountCached } from '#lib/utils/github-stars.js';
 
-  let stars = $state<number | null>(null);
-  let failed = $state(false);
+	let stars = $state<number | null>(null);
+	let failed = $state(false);
 
-  $effect(() => {
-    let active = true;
-    fetchGithubStarCountCached()
-      .then((value) => {
-        if (active) stars = value;
-      })
-      .catch(() => {
-        if (active) failed = true;
-      });
-    return () => {
-      active = false;
-    };
-  });
+	$effect(() => {
+		let active = true;
+		fetchGithubStarCountCached()
+			.then((value) => {
+				if (active) stars = value;
+			})
+			.catch(() => {
+				if (active) failed = true;
+			});
+		return () => {
+			active = false;
+		};
+	});
 
-  const label = $derived(
-    stars !== null
-      ? `Star Room TBA on GitHub (${stars.toLocaleString()} stars)`
-      : "Star Room TBA on GitHub",
-  );
+	const label = $derived(
+		stars !== null
+			? `Star Room TBA on GitHub (${stars.toLocaleString()} stars)`
+			: 'Star Room TBA on GitHub'
+	);
 
-  const displayCount = $derived(
-    stars !== null ? stars.toLocaleString() : failed ? "—" : "…",
-  );
+	const displayCount = $derived(stars !== null ? stars.toLocaleString() : failed ? '—' : '…');
 </script>
 
 <a

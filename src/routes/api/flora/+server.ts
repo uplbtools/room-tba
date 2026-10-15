@@ -1,6 +1,6 @@
 import { asc, eq } from 'drizzle-orm';
-import { db } from '$lib/server/db';
-import { floraSpeciesTable, floraSpecimensTable } from '$lib/server/db/schema';
+import { db } from '#lib/server/db/index.js';
+import { floraSpeciesTable, floraSpecimensTable } from '#lib/server/db/schema.js';
 import type { RequestHandler } from './$types';
 
 /**

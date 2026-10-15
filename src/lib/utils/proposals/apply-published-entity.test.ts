@@ -2,8 +2,8 @@ import { describe, expect, test } from 'vitest';
 import {
 	applyPublishedEntity,
 	syncTablesForEntityType
-} from '$lib/utils/proposals/apply-published-entity';
-import type { AppActions, AppContextData } from '$lib/utils/context';
+} from '#lib/utils/proposals/apply-published-entity.js';
+import type { AppActions, AppContextData } from '#lib/utils/context.js';
 
 function mockActions() {
 	const calls: string[] = [];

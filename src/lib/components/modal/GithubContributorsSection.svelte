@@ -1,8 +1,8 @@
 <script lang="ts">
-	import LoadingIndicator from '$lib/components/LoadingIndicator.svelte';
+	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	import PeopleAvatarGrid from './PeopleAvatarGrid.svelte';
-	import type { GithubContributor } from '$lib/utils/github-contributors';
-	import { formatGithubContributions } from '$lib/utils/github-contributors';
+	import type { GithubContributor } from '#lib/utils/github-contributors.js';
+	import { formatGithubContributions } from '#lib/utils/github-contributors.js';
 
 	type Props = {
 		title: string;

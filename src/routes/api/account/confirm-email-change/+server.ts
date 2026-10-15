@@ -1,4 +1,4 @@
-import { confirmEmailChange } from '$lib/services/admin/user';
+import { confirmEmailChange } from '#lib/services/admin/user.js';
 import type { RequestHandler } from './$types';
 
 /** Email-change confirmation link (#272 follow-up). No session required — the

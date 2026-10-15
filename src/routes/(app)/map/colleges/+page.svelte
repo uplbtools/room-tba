@@ -1,8 +1,8 @@
 <script lang="ts">
-	import MapBrowseList from "$lib/components/map/MapBrowseList.svelte";
-	import { getAppData } from "$lib/utils/context";
-	import { getCollegeCanonicalPath } from "$lib/utils/entity/entity-urls"
-import type { PageData } from "./$types";
+	import MapBrowseList from '#lib/components/map/MapBrowseList.svelte';
+	import { getAppData } from '#lib/utils/context.js';
+	import { getCollegeCanonicalPath } from '#lib/utils/entity/entity-urls.js';
+	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
 	const appData = getAppData();
@@ -15,12 +15,12 @@ import type { PageData } from "./$types";
 		data.items.length > 0
 			? data.items
 			: (appData().colleges ?? [])
-			.slice()
-			.sort((a, b) => a.collegeName.localeCompare(b.collegeName))
-			.map((college) => ({
-				href: getCollegeCanonicalPath(college.collegeName),
-				label: college.collegeName,
-			})),
+					.slice()
+					.sort((a, b) => a.collegeName.localeCompare(b.collegeName))
+					.map((college) => ({
+						href: getCollegeCanonicalPath(college.collegeName),
+						label: college.collegeName
+					}))
 	);
 </script>
 

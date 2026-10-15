@@ -1,10 +1,16 @@
 import { error } from '@sveltejs/kit';
-import type { SeoData } from '$lib/components/seo/seo-data';
-import { entityIndexPath, getEventCanonicalPath } from '$lib/utils/entity/entity-urls';
-import { getEventImage } from '$lib/utils/event/event-images';
-import { formatCampusDateTime } from '$lib/utils/event/event-time';
-import { getEventPageData } from '$lib/services/page-data/entity';
-import { absoluteUrl, breadcrumbSchema, jsonLd, ogCardPath, webpageSchema } from '$lib/utils/site';
+import type { SeoData } from '#lib/components/seo/seo-data.js';
+import { entityIndexPath, getEventCanonicalPath } from '#lib/utils/entity/entity-urls.js';
+import { getEventImage } from '#lib/utils/event/event-images.js';
+import { formatCampusDateTime } from '#lib/utils/event/event-time.js';
+import { getEventPageData } from '#lib/services/page-data/entity.js';
+import {
+	absoluteUrl,
+	breadcrumbSchema,
+	jsonLd,
+	ogCardPath,
+	webpageSchema
+} from '#lib/utils/site.js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {

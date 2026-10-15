@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import MapEntityPin from '$lib/components/map/MapEntityPin.svelte';
-	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
-	import { dormMatchesTypeFilter } from '$lib/constants/content/categories/building';
-	import { getMapDormsData } from '$lib/functions/dorms.remote';
-	import { getMapStore, getSearchInfo } from '$lib/utils/context';
-	import type { DormData } from '$lib/utils/types';
+	import MapEntityPin from '#lib/components/map/MapEntityPin.svelte';
+	import PinGlyph from '#lib/components/map/PinGlyph.svelte';
+	import { dormMatchesTypeFilter } from '#lib/constants/content/categories/building.js';
+	import { getMapDormsData } from '#lib/functions/dorms.remote.js';
+	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
+	import type { DormData } from '#lib/utils/types';
 	import { Marker } from 'svelte-maplibre';
 	import type { inspect } from 'util';
 
@@ -29,7 +29,7 @@
 
 	function handleMarkerClick(dorm: (typeof filteredDorms)[number]) {
 		return async () => {
-			await goto(resolve(`/map/dorms/${dorm.id}`));
+			await goto(resolve(`map/dorms/${dorm.id}`));
 			if (dorm.lon && dorm.lat) map.centerMarker([dorm.lon, dorm.lat]);
 		};
 	}
@@ -48,29 +48,29 @@
 			{@const previewSuppressed =
 				centralHoverPreview && isDormHoverPreview(entityHoverPreviewStore.entity, dorm.id)}
 			{#key `${editKey}:${canDragPin(editKey)}`} -->
-			<Marker
-				lngLat={[dorm.lon, dorm.lat]}
-				onclick={handleMarkerClick(dorm)}
-				// draggable={canDragPin(editKey)}
-			>
+			<Marker lngLat={[dorm.lon, dorm.lat]} onclick={handleMarkerClick(dorm)}>
 				<MapEntityPin
-					label={dorm.name}
+					label={// draggable={canDragPin(editKey)}
+					dorm.name}
 					tone={dorm.isUpManaged ? 'dorm' : 'privateDorm'}
 					active={searchInfo.isActiveMarker(dorm.name, 'dorm')}
 					dimmed={searchInfo.hasActiveResult()}
-					// eventLinked={isDormEventLinked(dorm.id)}
-					// editable={canDragPin(editKey)}
-					// editing={selectedEditKey === editKey}
-					// hovered={hoveredEditKey === editKey}
-					// saveState={savingEditKey === editKey
-					// 	? 'saving'
-					// 	: savedEditKey === editKey
-					// 		? 'saved'
-					// 		: failedEditKey === editKey
-					// 			? 'failed'
-					// 			: 'idle'}
 				>
-					<PinGlyph name="dorm" size={18} />
+					<PinGlyph
+						name="dorm"
+						size={// eventLinked={isDormEventLinked(dorm.id)}
+						// editable={canDragPin(editKey)}
+						// editing={selectedEditKey === editKey}
+						// hovered={hoveredEditKey === editKey}
+						// saveState={savingEditKey === editKey
+						// 	? 'saving'
+						// 	: savedEditKey === editKey
+						// 		? 'saved'
+						// 		: failedEditKey === editKey
+						// 			? 'failed'
+						// 			: 'idle'}
+						18}
+					/>
 				</MapEntityPin>
 			</Marker>
 			<!-- {/key} -->

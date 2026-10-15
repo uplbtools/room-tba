@@ -1,9 +1,9 @@
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import {
 	AccountActionError,
 	getAccountProfile,
 	updateAccountProfile
-} from '$lib/services/admin/user';
+} from '#lib/services/admin/user.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ cookies }) => {

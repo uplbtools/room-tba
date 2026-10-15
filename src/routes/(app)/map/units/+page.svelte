@@ -1,9 +1,9 @@
 <script lang="ts">
-	import MapBrowseList from "$lib/components/map/MapBrowseList.svelte";
-	import { isStudentOrganization } from "$lib/constants/content/categories/org"
-	import { getAppData } from "$lib/utils/context";
-	import { getOrganizationCanonicalPath } from "$lib/utils/entity/entity-urls"
-import type { PageData } from "./$types";
+	import MapBrowseList from '#lib/components/map/MapBrowseList.svelte';
+	import { isStudentOrganization } from '#lib/constants/content/categories/org.js';
+	import { getAppData } from '#lib/utils/context.js';
+	import { getOrganizationCanonicalPath } from '#lib/utils/entity/entity-urls.js';
+	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
 	const appData = getAppData();
@@ -19,8 +19,8 @@ import type { PageData } from "./$types";
 					.sort((a, b) => a.name.localeCompare(b.name))
 					.map((organization) => ({
 						href: getOrganizationCanonicalPath(organization),
-						label: organization.name,
-					})),
+						label: organization.name
+					}))
 	);
 </script>
 

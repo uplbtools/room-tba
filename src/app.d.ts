@@ -1,7 +1,7 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 import type { SupabaseClient, User } from '@supabase/supabase-js';
-import type { SeoData } from '$lib/components/seo/seo-data';
+import type { SeoData } from '#lib/components/seo/seo-data.js';
 
 declare global {
 	namespace App {

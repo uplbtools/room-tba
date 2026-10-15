@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { db } from '$lib/server/db';
+import { db } from '#lib/server/db/index.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async () => {

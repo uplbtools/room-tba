@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { matchImportedScheduleRows } from './match-classes';
-import type { ClassMapValue } from '$lib/utils/types';
+import type { ClassMapValue } from '#lib/utils/types';
 import type { ImportedScheduleRow } from './types';
 
 const sampleClass: ClassMapValue = {

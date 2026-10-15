@@ -1,4 +1,4 @@
-import { getBuildingIdsWithClasses } from '$lib/utils/local/data/utils';
+import { getBuildingIdsWithClasses } from '#lib/utils/local/data/utils.js';
 
 /**
  * Building ids that host classes for the active term. Powers the dual-role

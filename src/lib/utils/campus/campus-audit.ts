@@ -14,7 +14,7 @@
  * `bun run test` covers the heuristics without a database.
  */
 
-import { distanceMeters } from '$lib/utils/campus/campus-route';
+import { distanceMeters } from '#lib/utils/campus/campus-route.js';
 
 export type EntityKind = 'building' | 'organization' | 'place' | 'dorm';
 

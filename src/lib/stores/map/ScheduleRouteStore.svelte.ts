@@ -1,13 +1,17 @@
-import { ROOM_SCHEDULE_SCOPE_NOTE } from "$lib/amis/room-scheduled-types";
-import type { RouteTotals } from "$lib/utils/campus/campus-route";
-import type { ClassQueryPage } from "$lib/utils/classes-api";
-import { getJSONFetch, getLocalRoomByCode } from "$lib/utils/local/data/utils";
-import { orderDayStops } from "$lib/utils/schedule-import/day-stops";
-import { matchImportedScheduleRows } from "$lib/utils/schedule-import/match-classes";
-import type { ImportedScheduleRow, ScheduleMatchResult, Weekday } from "$lib/utils/schedule-import/types";
-import type { ClassMapValue, Room } from "$lib/utils/types";
-import { userLocation, plannerStore, termStore, toastStore } from "../index.svelte.js";
-import { SCHEDULE_IMPORT_SS_KEY, type ScheduleImportPersisted } from "../store-types";
+import { ROOM_SCHEDULE_SCOPE_NOTE } from '#lib/amis/room-scheduled-types.js';
+import type { RouteTotals } from '#lib/utils/campus/campus-route.js';
+import type { ClassQueryPage } from '#lib/utils/classes-api.js';
+import { getJSONFetch, getLocalRoomByCode } from '#lib/utils/local/data/utils.js';
+import { orderDayStops } from '#lib/utils/schedule-import/day-stops.js';
+import { matchImportedScheduleRows } from '#lib/utils/schedule-import/match-classes.js';
+import type {
+	ImportedScheduleRow,
+	ScheduleMatchResult,
+	Weekday
+} from '#lib/utils/schedule-import/types.js';
+import type { ClassMapValue, Room } from '#lib/utils/types';
+import { userLocation, plannerStore, termStore, toastStore } from '../index.svelte.js';
+import { SCHEDULE_IMPORT_SS_KEY, type ScheduleImportPersisted } from '../store-types';
 
 export default class ScheduleRouteStore {
 	importedRows = $state<ImportedScheduleRow[]>([]);
@@ -66,11 +70,8 @@ export default class ScheduleRouteStore {
 			const localRoom = await getLocalRoomByCode(normalized);
 			const room = localRoom
 				? localRoom
-				: (
-						await getJSONFetch<{ data: Room }>(
-							`/api/rooms?code=${encodeURIComponent(normalized)}`
-						)
-					).data;
+				: (await getJSONFetch<{ data: Room }>(`/api/rooms?code=${encodeURIComponent(normalized)}`))
+						.data;
 			const lat = room?.building?.lat;
 			const lon = room?.building?.lon;
 			if (lat != null && lon != null) {

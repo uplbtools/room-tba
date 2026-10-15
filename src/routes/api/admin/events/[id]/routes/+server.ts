@@ -1,10 +1,10 @@
-import { parseRequiredEditorVersion } from '$lib/admin/expected-version';
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
+import { parseRequiredEditorVersion } from '#lib/admin/expected-version.js';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import {
 	EditConflictError,
 	type EventRouteWriteInput,
 	updateEvent
-} from '$lib/services/admin/actions';
+} from '#lib/services/admin/actions.js';
 import type { RequestHandler } from './$types';
 
 type RoutesPatchBody = {

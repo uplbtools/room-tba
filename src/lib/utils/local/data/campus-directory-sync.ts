@@ -1,4 +1,4 @@
-import type { Building, College, Division } from '$lib/utils/types';
+import type { Building, College, Division } from '#lib/utils/types';
 import {
 	getBuildings,
 	getColleges,

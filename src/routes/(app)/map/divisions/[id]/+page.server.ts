@@ -1,8 +1,8 @@
 // import { error } from '@sveltejs/kit';
-// import { getDivisionSlug } from '$lib/utils/app-data';
-// import type { SeoData } from '$lib/components/seo/seo-data';
-// import { entityIndexPath, getDivisionCanonicalPath } from '$lib/utils/entity/entity-urls';
-// import { getDivisionPageData, resolveDivisionNameFromSlug } from '$lib/services/page-data/entity';
+// import { getDivisionSlug } from '#lib/utils/app-data.js';
+// import type { SeoData } from '#lib/components/seo/seo-data.js';
+// import { entityIndexPath, getDivisionCanonicalPath } from '#lib/utils/entity/entity-urls.js';
+// import { getDivisionPageData, resolveDivisionNameFromSlug } from '#lib/services/page-data/entity.js';
 // import {
 // 	absoluteUrl,
 // 	breadcrumbSchema,
@@ -10,7 +10,7 @@
 // 	ogCardPath,
 // 	ogImageUrl,
 // 	webpageSchema
-// } from '$lib/utils/site';
+// } from '#lib/utils/site.js';
 // import type { PageServerLoad } from './$types';
 
 // export const load: PageServerLoad = async ({ params }) => {

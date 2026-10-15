@@ -1,8 +1,8 @@
 <script lang="ts">
-	import LoadingIndicator from '$lib/components/LoadingIndicator.svelte';
-	import { currentRoom, roomClassesStore, termStore } from '$lib/stores.svelte';
-	import ScheduleRender from '$lib/components/room/ScheduleRender.svelte';
-	import ScheduleFreshnessNote from '$lib/components/ScheduleFreshnessNote.svelte';
+	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
+	import { currentRoom, roomClassesStore, termStore } from '#lib/stores.svelte.js';
+	import ScheduleRender from '#lib/components/room/ScheduleRender.svelte';
+	import ScheduleFreshnessNote from '#lib/components/ScheduleFreshnessNote.svelte';
 
 	const room = $derived(currentRoom.value);
 	const classes = $derived(roomClassesStore.classes);

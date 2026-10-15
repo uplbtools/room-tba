@@ -1,12 +1,12 @@
 import type { RequestHandler } from '@sveltejs/kit';
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { parseRequiredEditorVersion } from '$lib/admin/expected-version';
-import { json, errorResponse, parseIdParam } from '$lib/api/json';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { parseRequiredEditorVersion } from '#lib/admin/expected-version.js';
+import { json, errorResponse, parseIdParam } from '#lib/api/json.js';
 import {
 	EditConflictError,
 	DuplicateNameError,
 	DuplicateSlugError
-} from '$lib/services/admin/actions';
+} from '#lib/services/admin/actions.js';
 
 type ApplyResult<TInput> =
 	| { ok: true; input: TInput; version?: number }

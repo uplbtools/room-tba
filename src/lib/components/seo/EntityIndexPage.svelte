@@ -1,11 +1,11 @@
 <script lang="ts">
-	import CopyLinkButton from "$lib/components/CopyLinkButton.svelte";
-	import type { EntityIndexItem } from "./seo-data";
+	import CopyLinkButton from '#lib/components/CopyLinkButton.svelte';
+	import type { EntityIndexItem } from './seo-data';
 
 	const {
 		heading,
 		intro,
-		items,
+		items
 	}: {
 		heading: string;
 		intro: string;
@@ -44,83 +44,83 @@
 </main>
 
 <style>
-  .entity-index-page {
-    min-height: 100dvh;
-    background: linear-gradient(180deg, #faf6f4 0%, #ffffff 22rem);
-  }
+	.entity-index-page {
+		min-height: 100dvh;
+		background: linear-gradient(180deg, #faf6f4 0%, #ffffff 22rem);
+	}
 
-  .entity-index-page__content {
-    max-width: 72rem;
-    margin: 0 auto;
-    padding: 2rem 1rem 4rem;
-    color: #1f1f1f;
-  }
+	.entity-index-page__content {
+		max-width: 72rem;
+		margin: 0 auto;
+		padding: 2rem 1rem 4rem;
+		color: #1f1f1f;
+	}
 
-  h1 {
-    margin: 0;
-    font-size: clamp(1.75rem, 3vw, 2.5rem);
-    line-height: 1.1;
-  }
+	h1 {
+		margin: 0;
+		font-size: clamp(1.75rem, 3vw, 2.5rem);
+		line-height: 1.1;
+	}
 
-  p {
-    margin: 0.75rem 0 1.5rem;
-    max-width: 54rem;
-    line-height: 1.6;
-  }
+	p {
+		margin: 0.75rem 0 1.5rem;
+		max-width: 54rem;
+		line-height: 1.6;
+	}
 
-  ul {
-    display: grid;
-    gap: 0.75rem;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
+	ul {
+		display: grid;
+		gap: 0.75rem;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
 
-  li {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem;
-    border: 1px solid #eadfda;
-    border-radius: 0.875rem;
-    background: white;
-  }
+	li {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1rem;
+		border: 1px solid #eadfda;
+		border-radius: 0.875rem;
+		background: white;
+	}
 
-  .entity-index-page__item-main {
-    display: grid;
-    gap: 0.125rem;
-    min-width: 0;
-  }
+	.entity-index-page__item-main {
+		display: grid;
+		gap: 0.125rem;
+		min-width: 0;
+	}
 
-  .entity-index-page__item-actions {
-    justify-self: end;
-  }
+	.entity-index-page__item-actions {
+		justify-self: end;
+	}
 
-  a {
-    color: #7b1113;
-    font-weight: 600;
-    text-decoration: none;
-  }
+	a {
+		color: #7b1113;
+		font-weight: 600;
+		text-decoration: none;
+	}
 
-  .entity-index-page__description {
-    color: #555;
-    font-size: 0.95rem;
-    line-height: 1.5;
-  }
+	.entity-index-page__description {
+		color: #555;
+		font-size: 0.95rem;
+		line-height: 1.5;
+	}
 
-  @media (max-width: 640px) {
-    li {
-      grid-template-columns: 1fr;
-    }
+	@media (max-width: 640px) {
+		li {
+			grid-template-columns: 1fr;
+		}
 
-    .entity-index-page__item-actions {
-      justify-self: stretch;
-    }
+		.entity-index-page__item-actions {
+			justify-self: stretch;
+		}
 
-    .entity-index-page__item-actions :global(.copy-link-wrapper),
-    .entity-index-page__item-actions :global(.map-chrome-action-chip) {
-      width: 100%;
-    }
-  }
+		.entity-index-page__item-actions :global(.copy-link-wrapper),
+		.entity-index-page__item-actions :global(.map-chrome-action-chip) {
+			width: 100%;
+		}
+	}
 </style>

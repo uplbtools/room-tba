@@ -2,39 +2,39 @@
 	import Box from '@lucide/svelte/icons/box';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import { onMount } from 'svelte';
-	import { ROOM_SCHEDULE_SCOPE_NOTE } from '$lib/amis/room-scheduled-types';
-	import FollowPrompt from '$lib/components/community/FollowPrompt.svelte';
+	import { ROOM_SCHEDULE_SCOPE_NOTE } from '#lib/amis/room-scheduled-types.js';
+	import FollowPrompt from '#lib/components/community/FollowPrompt.svelte';
 	import BuildingResult from '../../../routes/(app)/map/buildings/[id]/BuildingResult.svelte';
-	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
-	import EntityEditorField from '$lib/components/editor/EntityEditorField.svelte';
-	import EntityEditorPanel from '$lib/components/editor/EntityEditorPanel.svelte';
-	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
-	import EntityPhotoUpload from '$lib/components/editor/EntityPhotoUpload.svelte';
-	import EntityPhotoGallery from '$lib/components/controls/EntityPhotoGallery.svelte';
-	import TermSelector from '$lib/components/TermSelector.svelte';
+	import EntitySkeleton from '#lib/components/EntitySkeleton.svelte';
+	import EntityEditorField from '#lib/components/editor/EntityEditorField.svelte';
+	import EntityEditorPanel from '#lib/components/editor/EntityEditorPanel.svelte';
+	import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
+	import EntityPhotoUpload from '#lib/components/editor/EntityPhotoUpload.svelte';
+	import EntityPhotoGallery from '#lib/components/controls/EntityPhotoGallery.svelte';
+	import TermSelector from '#lib/components/TermSelector.svelte';
 	import {
 		ROOM_CATEGORIES,
 		ROOM_CATEGORY_LABELS,
 		roomCategoryLabel
-	} from '$lib/constants/content/categories/room';
-	import { getAppData } from '$lib/utils/context';
+	} from '#lib/constants/content/categories/room.js';
+	import { getAppData } from '#lib/utils/context.js';
 	import {
 		clearEntityContributorDraft,
 		readEntityContributorDraft,
 		scheduleEntityContributorDraftSave
-	} from '$lib/utils/contributor-drafts';
+	} from '#lib/utils/contributor-drafts.js';
 	import {
 		entityEditorSavedMessage,
 		fieldSaveActionLabel
-	} from '$lib/utils/editor/field-action-label';
-	import { handlePersistEntityResult } from '$lib/utils/editor/handle-persist-result';
-	import { FINALS_SCOPE_NOTE, fetchFinalExams } from '$lib/utils/final-exams/final-exams';
+	} from '#lib/utils/editor/field-action-label.js';
+	import { handlePersistEntityResult } from '#lib/utils/editor/handle-persist-result.js';
+	import { FINALS_SCOPE_NOTE, fetchFinalExams } from '#lib/utils/final-exams/final-exams.js';
 	import {
 		getStoredProposalForEntity,
 		mergeEntityRooms,
 		persistEntityChange
-	} from '$lib/utils/proposals/client';
-	import { getRoomShareUrl } from '$lib/utils/share-links';
+	} from '#lib/utils/proposals/client.js';
+	import { getRoomShareUrl } from '#lib/utils/share-links';
 	import {
 		adminAuthStore,
 		building3DStore,
@@ -45,8 +45,8 @@
 		sidePanelStore,
 		termStore,
 		toastStore
-	} from '$lib/stores.svelte';
-	import type { FinalExamRow, Room } from '$lib/utils/types';
+	} from '#lib/stores.svelte.js';
+	import type { FinalExamRow, Room } from '#lib/utils/types';
 	import EntityDirectionsChip from '../controls/EntityDirectionsChip.svelte';
 	import EntityGoogleMapsLink from '../controls/EntityGoogleMapsLink.svelte';
 	import EntityShareCopyLink from '../controls/EntityShareCopyLink.svelte';
@@ -54,7 +54,7 @@
 	import MapChromeActionChip from '../map-chrome/MapChromeActionChip.svelte';
 	import Classes from './Classes.svelte';
 	import FinalExamsList from './FinalExamsList.svelte';
-	import { normalizeEntityPhotos, type EntityPhoto } from '$lib/utils/entity/entity-photos';
+	import { normalizeEntityPhotos, type EntityPhoto } from '#lib/utils/entity/entity-photos.js';
 
 	type RoomEditableField =
 		'roomCode' | 'directions' | 'buildingId' | 'collegeId' | 'divisionId' | 'photos' | 'category';

@@ -1,87 +1,90 @@
 <script lang="ts">
-  import Search from "@lucide/svelte/icons/search";
-  import Map from "@lucide/svelte/icons/map";
-  import CalendarDays from "@lucide/svelte/icons/calendar-days";
-  import PencilLine from "@lucide/svelte/icons/pencil-line";
-  import ClipboardCheck from "@lucide/svelte/icons/clipboard-check";
-  import CircleCheck from "@lucide/svelte/icons/circle-check";
-  import UserRound from "@lucide/svelte/icons/user-round";
-  import WifiOff from "@lucide/svelte/icons/wifi-off";
-  import ArrowRight from "@lucide/svelte/icons/arrow-right";
-  import Plus from "@lucide/svelte/icons/plus";
-  import CommunityBrandIcon from "$lib/components/community/CommunityBrandIcon.svelte";
-  import { DISCORD_URL, MESSENGER_CONTRIBUTE_TARGET } from "$lib/constants/content/links/community"
+	import Search from '@lucide/svelte/icons/search';
+	import Map from '@lucide/svelte/icons/map';
+	import CalendarDays from '@lucide/svelte/icons/calendar-days';
+	import PencilLine from '@lucide/svelte/icons/pencil-line';
+	import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
+	import CircleCheck from '@lucide/svelte/icons/circle-check';
+	import UserRound from '@lucide/svelte/icons/user-round';
+	import WifiOff from '@lucide/svelte/icons/wifi-off';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import Plus from '@lucide/svelte/icons/plus';
+	import CommunityBrandIcon from '#lib/components/community/CommunityBrandIcon.svelte';
+	import {
+		DISCORD_URL,
+		MESSENGER_CONTRIBUTE_TARGET
+	} from '#lib/constants/content/links/community.js';
 
-  /**
-   * `secondary` cards are hidden on phones (see the 36rem media query): a
-   * first-timer needs the four things they can *do*; the rest describe
-   * behaviour they meet anyway while using the app.
-   */
-  const features = [
-    {
-      icon: Search,
-      label: "Search rooms",
-      hint: "Room codes and buildings",
-      secondary: false,
-    },
-    {
-      icon: Map,
-      label: "Explore the map",
-      hint: "Buildings, dorms, and pins",
-      secondary: false,
-    },
-    {
-      icon: CalendarDays,
-      label: "Plan classes",
-      hint: "Build a draft schedule",
-      secondary: false,
-    },
-    {
-      icon: CalendarDays,
-      label: "Events",
-      hint: "Where things happen",
-      secondary: false,
-    },
-    {
-      icon: UserRound,
-      label: "Browse freely",
-      hint: "No sign-in required",
-      secondary: true,
-    },
-    {
-      icon: WifiOff,
-      label: "Offline-friendly",
-      hint: "Cache after your first visit",
-      secondary: true,
-    },
-    {
-      icon: PencilLine,
-      label: "Suggest fixes",
-      hint: "Optional login to edit",
-      secondary: true,
-    },
-  ] as const;
+	/**
+	 * `secondary` cards are hidden on phones (see the 36rem media query): a
+	 * first-timer needs the four things they can *do*; the rest describe
+	 * behaviour they meet anyway while using the app.
+	 */
+	const features = [
+		{
+			icon: Search,
+			label: 'Search rooms',
+			hint: 'Room codes and buildings',
+			secondary: false
+		},
+		{
+			icon: Map,
+			label: 'Explore the map',
+			hint: 'Buildings, dorms, and pins',
+			secondary: false
+		},
+		{
+			icon: CalendarDays,
+			label: 'Plan classes',
+			hint: 'Build a draft schedule',
+			secondary: false
+		},
+		{
+			icon: CalendarDays,
+			label: 'Events',
+			hint: 'Where things happen',
+			secondary: false
+		},
+		{
+			icon: UserRound,
+			label: 'Browse freely',
+			hint: 'No sign-in required',
+			secondary: true
+		},
+		{
+			icon: WifiOff,
+			label: 'Offline-friendly',
+			hint: 'Cache after your first visit',
+			secondary: true
+		},
+		{
+			icon: PencilLine,
+			label: 'Suggest fixes',
+			hint: 'Optional login to edit',
+			secondary: true
+		}
+	] as const;
 
-  const steps = [
-    {
-      title: "Suggest",
-      text: "Edit a room, building, or event. Use + on the map to add new data.",
-      icon: PencilLine,
-      mock: "suggest" as const,
-    },
-    {
-      title: "Review",
-      text: "Volunteer editors check proposals in the app.",
-      icon: ClipboardCheck,
-      mock: "review" as const,
-    },
-    {
-      title: "Publish",
-      text: "Approved changes go live for everyone.",
-      icon: CircleCheck,
-      mock: "publish" as const,
-    },
-  ] as const;
+	const steps = [
+		{
+			title: 'Suggest',
+			text: 'Edit a room, building, or event. Use + on the map to add new data.',
+			icon: PencilLine,
+			mock: 'suggest' as const
+		},
+		{
+			title: 'Review',
+			text: 'Volunteer editors check proposals in the app.',
+			icon: ClipboardCheck,
+			mock: 'review' as const
+		},
+		{
+			title: 'Publish',
+			text: 'Approved changes go live for everyone.',
+			icon: CircleCheck,
+			mock: 'publish' as const
+		}
+	] as const;
 </script>
 
 <section class="guide" aria-labelledby="guide-heading">

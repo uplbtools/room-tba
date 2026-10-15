@@ -13,12 +13,12 @@
  * so it cannot import this file. Keep the two in step by hand.
  */
 
-import { clearMapCaches } from '$lib/utils/local/offline-maps';
-import { closeLocalDB } from '$lib/utils/local/data/pgliteDB';
-import { invalidateLocalSyncKeys } from '$lib/utils/local/data/invalidate-sync-key';
-import { getSyncKeysFromLs } from '$lib/utils/local/data/sync-keys';
-import { PLANNER_LS_KEY } from '$lib/stores/store-types';
-import { FOLLOW_PROMPT_KEY } from '$lib/utils/social-follow';
+import { clearMapCaches } from '#lib/utils/local/offline-maps.js';
+import { closeLocalDB } from '#lib/utils/local/data/pgliteDB.js';
+import { invalidateLocalSyncKeys } from '#lib/utils/local/data/invalidate-sync-key.js';
+import { getSyncKeysFromLs } from '#lib/utils/local/data/sync-keys.js';
+import { PLANNER_LS_KEY } from '#lib/stores/store-types.js';
+import { FOLLOW_PROMPT_KEY } from '#lib/utils/social-follow.js';
 
 /** IndexedDB database behind PGlite's `idb://site-data` (emscripten IDBFS mounts at `/pglite/<dataDir>`). */
 export const PGLITE_IDB_NAME = '/pglite/site-data';

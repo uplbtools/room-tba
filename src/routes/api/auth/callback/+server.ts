@@ -1,6 +1,6 @@
-import { createSessionToken, setSessionCookie } from '$lib/admin/auth';
-import { linkOrCreateContributorFromSupabase } from '$lib/services/admin/user';
-import { createServerSupabaseClient } from '$lib/supabase/server';
+import { createSessionToken, setSessionCookie } from '#lib/admin/auth.js';
+import { linkOrCreateContributorFromSupabase } from '#lib/services/admin/user.js';
+import { createServerSupabaseClient } from '#lib/supabase/server.js';
 import type { RequestHandler } from './$types';
 
 /**

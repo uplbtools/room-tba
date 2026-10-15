@@ -3,12 +3,12 @@
 	// import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import type { Snippet } from 'svelte';
 
-	// import type { BottomSheetSnap } from '$lib/utils/bottom-sheet-snap';
-	// import BottomSheet from '$lib/components/BottomSheet.svelte';
-	// import JeepneyRouteModal from '$lib/components/modal/JeepneyRouteModal.svelte';
-	// import SponsorBanner from '$lib/components/SponsorBanner.svelte';
-	// import { resolvePanelContent } from '$lib/utils/side-panel-content';
-	// import { jeepneyStore, searchInfo, sidePanelStore } from '$lib/stores.svelte';
+	// import type { BottomSheetSnap } from '#lib/utils/bottom-sheet-snap.js';
+	// import BottomSheet from '#lib/components/BottomSheet.svelte';
+	// import JeepneyRouteModal from '#lib/components/modal/JeepneyRouteModal.svelte';
+	// import SponsorBanner from '#lib/components/SponsorBanner.svelte';
+	// import { resolvePanelContent } from '#lib/utils/side-panel-content.js';
+	// import { jeepneyStore, searchInfo, sidePanelStore } from '#lib/stores.svelte.js';
 	// import JeepneyStopPanel from './JeepneyStopPanel.svelte';
 
 	// The route always renders into the panel, but only a browse route replaces

@@ -1,4 +1,4 @@
-import { dismissEphemeralOverlays } from '$lib/utils/overlay-stack';
+import { dismissEphemeralOverlays } from '#lib/utils/overlay-stack.js';
 import { modalStore, plannerStore, proposalsStore } from './index.svelte.js';
 
 export default class AdminAuthStore {
@@ -195,8 +195,8 @@ export default class AdminAuthStore {
 	loginWithGoogle = async (): Promise<string | null> => {
 		try {
 			const [{ isSupabaseConfigured }, { createBrowserSupabaseClient }] = await Promise.all([
-				import('$lib/supabase/env'),
-				import('$lib/supabase/client')
+				import('#lib/supabase/env.js'),
+				import('#lib/supabase/client.js')
 			]);
 			if (!isSupabaseConfigured()) {
 				return 'Google sign-in is not configured on this server.';
@@ -221,8 +221,8 @@ export default class AdminAuthStore {
 	linkGoogle = async (): Promise<string | null> => {
 		try {
 			const [{ isSupabaseConfigured }, { createBrowserSupabaseClient }] = await Promise.all([
-				import('$lib/supabase/env'),
-				import('$lib/supabase/client')
+				import('#lib/supabase/env.js'),
+				import('#lib/supabase/client.js')
 			]);
 			if (!isSupabaseConfigured()) {
 				return 'Google sign-in is not configured on this server.';

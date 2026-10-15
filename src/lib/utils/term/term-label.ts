@@ -1,4 +1,4 @@
-import type { Term } from '$lib/utils/types';
+import type { Term } from '#lib/utils/types';
 
 export function termChipLabel(term: Pick<Term, 'label' | 'semester'>) {
 	if (term.semester === 'midyear') return 'Midyear';

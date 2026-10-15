@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import PlannerStore from './PlannerStore.svelte.js';
 import { PLANNER_LS_KEY } from './store-types.js';
-import type { ClassMapValue } from '$lib/utils/types.js';
+import type { ClassMapValue } from '#lib/utils/types.js';
 
 const row = (overrides: Partial<ClassMapValue>): ClassMapValue => ({
 	id: 1,

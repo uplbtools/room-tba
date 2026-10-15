@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { allowEntityScopedProposalMerge } from '$lib/utils/proposals/proposal-merge-policy';
+import { allowEntityScopedProposalMerge } from '#lib/utils/proposals/proposal-merge-policy.js';
 
 describe('allowEntityScopedProposalMerge', () => {
 	test('create proposals only merge when proposalId is sent explicitly', () => {

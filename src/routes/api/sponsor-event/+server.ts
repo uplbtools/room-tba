@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
-import { db } from '$lib/server/db';
-import { sponsorImpressionsTable } from '$lib/server/db/schema';
+import { db } from '#lib/server/db/index.js';
+import { sponsorImpressionsTable } from '#lib/server/db/schema.js';
 import type { RequestHandler } from './$types';
 
 // Constants inlined from astro/src/pages/api/sponsor-event.ts.

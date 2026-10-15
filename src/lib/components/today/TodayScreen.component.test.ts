@@ -1,15 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import TodayScreen from '$lib/components/today/TodayScreen.svelte';
+import TodayScreen from '#lib/components/today/TodayScreen.svelte';
 import {
 	plannerStore,
 	searchInfo,
 	scheduleRouteStore,
 	sidebarStore,
 	termStore
-} from '$lib/stores.svelte';
+} from '#lib/stores.svelte.js';
 import { mountAtWidth } from '@test/layout-assertions';
-import type { ClassMapValue } from '$lib/utils/types';
+import type { ClassMapValue } from '#lib/utils/types';
 
 const row = (overrides: Partial<ClassMapValue> = {}): ClassMapValue => ({
 	id: 1,

@@ -1,6 +1,6 @@
 import { and, count, eq } from 'drizzle-orm';
-import { getBuildingSlug, getCollegeSlug, getDivisionSlug } from '$lib/utils/app-data';
-import { db } from '$lib/utils/db';
+import { getBuildingSlug, getCollegeSlug, getDivisionSlug } from '#lib/utils/app-data.js';
+import { db } from '#lib/utils/db.js';
 import {
 	buildingsTable,
 	classesTable,
@@ -10,7 +10,7 @@ import {
 	organizationsTable,
 	placesTable,
 	roomsTable
-} from '$lib/server/db/schema';
+} from '#lib/server/db/schema.js';
 import { getEventBySlug } from '../entity/event';
 import { getDefaultTerm } from '../term';
 

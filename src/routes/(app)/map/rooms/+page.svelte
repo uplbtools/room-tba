@@ -1,7 +1,7 @@
 <script lang="ts">
-	import MapBrowseList from "$lib/components/map/MapBrowseList.svelte";
-	import { getAppData } from "$lib/utils/context";
-	import type { PageData } from "./$types";
+	import MapBrowseList from '#lib/components/map/MapBrowseList.svelte';
+	import { getAppData } from '#lib/utils/context.js';
+	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
 	const appData = getAppData();
@@ -15,7 +15,7 @@
 		<p class="rooms-note">
 			{totalRooms
 				? `${totalRooms} rooms are mapped on this campus.`
-				: "Room data is still syncing."}
+				: 'Room data is still syncing.'}
 			Search from the panel above to jump to one.
 		</p>
 	{/snippet}

@@ -9,15 +9,15 @@
 	// mobile viewports can skip downloading it entirely — see the matchMedia
 	// block below and the `desktop-only-css` runtimeCaching rule in vite.config.
 	// import desktopOnlyUrl from '../styles/desktop-only.css?url';
-	import SeoHead from '$lib/components/seo/SeoHead.svelte';
-	import type { SeoData } from '$lib/components/seo/seo-data';
+	import SeoHead from '#lib/components/seo/SeoHead.svelte';
+	import type { SeoData } from '#lib/components/seo/seo-data.js';
 	import {
 		breadcrumbSchema,
 		DEFAULT_OG_IMAGE,
 		jsonLd,
 		webpageSchema,
 		websiteSchema
-	} from '$lib/utils/site';
+	} from '#lib/utils/site.js';
 
 	const { children }: { children: Snippet } = $props();
 

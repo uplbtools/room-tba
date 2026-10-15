@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { OSM_COPYRIGHT_URL } from "$lib/constants/data-license";
-	import type { PageData } from "./$types";
+	import { OSM_COPYRIGHT_URL } from '#lib/constants/data-license.js';
+	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
 </script>
@@ -44,16 +44,15 @@
 			<p class="route-note">
 				Distance and time come from
 				<a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">OpenStreetMap</a>
-				footpaths and assume an unhurried walk. Campus shortcuts and closed gates are
-				not accounted for.
+				footpaths and assume an unhurried walk. Campus shortcuts and closed gates are not accounted for.
 			</p>
 		</section>
 	{:else}
 		<section class="route-body">
 			<p class="route-lede">
 				{data.samePlace
-					? "That is the same place twice. Pick a different destination."
-					: "No walking route could be worked out between these two right now. The routing service may be unavailable."}
+					? 'That is the same place twice. Pick a different destination.'
+					: 'No walking route could be worked out between these two right now. The routing service may be unavailable.'}
 			</p>
 			<div class="route-actions">
 				<a class="route-btn route-btn--primary" href="/">Open the map</a>

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import Route from '@lucide/svelte/icons/route';
 	import MapPin from '@lucide/svelte/icons/map-pin';
-	import { trailStore, map } from '$lib/stores.svelte';
+	import { trailStore, map } from '#lib/stores.svelte.js';
 	import {
 		MAKILING_TRAIL_STATIONS,
 		MAKILING_TRAIL_CAMERA
-	} from '$lib/constants/map/makiling-trail';
+	} from '#lib/constants/map/makiling-trail.js';
 
 	type Props = {
 		embedded?: boolean;

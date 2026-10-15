@@ -1,8 +1,8 @@
 <script lang="ts">
-	import MapBrowseList from "$lib/components/map/MapBrowseList.svelte";
-	import { getAppData } from "$lib/utils/context";
-	import { getDivisionCanonicalPath } from "$lib/utils/entity/entity-urls"
-import type { PageData } from "./$types";
+	import MapBrowseList from '#lib/components/map/MapBrowseList.svelte';
+	import { getAppData } from '#lib/utils/context.js';
+	import { getDivisionCanonicalPath } from '#lib/utils/entity/entity-urls.js';
+	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
 	const appData = getAppData();
@@ -15,12 +15,12 @@ import type { PageData } from "./$types";
 		data.items.length > 0
 			? data.items
 			: (appData().divisions ?? [])
-			.slice()
-			.sort((a, b) => a.divisionName.localeCompare(b.divisionName))
-			.map((division) => ({
-				href: getDivisionCanonicalPath(division.divisionName),
-				label: division.divisionName,
-			})),
+					.slice()
+					.sort((a, b) => a.divisionName.localeCompare(b.divisionName))
+					.map((division) => ({
+						href: getDivisionCanonicalPath(division.divisionName),
+						label: division.divisionName
+					}))
 	);
 </script>
 

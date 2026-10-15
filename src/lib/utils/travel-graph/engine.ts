@@ -15,7 +15,7 @@ import {
 	DRIVE_CAP_KPH,
 	DRIVE_HIGHWAY_CLASSES,
 	WALK_KPH
-} from '$lib/constants/travel-modes';
+} from '#lib/constants/travel-modes.js';
 import { distanceMeters } from '../campus/campus-route';
 
 export type TravelMode = 'walk' | 'cycle' | 'drive';

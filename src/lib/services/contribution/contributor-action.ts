@@ -1,5 +1,5 @@
-import { db } from '$lib/utils/db';
-import { contributionsTable, adminUsersTable } from '$lib/server/db/schema';
+import { db } from '#lib/utils/db.js';
+import { contributionsTable, adminUsersTable } from '#lib/server/db/schema.js';
 import { and, count, desc, eq, gte, sql } from 'drizzle-orm';
 import type { EditProposalSummary } from './proposal-action';
 

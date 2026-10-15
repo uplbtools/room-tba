@@ -1,17 +1,17 @@
 <script lang="ts">
-	import EntityShareCopyLink from '$lib/components/controls/EntityShareCopyLink.svelte';
-	import EventShelfToolbar from '$lib/components/map-chrome/EventShelfToolbar.svelte';
-	import { getAppData } from '$lib/utils/context';
-	import { getEventImage } from '$lib/utils/event/event-images';
-	import { formatCampusDateShort, formatCampusTime } from '$lib/utils/event/event-time';
-	import { getEventShareUrl } from '$lib/utils/share-links';
-	import { beginEventPlacement } from '$lib/utils/event/event-placement';
-	import { validateSubmitterName } from '$lib/constants/contribute/proposals';
+	import EntityShareCopyLink from '#lib/components/controls/EntityShareCopyLink.svelte';
+	import EventShelfToolbar from '#lib/components/map-chrome/EventShelfToolbar.svelte';
+	import { getAppData } from '#lib/utils/context.js';
+	import { getEventImage } from '#lib/utils/event/event-images.js';
+	import { formatCampusDateShort, formatCampusTime } from '#lib/utils/event/event-time.js';
+	import { getEventShareUrl } from '#lib/utils/share-links';
+	import { beginEventPlacement } from '#lib/utils/event/event-placement.js';
+	import { validateSubmitterName } from '#lib/constants/contribute/proposals.js';
 	import {
 		readProposeEventDraft,
 		scheduleProposeEventDraftSave
-	} from '$lib/utils/contributor-drafts';
-	import type { EventData } from '$lib/utils/types';
+	} from '#lib/utils/contributor-drafts.js';
+	import type { EventData } from '#lib/utils/types';
 	import { onMount } from 'svelte';
 
 	let {

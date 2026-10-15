@@ -1,32 +1,29 @@
 <script lang="ts">
-  import Info from "@lucide/svelte/icons/info";
-  import {
-    DATA_LICENSE_FAQ_PATH,
-    MAPTILER_COPYRIGHT_URL,
-    OSM_COPYRIGHT_URL,
-  } from "$lib/constants/data-license";
-  import { terrainStore } from "$lib/stores.svelte";
-  import { onMount } from "svelte";
-  import {
-    getBasemapProvider,
-    onBasemapProviderChange,
-  } from "$lib/utils/basemap-provider";
-  import "./map-chrome/map-chrome.css";
+	import Info from '@lucide/svelte/icons/info';
+	import {
+		DATA_LICENSE_FAQ_PATH,
+		MAPTILER_COPYRIGHT_URL,
+		OSM_COPYRIGHT_URL
+	} from '#lib/constants/data-license.js';
+	import { terrainStore } from '#lib/stores.svelte.js';
+	import { onMount } from 'svelte';
+	import { getBasemapProvider, onBasemapProviderChange } from '#lib/utils/basemap-provider.js';
+	import './map-chrome/map-chrome.css';
 
-  let expanded = $state(false);
+	let expanded = $state(false);
 
-  // Credit whoever actually served the tiles (#885). The OpenStreetMap credit
-  // is required in every case; only the vendor line changes. The style loads
-  // asynchronously and may fall back after this mounts, so subscribe rather
-  // than read once.
-  let provider = $state(getBasemapProvider());
-  const servedByMaptiler = $derived(provider === "maptiler");
+	// Credit whoever actually served the tiles (#885). The OpenStreetMap credit
+	// is required in every case; only the vendor line changes. The style loads
+	// asynchronously and may fall back after this mounts, so subscribe rather
+	// than read once.
+	let provider = $state(getBasemapProvider());
+	const servedByMaptiler = $derived(provider === 'maptiler');
 
-  onMount(() => onBasemapProviderChange((next) => (provider = next)));
+	onMount(() => onBasemapProviderChange((next) => (provider = next)));
 
-  function toggleExpanded() {
-    expanded = !expanded;
-  }
+	function toggleExpanded() {
+		expanded = !expanded;
+	}
 </script>
 
 <div class="map-attribution" class:expanded role="region" aria-label="Map attribution">

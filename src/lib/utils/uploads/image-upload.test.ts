@@ -14,9 +14,9 @@ describe('upload boundary prefixes', () => {
 		for (const prefix of ['accounts/42/avatar', 'events/one/avatar', '../events/one']) {
 			const formData = new FormData();
 			formData.set('prefix', prefix);
-			expect(scopedUploadPrefix(formData, ['buildings', 'events', 'dorms', 'rooms'])).toBeInstanceOf(
-			Response
-		);
+			expect(
+				scopedUploadPrefix(formData, ['buildings', 'events', 'dorms', 'rooms'])
+			).toBeInstanceOf(Response);
 		}
 	});
 });

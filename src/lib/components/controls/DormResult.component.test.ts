@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import DormResultHost from '@test/components/DormResultHost.svelte';
-import type { DormData } from '$lib/utils/types';
-import { searchInfo } from '$lib/stores.svelte';
-import { kuboDormDirectory } from '$lib/utils/integrations/kubo/kubo-dorms';
+import type { DormData } from '#lib/utils/types';
+import { searchInfo } from '#lib/stores.svelte.js';
+import { kuboDormDirectory } from '#lib/utils/integrations/kubo/kubo-dorms.js';
 import { expectNoHorizontalOverflow, mountAtWidth } from '@test/layout-assertions';
 
 function dorm(overrides: Partial<DormData> = {}): DormData {

@@ -1,6 +1,6 @@
 import { eq, sql } from 'drizzle-orm';
-import { sessionEditedBy } from '$lib/admin/auth';
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
+import { sessionEditedBy } from '#lib/admin/auth.js';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import {
 	aggregateHistoryByEntityType,
 	type BuildingContributorProgress,
@@ -13,16 +13,16 @@ import {
 	type RoomProgressInput,
 	summarizeFieldCounts,
 	topBuildingsByGap
-} from '$lib/utils/contributor-progress';
-import { db } from '$lib/utils/db';
+} from '#lib/utils/contributor-progress.js';
+import { db } from '#lib/utils/db.js';
 import {
 	buildingsTable,
 	classesTable,
 	editorHistoryTable,
 	roomPositionsTable,
 	roomsTable
-} from '$lib/server/db/schema';
-import { getDefaultTerm } from '$lib/services/term';
+} from '#lib/server/db/schema.js';
+import { getDefaultTerm } from '#lib/services/term.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {

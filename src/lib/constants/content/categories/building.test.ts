@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
 	buildingMatchesTypeFilter,
 	getBuildingTypeFilterOptions
-} from '$lib/constants/content/categories/building';
-import type { Building } from '$lib/utils/types';
+} from '#lib/constants/content/categories/building.js';
+import type { Building } from '#lib/utils/types';
 
 function building(id: number, type: 'admin' | 'non-admin'): Building {
 	// Only the fields the filter reads matter here.

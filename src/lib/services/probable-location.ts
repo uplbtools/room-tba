@@ -12,16 +12,16 @@ import {
 	classesTable,
 	organizationsTable,
 	roomsTable
-} from '$lib/server/db/schema';
-import { isRoomScheduledClassType } from '$lib/amis/room-scheduled-types';
-import { db } from '$lib/utils/db';
+} from '#lib/server/db/schema.js';
+import { isRoomScheduledClassType } from '#lib/amis/room-scheduled-types.js';
+import { db } from '#lib/utils/db.js';
 import {
 	type HistoryRow,
 	type ProbableLocation,
 	rankBuildingsByHistory,
 	resolveProbableLocation
-} from '$lib/utils/probable-location';
-import type { ClassMapValue } from '$lib/utils/types';
+} from '#lib/utils/probable-location.js';
+import type { ClassMapValue } from '#lib/utils/types';
 
 const historySelect = {
 	buildingId: buildingsTable.id,

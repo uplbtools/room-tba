@@ -3,7 +3,7 @@
  * answers first, the network refreshes it, and an offline start still renders
  * the last fetched notices.
  */
-import type { AnnouncementData } from '$lib/utils/types.js';
+import type { AnnouncementData } from '#lib/utils/types.js';
 import { filterPublished, seenStampFor, unreadCount } from '../utils/announcements.js';
 import { getAnnouncements } from '../utils/local/data/utils.js';
 import { localTableSyncCheck, syncAnnouncements } from '../utils/local/data/sync.js';

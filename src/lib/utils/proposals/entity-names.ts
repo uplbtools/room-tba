@@ -1,4 +1,4 @@
-import type { AppContextData } from '$lib/utils/context';
+import type { AppContextData } from '#lib/utils/context.js';
 import type { EntityNameResolver } from './diff';
 
 /**

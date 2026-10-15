@@ -1,29 +1,29 @@
 <script lang="ts">
 	// import { onMount, type Snippet } from 'svelte';
-	// import type { InitialSearchState } from '$lib/utils/app-data';
-	// import { campusTransit } from '$lib/campus.config';
-	// import AccountSettingsModal from '$lib/components/AccountSettingsModal.svelte';
-	// import AdminLoginModal from '$lib/components/AdminLoginModal.svelte';
-	// import Building3DViewer from '$lib/components/Building3DViewer.svelte';
-	// import AcademicCalendarScreen from '$lib/components/calendar/AcademicCalendarScreen.svelte';
-	// import MainControls from '$lib/components/controls/MainControls.svelte';
-	// import EditorAdditionModal from '$lib/components/EditorAdditionModal.svelte';
-	// import EntityUrlSync from '$lib/components/EntityUrlSync.svelte';
-	// import FinalExamsScreen from '$lib/components/final-exams/FinalExamsScreen.svelte';
+	// import type { InitialSearchState } from '#lib/utils/app-data.js';
+	// import { campusTransit } from '#lib/campus.config.js';
+	// import AccountSettingsModal from '#lib/components/AccountSettingsModal.svelte';
+	// import AdminLoginModal from '#lib/components/AdminLoginModal.svelte';
+	// import Building3DViewer from '#lib/components/Building3DViewer.svelte';
+	// import AcademicCalendarScreen from '#lib/components/calendar/AcademicCalendarScreen.svelte';
+	// import MainControls from '#lib/components/controls/MainControls.svelte';
+	// import EditorAdditionModal from '#lib/components/EditorAdditionModal.svelte';
+	// import EntityUrlSync from '#lib/components/EntityUrlSync.svelte';
+	// import FinalExamsScreen from '#lib/components/final-exams/FinalExamsScreen.svelte';
 	// import Map from './Map.svelte';
-	// import MapAttribution from '$lib/components/MapAttribution.svelte';
-	// import MeasureRoutePanel from '$lib/components/MeasureRoutePanel.svelte';
-	// import EntityHoverPreview from '$lib/components/map/EntityHoverPreview.svelte';
-	// import ManageUsersModal from '$lib/components/modal/ManageUsersModal.svelte';
-	// import Modal from '$lib/components/modal/Modal.svelte';
-	// import PlannerScreen from '$lib/components/planner/PlannerScreen.svelte';
-	import Toast from '$lib/components/Toast.svelte';
-	// import TravelTimeLegend from '$lib/components/TravelTimeLegend.svelte';
-	// import TodayScreen from '$lib/components/today/TodayScreen.svelte';
-	// import { getAppData } from '$lib/utils/context';
-	// import { resolveSharedPlan } from '$lib/utils/planner/import-shared';
-	// import { decodeSharePlan } from '$lib/utils/planner/share-codec';
-	// import { findCampusPointBySlug } from '$lib/utils/route/route-links';
+	// import MapAttribution from '#lib/components/MapAttribution.svelte';
+	// import MeasureRoutePanel from '#lib/components/MeasureRoutePanel.svelte';
+	// import EntityHoverPreview from '#lib/components/map/EntityHoverPreview.svelte';
+	// import ManageUsersModal from '#lib/components/modal/ManageUsersModal.svelte';
+	// import Modal from '#lib/components/modal/Modal.svelte';
+	// import PlannerScreen from '#lib/components/planner/PlannerScreen.svelte';
+	import Toast from '#lib/components/Toast.svelte';
+	// import TravelTimeLegend from '#lib/components/TravelTimeLegend.svelte';
+	// import TodayScreen from '#lib/components/today/TodayScreen.svelte';
+	// import { getAppData } from '#lib/utils/context.js';
+	// import { resolveSharedPlan } from '#lib/utils/planner/import-shared.js';
+	// import { decodeSharePlan } from '#lib/utils/planner/share-codec.js';
+	// import { findCampusPointBySlug } from '#lib/utils/route/route-links.js';
 	// import {
 	// 	adminAuthStore,
 	// 	announcementsStore,
@@ -44,19 +44,19 @@
 	// 	termStore,
 	// 	toastStore,
 	// 	travelTimeStore
-	// } from '$lib/stores.svelte';
-	// import '$lib/components/map-chrome/map-chrome.css';
+	// } from '#lib/stores.svelte.js';
+	// import '#lib/components/map-chrome/map-chrome.css';
 	// import { MediaQuery } from 'svelte/reactivity';
 	// import { goto } from '$app/navigation';
 	// import { resolve } from '$app/paths';
-	// import { openCampusBrowse } from '$lib/utils/campus/browse-campus';
-	// import { dispatchGlobalShortcut, getGlobalShortcutAction } from '$lib/utils/keyboard-shortcuts';
-	// import { shouldAutoOpenLandingModal } from '$lib/utils/landing-modal-auto-open';
-	// import { observeBlockHeight } from '$lib/utils/layout-css-vars';
-	// import { isRecentSearch } from '$lib/utils/locStorage';
-	// import { dismissEphemeralOverlays } from '$lib/utils/overlay-stack';
-	// import { getTransitRoutePath, getTransitStopPath } from '$lib/utils/transit-urls';
-	// import type { RecentSearch } from '$lib/utils/types';
+	// import { openCampusBrowse } from '#lib/utils/campus/browse-campus.js';
+	// import { dispatchGlobalShortcut, getGlobalShortcutAction } from '#lib/utils/keyboard-shortcuts.js';
+	// import { shouldAutoOpenLandingModal } from '#lib/utils/landing-modal-auto-open.js';
+	// import { observeBlockHeight } from '#lib/utils/layout-css-vars.js';
+	// import { isRecentSearch } from '#lib/utils/locStorage.js';
+	// import { dismissEphemeralOverlays } from '#lib/utils/overlay-stack.js';
+	// import { getTransitRoutePath, getTransitStopPath } from '#lib/utils/transit-urls.js';
+	// import type { RecentSearch } from '#lib/utils/types';
 	// import AnnouncementBar from '../../../lib/components/AnnouncementBar.svelte';
 	// import DesktopTopBar from '../../../lib/components/map-chrome/DesktopTopBar.svelte';
 	// import KeyboardShortcutsPopup from '../../../lib/components/map-chrome/KeyboardShortcutsPopup.svelte';

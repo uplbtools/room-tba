@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { userLocation, plannerStore, scheduleRouteStore, termStore } from '$lib/stores.svelte';
+import { userLocation, plannerStore, scheduleRouteStore, termStore } from '#lib/stores.svelte.js';
 
 function seedPlan() {
 	termStore.activeTermId = 1252;

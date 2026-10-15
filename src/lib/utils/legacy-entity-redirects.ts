@@ -1,5 +1,6 @@
-import { type Handle, redirect } from '@sveltejs/kit';
-import { MAP_BASE_PATH } from '$lib/utils/entity/entity-urls';
+import type { Handle } from '@sveltejs/kit/hooks';
+import { redirect } from '@sveltejs/kit';
+import { MAP_BASE_PATH } from '#lib/utils/entity/entity-urls.js';
 
 // Astro served entity pages at the site root. They now live under the map, so
 // the old links — shared, bookmarked, and indexed — need to keep resolving.

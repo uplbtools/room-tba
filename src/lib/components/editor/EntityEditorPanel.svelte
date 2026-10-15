@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import SubmitterNameField from '$lib/components/SubmitterNameField.svelte';
-	import { MAX_SUBMITTER_NOTE_LENGTH } from '$lib/constants/contribute/proposals';
+	import SubmitterNameField from '#lib/components/SubmitterNameField.svelte';
+	import { MAX_SUBMITTER_NOTE_LENGTH } from '#lib/constants/contribute/proposals.js';
 	import EntityEditorFormField from './EntityEditorFormField.svelte';
 	import EntityEditorMessage from './EntityEditorMessage.svelte';
 	import EntityEditorSubmitButton from './EntityEditorSubmitButton.svelte';
@@ -10,9 +10,9 @@
 	import {
 		canShowWithdrawProposal,
 		proposalStatusMessage
-	} from '$lib/utils/editor/field-action-label';
-	import { withdrawEntityProposal } from '$lib/utils/proposals/client';
-	// import { toastStore } from "$lib/stores.svelte";
+	} from '#lib/utils/editor/field-action-label.js';
+	import { withdrawEntityProposal } from '#lib/utils/proposals/client.js';
+	// import { toastStore } from "#lib/stores.svelte.js";
 	import './entity-editor.css';
 
 	type Props = {

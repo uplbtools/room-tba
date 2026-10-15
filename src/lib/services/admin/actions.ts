@@ -1,13 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { and, eq, ne, sql } from 'drizzle-orm';
-import { parsePublishingActor } from '$lib/admin/auth';
-import { sanitizeCrFacilities } from '$lib/constants/map/cr-facilities';
-import { normalizePlaceCategory } from '$lib/constants/content/categories/place';
-import { normalizeRoomCategory } from '$lib/constants/content/categories/room';
-import { db } from '$lib/utils/db';
-import { normalizeEntityName } from '$lib/utils/entity/entity-names';
-import { entityIndexPath } from '$lib/utils/entity/entity-urls';
-import { normalizeEntityPhotos, type EntityPhoto } from '$lib/utils/entity/entity-photos';
+import { parsePublishingActor } from '#lib/admin/auth.js';
+import { sanitizeCrFacilities } from '#lib/constants/map/cr-facilities.js';
+import { normalizePlaceCategory } from '#lib/constants/content/categories/place.js';
+import { normalizeRoomCategory } from '#lib/constants/content/categories/room.js';
+import { db } from '#lib/utils/db.js';
+import { normalizeEntityName } from '#lib/utils/entity/entity-names.js';
+import { entityIndexPath } from '#lib/utils/entity/entity-urls.js';
+import { normalizeEntityPhotos, type EntityPhoto } from '#lib/utils/entity/entity-photos.js';
 import {
 	buildingIsrPath,
 	collegeIsrPath,
@@ -18,7 +18,7 @@ import {
 	placeIsrPaths,
 	revalidateIsrPaths,
 	roomIsrPath
-} from '$lib/utils/isr-revalidate';
+} from '#lib/utils/isr-revalidate.js';
 import {
 	buildingsTable,
 	collegesTable,
@@ -34,8 +34,8 @@ import {
 	roomPositionsTable,
 	roomsTable,
 	updateTable
-} from '$lib/server/db/schema';
-import type { EventData, PlaceData, Room } from '$lib/utils/types';
+} from '#lib/server/db/schema.js';
+import type { EventData, PlaceData, Room } from '#lib/utils/types';
 import { recordEditorContribution } from '../contribution/contributor-action';
 import { EditConflictError } from '../contribution/edit-conflict-error';
 import { getEventById } from '../entity/event';
@@ -43,7 +43,7 @@ import { getEventById } from '../entity/event';
 export { EditConflictError } from '../contribution/edit-conflict-error';
 
 function normalizePhotoInput(photos?: EntityPhoto[]): EntityPhoto[] {
-  return normalizeEntityPhotos(photos ?? []);
+	return normalizeEntityPhotos(photos ?? []);
 }
 
 // ── Sync key refresh ──
@@ -472,10 +472,7 @@ export type RoomCreateInput = {
 	photos?: EntityPhoto[];
 };
 
-export async function createRoom(
-	input: RoomCreateInput,
-	editedBy = 'admin'
-): Promise<Room | null> {
+export async function createRoom(input: RoomCreateInput, editedBy = 'admin'): Promise<Room | null> {
 	const photos = normalizePhotoInput(input.photos);
 	const [inserted] = await db
 		.insert(roomsTable)
@@ -485,7 +482,7 @@ export async function createRoom(
 			buildingId: input.buildingId ?? null,
 			collegeId: input.collegeId ?? null,
 			photos,
-			imageUrl: photos[0]?.url ?? null,
+			imageUrl: photos[0]?.url ?? null
 		})
 		.returning({ id: roomsTable.id });
 

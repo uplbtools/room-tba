@@ -1,6 +1,6 @@
 // src/lib/locStorage.ts
 
-import type { RecentSearch } from '$lib/utils/types';
+import type { RecentSearch } from '#lib/utils/types';
 
 const RECENT_SEARCH_CATEGORIES = new Set([
 	'building',

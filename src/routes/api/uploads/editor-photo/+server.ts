@@ -1,5 +1,9 @@
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { uploadConfigurationResponse, uploadImageRequest, scopedUploadPrefix } from '$lib/utils/uploads/image-upload';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import {
+	uploadConfigurationResponse,
+	uploadImageRequest,
+	scopedUploadPrefix
+} from '#lib/utils/uploads/image-upload.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ cookies }) => {

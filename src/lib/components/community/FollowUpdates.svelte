@@ -1,15 +1,15 @@
 <script lang="ts">
-  import { FACEBOOK_URL, INSTAGRAM_URL } from "$lib/constants/content/links/community"
-  import CommunityPlatformLink from "./CommunityPlatformLink.svelte";
+	import { FACEBOOK_URL, INSTAGRAM_URL } from '#lib/constants/content/links/community.js';
+	import CommunityPlatformLink from './CommunityPlatformLink.svelte';
 
-  type Props = {
-    /** What following actually gets them, in this surface's own words. */
-    note: string;
-    /** Called when either account is opened. */
-    onfollow?: () => void;
-  };
+	type Props = {
+		/** What following actually gets them, in this surface's own words. */
+		note: string;
+		/** Called when either account is opened. */
+		onfollow?: () => void;
+	};
 
-  const { note, onfollow }: Props = $props();
+	const { note, onfollow }: Props = $props();
 </script>
 
 <p class="follow-updates__note">{note}</p>

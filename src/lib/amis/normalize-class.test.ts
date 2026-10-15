@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractClassRows, normalizeAmisClass } from '$lib/amis/normalize-class';
+import { extractClassRows, normalizeAmisClass } from '#lib/amis/normalize-class.js';
 
 describe('amis normalize', () => {
 	it('unwraps nested classes.data payloads', () => {

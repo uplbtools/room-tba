@@ -1,5 +1,5 @@
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { getMyContributions } from '$lib/services/contribution/contributor-action';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { getMyContributions } from '#lib/services/contribution/contributor-action.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ cookies }) => {

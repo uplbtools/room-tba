@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { navigating } from '$app/state';
-	import InfoPanel from '$lib/components/controls/InfoPanel.svelte';
-	import { getPlaceById } from '$lib/functions/places.remote.js';
-	import { getMapStore, getSearchInfo } from '$lib/utils/context';
+	import InfoPanel from '#lib/components/controls/InfoPanel.svelte';
+	import { getPlaceById } from '#lib/functions/places.remote.js';
+	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
 	import { onMount } from 'svelte';
 	import PlaceResult from './PlaceResult.svelte';
 	// import { onMount, untrack } from 'svelte';

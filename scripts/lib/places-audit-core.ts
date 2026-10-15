@@ -2,7 +2,7 @@
  * Pure pieces of the Places coordinate audit (#963), split out so they are
  * covered by the bun unit suite (scripts/ itself is not).
  */
-import { STRUCTURAL_TOKENS, tokenize } from "../../src/lib/campus-audit";
+import { STRUCTURAL_TOKENS, tokenize } from '../../src/lib/campus-audit';
 
 /**
  * Past this, a pin and Google's location for the same name are telling two
@@ -14,17 +14,17 @@ import { STRUCTURAL_TOKENS, tokenize } from "../../src/lib/campus-audit";
 export const DEFAULT_FLAG_THRESHOLD_M = 50;
 
 export type PlacesHit = {
-  /** Google's displayName.text for the top result. */
-  name: string;
-  lat: number;
-  lon: number;
+	/** Google's displayName.text for the top result. */
+	name: string;
+	lat: number;
+	lon: number;
 };
 
-export type Bucket = "aligned" | "flagged" | "unmatched";
+export type Bucket = 'aligned' | 'flagged' | 'unmatched';
 
 /** Campus suffix pins generic names ("Main Library") to Los Baños results. */
 export function placesQueryText(buildingName: string): string {
-  return `${buildingName}, University of the Philippines Los Baños`;
+	return `${buildingName}, University of the Philippines Los Baños`;
 }
 
 /**
@@ -35,11 +35,11 @@ export function placesQueryText(buildingName: string): string {
  * returned name printed, and the human reviewing the report resolves them.
  */
 export function namesPlausiblyMatch(query: string, returned: string): boolean {
-  const distinctive = (token: string) => !STRUCTURAL_TOKENS.has(token);
-  const queryTokens = new Set(tokenize(query).filter(distinctive));
-  return tokenize(returned)
-    .filter(distinctive)
-    .some((token) => queryTokens.has(token));
+	const distinctive = (token: string) => !STRUCTURAL_TOKENS.has(token);
+	const queryTokens = new Set(tokenize(query).filter(distinctive));
+	return tokenize(returned)
+		.filter(distinctive)
+		.some((token) => queryTokens.has(token));
 }
 
 /**
@@ -47,13 +47,13 @@ export function namesPlausiblyMatch(query: string, returned: string): boolean {
  * it is never `flagged` — only a confidently-matched, far-away result is.
  */
 export function classify(
-  hit: PlacesHit | null,
-  queryName: string,
-  distanceM: number | null,
-  thresholdM: number,
+	hit: PlacesHit | null,
+	queryName: string,
+	distanceM: number | null,
+	thresholdM: number
 ): Bucket {
-  if (!hit || distanceM === null || !namesPlausiblyMatch(queryName, hit.name)) {
-    return "unmatched";
-  }
-  return distanceM >= thresholdM ? "flagged" : "aligned";
+	if (!hit || distanceM === null || !namesPlausiblyMatch(queryName, hit.name)) {
+		return 'unmatched';
+	}
+	return distanceM >= thresholdM ? 'flagged' : 'aligned';
 }

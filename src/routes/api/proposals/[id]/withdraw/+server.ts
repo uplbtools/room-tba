@@ -1,12 +1,12 @@
-import { getEditorSession } from '$lib/admin/require-editor';
-import { enforceProposalWithdrawLimits } from '$lib/api/proposal-rate-limit';
-import { clientIp, rateLimitResponse } from '$lib/api/rate-limit';
-import { validateSubmitterName } from '$lib/constants/contribute/proposals';
+import { getEditorSession } from '#lib/admin/require-editor.js';
+import { enforceProposalWithdrawLimits } from '#lib/api/proposal-rate-limit.js';
+import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { validateSubmitterName } from '#lib/constants/contribute/proposals.js';
 import {
 	ProposalActionError,
 	ProposalValidationError,
 	withdrawProposal
-} from '$lib/services/contribution/proposal-action';
+} from '#lib/services/contribution/proposal-action.js';
 import type { RequestHandler } from './$types';
 
 type WithdrawBody = { submitterName?: string };

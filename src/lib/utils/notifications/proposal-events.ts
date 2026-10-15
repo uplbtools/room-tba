@@ -1,5 +1,5 @@
 import { getNotificationAdapter } from './index';
-import type { EditProposalSummary } from '$lib/services/contribution/proposal-action';
+import type { EditProposalSummary } from '#lib/services/contribution/proposal-action.js';
 
 export type ProposalReviewOutcome = 'approved' | 'rejected' | 'needs_changes';
 

@@ -2,12 +2,12 @@ import { render, screen } from '@testing-library/svelte';
 import { describe, expect, test, vi } from 'vitest';
 import { mountAtWidth } from '@test/layout-assertions';
 
-vi.mock('$lib/utils/app-env', () => ({
+vi.mock('#lib/utils/app-env.js', () => ({
 	isStagingApp: vi.fn(() => false)
 }));
 
-import { isStagingApp } from '$lib/utils/app-env';
-import StagingBanner from '$lib/components/StagingBanner.svelte';
+import { isStagingApp } from '#lib/utils/app-env.js';
+import StagingBanner from '#lib/components/StagingBanner.svelte';
 
 const mockedIsStaging = vi.mocked(isStagingApp);
 

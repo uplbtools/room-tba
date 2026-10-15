@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { asc, eq, inArray } from 'drizzle-orm';
-import { db } from '$lib/server/db';
+import { db } from '#lib/server/db/index.js';
 import {
 	buildingsTable,
 	dormsTable,
@@ -8,7 +8,7 @@ import {
 	eventRouteStopsTable,
 	eventRoutesTable,
 	eventsTable
-} from '$lib/server/db/schema';
+} from '#lib/server/db/schema.js';
 import type { RequestHandler } from './$types';
 
 // Inlined from astro src/lib/campus-calendar.ts CAMPUS_SEMESTER_MONTHS.

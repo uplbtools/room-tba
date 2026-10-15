@@ -1,8 +1,8 @@
-import { sessionEditedBy } from '$lib/admin/auth';
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { parseWallTimestamp } from '$lib/utils/announcements';
-import { normalizeAnnouncementSeverity } from '$lib/constants/announcement-severities';
-import { createAnnouncement, listAnnouncements } from '$lib/services/announcement';
+import { sessionEditedBy } from '#lib/admin/auth.js';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { parseWallTimestamp } from '#lib/utils/announcements.js';
+import { normalizeAnnouncementSeverity } from '#lib/constants/announcement-severities.js';
+import { createAnnouncement, listAnnouncements } from '#lib/services/announcement.js';
 import type { RequestHandler } from './$types';
 
 function json(data: unknown, status = 200) {

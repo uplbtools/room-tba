@@ -8,13 +8,13 @@
 	import CalendarDays from '@lucide/svelte/icons/calendar-days';
 	import GraduationCap from '@lucide/svelte/icons/graduation-cap';
 	import MapIcon from '@lucide/svelte/icons/map';
-	import { map, plannerStore, terrainStore } from '$lib/stores.svelte';
+	import { map, plannerStore, terrainStore } from '#lib/stores.svelte.js';
 	import { onMount } from 'svelte';
-	import { THREE_D_PITCH, isMap2DPitch } from '$lib/constants/map/dimension';
+	import { THREE_D_PITCH, isMap2DPitch } from '#lib/constants/map/dimension.js';
 	import {
 		enterFlatMapDimension,
 		enterTiltedMapDimension
-	} from '$lib/utils/map/map-dimension-layers';
+	} from '#lib/utils/map/map-dimension-layers.js';
 	import type { MapLibreMap } from 'maplibre-gl';
 
 	type Props = {

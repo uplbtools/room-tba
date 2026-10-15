@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { Snippet } from "svelte";
+	import type { Snippet } from 'svelte';
 
 	type BrowseEntry = { href: string; label: string; description?: string | null };
 
 	const {
 		heading,
 		entries,
-		empty,
+		empty
 	}: {
 		heading: string;
 		entries: BrowseEntry[];
@@ -21,8 +21,7 @@
 			{@render empty()}
 		{:else}
 			<p class="map-browse__empty">
-				Campus data is still syncing. This list fills in once the offline cache
-				has caught up.
+				Campus data is still syncing. This list fills in once the offline cache has caught up.
 			</p>
 		{/if}
 	{:else}

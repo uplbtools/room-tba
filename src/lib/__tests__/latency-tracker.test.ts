@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { recordLatency, getLatencyStats, clearLatencySamples } from '$lib/utils/latency-tracker';
+import { recordLatency, getLatencyStats, clearLatencySamples } from '#lib/utils/latency-tracker.js';
 
 describe('latency tracker', () => {
 	it('records and reports p50/p95/p99', () => {

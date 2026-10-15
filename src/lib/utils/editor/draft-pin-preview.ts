@@ -1,7 +1,7 @@
-import { isStudentOrganization, type OrgCategory } from '$lib/constants/content/categories/org';
-import { isPlaceLandmark, type PlaceCategory } from '$lib/constants/content/categories/place';
-import { formatCampusDateShort } from '$lib/utils/event/event-time';
-import type { ProposalCreateType } from '$lib/utils/proposals/client';
+import { isStudentOrganization, type OrgCategory } from '#lib/constants/content/categories/org.js';
+import { isPlaceLandmark, type PlaceCategory } from '#lib/constants/content/categories/place.js';
+import { formatCampusDateShort } from '#lib/utils/event/event-time.js';
+import type { ProposalCreateType } from '#lib/utils/proposals/client.js';
 
 export type DraftPinEntityKind = 'building' | 'dorm' | 'place' | 'organization' | 'event';
 

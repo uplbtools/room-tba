@@ -16,8 +16,8 @@ import {
 	getPlaceCanonicalPath,
 	getPlaceIndexPath,
 	getRoomCanonicalPath
-} from '$lib/utils/entity/entity-urls';
-import { SITE_URL } from '$lib/utils/site';
+} from '#lib/utils/entity/entity-urls.js';
+import { SITE_URL } from '#lib/utils/site.js';
 import type {
 	Building,
 	College,
@@ -26,7 +26,7 @@ import type {
 	OrgData,
 	PlaceData,
 	Room
-} from '$lib/utils/types';
+} from '#lib/utils/types';
 
 const SITEMAP_PATH = '/sitemap.xml';
 

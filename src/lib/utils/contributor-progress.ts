@@ -1,4 +1,4 @@
-import { fetchJsonWithRetry } from '$lib/utils/local/data/fetch-json';
+import { fetchJsonWithRetry } from '#lib/utils/local/data/fetch-json.js';
 
 export const ROOM_FIELD_CATEGORIES = ['directions', 'schedule', 'position'] as const;
 

@@ -9,27 +9,26 @@
  */
 
 export type {
-  CommonsImage,
-  LandmarkImagesEntry,
-  LandmarkImagesManifest,
-} from "../../src/lib/landmark-images";
-export { MAX_COMMONS_IMAGES } from "../../src/lib/landmark-images";
+	CommonsImage,
+	LandmarkImagesEntry,
+	LandmarkImagesManifest
+} from '../../src/lib/landmark-images';
+export { MAX_COMMONS_IMAGES } from '../../src/lib/landmark-images';
 
 /** Great-circle initial bearing from `from` to `to`, degrees 0-360. */
 export function bearingDegrees(
-  from: { lat: number; lng: number },
-  to: { lat: number; lng: number },
+	from: { lat: number; lng: number },
+	to: { lat: number; lng: number }
 ): number {
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLng = toRad(to.lng - from.lng);
-  const fromLat = toRad(from.lat);
-  const toLat = toRad(to.lat);
-  const y = Math.sin(dLng) * Math.cos(toLat);
-  const x =
-    Math.cos(fromLat) * Math.sin(toLat) -
-    Math.sin(fromLat) * Math.cos(toLat) * Math.cos(dLng);
-  const deg = (Math.atan2(y, x) * 180) / Math.PI;
-  return (Math.round(deg) + 360) % 360;
+	const toRad = (d: number) => (d * Math.PI) / 180;
+	const dLng = toRad(to.lng - from.lng);
+	const fromLat = toRad(from.lat);
+	const toLat = toRad(to.lat);
+	const y = Math.sin(dLng) * Math.cos(toLat);
+	const x =
+		Math.cos(fromLat) * Math.sin(toLat) - Math.sin(fromLat) * Math.cos(toLat) * Math.cos(dLng);
+	const deg = (Math.atan2(y, x) * 180) / Math.PI;
+	return (Math.round(deg) + 360) % 360;
 }
 
 /**
@@ -40,9 +39,7 @@ export function bearingDegrees(
 export const HEADING_SPREAD = 55;
 
 export function facadeHeadings(base: number): number[] {
-  return [-HEADING_SPREAD, 0, HEADING_SPREAD].map(
-    (offset) => (base + offset + 360) % 360,
-  );
+	return [-HEADING_SPREAD, 0, HEADING_SPREAD].map((offset) => (base + offset + 360) % 360);
 }
 
 const PHOTO_EXTENSIONS = /\.(jpe?g|png|webp)$/i;
@@ -53,7 +50,7 @@ const PHOTO_EXTENSIONS = /\.(jpe?g|png|webp)$/i;
  * building is worse than no photo.
  */
 export function isLikelyPhotoTitle(title: string): boolean {
-  return PHOTO_EXTENSIONS.test(title);
+	return PHOTO_EXTENSIONS.test(title);
 }
 
 /**
@@ -64,9 +61,9 @@ export function isLikelyPhotoTitle(title: string): boolean {
  * a live "<" otherwise). Result is plain text: it can never open a tag.
  */
 export function stripHtml(value: string): string {
-  return value
-    .replace(/<[^>]*>/g, "")
-    .replace(/[<>]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+	return value
+		.replace(/<[^>]*>/g, '')
+		.replace(/[<>]/g, '')
+		.replace(/\s+/g, ' ')
+		.trim();
 }

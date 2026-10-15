@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import type { ClassMapValue } from '$lib/utils/types.js';
+import type { ClassMapValue } from '#lib/utils/types.js';
 
 const { getJSONFetch, getLocalClassesForRoom } = vi.hoisted(() => ({
 	getJSONFetch: vi.fn(),

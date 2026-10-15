@@ -1,13 +1,13 @@
 import { fireEvent, render, screen } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { modalStore } from '$lib/stores.svelte';
+import { modalStore } from '#lib/stores.svelte.js';
 
-vi.mock('$lib/utils/github-contributors', () => ({
+vi.mock('#lib/utils/github-contributors.js', () => ({
 	fetchGithubContributors: vi.fn().mockResolvedValue([])
 }));
 
-vi.mock('$lib/utils/github-stars', () => ({
+vi.mock('#lib/utils/github-stars.js', () => ({
 	fetchGithubStarCountCached: vi.fn().mockResolvedValue(0)
 }));
 

@@ -1,4 +1,4 @@
-import type { SearchInfoState } from '$lib/stores/store-types';
+import type { SearchInfoState } from '#lib/stores/store-types.js';
 import type { Building, DormData, EventData, OrgData, PlaceData } from './types';
 
 type Suggestion = {

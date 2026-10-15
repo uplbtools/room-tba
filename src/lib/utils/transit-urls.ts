@@ -1,4 +1,4 @@
-import { JEEPNEY_ROUTES, type JeepneyRoute } from '$lib/constants/map/jeepney-routes';
+import { JEEPNEY_ROUTES, type JeepneyRoute } from '#lib/constants/map/jeepney-routes.js';
 import { slugifySegment } from './site';
 
 // Transit pages render inside the map, like every other entity route.

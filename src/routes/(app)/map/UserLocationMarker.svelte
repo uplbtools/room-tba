@@ -1,5 +1,5 @@
 <script>
-	import { getUserLocation } from '$lib/utils/context';
+	import { getUserLocation } from '#lib/utils/context.js';
 	import { Marker } from 'svelte-maplibre';
 	const userLocation = getUserLocation();
 </script>

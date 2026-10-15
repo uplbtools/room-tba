@@ -1,17 +1,17 @@
 <script lang="ts">
-	import LoadingIndicator from '$lib/components/LoadingIndicator.svelte';
+	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	// import {
 	// 	buildingMatchesTypeFilter,
 	// 	dormMatchesTypeFilter
-	// } from '$lib/constants/content/categories/building';
-	// import { getJSONFetch, searchLocalAliases, searchLocalRooms } from '$lib/utils/local/data/utils';
-	// import { buildEntitySuggestions } from '$lib/utils/search-suggestions';
-	// import { buildingTypeFilter } from '$lib/stores.svelte';
+	// } from '#lib/constants/content/categories/building.js';
+	// import { getJSONFetch, searchLocalAliases, searchLocalRooms } from '#lib/utils/local/data/utils.js';
+	// import { buildEntitySuggestions } from '#lib/utils/search-suggestions.js';
+	// import { buildingTypeFilter } from '#lib/stores.svelte.js';
 	// import FinalExamSuggestion from './FinalExamSuggestion.svelte';
 	// import SearchQuerySuggestion from './SearchQuerySuggestion.svelte';
 	import Suggestion from './Suggestion.svelte';
-	import { getSearchInfo } from '$lib/utils/context';
-	import { getUnionSuggestions } from '$lib/functions/search.remote';
+	import { getSearchInfo } from '#lib/utils/context.js';
+	import { getUnionSuggestions } from '#lib/functions/search.remote.js';
 
 	const searchInfo = getSearchInfo();
 

@@ -1,174 +1,160 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import Megaphone from "@lucide/svelte/icons/megaphone";
-  import {
-    adminAuthStore,
-    announcementsStore,
-    modalStore,
-  } from "$lib/stores.svelte";
-  import {
-    ANNOUNCEMENT_SEVERITIES,
-    ANNOUNCEMENT_SEVERITY_LABELS,
-    type AnnouncementSeverity,
-  } from "$lib/constants/announcement-severities";
-  import {
-    isPublished,
-    relativeDateLabel,
-    sortNewestFirst,
-  } from "$lib/utils/announcements";
-  import {
-    campusInputToWallString,
-    campusWallTimeToInstant,
-    formatCampusDateTime,
-    instantToCampusInput,
-  } from "$lib/utils/event/event-time";
-  import type { AnnouncementData } from "$lib/utils/types";
+	import { onMount } from 'svelte';
+	import Megaphone from '@lucide/svelte/icons/megaphone';
+	import { adminAuthStore, announcementsStore, modalStore } from '#lib/stores.svelte.js';
+	import {
+		ANNOUNCEMENT_SEVERITIES,
+		ANNOUNCEMENT_SEVERITY_LABELS,
+		type AnnouncementSeverity
+	} from '#lib/constants/announcement-severities.js';
+	import { isPublished, relativeDateLabel, sortNewestFirst } from '#lib/utils/announcements.js';
+	import {
+		campusInputToWallString,
+		campusWallTimeToInstant,
+		formatCampusDateTime,
+		instantToCampusInput
+	} from '#lib/utils/event/event-time.js';
+	import type { AnnouncementData } from '#lib/utils/types';
 
-  const canPublish = $derived(adminAuthStore.canPublish);
+	const canPublish = $derived(adminAuthStore.canPublish);
 
-  /** Editors manage every row; everyone else sees only what is live. */
-  let editorRows = $state.raw<AnnouncementData[]>([]);
-  let editorError = $state<string | null>(null);
-  let saving = $state(false);
+	/** Editors manage every row; everyone else sees only what is live. */
+	let editorRows = $state.raw<AnnouncementData[]>([]);
+	let editorError = $state<string | null>(null);
+	let saving = $state(false);
 
-  const rows = $derived(
-    canPublish ? sortNewestFirst(editorRows) : announcementsStore.items,
-  );
+	const rows = $derived(canPublish ? sortNewestFirst(editorRows) : announcementsStore.items);
 
-  type Draft = {
-    id: number | null;
-    version: number;
-    title: string;
-    body: string;
-    severity: AnnouncementSeverity;
-    startsOn: string;
-    endsOn: string;
-    linkUrl: string;
-  };
+	type Draft = {
+		id: number | null;
+		version: number;
+		title: string;
+		body: string;
+		severity: AnnouncementSeverity;
+		startsOn: string;
+		endsOn: string;
+		linkUrl: string;
+	};
 
-  let draft = $state<Draft | null>(null);
+	let draft = $state<Draft | null>(null);
 
-  onMount(() => {
-    // Opening the panel is what clears the badge (#777).
-    announcementsStore.markSeen();
-    if (canPublish) void loadEditorRows();
-  });
+	onMount(() => {
+		// Opening the panel is what clears the badge (#777).
+		announcementsStore.markSeen();
+		if (canPublish) void loadEditorRows();
+	});
 
-  async function loadEditorRows() {
-    try {
-      const res = await fetch("/api/admin/announcements", {
-        credentials: "same-origin",
-      });
-      if (!res.ok) return;
-      const data = (await res.json()) as { announcements?: AnnouncementData[] };
-      editorRows = data.announcements ?? [];
-    } catch {
-      // Offline editor: the public list still renders from cache.
-    }
-  }
+	async function loadEditorRows() {
+		try {
+			const res = await fetch('/api/admin/announcements', {
+				credentials: 'same-origin'
+			});
+			if (!res.ok) return;
+			const data = (await res.json()) as { announcements?: AnnouncementData[] };
+			editorRows = data.announcements ?? [];
+		} catch {
+			// Offline editor: the public list still renders from cache.
+		}
+	}
 
-  function newDraft() {
-    draft = {
-      id: null,
-      version: 0,
-      title: "",
-      body: "",
-      severity: "info",
-      startsOn: instantToCampusInput(new Date()),
-      endsOn: "",
-      linkUrl: "",
-    };
-    editorError = null;
-  }
+	function newDraft() {
+		draft = {
+			id: null,
+			version: 0,
+			title: '',
+			body: '',
+			severity: 'info',
+			startsOn: instantToCampusInput(new Date()),
+			endsOn: '',
+			linkUrl: ''
+		};
+		editorError = null;
+	}
 
-  function editDraft(row: AnnouncementData) {
-    draft = {
-      id: row.id,
-      version: row.version,
-      title: row.title,
-      body: row.body,
-      severity: (row.severity as AnnouncementSeverity) ?? "info",
-      startsOn: instantToCampusInput(row.startsOn),
-      endsOn: row.endsOn ? instantToCampusInput(row.endsOn) : "",
-      linkUrl: row.linkUrl ?? "",
-    };
-    editorError = null;
-  }
+	function editDraft(row: AnnouncementData) {
+		draft = {
+			id: row.id,
+			version: row.version,
+			title: row.title,
+			body: row.body,
+			severity: (row.severity as AnnouncementSeverity) ?? 'info',
+			startsOn: instantToCampusInput(row.startsOn),
+			endsOn: row.endsOn ? instantToCampusInput(row.endsOn) : '',
+			linkUrl: row.linkUrl ?? ''
+		};
+		editorError = null;
+	}
 
-  async function save() {
-    if (!draft) return;
-    if (!draft.title.trim() || !draft.body.trim()) {
-      editorError = "Title and body are required.";
-      return;
-    }
-    saving = true;
-    editorError = null;
-    const payload = {
-      title: draft.title.trim(),
-      body: draft.body.trim(),
-      severity: draft.severity,
-      startsOn: campusInputToWallString(draft.startsOn),
-      endsOn: draft.endsOn ? campusInputToWallString(draft.endsOn) : null,
-      linkUrl: draft.linkUrl.trim() || null,
-      ...(draft.id === null ? {} : { version: draft.version }),
-    };
-    try {
-      const res = await fetch(
-        draft.id === null
-          ? "/api/admin/announcements"
-          : `/api/admin/announcements/${draft.id}`,
-        {
-          method: draft.id === null ? "POST" : "PATCH",
-          credentials: "same-origin",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        },
-      );
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        editorError = data.error ?? "Could not save the announcement.";
-        return;
-      }
-      draft = null;
-      await Promise.all([loadEditorRows(), announcementsStore.load()]);
-    } catch {
-      editorError = "Network error. Try again.";
-    } finally {
-      saving = false;
-    }
-  }
+	async function save() {
+		if (!draft) return;
+		if (!draft.title.trim() || !draft.body.trim()) {
+			editorError = 'Title and body are required.';
+			return;
+		}
+		saving = true;
+		editorError = null;
+		const payload = {
+			title: draft.title.trim(),
+			body: draft.body.trim(),
+			severity: draft.severity,
+			startsOn: campusInputToWallString(draft.startsOn),
+			endsOn: draft.endsOn ? campusInputToWallString(draft.endsOn) : null,
+			linkUrl: draft.linkUrl.trim() || null,
+			...(draft.id === null ? {} : { version: draft.version })
+		};
+		try {
+			const res = await fetch(
+				draft.id === null ? '/api/admin/announcements' : `/api/admin/announcements/${draft.id}`,
+				{
+					method: draft.id === null ? 'POST' : 'PATCH',
+					credentials: 'same-origin',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(payload)
+				}
+			);
+			const data = (await res.json().catch(() => ({}))) as { error?: string };
+			if (!res.ok) {
+				editorError = data.error ?? 'Could not save the announcement.';
+				return;
+			}
+			draft = null;
+			await Promise.all([loadEditorRows(), announcementsStore.load()]);
+		} catch {
+			editorError = 'Network error. Try again.';
+		} finally {
+			saving = false;
+		}
+	}
 
-  async function remove(row: AnnouncementData) {
-    if (!confirm(`Delete "${row.title}"?`)) return;
-    saving = true;
-    editorError = null;
-    try {
-      const res = await fetch(`/api/admin/announcements/${row.id}`, {
-        method: "DELETE",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ version: row.version }),
-      });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        editorError = data.error ?? "Could not delete the announcement.";
-        return;
-      }
-      await Promise.all([loadEditorRows(), announcementsStore.load()]);
-    } catch {
-      editorError = "Network error. Try again.";
-    } finally {
-      saving = false;
-    }
-  }
+	async function remove(row: AnnouncementData) {
+		if (!confirm(`Delete "${row.title}"?`)) return;
+		saving = true;
+		editorError = null;
+		try {
+			const res = await fetch(`/api/admin/announcements/${row.id}`, {
+				method: 'DELETE',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ version: row.version })
+			});
+			const data = (await res.json().catch(() => ({}))) as { error?: string };
+			if (!res.ok) {
+				editorError = data.error ?? 'Could not delete the announcement.';
+				return;
+			}
+			await Promise.all([loadEditorRows(), announcementsStore.load()]);
+		} catch {
+			editorError = 'Network error. Try again.';
+		} finally {
+			saving = false;
+		}
+	}
 
-  /** Editors also see rows outside the window; label why they are not live. */
-  function statusLabel(row: AnnouncementData): string | null {
-    if (isPublished(row)) return null;
-    return campusWallTimeToInstant(row.startsOn) > new Date()
-      ? "Scheduled"
-      : "Expired";
-  }
+	/** Editors also see rows outside the window; label why they are not live. */
+	function statusLabel(row: AnnouncementData): string | null {
+		if (isPublished(row)) return null;
+		return campusWallTimeToInstant(row.startsOn) > new Date() ? 'Scheduled' : 'Expired';
+	}
 </script>
 
 <div class="announcements">

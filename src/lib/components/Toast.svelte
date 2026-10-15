@@ -2,7 +2,7 @@
 	import { fade, fly } from 'svelte/transition';
 	import { onMount } from 'svelte';
 	import X from '@lucide/svelte/icons/x';
-	import IconButton from '$lib/components/IconButton.svelte';
+	import IconButton from '#lib/components/IconButton.svelte';
 
 	let {
 		message,

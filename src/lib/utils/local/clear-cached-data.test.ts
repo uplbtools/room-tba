@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { clearCachedData, PGLITE_IDB_NAME, PRESERVED_LOCAL_KEYS } from './clear-cached-data';
-import { PLANNER_LS_KEY } from '$lib/stores/store-types';
-import { FOLLOW_PROMPT_KEY } from '$lib/utils/social-follow';
+import { PLANNER_LS_KEY } from '#lib/stores/store-types.js';
+import { FOLLOW_PROMPT_KEY } from '#lib/utils/social-follow.js';
 
 const SYNC_KEYS = JSON.stringify({
 	buildings: 'b1',

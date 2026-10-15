@@ -1,8 +1,8 @@
 <script lang="ts">
-	import MapBrowseList from "$lib/components/map/MapBrowseList.svelte";
-	import { getAppData } from "$lib/utils/context";
-	import { getEventCanonicalPath } from "$lib/utils/entity/entity-urls"
-import type { PageData } from "./$types";
+	import MapBrowseList from '#lib/components/map/MapBrowseList.svelte';
+	import { getAppData } from '#lib/utils/context.js';
+	import { getEventCanonicalPath } from '#lib/utils/entity/entity-urls.js';
+	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
 	const appData = getAppData();
@@ -15,10 +15,10 @@ import type { PageData } from "./$types";
 		data.items.length > 0
 			? data.items
 			: (appData().events ?? []).map((event) => ({
-			href: getEventCanonicalPath(event.slug),
-			label: event.title,
-			description: event.category,
-		})),
+					href: getEventCanonicalPath(event.slug),
+					label: event.title,
+					description: event.category
+				}))
 	);
 </script>
 

@@ -3,11 +3,11 @@ import {
 	canReviewProposals,
 	createSessionToken,
 	setSessionCookie
-} from '$lib/admin/auth';
-import { checkRateLimit, clientIp, rateLimitResponse } from '$lib/api/rate-limit';
-import { type SignupInput, validateContributorSignup } from '$lib/auth/contributor-signup';
-import { AccountActionError, createAdminUser } from '$lib/services/admin/user';
-import { verifyTurnstileToken } from '$lib/utils/turnstile/turnstile';
+} from '#lib/admin/auth.js';
+import { checkRateLimit, clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { type SignupInput, validateContributorSignup } from '#lib/auth/contributor-signup.js';
+import { AccountActionError, createAdminUser } from '#lib/services/admin/user.js';
+import { verifyTurnstileToken } from '#lib/utils/turnstile/turnstile.js';
 import type { RequestHandler } from './$types';
 
 const SIGNUP_IP_LIMIT = { max: 5, windowMs: 60 * 1000 };

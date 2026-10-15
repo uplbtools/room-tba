@@ -9,16 +9,16 @@
 	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	// import MapFilterChips from '$lib/components/map-chrome/MapFilterChips.svelte';
-	// import { getAppData } from "$lib/utils/context";
-	import { observeBlockHeight } from '$lib/utils/layout-css-vars';
-	// import { getMapChromeVisibility } from '$lib/utils/map/map-chrome';
-	import { dropdownFadeIn, dropdownFadeOut } from '$lib/utils/motion';
-	import { registerEphemeralOverlayDismisser } from '$lib/utils/overlay-stack';
-	import { registerSearchFocus } from '$lib/utils/search-focus';
-	import { getSearchInfo } from '$lib/utils/context';
+	// import MapFilterChips from '#lib/components/map-chrome/MapFilterChips.svelte';
+	// import { getAppData } from "#lib/utils/context.js";
+	import { observeBlockHeight } from '#lib/utils/layout-css-vars.js';
+	// import { getMapChromeVisibility } from '#lib/utils/map/map-chrome.js';
+	import { dropdownFadeIn, dropdownFadeOut } from '#lib/utils/motion.js';
+	import { registerEphemeralOverlayDismisser } from '#lib/utils/overlay-stack.js';
+	import { registerSearchFocus } from '#lib/utils/search-focus.js';
+	import { getSearchInfo } from '#lib/utils/context.js';
 	import Suggestions from './Suggestions.svelte';
-	import { getUnionSuggestions } from '$lib/functions/search.remote';
+	import { getUnionSuggestions } from '#lib/functions/search.remote.js';
 	import { X } from '@lucide/svelte';
 	// import {
 	// 	adminAuthStore,
@@ -28,7 +28,7 @@
 	// 	proposalsStore,
 	// 	searchInfo,
 	// 	sidePanelStore,
-	// } from "$lib/stores.svelte";
+	// } from "#lib/stores.svelte.js";
 	// import Suggestions from './Suggestions.svelte';
 
 	let searchElement = $state<HTMLInputElement | null>(null);
@@ -140,7 +140,7 @@
 	// });
 
 	function clearSearch() {
-		goto(resolve('/map'));
+		goto(resolve('map'));
 		searchInfo.clearSearch();
 	}
 </script>

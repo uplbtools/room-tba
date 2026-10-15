@@ -1,4 +1,4 @@
-import { isTypingTarget } from '$lib/utils/keyboard-shortcuts';
+import { isTypingTarget } from '#lib/utils/keyboard-shortcuts.js';
 
 /**
  * Single-key shortcuts for the approver queue (#873 follow-up). A long queue is

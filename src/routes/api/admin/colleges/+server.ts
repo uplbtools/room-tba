@@ -1,5 +1,5 @@
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { createCollege } from '$lib/services/admin/actions';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { createCollege } from '#lib/services/admin/actions.js';
 import type { RequestHandler } from './$types';
 
 function json(data: unknown, status = 200) {

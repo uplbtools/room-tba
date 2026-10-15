@@ -1,13 +1,13 @@
-import type { AppContextData } from '$lib/utils/context';
-import type { ProposalEntityType } from '$lib/services/contribution/proposal-action';
-import type { Building, College, Division, DormData, EventData } from '$lib/utils/types';
-import type SearchInfo from '$lib/stores/SearchInfo.svelte';
+import type { AppContextData } from '#lib/utils/context.js';
+import type { ProposalEntityType } from '#lib/services/contribution/proposal-action.js';
+import type { Building, College, Division, DormData, EventData } from '#lib/utils/types';
+import type SearchInfo from '#lib/stores/SearchInfo.svelte.js';
 
 type PublishedRow = { id: number };
 
 function openEntityId(
 	data: AppContextData,
-	category: SearchInfo["category"],
+	category: SearchInfo['category'],
 	queryValue: string
 ): number | null {
 	if (!data.loaded || !category || !queryValue) return null;

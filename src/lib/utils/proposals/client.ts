@@ -1,12 +1,18 @@
-import type { ProposalCreateType, ProposalEntityType } from '$lib/services/contribution/proposal-action';
+import type {
+	ProposalCreateType,
+	ProposalEntityType
+} from '#lib/services/contribution/proposal-action.js';
 
 export type {
 	ProposalCreateType,
 	ProposalEntityType
-} from '$lib/services/contribution/proposal-action';
+} from '#lib/services/contribution/proposal-action.js';
 
-import { validateSubmitterName, validateSubmitterNote } from '$lib/constants/contribute/proposals';
-import type { Room } from '$lib/utils/types';
+import {
+	validateSubmitterName,
+	validateSubmitterNote
+} from '#lib/constants/contribute/proposals.js';
+import type { Room } from '#lib/utils/types';
 import { FIELD_LABELS } from './diff';
 import { isOpenProposalStatus, type PendingProposalRow } from './pending-proposals';
 

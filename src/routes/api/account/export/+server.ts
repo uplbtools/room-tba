@@ -1,5 +1,5 @@
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { exportAccountData } from '$lib/services/admin/user';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { exportAccountData } from '#lib/services/admin/user.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ cookies }) => {

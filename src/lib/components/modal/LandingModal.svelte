@@ -1,161 +1,158 @@
 <script lang="ts">
-  
-  import Download from "@lucide/svelte/icons/download";
-  import { untrack } from "svelte";
-  import CommunityPlatformLink from "$lib/components/community/CommunityPlatformLink.svelte";
-  import GithubStarLink from "$lib/components/GithubStarLink.svelte";
-  import VisitorCounter from "$lib/components/VisitorCounter.svelte";
-  import {
-    DISCORD_URL,GITHUB_ROOM_TBA_URL, 
-    MESSENGER_CONTRIBUTE_TARGET,
-    MESSENGER_MAINTAIN_TARGET,
-    UPLB_TOOLS_URL
-  } from "$lib/constants/content/links/community"
-  import { designers } from "$lib/constants/contribute/contributors";
-  import {
-    fetchGithubContributors,
-    type GithubContributor,
-  } from "$lib/utils/github-contributors";
-  import { fetchGithubStarCountCached } from "$lib/utils/github-stars";
-import { modalStore } from "$lib/stores.svelte";
-  import GithubContributorsSection from "./GithubContributorsSection.svelte";
-  import LandingGuideSteps from "./LandingGuideSteps.svelte";
-  import PeopleAvatarGrid from "./PeopleAvatarGrid.svelte";
+	import Download from '@lucide/svelte/icons/download';
+	import { untrack } from 'svelte';
+	import CommunityPlatformLink from '#lib/components/community/CommunityPlatformLink.svelte';
+	import GithubStarLink from '#lib/components/GithubStarLink.svelte';
+	import VisitorCounter from '#lib/components/VisitorCounter.svelte';
+	import {
+		DISCORD_URL,
+		GITHUB_ROOM_TBA_URL,
+		MESSENGER_CONTRIBUTE_TARGET,
+		MESSENGER_MAINTAIN_TARGET,
+		UPLB_TOOLS_URL
+	} from '#lib/constants/content/links/community.js';
+	import { designers } from '#lib/constants/contribute/contributors.js';
+	import {
+		fetchGithubContributors,
+		type GithubContributor
+	} from '#lib/utils/github-contributors.js';
+	import { fetchGithubStarCountCached } from '#lib/utils/github-stars.js';
+	import { modalStore } from '#lib/stores.svelte.js';
+	import GithubContributorsSection from './GithubContributorsSection.svelte';
+	import LandingGuideSteps from './LandingGuideSteps.svelte';
+	import PeopleAvatarGrid from './PeopleAvatarGrid.svelte';
 
-  type LandingTab = "welcome" | "campus";
+	type LandingTab = 'welcome' | 'campus';
 
-  let activeTab = $state<LandingTab>("welcome");
-  let dontShowAgain = $state(false);
-  let installPrompt = $state<
-    | (Event & {
-        prompt: () => Promise<void>;
-        userChoice: Promise<{ outcome: string }>;
-      })
-    | null
-  >(null);
-  let isInstalled = $state(false);
+	let activeTab = $state<LandingTab>('welcome');
+	let dontShowAgain = $state(false);
+	let installPrompt = $state<
+		| (Event & {
+				prompt: () => Promise<void>;
+				userChoice: Promise<{ outcome: string }>;
+		  })
+		| null
+	>(null);
+	let isInstalled = $state(false);
 
-  let githubContributors = $state<GithubContributor[]>([]);
-  let githubLoading = $state(false);
-  let githubError = $state<string | null>(null);
-  let githubLoaded = $state(false);
-  let githubRepoStars = $state<number | null>(null);
-  type EditorCredit = {
-    name: string;
-    avatarUrl: string | null;
-    profileUrl: string | null;
-  };
-  let campusCredits = $state<EditorCredit[]>([]);
-  let creditsLoading = $state(false);
-  let creditsLoaded = $state(false);
+	let githubContributors = $state<GithubContributor[]>([]);
+	let githubLoading = $state(false);
+	let githubError = $state<string | null>(null);
+	let githubLoaded = $state(false);
+	let githubRepoStars = $state<number | null>(null);
+	type EditorCredit = {
+		name: string;
+		avatarUrl: string | null;
+		profileUrl: string | null;
+	};
+	let campusCredits = $state<EditorCredit[]>([]);
+	let creditsLoading = $state(false);
+	let creditsLoaded = $state(false);
 
-  const tabs: { id: LandingTab; label: string }[] = [
-    { id: "welcome", label: "Welcome" },
-    { id: "campus", label: "Campus team" },
-  ];
+	const tabs: { id: LandingTab; label: string }[] = [
+		{ id: 'welcome', label: 'Welcome' },
+		{ id: 'campus', label: 'Campus team' }
+	];
 
-  function toAvatarPeople(list: typeof designers) {
-    return list.map((person) => ({
-      name: person.name,
-      href: person.href,
-      imageSrc: "",
-    }));
-  }
+	function toAvatarPeople(list: typeof designers) {
+		return list.map((person) => ({
+			name: person.name,
+			href: person.href,
+			imageSrc: ''
+		}));
+	}
 
-  const designerPeople = $derived(toAvatarPeople(designers));
-  const campusCreditPeople = $derived(
-    campusCredits.map((person) => ({
-      name: person.name,
-      href: person.profileUrl ?? undefined,
-      imageSrc: person.avatarUrl ?? "/profile.svg",
-    })),
-  );
+	const designerPeople = $derived(toAvatarPeople(designers));
+	const campusCreditPeople = $derived(
+		campusCredits.map((person) => ({
+			name: person.name,
+			href: person.profileUrl ?? undefined,
+			imageSrc: person.avatarUrl ?? '/profile.svg'
+		}))
+	);
 
-  async function loadCampusCredits() {
-    if (creditsLoaded || creditsLoading) return;
-    creditsLoading = true;
-    try {
-      const res = await fetch("/api/editor-credits");
-      campusCredits = res.ok ? ((await res.json()) as EditorCredit[]) : [];
-      creditsLoaded = true;
-    } catch {
-      campusCredits = [];
-    } finally {
-      creditsLoading = false;
-    }
-  }
+	async function loadCampusCredits() {
+		if (creditsLoaded || creditsLoading) return;
+		creditsLoading = true;
+		try {
+			const res = await fetch('/api/editor-credits');
+			campusCredits = res.ok ? ((await res.json()) as EditorCredit[]) : [];
+			creditsLoaded = true;
+		} catch {
+			campusCredits = [];
+		} finally {
+			creditsLoading = false;
+		}
+	}
 
-  async function loadGithubData() {
-    if (githubLoaded || githubLoading) return;
-    githubLoading = true;
-    githubError = null;
-    try {
-      const [contributorsRes, repoStarsRes] = await Promise.all([
-        fetchGithubContributors(),
-        fetchGithubStarCountCached(),
-      ]);
-      githubContributors = contributorsRes;
-      githubRepoStars = repoStarsRes;
-      githubLoaded = true;
-    } catch (err) {
-      githubError =
-        err instanceof Error ? err.message : "Could not load GitHub data";
-    } finally {
-      githubLoading = false;
-    }
-  }
+	async function loadGithubData() {
+		if (githubLoaded || githubLoading) return;
+		githubLoading = true;
+		githubError = null;
+		try {
+			const [contributorsRes, repoStarsRes] = await Promise.all([
+				fetchGithubContributors(),
+				fetchGithubStarCountCached()
+			]);
+			githubContributors = contributorsRes;
+			githubRepoStars = repoStarsRes;
+			githubLoaded = true;
+		} catch (err) {
+			githubError = err instanceof Error ? err.message : 'Could not load GitHub data';
+		} finally {
+			githubLoading = false;
+		}
+	}
 
-  function retryGithubData() {
-    githubLoaded = false;
-    void loadGithubData();
-  }
+	function retryGithubData() {
+		githubLoaded = false;
+		void loadGithubData();
+	}
 
-  function selectTab(tab: LandingTab) {
-    activeTab = tab;
-    if (tab === "campus") {
-      void loadGithubData();
-      void loadCampusCredits();
-    }
-  }
+	function selectTab(tab: LandingTab) {
+		activeTab = tab;
+		if (tab === 'campus') {
+			void loadGithubData();
+			void loadCampusCredits();
+		}
+	}
 
-  function handleGetStarted() {
-    if (dontShowAgain) {
-      localStorage.setItem("hideLandingModal", "true");
-    }
-    if (installPrompt) {
-      void installPrompt.prompt();
-      installPrompt.userChoice.then(({ outcome }) => {
-        if (outcome === "accepted") isInstalled = true;
-      });
-      installPrompt = null;
-      return;
-    }
-    modalStore.closeModal();
-  }
+	function handleGetStarted() {
+		if (dontShowAgain) {
+			localStorage.setItem('hideLandingModal', 'true');
+		}
+		if (installPrompt) {
+			void installPrompt.prompt();
+			installPrompt.userChoice.then(({ outcome }) => {
+				if (outcome === 'accepted') isInstalled = true;
+			});
+			installPrompt = null;
+			return;
+		}
+		modalStore.closeModal();
+	}
 
-  $effect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      installPrompt = e as BeforeInstallPromptEvent;
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-    const iosStandalone =
-      "standalone" in window.navigator &&
-      (window.navigator as unknown as { standalone: boolean }).standalone ===
-        true;
-    isInstalled =
-      iosStandalone || window.matchMedia("(display-mode: standalone)").matches;
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  });
+	$effect(() => {
+		const handler = (e: Event) => {
+			e.preventDefault();
+			installPrompt = e as BeforeInstallPromptEvent;
+		};
+		window.addEventListener('beforeinstallprompt', handler);
+		const iosStandalone =
+			'standalone' in window.navigator &&
+			(window.navigator as unknown as { standalone: boolean }).standalone === true;
+		isInstalled = iosStandalone || window.matchMedia('(display-mode: standalone)').matches;
+		return () => window.removeEventListener('beforeinstallprompt', handler);
+	});
 
-  $effect(() => {
-    if (!modalStore.open) return;
-    activeTab = untrack(() => modalStore.landingTab) ?? "welcome";
-    if (untrack(() => activeTab) === "campus") {
-      void loadGithubData();
-      void loadCampusCredits();
-    }
-  });
+	$effect(() => {
+		if (!modalStore.open) return;
+		activeTab = untrack(() => modalStore.landingTab) ?? 'welcome';
+		if (untrack(() => activeTab) === 'campus') {
+			void loadGithubData();
+			void loadCampusCredits();
+		}
+	});
 </script>
 
 <div class="landing-content">

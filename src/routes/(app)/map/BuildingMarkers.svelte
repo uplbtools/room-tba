@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import MapEntityPin from '$lib/components/map/MapEntityPin.svelte';
-	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
-	// import { buildingMatchesTypeFilter } from '$lib/constants/content/categories/building';
-	import { getMapBuildingsData } from '$lib/functions/buildings.remote';
-	import { getMapStore, getSearchInfo } from '$lib/utils/context';
+	import MapEntityPin from '#lib/components/map/MapEntityPin.svelte';
+	import PinGlyph from '#lib/components/map/PinGlyph.svelte';
+	// import { buildingMatchesTypeFilter } from '#lib/constants/content/categories/building.js';
+	import { getMapBuildingsData } from '#lib/functions/buildings.remote.js';
+	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {
@@ -34,7 +34,7 @@
 
 	function handleMarkerClick(building: (typeof filteredBuildings)[number]) {
 		return async () => {
-			await goto(resolve(`/map/buildings/${building.id}`));
+			await goto(resolve(`map/buildings/${building.id}`));
 			map.centerMarker([building.lon, building.lat]);
 		};
 	}
@@ -56,26 +56,30 @@
 			<Marker
 				lngLat={[building.lon, building.lat]}
 				// draggable={canDragPin(editKey)}
-				onclick={handleMarkerClick(building)}
+				onclick={// draggable={canDragPin(editKey)}
+				handleMarkerClick(building)}
 			>
 				<MapEntityPin
 					label={building.buildingName}
 					active={searchInfo.isActiveMarker(building.buildingName, 'building')}
 					dimmed={searchInfo.hasActiveResult()}
-					// // editable={canDragPin(editKey)}
-					// editing={selectedEditKey === editKey}
-					// dimmed={hasActiveMarker()}
-					// eventLinked={isBuildingEventLinked(building.id)}
-					// hovered={hoveredEditKey === editKey}
-					// saveState={savingEditKey === editKey
-					// 	? 'saving'
-					// 	: savedEditKey === editKey
-					// 		? 'saved'
-					// 		: failedEditKey === editKey
-					// 			? 'failed'
-					// 			: 'idle'}
 				>
-					<PinGlyph name="building" size={20} />
+					<PinGlyph
+						name="building"
+						size={// // editable={canDragPin(editKey)}
+						// editing={selectedEditKey === editKey}
+						// dimmed={hasActiveMarker()}
+						// eventLinked={isBuildingEventLinked(building.id)}
+						// hovered={hoveredEditKey === editKey}
+						// saveState={savingEditKey === editKey
+						// 	? 'saving'
+						// 	: savedEditKey === editKey
+						// 		? 'saved'
+						// 		: failedEditKey === editKey
+						// 			? 'failed'
+						// 			: 'idle'}
+						20}
+					/>
 				</MapEntityPin>
 			</Marker>
 			<!-- {/key} -->

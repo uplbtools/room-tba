@@ -7,8 +7,8 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import X from '@lucide/svelte/icons/x';
 	import { fly } from 'svelte/transition';
-	import { trapFocus } from '$lib/utils/focus-trap';
-	import { fullScreenDismiss, fullScreenReveal } from '$lib/utils/motion';
+	import { trapFocus } from '#lib/utils/focus-trap.js';
+	import { fullScreenDismiss, fullScreenReveal } from '#lib/utils/motion.js';
 	import {
 		adminAuthStore,
 		plannerStore,
@@ -16,21 +16,21 @@
 		sidebarStore,
 		termStore,
 		toastStore
-	} from '$lib/stores.svelte';
-	import { fetchAllClasses } from '$lib/utils/classes-api';
-	import { COURSE_CHANGE_DISCLAIMER } from '$lib/amis/room-scheduled-types';
-	import { changeOfMatriculationLabel } from '$lib/utils/term/term-calendar';
-	import { fetchFinalExams, FINALS_SCOPE_NOTE } from '$lib/utils/final-exams/final-exams';
-	import { isUnscheduled } from '$lib/utils/planner/conflicts';
-	import { buildPlanIcs } from '$lib/utils/planner/ics';
-	import { renderPlanToPng } from '$lib/utils/planner/plan-image';
-	import { encodeSharePlan } from '$lib/utils/planner/share-codec';
-	import FinalExamsList from '$lib/components/room/FinalExamsList.svelte';
-	import TermSelector from '$lib/components/TermSelector.svelte';
-	import GoogleCalendarIcon from '$lib/components/icons/GoogleCalendarIcon.svelte';
+	} from '#lib/stores.svelte.js';
+	import { fetchAllClasses } from '#lib/utils/classes-api.js';
+	import { COURSE_CHANGE_DISCLAIMER } from '#lib/amis/room-scheduled-types.js';
+	import { changeOfMatriculationLabel } from '#lib/utils/term/term-calendar.js';
+	import { fetchFinalExams, FINALS_SCOPE_NOTE } from '#lib/utils/final-exams/final-exams.js';
+	import { isUnscheduled } from '#lib/utils/planner/conflicts.js';
+	import { buildPlanIcs } from '#lib/utils/planner/ics.js';
+	import { renderPlanToPng } from '#lib/utils/planner/plan-image.js';
+	import { encodeSharePlan } from '#lib/utils/planner/share-codec.js';
+	import FinalExamsList from '#lib/components/room/FinalExamsList.svelte';
+	import TermSelector from '#lib/components/TermSelector.svelte';
+	import GoogleCalendarIcon from '#lib/components/icons/GoogleCalendarIcon.svelte';
 	import PlannerCourseSearch from './PlannerCourseSearch.svelte';
 	import PlannerGrid from './PlannerGrid.svelte';
-	import type { ClassMapValue, FinalExamRow } from '$lib/utils/types';
+	import type { ClassMapValue, FinalExamRow } from '#lib/utils/types';
 	import { tick } from 'svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 

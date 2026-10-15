@@ -1,9 +1,9 @@
 <script lang="ts">
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import { openBrowseClasses, openCampusBrowse } from '$lib/utils/campus/browse-campus';
-	import type { CampusBrowseTab } from '$lib/utils/campus/browse-campus';
-	import { campusTransit } from '$lib/campus.config';
-	import { jeepneyStore, searchInfo, sidePanelStore } from '$lib/stores.svelte';
+	import { openBrowseClasses, openCampusBrowse } from '#lib/utils/campus/browse-campus.js';
+	import type { CampusBrowseTab } from '#lib/utils/campus/browse-campus.js';
+	import { campusTransit } from '#lib/campus.config.js';
+	import { jeepneyStore, searchInfo, sidePanelStore } from '#lib/stores.svelte.js';
 
 	import classBuildingsIcon from '../../../assets/icons/class-buildings.svg?url';
 	import dormsIcon from '../../../assets/icons/dorms.svg?url';

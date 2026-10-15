@@ -11,16 +11,16 @@
 	import Users from '@lucide/svelte/icons/users';
 	import X from '@lucide/svelte/icons/x';
 	import { goto } from '$app/navigation';
-	import { getMapStore, getSearchInfo } from '$lib/utils/context';
+	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
 	import {
 		buildingPreviewFromRow,
 		entityHoverPreviewStore,
 		eventPreviewFromRow
-	} from '$lib/utils/entity/entity-hover-preview.svelte';
-	// import { map, searchInfo } from '$lib/stores.svelte';
-	import type { Building, EntityType, EventData } from '$lib/utils/types';
-	import type { SearchInfoState } from '$lib/stores/store-types';
-	import { getEntityCanonicalPath } from '$lib/utils/entity/entity-urls';
+	} from '#lib/utils/entity/entity-hover-preview.svelte.js';
+	// import { map, searchInfo } from '#lib/stores.svelte.js';
+	import type { Building, EntityType, EventData } from '#lib/utils/types';
+	import type { SearchInfoState } from '#lib/stores/store-types.js';
+	import { getEntityCanonicalPath } from '#lib/utils/entity/entity-urls.js';
 	import { resolve } from '$app/paths';
 
 	let {
@@ -33,6 +33,8 @@
 		event: eventData,
 		secondary,
 		recent
+
+		/** Supporting line under the value, e.g. a room's unabbreviated name (#875). */
 	}: {
 		value: string;
 		category: EntityType;
@@ -42,7 +44,6 @@
 		event?: EventData;
 		recent?: boolean;
 		index?: number;
-		/** Supporting line under the value, e.g. a room's unabbreviated name (#875). */
 		secondary?: string | null;
 	} = $props();
 
@@ -54,7 +55,7 @@
 
 	async function handleSuggestionClick() {
 		// entityHoverPreviewStore.hideNow();
-		await goto(resolve(`/map/${category}s/${id}`));
+		await goto(resolve(`map/${category}s/${id}`));
 	}
 
 	function handleRemoveRecent() {

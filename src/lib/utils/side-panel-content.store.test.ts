@@ -1,10 +1,10 @@
 // import { describe, expect, test } from 'vitest';
 
-// import { resolvePanelContent } from '$lib/utils/side-panel-content';
+// import { resolvePanelContent } from '#lib/utils/side-panel-content.js';
 // import BuildingResult from '../../routes/(app)/map/buildings/[id]/BuildingResult.svelte';
-// import CampusBrowseList from '$lib/components/controls/CampusBrowseList.svelte';
-// import ProposalReviewPanel from '$lib/components/ProposalReviewPanel.svelte';
-// import RoomResult from '$lib/components/room/RoomResult.svelte';
+// import CampusBrowseList from '#lib/components/controls/CampusBrowseList.svelte';
+// import ProposalReviewPanel from '#lib/components/ProposalReviewPanel.svelte';
+// import RoomResult from '#lib/components/room/RoomResult.svelte';
 
 // describe('resolvePanelContent', () => {
 // 	/**

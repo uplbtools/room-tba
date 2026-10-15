@@ -1,122 +1,111 @@
-import path from "node:path";
-import { Glob } from "bun";
+import path from 'node:path';
+import { Glob } from 'bun';
 
-const IGNORE_DIRS = new Set([
-  "node_modules",
-  "playwright-report",
-  "test-results",
-  "dist",
-  ".git",
-]);
+const IGNORE_DIRS = new Set(['node_modules', 'playwright-report', 'test-results', 'dist', '.git']);
 
 export type TestInventory = {
-  generated: string;
-  total: number;
-  unit: string[];
-  store: string[];
-  component: string[];
-  integration: string[];
-  e2eBlocking: string[];
-  e2eAdvisory: string[];
-  e2eStaging: string[];
+	generated: string;
+	total: number;
+	unit: string[];
+	store: string[];
+	component: string[];
+	integration: string[];
+	e2eBlocking: string[];
+	e2eAdvisory: string[];
+	e2eStaging: string[];
 };
 
 export async function scanTestInventory(root: string): Promise<TestInventory> {
-  const glob = new Glob("**/*.{test,spec}.ts");
-  const allTests: string[] = [];
-  for await (const file of glob.scan({ cwd: root, onlyFiles: true })) {
-    const normalized = file.split(path.sep).join("/");
-    if (normalized.split("/").some((part) => IGNORE_DIRS.has(part))) continue;
-    allTests.push(normalized);
-  }
-  allTests.sort();
+	const glob = new Glob('**/*.{test,spec}.ts');
+	const allTests: string[] = [];
+	for await (const file of glob.scan({ cwd: root, onlyFiles: true })) {
+		const normalized = file.split(path.sep).join('/');
+		if (normalized.split('/').some((part) => IGNORE_DIRS.has(part))) continue;
+		allTests.push(normalized);
+	}
+	allTests.sort();
 
-  const store = allTests.filter((f) => f.endsWith(".store.test.ts"));
-  const component = allTests.filter((f) => f.endsWith(".component.test.ts"));
-  const unit = allTests.filter(
-    (f) =>
-      f.startsWith("src/") &&
-      f.endsWith(".test.ts") &&
-      !f.endsWith(".store.test.ts") &&
-      !f.endsWith(".component.test.ts"),
-  );
-  const integration = allTests.filter((f) => f.startsWith("integration/"));
-  const e2eAdvisory = allTests.filter((f) => f.startsWith("e2e/advisory/"));
-  const e2eStaging = allTests.filter((f) => f.startsWith("e2e/staging/"));
-  const e2eBlocking = allTests.filter(
-    (f) =>
-      f.startsWith("e2e/") &&
-      !f.startsWith("e2e/advisory/") &&
-      !f.startsWith("e2e/staging/"),
-  );
+	const store = allTests.filter((f) => f.endsWith('.store.test.ts'));
+	const component = allTests.filter((f) => f.endsWith('.component.test.ts'));
+	const unit = allTests.filter(
+		(f) =>
+			f.startsWith('src/') &&
+			f.endsWith('.test.ts') &&
+			!f.endsWith('.store.test.ts') &&
+			!f.endsWith('.component.test.ts')
+	);
+	const integration = allTests.filter((f) => f.startsWith('integration/'));
+	const e2eAdvisory = allTests.filter((f) => f.startsWith('e2e/advisory/'));
+	const e2eStaging = allTests.filter((f) => f.startsWith('e2e/staging/'));
+	const e2eBlocking = allTests.filter(
+		(f) => f.startsWith('e2e/') && !f.startsWith('e2e/advisory/') && !f.startsWith('e2e/staging/')
+	);
 
-  return {
-    generated: new Date().toISOString().slice(0, 10),
-    total: allTests.length,
-    unit,
-    store,
-    component,
-    integration,
-    e2eBlocking,
-    e2eAdvisory,
-    e2eStaging,
-  };
+	return {
+		generated: new Date().toISOString().slice(0, 10),
+		total: allTests.length,
+		unit,
+		store,
+		component,
+		integration,
+		e2eBlocking,
+		e2eAdvisory,
+		e2eStaging
+	};
 }
 
 export type TestInventoryDiscordTiers = {
-  unit: string[];
-  store: string[];
-  component: string[];
-  integration: string[];
-  e2eBlockingSmoke: string[];
-  e2eBlockingBrowse: string[];
-  e2eBlockingAdmin: string[];
-  e2eAdvisory: string[];
-  e2eStaging: string[];
+	unit: string[];
+	store: string[];
+	component: string[];
+	integration: string[];
+	e2eBlockingSmoke: string[];
+	e2eBlockingBrowse: string[];
+	e2eBlockingAdmin: string[];
+	e2eAdvisory: string[];
+	e2eStaging: string[];
 };
 
 /** File lists per tier for Discord embed payloads. */
-export function testInventoryDiscordTiers(
-  inv: TestInventory,
-): TestInventoryDiscordTiers {
-  const smoke: string[] = [];
-  const browse: string[] = [];
-  const admin: string[] = [];
-  for (const f of inv.e2eBlocking) {
-    if (f.includes("/smoke/")) smoke.push(f);
-    else if (f.includes("/browse/")) browse.push(f);
-    else if (f.includes("/admin/")) admin.push(f);
-    else admin.push(f);
-  }
-  return {
-    unit: inv.unit,
-    store: inv.store,
-    component: inv.component,
-    integration: inv.integration,
-    e2eBlockingSmoke: smoke,
-    e2eBlockingBrowse: browse,
-    e2eBlockingAdmin: admin,
-    e2eAdvisory: inv.e2eAdvisory,
-    e2eStaging: inv.e2eStaging,
-  };
+export function testInventoryDiscordTiers(inv: TestInventory): TestInventoryDiscordTiers {
+	const smoke: string[] = [];
+	const browse: string[] = [];
+	const admin: string[] = [];
+	for (const f of inv.e2eBlocking) {
+		if (f.includes('/smoke/')) smoke.push(f);
+		else if (f.includes('/browse/')) browse.push(f);
+		else if (f.includes('/admin/')) admin.push(f);
+		else admin.push(f);
+	}
+	return {
+		unit: inv.unit,
+		store: inv.store,
+		component: inv.component,
+		integration: inv.integration,
+		e2eBlockingSmoke: smoke,
+		e2eBlockingBrowse: browse,
+		e2eBlockingAdmin: admin,
+		e2eAdvisory: inv.e2eAdvisory,
+		e2eStaging: inv.e2eStaging
+	};
 }
 
 function mdList(files: string[]): string {
-  if (files.length === 0) return "_None_\n";
-  return `${files.map((f) => `- \`${f}\``).join("\n")}\n`;
+	if (files.length === 0) return '_None_\n';
+	return `${files.map((f) => `- \`${f}\``).join('\n')}\n`;
 }
 
 function mdTable(rows: [string, string, number | string][]): string {
-  const lines = [
-    "| Command | Config / runner | Files |",
-    "| ------- | ---------------- | ----- |",
-    ...rows.map(([cmd, runner, n]) => `| \`${cmd}\` | ${runner} | ${n} |`),
-  ];
-  return `${lines.join("\n")}\n`;
+	const lines = [
+		'| Command | Config / runner | Files |',
+		'| ------- | ---------------- | ----- |',
+		...rows.map(([cmd, runner, n]) => `| \`${cmd}\` | ${runner} | ${n} |`)
+	];
+	return `${lines.join('\n')}\n`;
 }
 
 export function renderTestInventoryMarkdown(inv: TestInventory): string {
-  return `# Test inventory
+	return `# Test inventory
 
 Running list of **automated** tests in this repo. Regenerate after adding or moving specs:
 
@@ -132,37 +121,17 @@ See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked
 ## Summary by tier
 
 ${mdTable([
-  ["bun test src", "Bun — unit (`src/lib`, `src/constants`)", inv.unit.length],
-  [
-    "bun run test:components",
-    "Vitest — stores + Svelte @320px",
-    inv.store.length + inv.component.length,
-  ],
-  [
-    "bun run test:integration",
-    "Bun — HTTP + services (E2E DB)",
-    inv.integration.length,
-  ],
-  [
-    "bun run e2e",
-    "Playwright blocking — local preview",
-    inv.e2eBlocking.length,
-  ],
-  [
-    "bun run e2e:advisory",
-    "Playwright advisory — non-blocking CI",
-    inv.e2eAdvisory.length,
-  ],
-  [
-    "bun run e2e:staging",
-    "Playwright — live staging URL",
-    inv.e2eStaging.length,
-  ],
-  [
-    "bun run check:migrations",
-    "Schema table guard (not a spec file)",
-    "1 script",
-  ],
+	['bun test src', 'Bun — unit (`src/lib`, `src/constants`)', inv.unit.length],
+	[
+		'bun run test:components',
+		'Vitest — stores + Svelte @320px',
+		inv.store.length + inv.component.length
+	],
+	['bun run test:integration', 'Bun — HTTP + services (E2E DB)', inv.integration.length],
+	['bun run e2e', 'Playwright blocking — local preview', inv.e2eBlocking.length],
+	['bun run e2e:advisory', 'Playwright advisory — non-blocking CI', inv.e2eAdvisory.length],
+	['bun run e2e:staging', 'Playwright — live staging URL', inv.e2eStaging.length],
+	['bun run check:migrations', 'Schema table guard (not a spec file)', '1 script']
 ])}
 
 ## CI mapping
@@ -208,17 +177,17 @@ ${mdList(inv.integration)}
 
 \`bun run e2e\` — smoke, browse, admin.
 
-### Smoke (${inv.e2eBlocking.filter((f) => f.includes("/smoke/")).length})
+### Smoke (${inv.e2eBlocking.filter((f) => f.includes('/smoke/')).length})
 
-${mdList(inv.e2eBlocking.filter((f) => f.includes("/smoke/")))}
+${mdList(inv.e2eBlocking.filter((f) => f.includes('/smoke/')))}
 
-### Browse (${inv.e2eBlocking.filter((f) => f.includes("/browse/")).length})
+### Browse (${inv.e2eBlocking.filter((f) => f.includes('/browse/')).length})
 
-${mdList(inv.e2eBlocking.filter((f) => f.includes("/browse/")))}
+${mdList(inv.e2eBlocking.filter((f) => f.includes('/browse/')))}
 
-### Admin / editor (${inv.e2eBlocking.filter((f) => f.includes("/admin/")).length})
+### Admin / editor (${inv.e2eBlocking.filter((f) => f.includes('/admin/')).length})
 
-${mdList(inv.e2eBlocking.filter((f) => f.includes("/admin/")))}
+${mdList(inv.e2eBlocking.filter((f) => f.includes('/admin/')))}
 
 ## E2E advisory (Playwright) — ${inv.e2eAdvisory.length} files
 

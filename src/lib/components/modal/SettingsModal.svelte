@@ -1,58 +1,55 @@
 <script lang="ts">
-  import MapViewControls from "$lib/components/MapViewControls.svelte";
-  import TerrainControl from "$lib/components/TerrainControl.svelte";
-  import ScheduleImportPanel from "$lib/components/ScheduleImportPanel.svelte";
-  import FeedbackPanel from "./FeedbackPanel.svelte";
-  import { TERRAIN_ENABLED } from "$lib/constants/map/terrain"
-  import { clearCachedData } from "$lib/utils/local/clear-cached-data";
-  import {
-    resyncCampusData,
-    type ResyncOutcome,
-  } from "$lib/utils/local/resync-campus-data";
-  import { syncToastStore } from "$lib/stores.svelte";
-  import "../map-chrome/map-chrome.css";
+	import MapViewControls from '#lib/components/MapViewControls.svelte';
+	import TerrainControl from '#lib/components/TerrainControl.svelte';
+	import ScheduleImportPanel from '#lib/components/ScheduleImportPanel.svelte';
+	import FeedbackPanel from './FeedbackPanel.svelte';
+	import { TERRAIN_ENABLED } from '#lib/constants/map/terrain.js';
+	import { clearCachedData } from '#lib/utils/local/clear-cached-data.js';
+	import { resyncCampusData, type ResyncOutcome } from '#lib/utils/local/resync-campus-data.js';
+	import { syncToastStore } from '#lib/stores.svelte.js';
+	import '../map-chrome/map-chrome.css';
 
-  let confirming = $state(false);
-  let clearing = $state(false);
-  let confirmButton = $state<HTMLButtonElement | null>(null);
-  let resyncing = $state(false);
-  let resyncResult = $state<ResyncOutcome | null>(null);
+	let confirming = $state(false);
+	let clearing = $state(false);
+	let confirmButton = $state<HTMLButtonElement | null>(null);
+	let resyncing = $state(false);
+	let resyncResult = $state<ResyncOutcome | null>(null);
 
-  const RESYNC_MESSAGE: Record<ResyncOutcome, string> = {
-    synced: "Campus data is up to date.",
-    failed: "Resync failed. Check your connection and try again.",
-    timeout: "Still syncing in the background. Check again in a moment.",
-  };
+	const RESYNC_MESSAGE: Record<ResyncOutcome, string> = {
+		synced: 'Campus data is up to date.',
+		failed: 'Resync failed. Check your connection and try again.',
+		timeout: 'Still syncing in the background. Check again in a moment.'
+	};
 
-  // No reload to signal success here, so the result has to be said out loud.
-  async function resync() {
-    if (resyncing) return;
-    resyncing = true;
-    resyncResult = null;
-    try {
-      resyncResult = await resyncCampusData(() => ({
-        allSynced: syncToastStore.allSynced,
-        syncError: syncToastStore.syncError,
-      }));
-    } finally {
-      resyncing = false;
-    }
-  }
+	// No reload to signal success here, so the result has to be said out loud.
+	async function resync() {
+		if (resyncing) return;
+		resyncing = true;
+		resyncResult = null;
+		try {
+			resyncResult = await resyncCampusData(() => ({
+				allSynced: syncToastStore.allSynced,
+				syncError: syncToastStore.syncError
+			}));
+		} finally {
+			resyncing = false;
+		}
+	}
 
-  // Opening the confirm swaps the button out from under the pointer, which
-  // would drop keyboard focus to <body>. Move it to the confirm instead.
-  $effect(() => {
-    if (confirming) confirmButton?.focus();
-  });
+	// Opening the confirm swaps the button out from under the pointer, which
+	// would drop keyboard focus to <body>. Move it to the confirm instead.
+	$effect(() => {
+		if (confirming) confirmButton?.focus();
+	});
 
-  // The reload is the success signal, so there is no toast: either the page
-  // comes back clean or the button is still sitting there.
-  async function clearAndReload() {
-    if (clearing) return;
-    clearing = true;
-    await clearCachedData();
-    location.reload();
-  }
+	// The reload is the success signal, so there is no toast: either the page
+	// comes back clean or the button is still sitting there.
+	async function clearAndReload() {
+		if (clearing) return;
+		clearing = true;
+		await clearCachedData();
+		location.reload();
+	}
 </script>
 
 <div class="settings-modal">

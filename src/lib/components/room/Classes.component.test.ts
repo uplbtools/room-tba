@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/svelte';
 import { describe, expect, test } from 'vitest';
 import Classes from './Classes.svelte';
 import { mountAtWidth } from '@test/layout-assertions';
-import type { ClassMapValue } from '$lib/utils/types';
+import type { ClassMapValue } from '#lib/utils/types';
 
 const roomlessClass: ClassMapValue = {
 	id: 1,

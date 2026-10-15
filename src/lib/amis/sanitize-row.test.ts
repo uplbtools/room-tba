@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { amisExportContainsInstructorPii, sanitizeAmisRow } from '$lib/amis/sanitize-row';
+import { amisExportContainsInstructorPii, sanitizeAmisRow } from '#lib/amis/sanitize-row.js';
 
 describe('sanitizeAmisRow', () => {
 	it('removes nested faculty user names', () => {

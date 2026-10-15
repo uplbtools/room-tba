@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { userLocation, plannerStore, scheduleRouteStore } from '$lib/stores.svelte';
+	import { userLocation, plannerStore, scheduleRouteStore } from '#lib/stores.svelte.js';
 	import { onMount, untrack } from 'svelte';
 	import { flip } from 'svelte/animate';
-	import { formatDistance, formatDuration } from '$lib/utils/campus/campus-route';
-	import { formatMinutes } from '$lib/utils/schedule-import/day-stops';
-	import { WEEKDAY_LABELS, WEEKDAYS, type Weekday } from '$lib/utils/schedule-import/types';
+	import { formatDistance, formatDuration } from '#lib/utils/campus/campus-route.js';
+	import { formatMinutes } from '#lib/utils/schedule-import/day-stops.js';
+	import { WEEKDAY_LABELS, WEEKDAYS, type Weekday } from '#lib/utils/schedule-import/types.js';
 
 	type Props = {
 		embedded?: boolean;

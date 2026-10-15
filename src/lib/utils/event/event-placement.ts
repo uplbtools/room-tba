@@ -1,5 +1,5 @@
 import { formatCampusDateShort, formatCampusTime, instantToCampusWallString } from './event-time';
-import { eventPlacementStore } from '$lib/stores.svelte';
+import { eventPlacementStore } from '#lib/stores.svelte.js';
 
 function defaultEventTitle(startsAt: Date) {
 	const label = `${formatCampusDateShort(startsAt.toISOString())}, ${formatCampusTime(startsAt.toISOString())}`;

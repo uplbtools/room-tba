@@ -1,4 +1,4 @@
-import { db } from '$lib/utils/db';
+import { db } from '#lib/utils/db.js';
 import { sql } from 'drizzle-orm';
 
 export type EditorCredit = {

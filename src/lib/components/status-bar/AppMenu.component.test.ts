@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test } from 'vitest';
 import AppMenu from './AppMenu.svelte';
-import { adminAuthStore, modalStore, proposalsStore } from '$lib/stores.svelte';
+import { adminAuthStore, modalStore, proposalsStore } from '#lib/stores.svelte.js';
 
 describe('AppMenu review entry', () => {
 	beforeEach(() => {

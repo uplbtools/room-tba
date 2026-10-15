@@ -10,8 +10,8 @@ import {
 	resolveReference,
 	spreadMeters,
 	tokenize
-} from '$lib/utils/campus/campus-audit';
-import { distanceMeters } from '$lib/utils/campus/campus-route';
+} from '#lib/utils/campus/campus-audit.js';
+import { distanceMeters } from '#lib/utils/campus/campus-route.js';
 
 /**
  * Real prod rows (ids and coordinates as stored), so the fixtures keep the

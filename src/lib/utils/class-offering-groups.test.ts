@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { groupClassesByOffering, parentLectureSection } from './class-offering-groups.js';
-import type { ClassMapValue } from '$lib/utils/types.js';
+import type { ClassMapValue } from '#lib/utils/types.js';
 
 const row = (overrides: Partial<ClassMapValue>): ClassMapValue => ({
 	id: 1,

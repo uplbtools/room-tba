@@ -1,10 +1,10 @@
 <!-- <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import RoomResult from '$lib/components/room/RoomResult.svelte';
-	import { slugifySegment } from '$lib/utils/site';
-	import { searchInfo, sidePanelStore } from '$lib/stores.svelte';
-	import type { Room } from '$lib/utils/types';
+	import RoomResult from '#lib/components/room/RoomResult.svelte';
+	import { slugifySegment } from '#lib/utils/site.js';
+	import { searchInfo, sidePanelStore } from '#lib/stores.svelte.js';
+	import type { Room } from '#lib/utils/types';
 
 	type Props = {
 		room: Room;

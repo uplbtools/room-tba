@@ -1,7 +1,7 @@
 <script lang="ts">
-	import EntityEditorFormField from '$lib/components/editor/EntityEditorFormField.svelte';
-	import EntityEditorSubmitButton from '$lib/components/editor/EntityEditorSubmitButton.svelte';
-	import EntityEditorMessage from '$lib/components/editor/EntityEditorMessage.svelte';
+	import EntityEditorFormField from '#lib/components/editor/EntityEditorFormField.svelte';
+	import EntityEditorSubmitButton from '#lib/components/editor/EntityEditorSubmitButton.svelte';
+	import EntityEditorMessage from '#lib/components/editor/EntityEditorMessage.svelte';
 	import './editor/entity-editor.css';
 
 	const token = $derived(new URLSearchParams(window.location.search).get('token'));

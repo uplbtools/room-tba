@@ -1,5 +1,5 @@
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { AccountActionError, unlinkGoogleIdentity } from '$lib/services/admin/user';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { AccountActionError, unlinkGoogleIdentity } from '#lib/services/admin/user.js';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ cookies }) => {

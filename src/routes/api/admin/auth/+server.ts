@@ -4,16 +4,16 @@ import {
 	clearSessionCookie,
 	createSessionToken,
 	setSessionCookie
-} from '$lib/admin/auth';
-import { getEditorSession } from '$lib/admin/require-editor';
-import { checkRateLimit, clientIp, rateLimitResponse } from '$lib/api/rate-limit';
+} from '#lib/admin/auth.js';
+import { getEditorSession } from '#lib/admin/require-editor.js';
+import { checkRateLimit, clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
 import {
 	authenticateAdminUser,
 	authenticateLegacyAdminPassword,
 	getAdminUserBySupabaseId
-} from '$lib/services/admin/user';
-import { createServerSupabaseClient } from '$lib/supabase/server';
-import { verifyTurnstileToken } from '$lib/utils/turnstile/turnstile';
+} from '#lib/services/admin/user.js';
+import { createServerSupabaseClient } from '#lib/supabase/server.js';
+import { verifyTurnstileToken } from '#lib/utils/turnstile/turnstile.js';
 import type { RequestHandler } from './$types';
 
 const LOGIN_RATE_LIMIT_WINDOW_MS = 30 * 1000;

@@ -1,59 +1,55 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import {
-    MAX_SUBMITTER_NAME_LENGTH,
-    MIN_SUBMITTER_NAME_LENGTH,
-  } from "$lib/constants/contribute/proposals";
-  import {
-    readSubmitterName,
-    scheduleSubmitterNameSave,
-  } from "$lib/utils/contributor-drafts";
-  import "./map-chrome/map-chrome.css";
+	import { onMount } from 'svelte';
+	import {
+		MAX_SUBMITTER_NAME_LENGTH,
+		MIN_SUBMITTER_NAME_LENGTH
+	} from '#lib/constants/contribute/proposals.js';
+	import { readSubmitterName, scheduleSubmitterNameSave } from '#lib/utils/contributor-drafts.js';
+	import './map-chrome/map-chrome.css';
 
-  type Props = {
-    id: string;
-    label?: string;
-    placeholder?: string;
-    value?: string;
-    variant?: "editor" | "inline" | "block";
-    showHint?: boolean;
-    hintClass?: string;
-    fieldClass?: string;
-  };
+	type Props = {
+		id: string;
+		label?: string;
+		placeholder?: string;
+		value?: string;
+		variant?: 'editor' | 'inline' | 'block';
+		showHint?: boolean;
+		hintClass?: string;
+		fieldClass?: string;
+	};
 
-  let {
-    id,
-    label = "What should we call you?",
-    placeholder = "First name or nickname",
-    value = $bindable(""),
-    variant = "editor",
-    showHint = variant === "editor",
-    hintClass = "submitter-name-hint",
-    fieldClass = "editor-field",
-  }: Props = $props();
+	let {
+		id,
+		label = 'What should we call you?',
+		placeholder = 'First name or nickname',
+		value = $bindable(''),
+		variant = 'editor',
+		showHint = variant === 'editor',
+		hintClass = 'submitter-name-hint',
+		fieldClass = 'editor-field'
+	}: Props = $props();
 
-  const atLimit = $derived(value.length >= MAX_SUBMITTER_NAME_LENGTH);
-  const wrapperClass = $derived.by(() => {
-    if (variant === "inline") return "map-chrome-name-field";
-    if (variant === "block")
-      return "map-chrome-name-field map-chrome-name-field--block";
-    return fieldClass;
-  });
-  const labelClass = $derived(variant === "inline" ? "sr-only" : undefined);
-  let nameReady = $state(false);
+	const atLimit = $derived(value.length >= MAX_SUBMITTER_NAME_LENGTH);
+	const wrapperClass = $derived.by(() => {
+		if (variant === 'inline') return 'map-chrome-name-field';
+		if (variant === 'block') return 'map-chrome-name-field map-chrome-name-field--block';
+		return fieldClass;
+	});
+	const labelClass = $derived(variant === 'inline' ? 'sr-only' : undefined);
+	let nameReady = $state(false);
 
-  onMount(() => {
-    if (!value.trim()) {
-      const stored = readSubmitterName();
-      if (stored) value = stored;
-    }
-    nameReady = true;
-  });
+	onMount(() => {
+		if (!value.trim()) {
+			const stored = readSubmitterName();
+			if (stored) value = stored;
+		}
+		nameReady = true;
+	});
 
-  $effect(() => {
-    if (!nameReady || typeof localStorage === "undefined") return;
-    scheduleSubmitterNameSave(value);
-  });
+	$effect(() => {
+		if (!nameReady || typeof localStorage === 'undefined') return;
+		scheduleSubmitterNameSave(value);
+	});
 </script>
 
 <div class={wrapperClass}>

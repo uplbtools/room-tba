@@ -1,73 +1,67 @@
 <script lang="ts">
-  /** In-app feedback box (#881).
-   *
-   * The primary control is a plain free-text box: no category dropdown, no
-   * required email. What gets attached is listed in full under the fields, and
-   * it is read once on mount so the note describes exactly what is sent. */
-  import { onMount } from "svelte";
-  import CommunityPlatformLink from "$lib/components/community/CommunityPlatformLink.svelte";
-  import EntityEditorFormField from "$lib/components/editor/EntityEditorFormField.svelte";
-  import EntityEditorMessage from "$lib/components/editor/EntityEditorMessage.svelte";
-  import EntityEditorSubmitButton from "$lib/components/editor/EntityEditorSubmitButton.svelte";
-  import {
-    DISCORD_URL,
-    MESSENGER_CONTRIBUTE_URL,
-  } from "$lib/constants/content/links/community"
-  import {
-    FEEDBACK_CONTACT_MAX,
-    FEEDBACK_MESSAGE_MAX,
-  } from "$lib/constants/feedback";
-  import { APP_VERSION_LABEL } from "$lib/constants/versioning/version";
+	/** In-app feedback box (#881).
+	 *
+	 * The primary control is a plain free-text box: no category dropdown, no
+	 * required email. What gets attached is listed in full under the fields, and
+	 * it is read once on mount so the note describes exactly what is sent. */
+	import { onMount } from 'svelte';
+	import CommunityPlatformLink from '#lib/components/community/CommunityPlatformLink.svelte';
+	import EntityEditorFormField from '#lib/components/editor/EntityEditorFormField.svelte';
+	import EntityEditorMessage from '#lib/components/editor/EntityEditorMessage.svelte';
+	import EntityEditorSubmitButton from '#lib/components/editor/EntityEditorSubmitButton.svelte';
+	import { DISCORD_URL, MESSENGER_CONTRIBUTE_URL } from '#lib/constants/content/links/community.js';
+	import { FEEDBACK_CONTACT_MAX, FEEDBACK_MESSAGE_MAX } from '#lib/constants/feedback.js';
+	import { APP_VERSION_LABEL } from '#lib/constants/versioning/version.js';
 
-  let message = $state("");
-  let contact = $state("");
-  let sending = $state(false);
-  let error = $state<string | null>(null);
-  let sent = $state(false);
+	let message = $state('');
+	let contact = $state('');
+	let sending = $state(false);
+	let error = $state<string | null>(null);
+	let sent = $state(false);
 
-  let screen = $state<string | null>(null);
-  let wasOnline = $state<boolean | null>(null);
+	let screen = $state<string | null>(null);
+	let wasOnline = $state<boolean | null>(null);
 
-  onMount(() => {
-    screen = window.location.pathname;
-    wasOnline = navigator.onLine;
-  });
+	onMount(() => {
+		screen = window.location.pathname;
+		wasOnline = navigator.onLine;
+	});
 
-  const canSend = $derived(message.trim().length > 0);
-  const remaining = $derived(FEEDBACK_MESSAGE_MAX - message.length);
+	const canSend = $derived(message.trim().length > 0);
+	const remaining = $derived(FEEDBACK_MESSAGE_MAX - message.length);
 
-  async function submit(event: Event) {
-    event.preventDefault();
-    if (!canSend || sending) return;
-    sending = true;
-    error = null;
-    try {
-      const res = await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message,
-          contact,
-          screen,
-          appVersion: APP_VERSION_LABEL,
-          wasOnline,
-        }),
-      });
-      const data = await res.json().catch(() => ({}) as { error?: string });
-      if (!res.ok) {
-        // Leave `message` alone — retyping lost feedback is how feedback dies.
-        error = data.error ?? "Could not send your message. Try again.";
-        return;
-      }
-      sent = true;
-      message = "";
-      contact = "";
-    } catch {
-      error = "Network error. Your message is still here — try again.";
-    } finally {
-      sending = false;
-    }
-  }
+	async function submit(event: Event) {
+		event.preventDefault();
+		if (!canSend || sending) return;
+		sending = true;
+		error = null;
+		try {
+			const res = await fetch('/api/feedback', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					message,
+					contact,
+					screen,
+					appVersion: APP_VERSION_LABEL,
+					wasOnline
+				})
+			});
+			const data = await res.json().catch(() => ({}) as { error?: string });
+			if (!res.ok) {
+				// Leave `message` alone — retyping lost feedback is how feedback dies.
+				error = data.error ?? 'Could not send your message. Try again.';
+				return;
+			}
+			sent = true;
+			message = '';
+			contact = '';
+		} catch {
+			error = 'Network error. Your message is still here — try again.';
+		} finally {
+			sending = false;
+		}
+	}
 </script>
 
 <div class="feedback-panel">

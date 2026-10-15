@@ -7,10 +7,10 @@ import type {
 	EventData,
 	OrgData,
 	PlaceData
-} from '$lib/utils/types';
-import type { MapStore } from '$lib/stores/map/map-stores.svelte';
-import type UserLocation from '$lib/stores/map/UserLocation.svelte';
-import type SearchInfo from '$lib/stores/SearchInfo.svelte';
+} from '#lib/utils/types';
+import type { MapStore } from '#lib/stores/map/map-stores.svelte.js';
+import type UserLocation from '#lib/stores/map/UserLocation.svelte.js';
+import type SearchInfo from '#lib/stores/SearchInfo.svelte.js';
 export type AppContextData =
 	| {
 			buildings: Building[];

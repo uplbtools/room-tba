@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import type { Building } from '$lib/utils/types';
+import type { Building } from '#lib/utils/types';
 
 const query = vi.fn();
 
@@ -16,19 +16,19 @@ vi.mock('./pgliteDB', () => ({
 import { getBuildings } from './utils';
 
 const REMOTE: Building[] = [
-  {
-    id: 1,
-    buildingName: "Physical Sciences",
-    lon: 121,
-    lat: 14,
-    directions: null,
-    buildingType: "non-admin",
-    imageUrl: null,
-    photos: [],
-    crFacilities: null,
-    version: 1,
-    updatedAt: "2026-08-04T00:00:00.000Z",
-  } as Building,
+	{
+		id: 1,
+		buildingName: 'Physical Sciences',
+		lon: 121,
+		lat: 14,
+		directions: null,
+		buildingType: 'non-admin',
+		imageUrl: null,
+		photos: [],
+		crFacilities: null,
+		version: 1,
+		updatedAt: '2026-08-04T00:00:00.000Z'
+	} as Building
 ];
 
 const realFetch = globalThis.fetch;

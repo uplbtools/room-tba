@@ -1,6 +1,6 @@
 // Pin/dorm filter state. Lives outside index.svelte.ts so ui-stores can
 // import it without a module cycle (index imports ui-stores).
-import type { BuildingTypeFilter } from '$lib/constants/content/categories/building';
+import type { BuildingTypeFilter } from '#lib/constants/content/categories/building.js';
 
 export type DormFilterType = 'all' | 'up' | 'private';
 

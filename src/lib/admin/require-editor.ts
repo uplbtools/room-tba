@@ -1,7 +1,7 @@
 import type { Cookies } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
-import { adminUsersTable } from '$lib/server/db/schema';
-import { db } from '$lib/utils/db';
+import { adminUsersTable } from '#lib/server/db/schema.js';
+import { db } from '#lib/utils/db.js';
 import {
 	ADMIN_COOKIE_NAME,
 	canPublishDirectly,

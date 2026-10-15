@@ -12,20 +12,23 @@ import {
 	jeepneyStopsTable,
 	organizationsTable,
 	roomsTable
-} from '$lib/server/db/schema';
-import { normalizeAlias } from '$lib/utils/site';
-import type { SessionUser } from '$lib/admin/auth';
-import { db } from '$lib/utils/db';
-import { validateSubmitterName, validateSubmitterNote } from '$lib/constants/contribute/proposals';
+} from '#lib/server/db/schema.js';
+import { normalizeAlias } from '#lib/utils/site.js';
+import type { SessionUser } from '#lib/admin/auth.js';
+import { db } from '#lib/utils/db.js';
+import {
+	validateSubmitterName,
+	validateSubmitterNote
+} from '#lib/constants/contribute/proposals.js';
 import { recordProposalContribution } from './contributor-action';
-import { parseImageUrl } from '$lib/utils/r2-upload';
+import { parseImageUrl } from '#lib/utils/r2-upload.js';
 import { env } from '$env/dynamic/private';
 const { R2_PUBLIC_URL } = env;
 import {
 	parseEntityPhotoUrls,
 	reconcileEntityPhotos,
 	type ParsedEntityPhotoUrls
-} from '$lib/utils/entity/entity-photos';
+} from '#lib/utils/entity/entity-photos.js';
 import { resolvePhotoAttribution } from './entity-photo';
 import { canWithdrawProposal } from './proposal-access';
 export {
@@ -74,12 +77,12 @@ import {
 	type JeepneyStopCreateInput,
 	type JeepneyStopWriteInput
 } from '../transit';
-import { allowEntityScopedProposalMerge } from '$lib/utils/proposals/proposal-merge-policy';
+import { allowEntityScopedProposalMerge } from '#lib/utils/proposals/proposal-merge-policy.js';
 import {
 	ProposalValidationError,
 	parseBundledRooms,
 	validateCreateProposalPatch
-} from '$lib/utils/proposals/create-proposal-validation';
+} from '#lib/utils/proposals/create-proposal-validation.js';
 
 export const PROPOSAL_UPDATE_TYPES = [
 	'building',
@@ -733,7 +736,7 @@ export {
 	parseBundledRooms,
 	validateBundledRooms,
 	type BundledRoomDraft
-} from '$lib/utils/proposals/create-proposal-validation';
+} from '#lib/utils/proposals/create-proposal-validation.js';
 
 export class ProposalActionError extends Error {
 	status: number;
@@ -757,14 +760,14 @@ function validateProposalImageUrl(patch: Record<string, unknown>, label: string)
 }
 
 function parseProposalPhotoUrls(patch: Record<string, unknown>, label: string) {
-  const parsed = parseEntityPhotoUrls(patch.photoUrls, R2_PUBLIC_URL);
-  if (!parsed.ok) {
-    throw new ProposalActionError(`${label}: ${parsed.error}`);
-  }
-  if (parsed.provided) {
-    patch.photoUrls = parsed.photoUrls;
-  }
-  return parsed;
+	const parsed = parseEntityPhotoUrls(patch.photoUrls, R2_PUBLIC_URL);
+	if (!parsed.ok) {
+		throw new ProposalActionError(`${label}: ${parsed.error}`);
+	}
+	if (parsed.provided) {
+		patch.photoUrls = parsed.photoUrls;
+	}
+	return parsed;
 }
 const IMAGE_PATCH_ENTITY_LABELS: Readonly<Record<string, string>> = {
 	create_event: 'Event image',
@@ -778,76 +781,67 @@ const IMAGE_PATCH_ENTITY_LABELS: Readonly<Record<string, string>> = {
 };
 
 function normalizeProposalPhotoPatch(
-  entityType: ProposalEntityType,
-  patch: Record<string, unknown>,
+	entityType: ProposalEntityType,
+	patch: Record<string, unknown>
 ): void {
-  const label = IMAGE_PATCH_ENTITY_LABELS[entityType];
-  if (label) {
-    if (EVENT_IMAGE_ENTITY_TYPES[entityType] && "imageUrl" in patch) {
-      const parsed = parseImageUrl(patch.imageUrl, R2_PUBLIC_URL, label);
-      if (!parsed.ok) throw new ProposalValidationError(parsed.error);
-      if (parsed.provided) patch.imageUrl = parsed.imageUrl;
-    } else if (!EVENT_IMAGE_ENTITY_TYPES[entityType]) {
-      const parsed = parseEntityPhotoUrls(patch.photoUrls, R2_PUBLIC_URL);
-      if (!parsed.ok) {
-        throw new ProposalValidationError(`${label}: ${parsed.error}`);
-      }
-      if (parsed.provided) patch.photoUrls = parsed.photoUrls;
-    }
-  }
+	const label = IMAGE_PATCH_ENTITY_LABELS[entityType];
+	if (label) {
+		if (EVENT_IMAGE_ENTITY_TYPES[entityType] && 'imageUrl' in patch) {
+			const parsed = parseImageUrl(patch.imageUrl, R2_PUBLIC_URL, label);
+			if (!parsed.ok) throw new ProposalValidationError(parsed.error);
+			if (parsed.provided) patch.imageUrl = parsed.imageUrl;
+		} else if (!EVENT_IMAGE_ENTITY_TYPES[entityType]) {
+			const parsed = parseEntityPhotoUrls(patch.photoUrls, R2_PUBLIC_URL);
+			if (!parsed.ok) {
+				throw new ProposalValidationError(`${label}: ${parsed.error}`);
+			}
+			if (parsed.provided) patch.photoUrls = parsed.photoUrls;
+		}
+	}
 
-  if (entityType !== "create_building" || !Array.isArray(patch.rooms)) {
-    return;
-  }
-  patch.rooms = patch.rooms.map((entry) => {
-    if (!entry || typeof entry !== "object" || !("photoUrls" in entry)) {
-      return entry;
-    }
-    const roomCode =
-      "roomCode" in entry && typeof entry.roomCode === "string"
-        ? entry.roomCode
-        : "room";
-    const parsed = parseEntityPhotoUrls(entry.photoUrls, R2_PUBLIC_URL);
-    if (!parsed.ok) {
-      throw new ProposalValidationError(
-        `${label ?? "Bundled room photos"} (${roomCode}): ${parsed.error}`,
-      );
-    }
-    return parsed.provided ? { ...entry, photoUrls: parsed.photoUrls } : entry;
-  });
+	if (entityType !== 'create_building' || !Array.isArray(patch.rooms)) {
+		return;
+	}
+	patch.rooms = patch.rooms.map((entry) => {
+		if (!entry || typeof entry !== 'object' || !('photoUrls' in entry)) {
+			return entry;
+		}
+		const roomCode =
+			'roomCode' in entry && typeof entry.roomCode === 'string' ? entry.roomCode : 'room';
+		const parsed = parseEntityPhotoUrls(entry.photoUrls, R2_PUBLIC_URL);
+		if (!parsed.ok) {
+			throw new ProposalValidationError(
+				`${label ?? 'Bundled room photos'} (${roomCode}): ${parsed.error}`
+			);
+		}
+		return parsed.provided ? { ...entry, photoUrls: parsed.photoUrls } : entry;
+	});
 }
 
 const EVENT_IMAGE_ENTITY_TYPES: Readonly<Record<string, true>> = {
-  event: true,
-  create_event: true,
+	event: true,
+	create_event: true
 };
 
 async function proposalEntityPhotos(
-  proposal: EditProposalRow,
-  entityType: "building" | "room" | "dorm",
-  requestedUrls: string[],
+	proposal: EditProposalRow,
+	entityType: 'building' | 'room' | 'dorm',
+	requestedUrls: string[]
 ) {
-  const current =
-    entityType === "building"
-      ? await getBuildingById(proposal.entityId)
-      : entityType === "room"
-        ? await getRoomById(proposal.entityId)
-        : await getDormById(proposal.entityId);
-  if (!current) {
-    throw new ProposalActionError(
-      `The ${entityType} no longer exists for this photo change.`,
-      400,
-    );
-  }
-  const attribution = await resolvePhotoAttribution(
-    proposal.submitterUserId,
-    proposal.submitterName,
-  );
-  return reconcileEntityPhotos(
-    current.photos ?? [],
-    requestedUrls,
-    attribution,
-  );
+	const current =
+		entityType === 'building'
+			? await getBuildingById(proposal.entityId)
+			: entityType === 'room'
+				? await getRoomById(proposal.entityId)
+				: await getDormById(proposal.entityId);
+	if (!current) {
+		throw new ProposalActionError(`The ${entityType} no longer exists for this photo change.`, 400);
+	}
+	const attribution = await resolvePhotoAttribution(
+		proposal.submitterUserId,
+		proposal.submitterName
+	);
+	return reconcileEntityPhotos(current.photos ?? [], requestedUrls, attribution);
 }
 
 async function applyProposalPatch(proposal: EditProposalRow, editedBy: string) {

@@ -1,76 +1,70 @@
 <script lang="ts">
-  import ChevronDown from "@lucide/svelte/icons/chevron-down";
-  import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import Ruler from "@lucide/svelte/icons/ruler";
-  import Timer from "@lucide/svelte/icons/timer";
-  // Wrench, not layers: this trigger opens a toolbox (travel time, measure
-  // route, legend), and `layers` is the legend chip sitting right beside it.
-  import Wrench from "@lucide/svelte/icons/wrench";
-  import { fade } from "svelte/transition";
-  import {
-    mapToolsStore,
-    measureRouteStore,
-    travelTimeStore,
-  } from "$lib/stores.svelte";
-  import { panelFadeIn, panelFadeOut } from "$lib/utils/motion";
-  import MapViewControls from "$lib/components/MapViewControls.svelte";
-  import MapLegend from "$lib/components/MapLegend.svelte";
-  import TerrainControl from "$lib/components/TerrainControl.svelte";
-  import { TERRAIN_ENABLED } from "$lib/constants/map/terrain"
-  import TrailControl from "$lib/components/TrailControl.svelte";
-  import JeepneyMenu from "$lib/components/JeepneyMenu.svelte";
-  import ScheduleImportPanel from "$lib/components/ScheduleImportPanel.svelte";
-  import { trapFocus } from "$lib/utils/focus-trap";
-  import MapChromeFabTrigger from "$lib/components/map-chrome/MapChromeFabTrigger.svelte";
-  import MapChromePanel from "$lib/components/map-chrome/MapChromePanel.svelte";
-  import "./map-chrome/map-chrome.css";
-  import { MediaQuery } from "svelte/reactivity";
-import type { MapToolsSection } from "$lib/stores/store-types";
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import Ruler from '@lucide/svelte/icons/ruler';
+	import Timer from '@lucide/svelte/icons/timer';
+	// Wrench, not layers: this trigger opens a toolbox (travel time, measure
+	// route, legend), and `layers` is the legend chip sitting right beside it.
+	import Wrench from '@lucide/svelte/icons/wrench';
+	import { fade } from 'svelte/transition';
+	import { mapToolsStore, measureRouteStore, travelTimeStore } from '#lib/stores.svelte.js';
+	import { panelFadeIn, panelFadeOut } from '#lib/utils/motion.js';
+	import MapViewControls from '#lib/components/MapViewControls.svelte';
+	import MapLegend from '#lib/components/MapLegend.svelte';
+	import TerrainControl from '#lib/components/TerrainControl.svelte';
+	import { TERRAIN_ENABLED } from '#lib/constants/map/terrain.js';
+	import TrailControl from '#lib/components/TrailControl.svelte';
+	import JeepneyMenu from '#lib/components/JeepneyMenu.svelte';
+	import ScheduleImportPanel from '#lib/components/ScheduleImportPanel.svelte';
+	import { trapFocus } from '#lib/utils/focus-trap.js';
+	import MapChromeFabTrigger from '#lib/components/map-chrome/MapChromeFabTrigger.svelte';
+	import MapChromePanel from '#lib/components/map-chrome/MapChromePanel.svelte';
+	import './map-chrome/map-chrome.css';
+	import { MediaQuery } from 'svelte/reactivity';
+	import type { MapToolsSection } from '#lib/stores/store-types.js';
 
-  let panelEl = $state<HTMLDivElement | null>(null);
-  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
-  const mobile = new MediaQuery("max-width:48rem");
-  // Transit moved to the sidebar's Jeepney routes browse panel; Map tools now
-  // mirrors the Settings modal sections.
-  const sections: { id: MapToolsSection; label: string }[] = [
-    { id: "view", label: "View" },
-    { id: "legend", label: "Legend" },
-    ...(TERRAIN_ENABLED
-      ? [{ id: "terrain" as const, label: "Terrain" }]
-      : []),
-    { id: "trail", label: "Makiling Trail" },
-    { id: "schedule", label: "Schedule" },
-  ];
+	let panelEl = $state<HTMLDivElement | null>(null);
+	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
+	const mobile = new MediaQuery('max-width:48rem');
+	// Transit moved to the sidebar's Jeepney routes browse panel; Map tools now
+	// mirrors the Settings modal sections.
+	const sections: { id: MapToolsSection; label: string }[] = [
+		{ id: 'view', label: 'View' },
+		{ id: 'legend', label: 'Legend' },
+		...(TERRAIN_ENABLED ? [{ id: 'terrain' as const, label: 'Terrain' }] : []),
+		{ id: 'trail', label: 'Makiling Trail' },
+		{ id: 'schedule', label: 'Schedule' }
+	];
 
-  function toggleSection(id: MapToolsSection) {
-    if (mobile.current) {
-      const isOpen = mapToolsStore.expandedSections.has(id);
-      mapToolsStore.expandedSections = isOpen ? new Set() : new Set([id]);
-      mapToolsStore.activeSection = isOpen ? null : id;
-      return;
-    }
-    mapToolsStore.toggleSection(id);
-  }
+	function toggleSection(id: MapToolsSection) {
+		if (mobile.current) {
+			const isOpen = mapToolsStore.expandedSections.has(id);
+			mapToolsStore.expandedSections = isOpen ? new Set() : new Set([id]);
+			mapToolsStore.activeSection = isOpen ? null : id;
+			return;
+		}
+		mapToolsStore.toggleSection(id);
+	}
 
-  function isExpanded(id: MapToolsSection) {
-    return mapToolsStore.expandedSections.has(id);
-  }
+	function isExpanded(id: MapToolsSection) {
+		return mapToolsStore.expandedSections.has(id);
+	}
 
-  function toggleTravelTime() {
-    travelTimeStore.toggle();
-    // Hand the map back so the user can tap an origin right away.
-    if (travelTimeStore.active) mapToolsStore.close();
-  }
+	function toggleTravelTime() {
+		travelTimeStore.toggle();
+		// Hand the map back so the user can tap an origin right away.
+		if (travelTimeStore.active) mapToolsStore.close();
+	}
 
-  function toggleMeasureRoute() {
-    measureRouteStore.toggle();
-    if (measureRouteStore.active) mapToolsStore.close();
-  }
+	function toggleMeasureRoute() {
+		measureRouteStore.toggle();
+		if (measureRouteStore.active) mapToolsStore.close();
+	}
 
-  $effect(() => {
-    if (!mapToolsStore.open || !panelEl) return;
-    return trapFocus(panelEl, { onEscape: () => mapToolsStore.close() });
-  });
+	$effect(() => {
+		if (!mapToolsStore.open || !panelEl) return;
+		return trapFocus(panelEl, { onEscape: () => mapToolsStore.close() });
+	});
 </script>
 
 <div class="map-tools-flyout">

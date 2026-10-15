@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { and, count, desc, eq, gte, sql } from 'drizzle-orm';
-import { db } from '$lib/server/db';
-import { adminUsersTable, contributionsTable } from '$lib/server/db/schema';
+import { db } from '#lib/server/db/index.js';
+import { adminUsersTable, contributionsTable } from '#lib/server/db/schema.js';
 import type { RequestHandler } from './$types';
 
 // Inlined from astro/src/lib/services/contribution-service.ts

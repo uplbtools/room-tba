@@ -1,34 +1,28 @@
-import type { ProposalCreateType } from '$lib/services/contribution/proposal-action';
-import { ORG_CATEGORIES, type OrgCategory } from '$lib/constants/content/categories/org';
-import { normalizePlaceCategory } from '$lib/constants/content/categories/place';
+import type { ProposalCreateType } from '#lib/services/contribution/proposal-action.js';
+import { ORG_CATEGORIES, type OrgCategory } from '#lib/constants/content/categories/org.js';
+import { normalizePlaceCategory } from '#lib/constants/content/categories/place.js';
 
 export type BundledRoomDraft = {
-  roomCode: string;
-  directions: string;
-  photoUrls: string[];
+	roomCode: string;
+	directions: string;
+	photoUrls: string[];
 };
 
-export function parseBundledRooms(
-  patch: Record<string, unknown>,
-): BundledRoomDraft[] {
-  if (!Array.isArray(patch.rooms)) return [];
-  const rooms: BundledRoomDraft[] = [];
-  for (const entry of patch.rooms) {
-    if (!entry || typeof entry !== "object") continue;
-    const row = entry as Record<string, unknown>;
-    const roomCode =
-      typeof row.roomCode === "string" ? row.roomCode.trim() : "";
-    if (!roomCode) continue;
-    const directions =
-      typeof row.directions === "string" ? row.directions.trim() : "";
-    const photoUrls = Array.isArray(row.photoUrls)
-      ? row.photoUrls.filter(
-          (value): value is string => typeof value === "string",
-        )
-      : [];
-    rooms.push({ roomCode, directions, photoUrls });
-  }
-  return rooms;
+export function parseBundledRooms(patch: Record<string, unknown>): BundledRoomDraft[] {
+	if (!Array.isArray(patch.rooms)) return [];
+	const rooms: BundledRoomDraft[] = [];
+	for (const entry of patch.rooms) {
+		if (!entry || typeof entry !== 'object') continue;
+		const row = entry as Record<string, unknown>;
+		const roomCode = typeof row.roomCode === 'string' ? row.roomCode.trim() : '';
+		if (!roomCode) continue;
+		const directions = typeof row.directions === 'string' ? row.directions.trim() : '';
+		const photoUrls = Array.isArray(row.photoUrls)
+			? row.photoUrls.filter((value): value is string => typeof value === 'string')
+			: [];
+		rooms.push({ roomCode, directions, photoUrls });
+	}
+	return rooms;
 }
 
 export function validateBundledRooms(rooms: BundledRoomDraft[], maxRooms = 20): void {

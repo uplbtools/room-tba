@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import ProposalReviewPanelHost from '@test/components/ProposalReviewPanelHost.svelte';
-import { adminAuthStore, proposalsStore } from '$lib/stores.svelte';
+import { adminAuthStore, proposalsStore } from '#lib/stores.svelte.js';
 import { mountAtWidth } from '@test/layout-assertions';
 
 function baseProposal() {

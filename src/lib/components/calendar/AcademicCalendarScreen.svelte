@@ -2,9 +2,9 @@
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
   import { fly } from "svelte/transition";
   import { MediaQuery } from "svelte/reactivity";
-  import { trapFocus } from "$lib/utils/focus-trap";
-  import { fullScreenReveal } from "$lib/utils/motion";
-  // import { sidebarStore, termStore } from "$lib/stores.svelte";
+  import { trapFocus } from "#lib/utils/focus-trap.js";
+  import { fullScreenReveal } from "#lib/utils/motion.js";
+  // import { sidebarStore, termStore } from "#lib/stores.svelte.js";
   import {
     buildEventTimeline,
     buildYearTimeline,
@@ -12,19 +12,19 @@
     resolveTermWindow,
     termWindowStatus,
     type TermStatus,
-  } from "$lib/utils/calendar/academic-calendar";
+  } from "#lib/utils/calendar/academic-calendar.js";
   import {
     holidaysWithin,
     milestonesForTerms,
     type CalendarMilestone,
     type MilestoneKind,
-  } from "$lib/utils/calendar/academic-milestones";
+  } from "#lib/utils/calendar/academic-milestones.js";
   import {
     formatShortDate,
     formatTermDateRange,
     toManilaDateKey,
-  } from "$lib/utils/term/term-calendar";
-  import { termChipLabel, termFullLabel } from "$lib/utils/term/term-label";
+  } from "#lib/utils/term/term-calendar.js";
+  import { termChipLabel, termFullLabel } from "#lib/utils/term/term-label.js";
  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 
   // One snapshot per open keeps the screen calm and static.

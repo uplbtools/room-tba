@@ -2,10 +2,10 @@ import { dismissEphemeralOverlays } from '../overlay-stack.js';
 import { campusBrowseQuery, type CampusBrowseTab } from './browse-campus-shared.js';
 
 export type { CampusBrowseTab } from './browse-campus-shared.js';
-import CampusBrowseList from '$lib/components/controls/CampusBrowseList.svelte';
-import ClassesList from '$lib/components/controls/ClassesList.svelte';
-import type searchInfo from '$lib/stores/searchInfo.svelte.js';
-import type SidePanelStore from '$lib/stores/ui/SidePanelStore.svelte.js';
+import CampusBrowseList from '#lib/components/controls/CampusBrowseList.svelte';
+import ClassesList from '#lib/components/controls/ClassesList.svelte';
+import type searchInfo from '#lib/stores/searchInfo.svelte.js';
+import type SidePanelStore from '#lib/stores/ui/SidePanelStore.svelte.js';
 
 // Both helpers name the panel themselves rather than leaving it to each caller.
 // `resolvePanelContent` would reach the same component from the query category,

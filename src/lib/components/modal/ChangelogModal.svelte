@@ -1,22 +1,22 @@
 <script lang="ts">
-  import { RefreshCw } from "@lucide/svelte";
-  import { syncToastStore, modalStore } from "$lib/stores.svelte";
-  import { APP_VERSION_LABEL } from "$lib/constants/versioning/version";
-  import { parseChangelogEntries } from "$lib/utils/changelog-highlights";
-  import { releaseTimestampLabel } from "$lib/utils/release-timestamps";
-  import changelogRaw from "../../../../CHANGELOG.md?raw";
-  import FollowUpdates from "$lib/components/community/FollowUpdates.svelte";
+	import { RefreshCw } from '@lucide/svelte';
+	import { syncToastStore, modalStore } from '#lib/stores.svelte.js';
+	import { APP_VERSION_LABEL } from '#lib/constants/versioning/version.js';
+	import { parseChangelogEntries } from '#lib/utils/changelog-highlights.js';
+	import { releaseTimestampLabel } from '#lib/utils/release-timestamps.js';
+	import changelogRaw from '../../../../CHANGELOG.md?raw';
+	import FollowUpdates from '#lib/components/community/FollowUpdates.svelte';
 
-  const entries = $derived(parseChangelogEntries(changelogRaw));
-  const hasUpdate = $derived(syncToastStore.needRefresh);
+	const entries = $derived(parseChangelogEntries(changelogRaw));
+	const hasUpdate = $derived(syncToastStore.needRefresh);
 
-  let reloading = $state(false);
+	let reloading = $state(false);
 
-  function confirmReload() {
-    reloading = true;
-    // Applies the waiting service worker and reloads to the new version.
-    syncToastStore.reload();
-  }
+	function confirmReload() {
+		reloading = true;
+		// Applies the waiting service worker and reloads to the new version.
+		syncToastStore.reload();
+	}
 </script>
 
 <div class="changelog-modal">

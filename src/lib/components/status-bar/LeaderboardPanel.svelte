@@ -1,7 +1,7 @@
 <script lang="ts">
-	import LoadingIndicator from '$lib/components/LoadingIndicator.svelte';
+	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	import { onMount } from 'svelte';
-	import type { LeaderboardRow } from '$lib/services/contribution/contributor-action';
+	import type { LeaderboardRow } from '#lib/services/contribution/contributor-action.js';
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);

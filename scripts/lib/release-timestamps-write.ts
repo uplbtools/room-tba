@@ -15,11 +15,9 @@
  * to lag: when it lacks a version, the UI already falls back to the date parsed
  * from the CHANGELOG heading.
  */
-export function canWriteReleaseTimestamps(
-  env: Record<string, string | undefined>,
-): boolean {
-  // Escape hatch for deliberately refreshing the committed fallback.
-  if (env.RELEASE_TIMESTAMPS_WRITE === "1") return true;
-  // GitHub Actions sets "true", Vercel sets "1". Neither commits the result.
-  return env.CI === "true" || env.CI === "1";
+export function canWriteReleaseTimestamps(env: Record<string, string | undefined>): boolean {
+	// Escape hatch for deliberately refreshing the committed fallback.
+	if (env.RELEASE_TIMESTAMPS_WRITE === '1') return true;
+	// GitHub Actions sets "true", Vercel sets "1". Neither commits the result.
+	return env.CI === 'true' || env.CI === '1';
 }

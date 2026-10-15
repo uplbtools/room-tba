@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/svelte';
 import { describe, test } from 'vitest';
-import EntityDirectionsChip from '$lib/components/controls/EntityDirectionsChip.svelte';
+import EntityDirectionsChip from '#lib/components/controls/EntityDirectionsChip.svelte';
 import { expectSingleLineButton, mountAtWidth } from '@test/layout-assertions';
 
 describe('EntityDirectionsChip', () => {

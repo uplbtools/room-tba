@@ -1,9 +1,8 @@
-import { getJSONFetch } from '$lib/utils/local/data/utils';
-import { resolveDefaultTermFromList, resolveInitialTermId } from '$lib/utils/term/term-calendar';
-import { parseTermIdFromSearch, syncTermQueryParam } from '$lib/utils/term/term-url';
-import type { TermWithCount } from '$lib/utils/types';
+import { getJSONFetch } from '#lib/utils/local/data/utils.js';
+import { resolveDefaultTermFromList, resolveInitialTermId } from '#lib/utils/term/term-calendar.js';
+import { parseTermIdFromSearch, syncTermQueryParam } from '#lib/utils/term/term-url.js';
+import type { TermWithCount } from '#lib/utils/types';
 import { ACTIVE_TERM_LS_KEY } from '../store-types';
-
 
 export default class TermStore {
 	terms = $state<TermWithCount[]>([]);
@@ -22,7 +21,8 @@ export default class TermStore {
 			const terms = await getJSONFetch<TermWithCount[]>('/api/terms');
 			this.terms = terms;
 
-			const fromUrl = typeof window !== 'undefined' ? parseTermIdFromSearch(window.location.search) : null;
+			const fromUrl =
+				typeof window !== 'undefined' ? parseTermIdFromSearch(window.location.search) : null;
 
 			const storedRaw = localStorage.getItem(ACTIVE_TERM_LS_KEY);
 			const stored = storedRaw !== null ? Number(storedRaw) : NaN;

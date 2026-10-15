@@ -2,7 +2,11 @@
 // screenshot library. Reuses the same schedule parsers and block colors as the
 // live grid, so the image matches what the planner shows and needs no new dep.
 
-import { getPlannerBlockColor, parseDays, parseScheduleTime } from '$lib/utils/schedule-renderer';
+import {
+	getPlannerBlockColor,
+	parseDays,
+	parseScheduleTime
+} from '#lib/utils/schedule-renderer.js';
 import type { PlannerPlan } from './types';
 
 export type PlanBlock = {

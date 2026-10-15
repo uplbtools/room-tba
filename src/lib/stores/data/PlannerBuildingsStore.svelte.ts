@@ -1,4 +1,4 @@
-import { getLocalRoomByCode, getJSONFetch } from '$lib/utils/local/data/utils';
+import { getLocalRoomByCode, getJSONFetch } from '#lib/utils/local/data/utils.js';
 
 /**
  * Building ids for the rooms in the user's active planner plan. Powers the
@@ -26,9 +26,10 @@ export default class PlannerBuildingsStore {
 		let buildingId: number | null = null;
 		try {
 			const local = await getLocalRoomByCode(roomCode);
-			const room = local ??
+			const room =
+				local ??
 				(
-					await getJSONFetch<{ data: { buildingId: number | null; } | null; }>(
+					await getJSONFetch<{ data: { buildingId: number | null } | null }>(
 						`/api/rooms?code=${encodeURIComponent(roomCode)}`
 					)
 				).data;

@@ -1,5 +1,5 @@
-import { getJSONFetch } from '$lib/utils/local/data/utils';
-import type { ClassMapValue } from '$lib/utils/types';
+import { getJSONFetch } from '#lib/utils/local/data/utils.js';
+import type { ClassMapValue } from '#lib/utils/types';
 
 export type ClassQueryPage = {
 	rows: ClassMapValue[];

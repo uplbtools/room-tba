@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/svelte';
 import { afterEach, describe, expect, test } from 'vitest';
 import JeepneyRouteModal from './JeepneyRouteModal.svelte';
-import { jeepneyStore } from '$lib/stores.svelte';
-import { JEEPNEY_ROUTES } from '$lib/constants/map/jeepney-routes';
+import { jeepneyStore } from '#lib/stores.svelte.js';
+import { JEEPNEY_ROUTES } from '#lib/constants/map/jeepney-routes.js';
 import { expectNoHorizontalOverflow, mountAtWidth } from '@test/layout-assertions';
 
 afterEach(() => {

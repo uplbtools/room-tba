@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test } from 'vitest';
 import MapViewControls from './MapViewControls.svelte';
-import { map, plannerStore, termStore } from '$lib/stores.svelte';
+import { map, plannerStore, termStore } from '#lib/stores.svelte.js';
 import { mountAtWidth } from '@test/layout-assertions';
 
 describe('MapViewControls My classes toggle', () => {

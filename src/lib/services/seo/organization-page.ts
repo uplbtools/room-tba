@@ -1,9 +1,13 @@
 import { error } from '@sveltejs/kit';
-import type { EntityIndexItem, SeoData } from '$lib/components/seo/seo-data';
-import { isStudentOrganization, orgCategoryLabel } from '$lib/constants/content/categories/org';
-import { entityIndexPath, getOrganizationCanonicalPath, parseRouteSlug } from '$lib/utils/entity/entity-urls';
-import { getAllOrganizations } from '$lib/services/entity/map-data';
-import { getOrganizationPageData } from '$lib/services/page-data/entity';
+import type { EntityIndexItem, SeoData } from '#lib/components/seo/seo-data.js';
+import { isStudentOrganization, orgCategoryLabel } from '#lib/constants/content/categories/org.js';
+import {
+	entityIndexPath,
+	getOrganizationCanonicalPath,
+	parseRouteSlug
+} from '#lib/utils/entity/entity-urls.js';
+import { getAllOrganizations } from '#lib/services/entity/map-data.js';
+import { getOrganizationPageData } from '#lib/services/page-data/entity.js';
 import {
 	absoluteUrl,
 	breadcrumbSchema,
@@ -11,7 +15,7 @@ import {
 	ogCardPath,
 	ogImageUrl,
 	webpageSchema
-} from '$lib/utils/site';
+} from '#lib/utils/site.js';
 
 /** Shared by /organization/[slug] and /unit/[slug] — identical in Astro. */
 export async function loadOrganizationPage(slug: string) {

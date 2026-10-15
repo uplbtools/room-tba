@@ -1,15 +1,15 @@
 import { timingSafeEqual } from 'node:crypto';
-import { env } from '$env/dynamic/private';
-import { sendProposalDigest } from '$lib/services/email/digest';
+import { CRON_SECRET } from '$app/env/private';
+import { sendProposalDigest } from '#lib/services/email/digest.js';
 import type { RequestHandler } from './$types';
 
 /** Daily editor digest of pending proposals (#272). Invoked by Vercel Cron. */
 export const GET: RequestHandler = async ({ request }) => {
-	if (!env.CRON_SECRET) {
+	if (!CRON_SECRET) {
 		return json({ error: 'Cron is not configured on this server.' }, 503);
 	}
 	const authHeader = request.headers.get('authorization') ?? '';
-	const expected = `Bearer ${env.CRON_SECRET}`;
+	const expected = `Bearer ${CRON_SECRET}`;
 	const authBuf = Buffer.from(authHeader);
 	const expectedBuf = Buffer.from(expected);
 	if (authBuf.length !== expectedBuf.length || !timingSafeEqual(authBuf, expectedBuf)) {

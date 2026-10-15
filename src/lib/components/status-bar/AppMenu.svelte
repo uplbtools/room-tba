@@ -1,209 +1,202 @@
 <script lang="ts">
-  import Menu from "@lucide/svelte/icons/menu";
-  import Keyboard from "@lucide/svelte/icons/keyboard";
-  import ChartColumn from "@lucide/svelte/icons/chart-column";
-  import FileText from "@lucide/svelte/icons/file-text";
-  import LifeBuoy from "@lucide/svelte/icons/life-buoy";
-  import CircleHelp from "@lucide/svelte/icons/circle-help";
-  import Inbox from "@lucide/svelte/icons/inbox";
-  import CalendarDays from "@lucide/svelte/icons/calendar-days";
-  import CalendarClock from "@lucide/svelte/icons/calendar-clock";
-  import UserRound from "@lucide/svelte/icons/user-round";
-  import { onMount } from "svelte";
-  import { formatCatalogUpdatedDate } from "$lib/constants/versioning/data-catalog";
-  import { APP_VERSION_LABEL } from "$lib/constants/versioning/version";
-  import { statusBarNavGroups } from "$lib/constants/content/links/status-bar"
-  import { trapFocus } from "$lib/utils/focus-trap";
-  import { openShortcutsHelp } from "$lib/utils/keyboard-shortcuts";
-  import { portal } from "$lib/utils/portal";
-  import {
-    registerEphemeralOverlayDismisser,
-    openEphemeralOverlay,
-  } from "$lib/utils/overlay-stack";
-  import { rafThrottle } from "$lib/utils/layout-css-vars";
-  import {
-    adminAuthStore,
-    mapToolsStore,
-    modalStore,
-    proposalsStore,
-    sidebarStore,
-    toastStore,
-  } from "$lib/stores.svelte";
-  import OfflineMaps from "$lib/components/OfflineMaps.svelte";
-  import PWAInstallPrompt from "$lib/components/PWAInstallPrompt.svelte";
-  import MapChromeSession from "$lib/components/map-chrome/MapChromeSession.svelte";
-  import KeyboardShortcutsChip from "$lib/components/map-chrome/KeyboardShortcutsPopup.svelte";
-  import StatusBarLinkGroups from "./StatusBarLinkGroups.svelte";
-  import "../map-chrome/map-chrome.css";
+	import Menu from '@lucide/svelte/icons/menu';
+	import Keyboard from '@lucide/svelte/icons/keyboard';
+	import ChartColumn from '@lucide/svelte/icons/chart-column';
+	import FileText from '@lucide/svelte/icons/file-text';
+	import LifeBuoy from '@lucide/svelte/icons/life-buoy';
+	import CircleHelp from '@lucide/svelte/icons/circle-help';
+	import Inbox from '@lucide/svelte/icons/inbox';
+	import CalendarDays from '@lucide/svelte/icons/calendar-days';
+	import CalendarClock from '@lucide/svelte/icons/calendar-clock';
+	import UserRound from '@lucide/svelte/icons/user-round';
+	import { onMount } from 'svelte';
+	import { formatCatalogUpdatedDate } from '#lib/constants/versioning/data-catalog.js';
+	import { APP_VERSION_LABEL } from '#lib/constants/versioning/version.js';
+	import { statusBarNavGroups } from '#lib/constants/content/links/status-bar.js';
+	import { trapFocus } from '#lib/utils/focus-trap.js';
+	import { openShortcutsHelp } from '#lib/utils/keyboard-shortcuts.js';
+	import { portal } from '#lib/utils/portal.js';
+	import {
+		registerEphemeralOverlayDismisser,
+		openEphemeralOverlay
+	} from '#lib/utils/overlay-stack.js';
+	import { rafThrottle } from '#lib/utils/layout-css-vars.js';
+	import {
+		adminAuthStore,
+		mapToolsStore,
+		modalStore,
+		proposalsStore,
+		sidebarStore,
+		toastStore
+	} from '#lib/stores.svelte.js';
+	import OfflineMaps from '#lib/components/OfflineMaps.svelte';
+	import PWAInstallPrompt from '#lib/components/PWAInstallPrompt.svelte';
+	import MapChromeSession from '#lib/components/map-chrome/MapChromeSession.svelte';
+	import KeyboardShortcutsChip from '#lib/components/map-chrome/KeyboardShortcutsPopup.svelte';
+	import StatusBarLinkGroups from './StatusBarLinkGroups.svelte';
+	import '../map-chrome/map-chrome.css';
 
-  type Props = {
-    /** Optional so the menu can be dropped into any chrome without each host
+	type Props = {
+		/** Optional so the menu can be dropped into any chrome without each host
         re-implementing sign-out. */
-    onSignOut?: () => void | Promise<void>;
-  };
+		onSignOut?: () => void | Promise<void>;
+	};
 
-  const { onSignOut = defaultSignOut }: Props = $props();
+	const { onSignOut = defaultSignOut }: Props = $props();
 
-  async function defaultSignOut() {
-    await adminAuthStore.logout();
-    toastStore.show("Signed out.", "info");
-  }
+	async function defaultSignOut() {
+		await adminAuthStore.logout();
+		toastStore.show('Signed out.', 'info');
+	}
 
-  function handleScreen(id: "today" | "calendar") {
-    sidebarStore.changeOpened(id);
-    closePanel();
-  }
+	function handleScreen(id: 'today' | 'calendar') {
+		sidebarStore.changeOpened(id);
+		closePanel();
+	}
 
-  function handleSignIn() {
-    if (adminAuthStore.username) {
-      adminAuthStore.openAccountSettings();
-    } else {
-      adminAuthStore.openLogin("signin");
-    }
-    closePanel();
-  }
+	function handleSignIn() {
+		if (adminAuthStore.username) {
+			adminAuthStore.openAccountSettings();
+		} else {
+			adminAuthStore.openLogin('signin');
+		}
+		closePanel();
+	}
 
-  let open = $state(false);
-  let triggerEl = $state<HTMLButtonElement | null>(null);
-  let panelEl = $state<HTMLDivElement | null>(null);
-  let panelStyle = $state("");
+	let open = $state(false);
+	let triggerEl = $state<HTMLButtonElement | null>(null);
+	let panelEl = $state<HTMLDivElement | null>(null);
+	let panelStyle = $state('');
 
-  const contributorSession = $derived(
-    adminAuthStore.isLoggedIn &&
-      !adminAuthStore.canPublish &&
-      !adminAuthStore.canReview,
-  );
-  const sessionDisplayName = $derived(
-    adminAuthStore.displayName ?? adminAuthStore.username ?? "Contributor",
-  );
-  const sessionRoleLabel = $derived(
-    adminAuthStore.role === "admin"
-      ? "Admin"
-      : adminAuthStore.role === "editor"
-        ? "Editor"
-        : "Contributor",
-  );
-  const catalogUpdatedLabel = formatCatalogUpdatedDate();
-  const navGroups = $derived(
-    statusBarNavGroups({
-      versionLabel: APP_VERSION_LABEL,
-      showEditorLogin: !adminAuthStore.isLoggedIn,
-    }),
-  );
+	const contributorSession = $derived(
+		adminAuthStore.isLoggedIn && !adminAuthStore.canPublish && !adminAuthStore.canReview
+	);
+	const sessionDisplayName = $derived(
+		adminAuthStore.displayName ?? adminAuthStore.username ?? 'Contributor'
+	);
+	const sessionRoleLabel = $derived(
+		adminAuthStore.role === 'admin'
+			? 'Admin'
+			: adminAuthStore.role === 'editor'
+				? 'Editor'
+				: 'Contributor'
+	);
+	const catalogUpdatedLabel = formatCatalogUpdatedDate();
+	const navGroups = $derived(
+		statusBarNavGroups({
+			versionLabel: APP_VERSION_LABEL,
+			showEditorLogin: !adminAuthStore.isLoggedIn
+		})
+	);
 
-  onMount(() => {
-    const unregisterDismiss = registerEphemeralOverlayDismisser(() => {
-      open = false;
-    });
-    return unregisterDismiss;
-  });
+	onMount(() => {
+		const unregisterDismiss = registerEphemeralOverlayDismisser(() => {
+			open = false;
+		});
+		return unregisterDismiss;
+	});
 
-  function updatePanelPosition() {
-    if (!open || !triggerEl) return;
-    const rect = triggerEl.getBoundingClientRect();
-    const width = Math.min(22 * 16, window.innerWidth - 16);
-    const left = Math.min(
-      Math.max(8, rect.left),
-      window.innerWidth - width - 8,
-    );
-    // Anchor away from whichever edge the trigger sits against. Fixed `bottom`
-    // is right for a bottom bar but throws the panel off the top of the screen
-    // when the trigger lives in the desktop top bar.
-    if (rect.top < window.innerHeight / 2) {
-      const top = Math.min(rect.bottom + 8, window.innerHeight - 8);
-      panelStyle = `left: ${left}px; top: ${top}px; bottom: auto; max-height: ${Math.max(120, window.innerHeight - top - 8)}px; width: ${width}px;`;
-      return;
-    }
-    const bottom = Math.max(8, window.innerHeight - rect.top + 8);
-    panelStyle = `left: ${left}px; bottom: ${bottom}px; width: ${width}px;`;
-  }
+	function updatePanelPosition() {
+		if (!open || !triggerEl) return;
+		const rect = triggerEl.getBoundingClientRect();
+		const width = Math.min(22 * 16, window.innerWidth - 16);
+		const left = Math.min(Math.max(8, rect.left), window.innerWidth - width - 8);
+		// Anchor away from whichever edge the trigger sits against. Fixed `bottom`
+		// is right for a bottom bar but throws the panel off the top of the screen
+		// when the trigger lives in the desktop top bar.
+		if (rect.top < window.innerHeight / 2) {
+			const top = Math.min(rect.bottom + 8, window.innerHeight - 8);
+			panelStyle = `left: ${left}px; top: ${top}px; bottom: auto; max-height: ${Math.max(120, window.innerHeight - top - 8)}px; width: ${width}px;`;
+			return;
+		}
+		const bottom = Math.max(8, window.innerHeight - rect.top + 8);
+		panelStyle = `left: ${left}px; bottom: ${bottom}px; width: ${width}px;`;
+	}
 
-  $effect(() => {
-    if (!open) return;
-    updatePanelPosition();
-    const handleLayout = rafThrottle(updatePanelPosition);
-    window.addEventListener("resize", handleLayout);
-    window.addEventListener("scroll", handleLayout, true);
-    return () => {
-      window.removeEventListener("resize", handleLayout);
-      window.removeEventListener("scroll", handleLayout, true);
-    };
-  });
+	$effect(() => {
+		if (!open) return;
+		updatePanelPosition();
+		const handleLayout = rafThrottle(updatePanelPosition);
+		window.addEventListener('resize', handleLayout);
+		window.addEventListener('scroll', handleLayout, true);
+		return () => {
+			window.removeEventListener('resize', handleLayout);
+			window.removeEventListener('scroll', handleLayout, true);
+		};
+	});
 
-  function toggleOpen() {
-    if (!open) {
-      openEphemeralOverlay(() => {
-        mapToolsStore.close();
-        open = true;
-        queueMicrotask(updatePanelPosition);
-      });
-      return;
-    }
-    open = false;
-  }
+	function toggleOpen() {
+		if (!open) {
+			openEphemeralOverlay(() => {
+				mapToolsStore.close();
+				open = true;
+				queueMicrotask(updatePanelPosition);
+			});
+			return;
+		}
+		open = false;
+	}
 
-  function closePanel() {
-    open = false;
-  }
+	function closePanel() {
+		open = false;
+	}
 
-  $effect(() => {
-    if (!open || !panelEl) return;
-    return trapFocus(panelEl, { onEscape: closePanel });
-  });
+	$effect(() => {
+		if (!open || !panelEl) return;
+		return trapFocus(panelEl, { onEscape: closePanel });
+	});
 
-  function handleDocumentPointerDown(event: PointerEvent) {
-    if (!open) return;
-    const target = event.target;
-    if (!(target instanceof Node)) return;
-    if (triggerEl?.contains(target)) return;
-    if (panelEl?.contains(target)) return;
-    if (target instanceof Element && target.closest("#offline-maps-dialog")) {
-      return;
-    }
-    closePanel();
-  }
+	function handleDocumentPointerDown(event: PointerEvent) {
+		if (!open) return;
+		const target = event.target;
+		if (!(target instanceof Node)) return;
+		if (triggerEl?.contains(target)) return;
+		if (panelEl?.contains(target)) return;
+		if (target instanceof Element && target.closest('#offline-maps-dialog')) {
+			return;
+		}
+		closePanel();
+	}
 
-  function handleNavAction(
-    id: "contributors" | "editor-login" | "leaderboard" | "sign-up",
-  ) {
-    if (id === "contributors") {
-      modalStore.openModal("landing", { landingTab: "campus" });
-      closePanel();
-      return;
-    }
-    if (id === "leaderboard") {
-      modalStore.openModal("leaderboard");
-      closePanel();
-      return;
-    }
-    adminAuthStore.openLogin(id === "sign-up" ? "signup" : "signin");
-    closePanel();
-  }
+	function handleNavAction(id: 'contributors' | 'editor-login' | 'leaderboard' | 'sign-up') {
+		if (id === 'contributors') {
+			modalStore.openModal('landing', { landingTab: 'campus' });
+			closePanel();
+			return;
+		}
+		if (id === 'leaderboard') {
+			modalStore.openModal('leaderboard');
+			closePanel();
+			return;
+		}
+		adminAuthStore.openLogin(id === 'sign-up' ? 'signup' : 'signin');
+		closePanel();
+	}
 
-  function handleShortcutsHelp() {
-    closePanel();
-    openShortcutsHelp();
-  }
+	function handleShortcutsHelp() {
+		closePanel();
+		openShortcutsHelp();
+	}
 
-  function handleWhatsNew() {
-    closePanel();
-    modalStore.openModal("changelog");
-  }
+	function handleWhatsNew() {
+		closePanel();
+		modalStore.openModal('changelog');
+	}
 
-  function handleCoverage() {
-    closePanel();
-    modalStore.openModal("coverage");
-  }
+	function handleCoverage() {
+		closePanel();
+		modalStore.openModal('coverage');
+	}
 
-  function handleHowItWorks() {
-    closePanel();
-    modalStore.openModal("landing", { landingTab: "welcome" });
-  }
+	function handleHowItWorks() {
+		closePanel();
+		modalStore.openModal('landing', { landingTab: 'welcome' });
+	}
 
-  function handleReview() {
-    closePanel();
-    modalStore.openModal("review");
-  }
+	function handleReview() {
+		closePanel();
+		modalStore.openModal('review');
+	}
 </script>
 
 <svelte:window onpointerdown={handleDocumentPointerDown} />

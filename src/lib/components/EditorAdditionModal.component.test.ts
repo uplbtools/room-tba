@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/svelte';
 import { afterEach, describe, expect, test } from 'vitest';
 import EditorAdditionModal from '@test/components/EditorAdditionModalHost.svelte';
-import { editorChromeStore } from '$lib/stores.svelte';
+import { editorChromeStore } from '#lib/stores.svelte.js';
 
 /**
  * #836: the "Add to map" popup stayed open when clicking outside it, unlike

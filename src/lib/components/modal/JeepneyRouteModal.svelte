@@ -1,58 +1,53 @@
 <script lang="ts">
-  import ChevronLeft from "@lucide/svelte/icons/chevron-left";
-  import MapPinned from "@lucide/svelte/icons/map-pinned";
-  import { jeepneyStore, modalStore, transitStore } from "$lib/stores.svelte";
-  import {
-    JEEPNEY_FARE_NOTE,
-    resolveRouteGeometry,
-    type StoredRouteGeometry,
-  } from "$lib/constants/map/jeepney-routes";
-  import jeepneyGeometries from "$lib/constants/map/jeepney-geometries.json";
-  import { getJeepneyRouteShareUrl } from "$lib/utils/share-links";
-  import EntityShareCopyLink from "../controls/EntityShareCopyLink.svelte";
-  import TransitStopEditor from "../controls/TransitStopEditor.svelte";
+	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+	import MapPinned from '@lucide/svelte/icons/map-pinned';
+	import { jeepneyStore, modalStore, transitStore } from '#lib/stores.svelte.js';
+	import {
+		JEEPNEY_FARE_NOTE,
+		resolveRouteGeometry,
+		type StoredRouteGeometry
+	} from '#lib/constants/map/jeepney-routes.js';
+	import jeepneyGeometries from '#lib/constants/map/jeepney-geometries.json';
+	import { getJeepneyRouteShareUrl } from '#lib/utils/share-links';
+	import EntityShareCopyLink from '../controls/EntityShareCopyLink.svelte';
+	import TransitStopEditor from '../controls/TransitStopEditor.svelte';
 
-  type Props = {
-    routeId?: string | null;
-    onback?: () => void;
-  };
+	type Props = {
+		routeId?: string | null;
+		onback?: () => void;
+	};
 
-  let { routeId = null, onback }: Props = $props();
+	let { routeId = null, onback }: Props = $props();
 
-  const route = $derived(
-    transitStore.getRoute(routeId ?? jeepneyStore.modalRouteId),
-  );
+	const route = $derived(transitStore.getRoute(routeId ?? jeepneyStore.modalRouteId));
 
-  // Say so when the drawn line is inferred rather than traced from the
-  // operator's mapped route; riders plan around these lines.
-  const geometryNote = $derived(
-    route
-      ? resolveRouteGeometry(
-          route,
-          jeepneyGeometries as Record<string, StoredRouteGeometry>,
-        ).caveat
-      : null,
-  );
+	// Say so when the drawn line is inferred rather than traced from the
+	// operator's mapped route; riders plan around these lines.
+	const geometryNote = $derived(
+		route
+			? resolveRouteGeometry(route, jeepneyGeometries as Record<string, StoredRouteGeometry>).caveat
+			: null
+	);
 
-  function viewOnMap() {
-    if (!route) return;
-    jeepneyStore.openRouteOnMap(route.id);
-    modalStore.closeModal();
-  }
+	function viewOnMap() {
+		if (!route) return;
+		jeepneyStore.openRouteOnMap(route.id);
+		modalStore.closeModal();
+	}
 
-  function showStop(index: number) {
-    if (!route) return;
-    // openStop bails when no route is selected on the map, and openRouteOnMap
-    // clears the stop when the route changes, so the route has to come first.
-    // The side-panel copy (routeId set) is already showing this route, and its
-    // container swaps to JeepneyStopPanel on its own, so there is nothing to
-    // select and no modal to dismiss.
-    if (routeId === null) {
-      jeepneyStore.openRouteOnMap(route.id);
-      modalStore.closeModal();
-    }
-    jeepneyStore.openStop(index);
-  }
+	function showStop(index: number) {
+		if (!route) return;
+		// openStop bails when no route is selected on the map, and openRouteOnMap
+		// clears the stop when the route changes, so the route has to come first.
+		// The side-panel copy (routeId set) is already showing this route, and its
+		// container swaps to JeepneyStopPanel on its own, so there is nothing to
+		// select and no modal to dismiss.
+		if (routeId === null) {
+			jeepneyStore.openRouteOnMap(route.id);
+			modalStore.closeModal();
+		}
+		jeepneyStore.openStop(index);
+	}
 </script>
 
 {#if route}

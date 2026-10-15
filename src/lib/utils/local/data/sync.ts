@@ -1,6 +1,6 @@
 import type { Results } from '@electric-sql/pglite';
-import type { JeepneyRoute } from '$lib/constants/map/jeepney-routes';
-// import { syncToastStore } from '$lib/stores.svelte';
+import type { JeepneyRoute } from '#lib/constants/map/jeepney-routes.js';
+// import { syncToastStore } from '#lib/stores.svelte.js';
 import type {
 	AnnouncementData,
 	Building,
@@ -12,8 +12,8 @@ import type {
 	PlaceData,
 	Room,
 	TableSyncInfo
-} from '$lib/utils/types';
-import { normalizeEntityPhotos } from '$lib/utils/entity/entity-photos';
+} from '#lib/utils/types';
+import { normalizeEntityPhotos } from '#lib/utils/entity/entity-photos.js';
 import { getDB } from './pgliteDB';
 import { getSyncKey, getSyncKeysFromLs } from './sync-keys';
 
@@ -1030,15 +1030,12 @@ export async function checkLocalDivisionRoom(id: number) {
 	// 	const remoteSyncKey = await getSyncKey('rooms');
 	// 	const divisionSyncStatus = await localDivisionSyncStatus(id);
 	// 	const roomsFetched = !!divisionSyncStatus?.roomsFetched;
-
 	// 	// Offline: trust local cache instead of wiping it (#169).
 	// 	if (remoteSyncKey === null) return roomsFetched;
-
 	// 	if (!roomsSyncKeyMatches(remoteSyncKey)) {
 	// 		await resetDivisionsSyncStatus();
 	// 		return false;
 	// 	}
-
 	// 	return roomsFetched;
 	// } catch (e) {
 	// 	console.error(e);
@@ -1054,22 +1051,22 @@ export async function syncDivisionRooms(validSync: boolean, id: number, rooms: R
 	// 	try {
 	// 		await localDB.query(
 	// 			`
-    //          INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id, image_url, photos, version, updated_at, category, full_name)
-    //          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-    //          ON CONFLICT (id) DO UPDATE SET
-    //          id = EXCLUDED.id,
-    //          room_code = EXCLUDED.room_code,
-    //          directions = EXCLUDED.directions,
-    //          building_id = EXCLUDED.building_id,
-    //          college_id = EXCLUDED.college_id,
-    //          division_id = EXCLUDED.division_id,
-    //          image_url = EXCLUDED.image_url,
-    //          photos = EXCLUDED.photos,
-    //          version = EXCLUDED.version,
-    //          updated_at = EXCLUDED.updated_at,
-    //          category = EXCLUDED.category,
-    //          full_name = EXCLUDED.full_name;
-    //         `,
+	//          INSERT INTO rooms (id, room_code, directions, building_id, college_id, division_id, image_url, photos, version, updated_at, category, full_name)
+	//          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+	//          ON CONFLICT (id) DO UPDATE SET
+	//          id = EXCLUDED.id,
+	//          room_code = EXCLUDED.room_code,
+	//          directions = EXCLUDED.directions,
+	//          building_id = EXCLUDED.building_id,
+	//          college_id = EXCLUDED.college_id,
+	//          division_id = EXCLUDED.division_id,
+	//          image_url = EXCLUDED.image_url,
+	//          photos = EXCLUDED.photos,
+	//          version = EXCLUDED.version,
+	//          updated_at = EXCLUDED.updated_at,
+	//          category = EXCLUDED.category,
+	//          full_name = EXCLUDED.full_name;
+	//         `,
 	// 			[
 	// 				room.id,
 	// 				room.code,
@@ -1110,19 +1107,17 @@ export async function syncAliasCache() {
 	// 	};
 	// 	const rows = payload.data;
 	// 	if (!Array.isArray(rows)) return;
-
 	// 	const localDB = await getDB();
 	// 	await localDB.waitReady;
 	// 	await localDB.exec('DELETE FROM aliases');
 	// 	if (rows.length === 0) return;
-
 	// 	syncToastStore.startAliasesSync(rows.length);
 	// 	for (const row of rows) {
 	// 		await localDB.query(
 	// 			`
-    //     INSERT INTO aliases (id, alias, normalized_alias, target_type, target_id, building_name)
-    //     VALUES ($1, $2, $3, $4, $5, $6);
-    //     `,
+	//     INSERT INTO aliases (id, alias, normalized_alias, target_type, target_id, building_name)
+	//     VALUES ($1, $2, $3, $4, $5, $6);
+	//     `,
 	// 			[row.id, row.alias, row.normalizedAlias, row.targetType, row.targetId, row.value]
 	// 		);
 	// 		syncToastStore.updateAliasesSync();
@@ -1135,25 +1130,23 @@ export async function syncAliasCache() {
 /** Sync classes into PGlite cache (#231). */
 export async function syncClasses(
 	checker: TableSyncInfo,
-	remoteClasses: import('$lib/utils/types').ClassMapValue[],
+	remoteClasses: import('#lib/utils/types').ClassMapValue[],
 	trustedRemote = false
 ) {
 	// syncToastStore.markWritingPhase('classes');
 	// if (!trustedRemote) return;
 	// if (checker.newKey === null) return;
-
 	// const localDB = await getDB();
 	// await localDB.waitReady;
 	// syncToastStore.startClassesSync(remoteClasses.length);
-
 	// try {
 	// 	await localDB.exec('DELETE FROM classes');
 	// 	for (const c of remoteClasses) {
 	// 		await localDB.query(
 	// 			`
-    //     INSERT INTO classes (id, course_code, section, type, schedule, directions, course_title, term_id, room_id)
-    //     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
-    //     `,
+	//     INSERT INTO classes (id, course_code, section, type, schedule, directions, course_title, term_id, room_id)
+	//     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+	//     `,
 	// 			[
 	// 				c.id,
 	// 				c.courseCode,

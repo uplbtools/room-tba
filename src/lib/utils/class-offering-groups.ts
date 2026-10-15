@@ -1,4 +1,4 @@
-import type { ClassMapValue } from '$lib/utils/types';
+import type { ClassMapValue } from '#lib/utils/types';
 
 export type ClassOfferingGroup = {
 	key: string;

@@ -1,8 +1,8 @@
-import { getDormRouteSlug } from '$lib/utils/app-data';
-import type { EntityIndexItem, SeoData } from '$lib/components/seo/seo-data';
-import { entityIndexPath, getDormCanonicalPath } from '$lib/utils/entity/entity-urls';
-import { getAllDorms } from '$lib/services/entity/map-data';
-import { breadcrumbSchema, jsonLd, webpageSchema } from '$lib/utils/site';
+import { getDormRouteSlug } from '#lib/utils/app-data.js';
+import type { EntityIndexItem, SeoData } from '#lib/components/seo/seo-data.js';
+import { entityIndexPath, getDormCanonicalPath } from '#lib/utils/entity/entity-urls.js';
+import { getAllDorms } from '#lib/services/entity/map-data.js';
+import { breadcrumbSchema, jsonLd, webpageSchema } from '#lib/utils/site.js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {

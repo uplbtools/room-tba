@@ -1,21 +1,27 @@
 import type * as maplibre from 'maplibre-gl';
-import { CAMPUS_DEFAULT_CAMERA, CAMPUS_MAX_BOUNDS, DEFAULT_TERRAIN_EXAGGERATION, TERRAIN_ENABLED } from '$lib/constants/map/terrain.js';
+import {
+	CAMPUS_DEFAULT_CAMERA,
+	CAMPUS_MAX_BOUNDS,
+	DEFAULT_TERRAIN_EXAGGERATION,
+	TERRAIN_ENABLED
+} from '#lib/constants/map/terrain.js';
 import { dismissEphemeralOverlays } from '../../utils/overlay-stack.js';
 import { deactivateMapModesExcept } from './map-modes.js';
 import type { MapToolsSection, TerrainStatus } from '../store-types.js';
-import { calculatePadding } from '$lib/utils/map/navigate.js';
+import { calculatePadding } from '#lib/utils/map/navigate.js';
 import { MediaQuery } from 'svelte/reactivity';
-// import { isMap2DPitch, THREE_D_PITCH } from '$lib/constants/map/dimension.js';
-// import { enterFlatMapDimension, enterTiltedMapDimension } from '$lib/utils/map/map-dimension-layers.js';
-// import { terrainStore } from '$lib/stores.svelte.js';
+// import { isMap2DPitch, THREE_D_PITCH } from '#lib/constants/map/dimension.js';
+// import { enterFlatMapDimension, enterTiltedMapDimension } from '#lib/utils/map/map-dimension-layers.js';
+// import { terrainStore } from '#lib/stores.svelte.js';
 
-type MarkerFilter = "events" | "buildings" | "orgs" | "places" | "all";
+type MarkerFilter = 'events' | 'buildings' | 'orgs' | 'places' | 'all';
 
-
-type FlyToParams = Parameters<Exclude<maplibre.MapLibreMap["flyTo"], "undefined">>
+type FlyToParams = Parameters<Exclude<maplibre.MapLibreMap['flyTo'], 'undefined'>>;
 type FlyToOptions = FlyToParams[0];
-type InitialMapOptions = Pick<maplibre.MapOptions, "center" | "zoom" | "pitch" | "bounds" |  "bearing">
-
+type InitialMapOptions = Pick<
+	maplibre.MapOptions,
+	'center' | 'zoom' | 'pitch' | 'bounds' | 'bearing'
+>;
 
 export class MapStore {
 	private static SIDEPANEL_WIDTH = 4 * 96;
@@ -42,50 +48,49 @@ export class MapStore {
 	}
 
 	public getRawInstance = () => this.mapInstance;
-	public setRawInstance = (v : maplibre.MapLibreMap | undefined) => this.mapInstance = v;
+	public setRawInstance = (v: maplibre.MapLibreMap | undefined) => (this.mapInstance = v);
 
 	public setZoomLevel(zoomLevel: number) {
 		this.zoomLevel = zoomLevel;
 	}
 
 	public init(newOptions: InitialMapOptions) {
-		this.options = {...this.options, ...newOptions}
+		this.options = { ...this.options, ...newOptions };
 	}
-
 
 	public flyTo(...flyToParams: FlyToParams) {
 		if (!this.mapInstance) return;
-		this.mapInstance.flyTo(...flyToParams)
+		this.mapInstance.flyTo(...flyToParams);
 	}
 
-	public centerMarker(center: FlyToOptions["center"], zoom?: FlyToOptions["zoom"]) {
+	public centerMarker(center: FlyToOptions['center'], zoom?: FlyToOptions['zoom']) {
 		if (!this.mapInstance) return;
 		this.mapInstance.flyTo({
 			center,
-			duration:1000,
+			duration: 1000,
 			zoom,
-			padding: this.calculatePadding(),
-		})
+			padding: this.calculatePadding()
+		});
 	}
 
 	private calculatePadding() {
-		console.log(this.md.current)
+		console.log(this.md.current);
 		if (this.md.current) {
 			return {
 				bottom: window.innerWidth / 2,
-				left: 0,
+				left: 0
 			};
 		}
 		return {
 			left: MapStore.SIDEPANEL_WIDTH,
-			bottom: 0,
+			bottom: 0
 		};
 	}
 
 	public isMapReady(): boolean {
-		return typeof this.mapInstance !== "undefined";
+		return typeof this.mapInstance !== 'undefined';
 	}
-	
+
 	public isPoiPinsZoomVisible() {
 		return this.poiPinsZoomVisible;
 	}
@@ -109,7 +114,7 @@ export class MapStore {
 		this.mapInstance.easeTo({ bearing: 0, duration: 400 });
 	}
 
-	withinZoom(zoomLevel: number):boolean {
+	withinZoom(zoomLevel: number): boolean {
 		return zoomLevel <= this.zoomLevel;
 	}
 }

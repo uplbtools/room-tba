@@ -2,9 +2,9 @@
 	import Users from '@lucide/svelte/icons/users';
 	import Building2 from '@lucide/svelte/icons/building-2';
 	import Pencil from '@lucide/svelte/icons/pencil';
-	import { adminAuthStore, modalStore, searchInfo, sidePanelStore } from '$lib/stores.svelte';
-	import { openCampusBrowse } from '$lib/utils/campus/browse-campus';
-	import { UPLB_OSA_ORGANIZATIONS_URL } from '$lib/constants/content/links/community';
+	import { adminAuthStore, modalStore, searchInfo, sidePanelStore } from '#lib/stores.svelte.js';
+	import { openCampusBrowse } from '#lib/utils/campus/browse-campus.js';
+	import { UPLB_OSA_ORGANIZATIONS_URL } from '#lib/constants/content/links/community.js';
 
 	function browseOrganizations() {
 		openCampusBrowse(searchInfo, sidePanelStore, 'organizations');

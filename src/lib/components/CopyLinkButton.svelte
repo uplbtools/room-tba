@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Copy from '@lucide/svelte/icons/copy';
 	import { onDestroy } from 'svelte';
-	import { copyTextToClipboard } from '$lib/utils/clipboard';
-	import MapChromeActionChip from '$lib/components/map-chrome/MapChromeActionChip.svelte';
+	import { copyTextToClipboard } from '#lib/utils/clipboard.js';
+	import MapChromeActionChip from '#lib/components/map-chrome/MapChromeActionChip.svelte';
 
 	type FeedbackMode = 'inline' | 'none';
 

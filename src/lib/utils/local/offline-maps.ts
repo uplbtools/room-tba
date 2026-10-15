@@ -2,8 +2,8 @@
 // reporting how much data is involved. Tiles are fetched from the page so the
 // service worker's `map-tiles` runtime cache stores them (see astro.config.mjs).
 
-import { CAMPUS_BOUNDS } from '$lib/constants/map/terrain';
-import { CAMPUS_MAP_STYLE_URL, injectMaptilerKey } from '$lib/utils/map/maptiler-key';
+import { CAMPUS_BOUNDS } from '#lib/constants/map/terrain.js';
+import { CAMPUS_MAP_STYLE_URL, injectMaptilerKey } from '#lib/utils/map/maptiler-key.js';
 
 // Campus bounds — mirrors `CAMPUS_MAX_BOUNDS` in src/constants/map-terrain.ts.
 const CAMPUS_BOUNDS_LON_LAT = {

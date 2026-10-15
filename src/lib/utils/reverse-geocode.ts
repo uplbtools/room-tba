@@ -1,4 +1,4 @@
-import { SITE_NAME, SITE_URL } from '$lib/utils/site';
+import { SITE_NAME, SITE_URL } from '#lib/utils/site.js';
 
 const cache = new Map<string, string | null>();
 

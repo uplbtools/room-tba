@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
+import { KUBO_ROOM_TBA_DIRECTORY_URL } from '$app/env/private';
 import type { RequestHandler } from './$types';
 
 const CACHE_CONTROL = 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600';
@@ -46,6 +46,7 @@ function isSafeKuboUrl(value: unknown): value is string {
 	if (typeof value !== 'string') return false;
 	try {
 		const url = new URL(value);
+
 		return (
 			url.protocol === 'https:' &&
 			(url.hostname === 'kubo.community' || url.hostname.endsWith('.kubo.community'))
@@ -57,6 +58,7 @@ function isSafeKuboUrl(value: unknown): value is string {
 
 function isKuboDormRecord(value: unknown): value is KuboDormRecord {
 	if (!isRecord(value)) return false;
+
 	return (
 		Number.isInteger(value.roomTbaDormId) &&
 		Number(value.roomTbaDormId) > 0 &&
@@ -107,11 +109,10 @@ async function fetchKuboDormDirectory(upstreamUrl: string): Promise<{
 export const GET: RequestHandler = async () => {
 	try {
 		const { directory, etag } = await fetchKuboDormDirectory(
-			env.KUBO_ROOM_TBA_DIRECTORY_URL || DEFAULT_KUBO_DIRECTORY_URL
+			KUBO_ROOM_TBA_DIRECTORY_URL || DEFAULT_KUBO_DIRECTORY_URL
 		);
-		const headers: Record<string, string> = {
-			'Cache-Control': CACHE_CONTROL
-		};
+		const headers: Record<string, string> = { 'Cache-Control': CACHE_CONTROL };
+
 		if (etag) headers.ETag = etag;
 
 		return json(directory, { status: 200, headers });

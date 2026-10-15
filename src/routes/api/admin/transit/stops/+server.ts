@@ -1,5 +1,5 @@
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { createJeepneyStop } from '$lib/services/transit';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { createJeepneyStop } from '#lib/services/transit.js';
 import type { RequestHandler } from './$types';
 
 function json(data: unknown, status = 200) {

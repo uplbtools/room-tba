@@ -1,19 +1,19 @@
 <script lang="ts">
-	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
+	import EntitySkeleton from '#lib/components/EntitySkeleton.svelte';
 	import { onMount } from 'svelte';
 	import EntityPagination from './EntityPagination.svelte';
-	import Classes from '$lib/components/room/Classes.svelte';
-	import FinalExamsList from '$lib/components/room/FinalExamsList.svelte';
-	import { fetchClassPage } from '$lib/utils/classes-api';
-	import { CLASS_BROWSE_SCOPE_NOTE } from '$lib/amis/room-scheduled-types';
+	import Classes from '#lib/components/room/Classes.svelte';
+	import FinalExamsList from '#lib/components/room/FinalExamsList.svelte';
+	import { fetchClassPage } from '#lib/utils/classes-api.js';
+	import { CLASS_BROWSE_SCOPE_NOTE } from '#lib/amis/room-scheduled-types.js';
 	import {
 		fetchFinalExams,
 		FINALS_SCOPE_NOTE,
 		looksLikeCourseCode
-	} from '$lib/utils/final-exams/final-exams';
-	import { normalizeCourseCode } from '$lib/utils/final-exams/normalize';
-	import { searchInfo, sidePanelStore, termStore } from '$lib/stores.svelte';
-	import type { ClassMapValue, FinalExamRow } from '$lib/utils/types';
+	} from '#lib/utils/final-exams/final-exams.js';
+	import { normalizeCourseCode } from '#lib/utils/final-exams/normalize.js';
+	import { searchInfo, sidePanelStore, termStore } from '#lib/stores.svelte.js';
+	import type { ClassMapValue, FinalExamRow } from '#lib/utils/types';
 
 	const PAGE_SIZE = 25;
 

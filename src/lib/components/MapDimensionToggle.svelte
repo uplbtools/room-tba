@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { map, terrainStore } from '$lib/stores.svelte';
-	import { THREE_D_PITCH, isMap2DPitch } from '$lib/constants/map/dimension';
+	import { map, terrainStore } from '#lib/stores.svelte.js';
+	import { THREE_D_PITCH, isMap2DPitch } from '#lib/constants/map/dimension.js';
 	import {
 		enterFlatMapDimension,
 		enterTiltedMapDimension
-	} from '$lib/utils/map/map-dimension-layers';
+	} from '#lib/utils/map/map-dimension-layers.js';
 	import type { MapLibreMap } from 'maplibre-gl';
 
 	type Props = {

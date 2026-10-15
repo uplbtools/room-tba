@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { getPlannerBlockColor, parseDays, parseScheduleTime } from '$lib/utils/schedule-renderer';
+import {
+	getPlannerBlockColor,
+	parseDays,
+	parseScheduleTime
+} from '#lib/utils/schedule-renderer.js';
 
 describe('getPlannerBlockColor', () => {
 	it('colors by component type, not course', () => {

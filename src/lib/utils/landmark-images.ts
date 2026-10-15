@@ -6,27 +6,23 @@
  * require, and Street View is stored only as compass headings — the client
  * builds URLs with its own key because Google's terms forbid storing imagery.
  */
-import manifest from '$lib/constants/map/landmark-images.json';
-import type { EntityPhoto } from "./entity/entity-photos";
-import {
-  STREET_VIEW_ATTRIBUTION,
-  hasStreetViewKey,
-  streetViewImageUrl,
-} from "./street-view";
+import manifest from '#lib/constants/map/landmark-images.json';
+import type { EntityPhoto } from './entity/entity-photos';
+import { STREET_VIEW_ATTRIBUTION, hasStreetViewKey, streetViewImageUrl } from './street-view';
 
 export type CommonsImage = {
-  /** Direct thumbnail URL on upload.wikimedia.org (hotlinking is supported). */
-  url: string;
-  /** File page, where the full attribution lives. */
-  pageUrl: string;
-  artist: string;
-  license: string;
+	/** Direct thumbnail URL on upload.wikimedia.org (hotlinking is supported). */
+	url: string;
+	/** File page, where the full attribution lives. */
+	pageUrl: string;
+	artist: string;
+	license: string;
 };
 
 export type LandmarkImagesEntry = {
-  /** Street View facade headings: center on the building, one to each side. */
-  streetViewHeadings?: number[];
-  commons?: CommonsImage[];
+	/** Street View facade headings: center on the building, one to each side. */
+	streetViewHeadings?: number[];
+	commons?: CommonsImage[];
 };
 
 /**
@@ -43,27 +39,27 @@ export const MAX_IMAGES_PER_LANDMARK = 10;
 export const MAX_COMMONS_IMAGES = 7;
 
 export type LandmarkImage = {
-  src: string;
-  alt: string;
-  /** "Street View image © Google" / "Juan D (CC BY-SA 4.0)". Absent for contributor photos. */
-  credit?: string;
-  /** Where the credit should link (Commons file page). */
-  creditUrl?: string;
-  source: "contributor" | "street-view" | "commons";
+	src: string;
+	alt: string;
+	/** "Street View image © Google" / "Juan D (CC BY-SA 4.0)". Absent for contributor photos. */
+	credit?: string;
+	/** Where the credit should link (Commons file page). */
+	creditUrl?: string;
+	source: 'contributor' | 'street-view' | 'commons';
 };
 
 const LANDMARK_IMAGES = manifest as LandmarkImagesManifest;
 
 export type BuildingImagesInput = {
-  name: string;
-  photos?: EntityPhoto[];
-  /** Legacy single-photo field used by older cached rows. */
-  imageUrl?: string | null;
-  lat?: number | null;
-  lon?: number | null;
-  /** Cached Street View lookup (migration 0052). Null means no coverage. */
-  panoId?: string | null;
-  googleKey?: string;
+	name: string;
+	photos?: EntityPhoto[];
+	/** Legacy single-photo field used by older cached rows. */
+	imageUrl?: string | null;
+	lat?: number | null;
+	lon?: number | null;
+	/** Cached Street View lookup (migration 0052). Null means no coverage. */
+	panoId?: string | null;
+	googleKey?: string;
 };
 
 /**
@@ -72,72 +68,64 @@ export type BuildingImagesInput = {
  * Street View facade angles, then Commons photos. Capped at
  * MAX_IMAGES_PER_LANDMARK; empty when no source has anything.
  */
-export function buildingLandmarkImages(
-  input: BuildingImagesInput,
-): LandmarkImage[] {
-  const { name, photos, imageUrl, lat, lon, panoId, googleKey } = input;
-  const entry = LANDMARK_IMAGES[`building:${name}`];
-  const images: LandmarkImage[] = [];
+export function buildingLandmarkImages(input: BuildingImagesInput): LandmarkImage[] {
+	const { name, photos, imageUrl, lat, lon, panoId, googleKey } = input;
+	const entry = LANDMARK_IMAGES[`building:${name}`];
+	const images: LandmarkImage[] = [];
 
-  const contributorPhotos =
-    photos && photos.length > 0
-      ? photos
-      : imageUrl
-        ? [
-            {
-              url: imageUrl,
-              attributionName: null,
-              attributionProfileUrl: null,
-            },
-          ]
-        : [];
-  for (const photo of contributorPhotos) {
-    images.push({
-      src: photo.url,
-      alt: name,
-      credit: photo.attributionName
-        ? `Photo by ${photo.attributionName}`
-        : undefined,
-      creditUrl: photo.attributionProfileUrl ?? undefined,
-      source: "contributor",
-    });
-  }
+	const contributorPhotos =
+		photos && photos.length > 0
+			? photos
+			: imageUrl
+				? [
+						{
+							url: imageUrl,
+							attributionName: null,
+							attributionProfileUrl: null
+						}
+					]
+				: [];
+	for (const photo of contributorPhotos) {
+		images.push({
+			src: photo.url,
+			alt: name,
+			credit: photo.attributionName ? `Photo by ${photo.attributionName}` : undefined,
+			creditUrl: photo.attributionProfileUrl ?? undefined,
+			source: 'contributor'
+		});
+	}
 
-  if (hasStreetViewKey(googleKey) && panoId && lat != null && lon != null) {
-    // No manifest entry still gets the pre-gallery single shot: Google points
-    // the camera at the subject when no heading is given.
-    const headings = entry?.streetViewHeadings ?? [undefined];
-    for (const heading of headings) {
-      images.push({
-        src: streetViewImageUrl(
-          { lat: Number(lat), lng: Number(lon) },
-          googleKey,
-          {
-            width: 640,
-            height: 360,
-            // Wider than the default so more of the frontage fits, and enough
-            // radius to reach buildings set back from the road.
-            fov: 90,
-            radius: 100,
-            heading,
-          },
-        ),
-        alt: `Street View of ${name}`,
-        credit: STREET_VIEW_ATTRIBUTION,
-        source: "street-view",
-      });
-    }
-  }
+	if (hasStreetViewKey(googleKey) && panoId && lat != null && lon != null) {
+		// No manifest entry still gets the pre-gallery single shot: Google points
+		// the camera at the subject when no heading is given.
+		const headings = entry?.streetViewHeadings ?? [undefined];
+		for (const heading of headings) {
+			images.push({
+				src: streetViewImageUrl({ lat: Number(lat), lng: Number(lon) }, googleKey, {
+					width: 640,
+					height: 360,
+					// Wider than the default so more of the frontage fits, and enough
+					// radius to reach buildings set back from the road.
+					fov: 90,
+					radius: 100,
+					heading
+				}),
+				alt: `Street View of ${name}`,
+				credit: STREET_VIEW_ATTRIBUTION,
+				source: 'street-view'
+			});
+		}
+	}
 
-  for (const photo of entry?.commons ?? []) {
-    images.push({
-      src: photo.url,
-      alt: `${name} (photo via Wikimedia Commons)`,
-      credit: `${photo.artist} (${photo.license})`,
-      creditUrl: photo.pageUrl,
-      source: "commons",
-    });
-  }
+	for (const photo of entry?.commons ?? []) {
+		images.push({
+			src: photo.url,
+			alt: `${name} (photo via Wikimedia Commons)`,
+			credit: `${photo.artist} (${photo.license})`,
+			creditUrl: photo.pageUrl,
+			source: 'commons'
+		});
+	}
 
-  return images.slice(0, MAX_IMAGES_PER_LANDMARK);
+	return images.slice(0, MAX_IMAGES_PER_LANDMARK);
 }

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { toastStore } from '$lib/stores.svelte';
+	import { toastStore } from '#lib/stores.svelte.js';
 	import Download from '@lucide/svelte/icons/download';
 	import X from '@lucide/svelte/icons/x';
-	import IconButton from '$lib/components/IconButton.svelte';
+	import IconButton from '#lib/components/IconButton.svelte';
 
 	const INSTALL_DISMISS_KEY = 'room-tba:install-dismissed';
 	const INSTALL_DISMISS_DAYS = 14;

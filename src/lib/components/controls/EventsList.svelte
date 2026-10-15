@@ -1,15 +1,15 @@
 <script lang="ts">
-	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
-	import LoadingIndicator from '$lib/components/LoadingIndicator.svelte';
+	import EntitySkeleton from '#lib/components/EntitySkeleton.svelte';
+	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	import CalendarDays from '@lucide/svelte/icons/calendar-days';
 	import MapPin from '@lucide/svelte/icons/map-pin';
 	import EntityPanelHeader from './EntityPanelHeader.svelte';
 	import EntityPagination from './EntityPagination.svelte';
 	import EntityShareCopyLink from './EntityShareCopyLink.svelte';
-	import { getAppData } from '$lib/utils/context';
-	import { getEventImage } from '$lib/utils/event/event-images';
-	import { formatCampusRange } from '$lib/utils/event/event-time';
-	import type { EventData } from '$lib/utils/types';
+	import { getAppData } from '#lib/utils/context.js';
+	import { getEventImage } from '#lib/utils/event/event-images.js';
+	import { formatCampusRange } from '#lib/utils/event/event-time.js';
+	import type { EventData } from '#lib/utils/types';
 	import EventResult from './EventResult.svelte';
 
 	type EventTab = 'upcoming' | 'past';

@@ -1,4 +1,4 @@
-import { parseScheduleTime } from '$lib/utils/schedule-renderer';
+import { parseScheduleTime } from '#lib/utils/schedule-renderer.js';
 import type { ScheduleDayStop, ScheduleMatchResult, Weekday } from './types';
 export type { Weekday } from './types';
 

@@ -1,14 +1,7 @@
 // src/lib/app-data.ts
 
 import { slugifySegment } from './site';
-import type {
-	Building,
-	College,
-	Division,
-	DormData,
-	EventData,
-	Room
-} from '$lib/utils/types';
+import type { Building, College, Division, DormData, EventData, Room } from '#lib/utils/types';
 
 export type SearchCategory =
 	| 'building'

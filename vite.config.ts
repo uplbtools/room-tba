@@ -19,17 +19,12 @@ export default defineConfig({
 			// Production runs on Vercel (room-tba.uplb.tools). adapter-vercel is
 			// required for instrumentation.server.js, which adapter-auto rejects.
 			adapter: adapter(),
-			experimental: { instrumentation: { server: true }, remoteFunctions: true },
+			experimental: { remoteFunctions: true },
 			alias: { '@test': 'src/test' },
 			// The worker is still built and deployed when the kill switch is on —
 			// existing registrations update to it and self-destruct. Only the client
 			// registration is suppressed, so new visitors never pick one up.
 			serviceWorker: { register: !SW_KILL_SWITCH },
-			typescript: {
-				config: (config) => {
-					config.include.push('../drizzle.config.ts');
-				}
-			},
 			inspector: true
 		})
 	],

@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/svelte';
 import { describe, expect, test } from 'vitest';
-import StatusBarLinkGroups from '$lib/components/status-bar/StatusBarLinkGroups.svelte';
-import { STATUS_BAR_COMMUNITY_GROUP } from '$lib/constants/content/links/status-bar';
-import { MESSENGER_CONTRIBUTE_TARGET } from '$lib/constants/content/links/community';
+import StatusBarLinkGroups from '#lib/components/status-bar/StatusBarLinkGroups.svelte';
+import { STATUS_BAR_COMMUNITY_GROUP } from '#lib/constants/content/links/status-bar.js';
+import { MESSENGER_CONTRIBUTE_TARGET } from '#lib/constants/content/links/community.js';
 import { mountAtWidth } from '@test/layout-assertions';
 
 describe('StatusBarLinkGroups', () => {

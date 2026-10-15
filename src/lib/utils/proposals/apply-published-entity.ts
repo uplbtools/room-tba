@@ -1,4 +1,4 @@
-import type { AppActions, AppContextData } from '$lib/utils/context';
+import type { AppActions, AppContextData } from '#lib/utils/context.js';
 import type {
 	Building,
 	College,
@@ -7,12 +7,12 @@ import type {
 	EventData,
 	OrgData,
 	PlaceData
-} from '$lib/utils/types';
-import type { ProposalEntityType } from '$lib/services/contribution/proposal-action';
+} from '#lib/utils/types';
+import type { ProposalEntityType } from '#lib/services/contribution/proposal-action.js';
 import {
 	invalidateLocalSyncKeys,
 	requestCampusDataRefresh
-} from '$lib/utils/local/data/invalidate-sync-key';
+} from '#lib/utils/local/data/invalidate-sync-key.js';
 
 const ENTITY_SYNC_TABLES: Partial<Record<ProposalEntityType, string[]>> = {
 	building: ['buildings'],

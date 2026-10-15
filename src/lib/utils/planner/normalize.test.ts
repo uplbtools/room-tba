@@ -1,5 +1,5 @@
-import { describe, expect, test } from "vitest";
-import { plannerRoomCodes } from "./normalize";
+import { describe, expect, test } from 'vitest';
+import { plannerRoomCodes } from './normalize';
 
 describe('plannerRoomCodes', () => {
 	test('normalizes, dedupes, and drops TBA (null) rooms', () => {

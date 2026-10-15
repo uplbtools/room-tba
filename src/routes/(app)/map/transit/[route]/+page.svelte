@@ -1,16 +1,16 @@
 <script lang="ts">
-	import type { PageData } from "./$types";
+	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
 </script>
 
 <!-- The map layout renders the app; this copy is what crawlers read. -->
 <article class="sr-only">
-		<h1>{data.routeName}</h1>
-		<p>{data.description}</p>
-		{#if data.stopCount !== null}
-			<p>{data.stopCount} stops. Regular fare: ₱{data.regularFare}.</p>
-		{/if}
+	<h1>{data.routeName}</h1>
+	<p>{data.description}</p>
+	{#if data.stopCount !== null}
+		<p>{data.stopCount} stops. Regular fare: ₱{data.regularFare}.</p>
+	{/if}
 </article>
 
 <style>

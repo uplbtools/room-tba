@@ -1,4 +1,4 @@
-import type { FinalExamRow } from '$lib/utils/types';
+import type { FinalExamRow } from '#lib/utils/types';
 
 export const FINALS_SCOPE_NOTE =
 	'Final exam times come from OUR/registrar releases, not AMIS class schedules. Regular lecture and lab timetables stay on the room panel above. If nothing appears here, OUR may not have published finals for this term yet.';

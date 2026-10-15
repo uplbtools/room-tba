@@ -5,7 +5,7 @@
  * untrusted. The pure parts live here (not in `src/pages`) so `bun run test`,
  * which only scans `src/lib` and `src/constants`, actually covers them.
  */
-import { FEEDBACK_CONTACT_MAX, FEEDBACK_MESSAGE_MAX } from '$lib/constants/feedback';
+import { FEEDBACK_CONTACT_MAX, FEEDBACK_MESSAGE_MAX } from '#lib/constants/feedback.js';
 import { checkRateLimit } from './rate-limit';
 
 export { FEEDBACK_CONTACT_MAX, FEEDBACK_MESSAGE_MAX };

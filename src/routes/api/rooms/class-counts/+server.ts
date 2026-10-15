@@ -1,6 +1,6 @@
 import { and, eq, sql } from 'drizzle-orm';
-import { db } from '$lib/server/db';
-import { classesTable, roomsTable } from '$lib/server/db/schema';
+import { db } from '#lib/server/db/index.js';
+import { classesTable, roomsTable } from '#lib/server/db/schema.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url }) => {

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import MapBrowseList from "$lib/components/map/MapBrowseList.svelte";
-	import { placeCategoryLabel } from "$lib/constants/content/categories/place"
-	import { getAppData } from "$lib/utils/context";
-	import { getPlaceCanonicalPath } from "$lib/utils/entity/entity-urls"
-import type { PageData } from "./$types";
+	import MapBrowseList from '#lib/components/map/MapBrowseList.svelte';
+	import { placeCategoryLabel } from '#lib/constants/content/categories/place.js';
+	import { getAppData } from '#lib/utils/context.js';
+	import { getPlaceCanonicalPath } from '#lib/utils/entity/entity-urls.js';
+	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
 	const appData = getAppData();
@@ -18,8 +18,8 @@ import type { PageData } from "./$types";
 					.map((place) => ({
 						href: getPlaceCanonicalPath(place),
 						label: place.name,
-						description: placeCategoryLabel(place.category),
-					})),
+						description: placeCategoryLabel(place.category)
+					}))
 	);
 </script>
 

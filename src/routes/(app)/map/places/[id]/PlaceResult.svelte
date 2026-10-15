@@ -5,23 +5,23 @@
 	// 	adminAuthStore,
 	// 	sidePanelStore,
 	// 	toastStore
-	// } from '$lib/stores.svelte';
-	import { getAppActions, getAppData } from '$lib/utils/context';
-	import { persistEntityChange } from '$lib/utils/proposals/client';
+	// } from '#lib/stores.svelte.js';
+	import { getAppActions, getAppData } from '#lib/utils/context.js';
+	import { persistEntityChange } from '#lib/utils/proposals/client.js';
 	import {
 		PLACE_CATEGORIES,
 		PLACE_CATEGORY_LABELS,
 		isPlaceLandmark,
 		placeDirectoryLabel
-	} from '$lib/constants/content/categories/place';
-	import type { PlaceData } from '$lib/utils/types';
-	import EntityEditorPinRow from '$lib/components/editor/EntityEditorPinRow.svelte';
-	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
-	import EntityDirectionsChip from '$lib/components/controls/EntityDirectionsChip.svelte';
-	import EntityGoogleMapsLink from '$lib/components/controls/EntityGoogleMapsLink.svelte';
-	import EntityStreetAddress from '$lib/components/controls/EntityStreetAddress.svelte';
-	import EntityShareCopyLink from '$lib/components/controls/EntityShareCopyLink.svelte';
-	import EntityExternalLink from '$lib/components/controls/EntityExternalLink.svelte';
+	} from '#lib/constants/content/categories/place.js';
+	import type { PlaceData } from '#lib/utils/types';
+	import EntityEditorPinRow from '#lib/components/editor/EntityEditorPinRow.svelte';
+	import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
+	import EntityDirectionsChip from '#lib/components/controls/EntityDirectionsChip.svelte';
+	import EntityGoogleMapsLink from '#lib/components/controls/EntityGoogleMapsLink.svelte';
+	import EntityStreetAddress from '#lib/components/controls/EntityStreetAddress.svelte';
+	import EntityShareCopyLink from '#lib/components/controls/EntityShareCopyLink.svelte';
+	import EntityExternalLink from '#lib/components/controls/EntityExternalLink.svelte';
 	import { page } from '$app/state';
 
 	interface Props {

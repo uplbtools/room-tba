@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ClassQueryPage } from '$lib/utils/classes-api';
+import type { ClassQueryPage } from '#lib/utils/classes-api.js';
 
 // fetchClassPage only needs getJSONFetch (which is `fetch(url).json()`). The real
 // util transitively boots the whole Svelte-rune store graph, so mock the boundary
@@ -7,9 +7,9 @@ import type { ClassQueryPage } from '$lib/utils/classes-api';
 // (.store.test.ts so it runs under vitest, where vi.mock is hoisted + file-scoped
 // — a bun mock.module here would leak into every other test in the run.)
 const { getJSONFetch } = vi.hoisted(() => ({ getJSONFetch: vi.fn() }));
-vi.mock('$lib/utils/local/data/utils', () => ({ getJSONFetch }));
+vi.mock('#lib/utils/local/data/utils.js', () => ({ getJSONFetch }));
 
-import { fetchAllClasses, fetchClassPage } from '$lib/utils/classes-api';
+import { fetchAllClasses, fetchClassPage } from '#lib/utils/classes-api.js';
 
 const calledUrl = (call = 0) => new URL(getJSONFetch.mock.calls[call][0], 'http://x');
 

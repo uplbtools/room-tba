@@ -1,37 +1,37 @@
 <script lang="ts">
 	import Users from '@lucide/svelte/icons/users';
 	import Building2 from '@lucide/svelte/icons/building-2';
-	import EntityGoogleMapsLink from '$lib/components/controls/EntityGoogleMapsLink.svelte';
-	import EntityStreetAddress from '$lib/components/controls/EntityStreetAddress.svelte';
+	import EntityGoogleMapsLink from '#lib/components/controls/EntityGoogleMapsLink.svelte';
+	import EntityStreetAddress from '#lib/components/controls/EntityStreetAddress.svelte';
 	import BadgeCheck from '@lucide/svelte/icons/badge-check';
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import CircleDollarSign from '@lucide/svelte/icons/circle-dollar-sign';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
-	import type { DormData } from '$lib/utils/types';
-	import { normalizeEntityPhotos, type EntityPhoto } from '$lib/utils/entity/entity-photos';
+	import type { DormData } from '#lib/utils/types';
+	import { normalizeEntityPhotos, type EntityPhoto } from '#lib/utils/entity/entity-photos.js';
 	import {
 		getStoredProposalForEntity,
 		mergeEntityRecord,
 		persistEntityChange
-	} from '$lib/utils/proposals/client';
-	import { handlePersistEntityResult } from '$lib/utils/editor/handle-persist-result';
-	import MergeEntityPrompt from '$lib/components/editor/MergeEntityPrompt.svelte';
+	} from '#lib/utils/proposals/client.js';
+	import { handlePersistEntityResult } from '#lib/utils/editor/handle-persist-result.js';
+	import MergeEntityPrompt from '#lib/components/editor/MergeEntityPrompt.svelte';
 	import {
 		clearEntityContributorDraft,
 		readEntityContributorDraft,
 		scheduleEntityContributorDraftSave
-	} from '$lib/utils/contributor-drafts';
-	// import DormEditorPanel from '$lib/components/controls/DormEditorPanel.svelte';
-	// import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
-	import EntityPhotoGallery from '$lib/components/controls/EntityPhotoGallery.svelte';
-	import EntityLastUpdated from '$lib/components/EntityLastUpdated.svelte';
-	import EntityShareCopyLink from '$lib/components/controls/EntityShareCopyLink.svelte';
-	import EntityExternalLink from '$lib/components/controls/EntityExternalLink.svelte';
+	} from '#lib/utils/contributor-drafts.js';
+	// import DormEditorPanel from '#lib/components/controls/DormEditorPanel.svelte';
+	// import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
+	import EntityPhotoGallery from '#lib/components/controls/EntityPhotoGallery.svelte';
+	import EntityLastUpdated from '#lib/components/EntityLastUpdated.svelte';
+	import EntityShareCopyLink from '#lib/components/controls/EntityShareCopyLink.svelte';
+	import EntityExternalLink from '#lib/components/controls/EntityExternalLink.svelte';
 	import {
 		getKuboDormCta,
 		kuboDormDirectory,
 		loadKuboDormDirectory
-	} from '$lib/utils/integrations/kubo/kubo-dorms';
+	} from '#lib/utils/integrations/kubo/kubo-dorms.js';
 	import { page } from '$app/state';
 	type DormEditableField =
 		| 'dormName'

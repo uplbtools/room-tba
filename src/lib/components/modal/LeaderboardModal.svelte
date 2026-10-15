@@ -1,5 +1,5 @@
 <script lang="ts">
-	import LeaderboardPanel from '$lib/components/status-bar/LeaderboardPanel.svelte';
+	import LeaderboardPanel from '#lib/components/status-bar/LeaderboardPanel.svelte';
 </script>
 
 <div class="leaderboard-modal">

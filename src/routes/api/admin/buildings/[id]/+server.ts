@@ -1,10 +1,15 @@
-import { env } from '$env/dynamic/private';
-import { parseRequiredEditorVersion } from '$lib/admin/expected-version';
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { errorResponse, json } from '$lib/api/json';
-import { parseEntityPhotoUrls, reconcileEntityPhotos } from '$lib/utils/entity/entity-photos';
-import { resolvePhotoAttribution } from '$lib/services/contribution/entity-photo';
-import { DuplicateNameError, EditConflictError, getBuildingById, updateBuilding } from '$lib/services/admin/actions';
+import { R2_PUBLIC_URL } from '$app/env/private';
+import { parseRequiredEditorVersion } from '#lib/admin/expected-version.js';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { errorResponse, json } from '#lib/api/json.js';
+import { parseEntityPhotoUrls, reconcileEntityPhotos } from '#lib/utils/entity/entity-photos.js';
+import { resolvePhotoAttribution } from '#lib/services/contribution/entity-photo.js';
+import {
+	DuplicateNameError,
+	EditConflictError,
+	getBuildingById,
+	updateBuilding
+} from '#lib/services/admin/actions.js';
 import type { RequestHandler } from './$types';
 
 type BuildingPatchBody = {
@@ -44,7 +49,7 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 		return errorResponse('Invalid building type', 400);
 	}
 
-	const parsedPhotoUrls = parseEntityPhotoUrls(body.photoUrls, env.R2_PUBLIC_URL);
+	const parsedPhotoUrls = parseEntityPhotoUrls(body.photoUrls, R2_PUBLIC_URL);
 	if (!parsedPhotoUrls.ok) {
 		return errorResponse(parsedPhotoUrls.error, 400);
 	}
@@ -62,10 +67,7 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 		if (body.directions !== undefined) updates.directions = body.directions;
 		if (parsedPhotoUrls.provided) {
 			const current = await getBuildingById(id);
-			const attribution = await resolvePhotoAttribution(
-				auth.session.id,
-				auth.session.displayName
-			);
+			const attribution = await resolvePhotoAttribution(auth.session.id, auth.session.displayName);
 			updates.photos = reconcileEntityPhotos(
 				current?.photos ?? [],
 				parsedPhotoUrls.photoUrls,

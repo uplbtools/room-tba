@@ -1,5 +1,5 @@
 <script lang="ts">
-	import OfflineMaps from '$lib/components/OfflineMaps.svelte';
+	import OfflineMaps from '#lib/components/OfflineMaps.svelte';
 </script>
 
 <section class="offline-maps-modal">

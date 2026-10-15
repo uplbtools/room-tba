@@ -3,16 +3,16 @@
   import CalendarDays from "@lucide/svelte/icons/calendar-days";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import GraduationCap from "@lucide/svelte/icons/graduation-cap";
-  import { termFullLabel } from "$lib/utils/term/term-label";
-  import { formatTermDateRange } from "$lib/utils/term/term-calendar";
-  import { trapFocus } from "$lib/utils/focus-trap";
-  import { portal } from "$lib/utils/portal";
-  // import { mapToolsStore, sidebarStore, termStore } from "$lib/stores.svelte";
+  import { termFullLabel } from "#lib/utils/term/term-label.js";
+  import { formatTermDateRange } from "#lib/utils/term/term-calendar.js";
+  import { trapFocus } from "#lib/utils/focus-trap.js";
+  import { portal } from "#lib/utils/portal.js";
+  // import { mapToolsStore, sidebarStore, termStore } from "#lib/stores.svelte.js";
   import {
     registerEphemeralOverlayDismisser,
     openEphemeralOverlay,
-  } from "$lib/utils/overlay-stack";
-  import type { TermWithCount } from "$lib/utils/types";
+  } from "#lib/utils/overlay-stack.js";
+  import type { TermWithCount } from "#lib/utils/types";
   import "./map-chrome/map-chrome.css";
 
   type Props = {

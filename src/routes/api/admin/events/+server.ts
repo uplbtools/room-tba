@@ -1,8 +1,12 @@
-import { env } from '$env/dynamic/private';
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { parseEventImageUrl } from '$lib/utils/r2-upload';
-import { createEvent, DuplicateSlugError, type EventWriteInput } from '$lib/services/admin/actions';
-import { slugifySegment } from '$lib/utils/site';
+import { R2_PUBLIC_URL } from '$app/env/private';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { parseEventImageUrl } from '#lib/utils/r2-upload.js';
+import {
+	createEvent,
+	DuplicateSlugError,
+	type EventWriteInput
+} from '#lib/services/admin/actions.js';
+import { slugifySegment } from '#lib/utils/site.js';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ cookies, request }) => {
@@ -28,8 +32,8 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 		typeof body.slug === 'string' && body.slug.trim()
 			? slugifySegment(body.slug)
 			: slugifySegment(title);
+	const parsedImageUrl = parseEventImageUrl(body.imageUrl, R2_PUBLIC_URL);
 
-	const parsedImageUrl = parseEventImageUrl(body.imageUrl, env.R2_PUBLIC_URL);
 	if (!parsedImageUrl.ok) {
 		return json({ error: parsedImageUrl.error }, 400);
 	}

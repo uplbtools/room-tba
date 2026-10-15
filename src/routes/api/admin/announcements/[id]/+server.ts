@@ -1,13 +1,13 @@
-import { parseRequiredEditorVersion } from '$lib/admin/expected-version';
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { parseWallTimestamp } from '$lib/utils/announcements';
-import { normalizeAnnouncementSeverity } from '$lib/constants/announcement-severities';
-import { EditConflictError } from '$lib/services/admin/actions';
+import { parseRequiredEditorVersion } from '#lib/admin/expected-version.js';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { parseWallTimestamp } from '#lib/utils/announcements.js';
+import { normalizeAnnouncementSeverity } from '#lib/constants/announcement-severities.js';
+import { EditConflictError } from '#lib/services/admin/actions.js';
 import {
 	type AnnouncementUpdateInput,
 	deleteAnnouncement,
 	updateAnnouncement
-} from '$lib/services/announcement';
+} from '#lib/services/announcement.js';
 import type { RequestHandler } from './$types';
 
 type AnnouncementPatchBody = {

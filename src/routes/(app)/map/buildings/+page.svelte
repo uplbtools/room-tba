@@ -1,8 +1,8 @@
 <script lang="ts">
-	import MapBrowseList from "$lib/components/map/MapBrowseList.svelte";
-	import { getAppData } from "$lib/utils/context";
-	import { getBuildingCanonicalPath } from "$lib/utils/entity/entity-urls"
-import type { PageData } from "./$types";
+	import MapBrowseList from '#lib/components/map/MapBrowseList.svelte';
+	import { getAppData } from '#lib/utils/context.js';
+	import { getBuildingCanonicalPath } from '#lib/utils/entity/entity-urls.js';
+	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
 	const appData = getAppData();
@@ -15,13 +15,13 @@ import type { PageData } from "./$types";
 		data.items.length > 0
 			? data.items
 			: (appData().buildings ?? [])
-			.slice()
-			.sort((a, b) => a.buildingName.localeCompare(b.buildingName))
-			.map((building) => ({
-				href: getBuildingCanonicalPath(building.buildingName),
-				label: building.buildingName,
-				description: building.directions ? "Directions available" : null,
-			})),
+					.slice()
+					.sort((a, b) => a.buildingName.localeCompare(b.buildingName))
+					.map((building) => ({
+						href: getBuildingCanonicalPath(building.buildingName),
+						label: building.buildingName,
+						description: building.directions ? 'Directions available' : null
+					}))
 	);
 </script>
 

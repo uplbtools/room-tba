@@ -1,8 +1,8 @@
-import type { EntityIndexItem, SeoData } from '$lib/components/seo/seo-data';
-import { entityIndexPath, getEventCanonicalPath } from '$lib/utils/entity/entity-urls';
-import { formatCampusDateLong } from '$lib/utils/event/event-time';
-import { getSeoEvents } from '$lib/services/entity/event';
-import { absoluteUrl, breadcrumbSchema, jsonLd, webpageSchema } from '$lib/utils/site';
+import type { EntityIndexItem, SeoData } from '#lib/components/seo/seo-data.js';
+import { entityIndexPath, getEventCanonicalPath } from '#lib/utils/entity/entity-urls.js';
+import { formatCampusDateLong } from '#lib/utils/event/event-time.js';
+import { getSeoEvents } from '#lib/services/entity/event.js';
+import { absoluteUrl, breadcrumbSchema, jsonLd, webpageSchema } from '#lib/utils/site.js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {

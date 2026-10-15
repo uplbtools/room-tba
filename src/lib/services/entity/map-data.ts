@@ -12,14 +12,14 @@ import {
 	placesTable,
 	finalExamsTable,
 	roomsTable
-} from '$lib/server/db/schema';
-import { encodeClassCursor, type ClassCursor } from '$lib/api/class-cursor';
-import { clampLimitValue } from '$lib/api/pagination';
-import { escapeLikePattern } from '$lib/utils/like-escape';
-import { db } from '$lib/utils/db';
-import { normalizeCourseCode } from '$lib/utils/final-exams/normalize';
-import { normalizeAlias } from '$lib/utils/site';
-import { normalizeDormListFields } from '$lib/utils/string-lists';
+} from '#lib/server/db/schema.js';
+import { encodeClassCursor, type ClassCursor } from '#lib/api/class-cursor.js';
+import { clampLimitValue } from '#lib/api/pagination.js';
+import { escapeLikePattern } from '#lib/utils/like-escape.js';
+import { db } from '#lib/utils/db.js';
+import { normalizeCourseCode } from '#lib/utils/final-exams/normalize.js';
+import { normalizeAlias } from '#lib/utils/site.js';
+import { normalizeDormListFields } from '#lib/utils/string-lists.js';
 import { attachProbableLocations } from '../probable-location';
 import { getBuildCache } from '../page-data/ssg-cache';
 import type {
@@ -32,7 +32,7 @@ import type {
 	PlaceData,
 	FinalExamRow,
 	Room
-} from '$lib/utils/types';
+} from '#lib/utils/types';
 
 // Cached getters for SSG (#331)
 export async function getAllBuildingsCached(): Promise<Building[]> {
@@ -44,37 +44,37 @@ export async function getAllBuildingsCached(): Promise<Building[]> {
 }
 
 export async function getAllRoomsCached(): Promise<Room[]> {
-  const cache = getBuildCache();
-  if (cache.rooms) return cache.rooms;
-  const data = await db
-    .select({
-      id: roomsTable.id,
-      code: roomsTable.code,
-      fullName: roomsTable.fullName,
-      directions: roomsTable.directions,
-      building: {
-        name: buildingsTable.buildingName,
-        lat: buildingsTable.lat,
-        lon: buildingsTable.lon,
-        directions: buildingsTable.directions,
-      },
-      collegeName: collegesTable.collegeName,
-      divisionName: divisionsTable.divisionName,
-      buildingId: roomsTable.buildingId,
-      collegeId: roomsTable.collegeId,
-      divisionId: roomsTable.divisionId,
-      imageUrl: roomsTable.imageUrl,
-      photos: roomsTable.photos,
-      category: roomsTable.category,
-      version: roomsTable.version,
-      updatedAt: roomsTable.updatedAt,
-    })
-    .from(roomsTable)
-    .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
-    .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
-    .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId));
-  cache.rooms = data;
-  return data;
+	const cache = getBuildCache();
+	if (cache.rooms) return cache.rooms;
+	const data = await db
+		.select({
+			id: roomsTable.id,
+			code: roomsTable.code,
+			fullName: roomsTable.fullName,
+			directions: roomsTable.directions,
+			building: {
+				name: buildingsTable.buildingName,
+				lat: buildingsTable.lat,
+				lon: buildingsTable.lon,
+				directions: buildingsTable.directions
+			},
+			collegeName: collegesTable.collegeName,
+			divisionName: divisionsTable.divisionName,
+			buildingId: roomsTable.buildingId,
+			collegeId: roomsTable.collegeId,
+			divisionId: roomsTable.divisionId,
+			imageUrl: roomsTable.imageUrl,
+			photos: roomsTable.photos,
+			category: roomsTable.category,
+			version: roomsTable.version,
+			updatedAt: roomsTable.updatedAt
+		})
+		.from(roomsTable)
+		.leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+		.leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
+		.leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId));
+	cache.rooms = data;
+	return data;
 }
 
 export async function getAllCollegesCached(): Promise<College[]> {
@@ -113,78 +113,78 @@ export async function getAllBuildings(): Promise<Building[]> {
 }
 
 export async function getAllRooms(): Promise<Room[]> {
-  try {
-    const data = await db
-      .select({
-        id: roomsTable.id,
-        code: roomsTable.code,
-        fullName: roomsTable.fullName,
-        directions: roomsTable.directions,
-        building: {
-          name: buildingsTable.buildingName,
-          lat: buildingsTable.lat,
-          lon: buildingsTable.lon,
-          directions: buildingsTable.directions,
-        },
-        collegeName: collegesTable.collegeName,
-        divisionName: divisionsTable.divisionName,
-        buildingId: roomsTable.buildingId,
-        collegeId: roomsTable.collegeId,
-        divisionId: roomsTable.divisionId,
-        imageUrl: roomsTable.imageUrl,
-        photos: roomsTable.photos,
-        category: roomsTable.category,
-        version: roomsTable.version,
-        updatedAt: roomsTable.updatedAt,
-      })
-      .from(roomsTable)
-      .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
-      .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
-      .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId));
-    return data;
-  } catch (e) {
-    console.error("Error: ", e);
-    throw new Error("Failed to fetch rooms", { cause: e });
-  }
+	try {
+		const data = await db
+			.select({
+				id: roomsTable.id,
+				code: roomsTable.code,
+				fullName: roomsTable.fullName,
+				directions: roomsTable.directions,
+				building: {
+					name: buildingsTable.buildingName,
+					lat: buildingsTable.lat,
+					lon: buildingsTable.lon,
+					directions: buildingsTable.directions
+				},
+				collegeName: collegesTable.collegeName,
+				divisionName: divisionsTable.divisionName,
+				buildingId: roomsTable.buildingId,
+				collegeId: roomsTable.collegeId,
+				divisionId: roomsTable.divisionId,
+				imageUrl: roomsTable.imageUrl,
+				photos: roomsTable.photos,
+				category: roomsTable.category,
+				version: roomsTable.version,
+				updatedAt: roomsTable.updatedAt
+			})
+			.from(roomsTable)
+			.leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+			.leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
+			.leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId));
+		return data;
+	} catch (e) {
+		console.error('Error: ', e);
+		throw new Error('Failed to fetch rooms', { cause: e });
+	}
 }
 
 export async function getRoomByCode(code: string) {
-  try {
-    const normalizedCode = code.toUpperCase();
-    const data = await db
-      .select({
-        id: roomsTable.id,
-        code: roomsTable.code,
-        fullName: roomsTable.fullName,
-        directions: roomsTable.directions,
-        building: {
-          name: buildingsTable.buildingName,
-          lat: buildingsTable.lat,
-          lon: buildingsTable.lon,
-          directions: buildingsTable.directions,
-        },
-        collegeName: collegesTable.collegeName,
-        divisionName: divisionsTable.divisionName,
-        buildingId: roomsTable.buildingId,
-        collegeId: roomsTable.collegeId,
-        divisionId: roomsTable.divisionId,
-        imageUrl: roomsTable.imageUrl,
-        photos: roomsTable.photos,
-        category: roomsTable.category,
-        version: roomsTable.version,
-        updatedAt: roomsTable.updatedAt,
-      })
-      .from(roomsTable)
-      .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
-      .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
-      .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-      .where(sql`upper(${roomsTable.code}) = ${normalizedCode}`);
-    if (data.length === 0 || typeof data[0] === "undefined") return null;
-    return data[0];
-  } catch (e) {
-    console.error("Error: ", e);
-    throw new Error("Failed to fetch rooms", { cause: e });
-  }
+	try {
+		const normalizedCode = code.toUpperCase();
+		const data = await db
+			.select({
+				id: roomsTable.id,
+				code: roomsTable.code,
+				fullName: roomsTable.fullName,
+				directions: roomsTable.directions,
+				building: {
+					name: buildingsTable.buildingName,
+					lat: buildingsTable.lat,
+					lon: buildingsTable.lon,
+					directions: buildingsTable.directions
+				},
+				collegeName: collegesTable.collegeName,
+				divisionName: divisionsTable.divisionName,
+				buildingId: roomsTable.buildingId,
+				collegeId: roomsTable.collegeId,
+				divisionId: roomsTable.divisionId,
+				imageUrl: roomsTable.imageUrl,
+				photos: roomsTable.photos,
+				category: roomsTable.category,
+				version: roomsTable.version,
+				updatedAt: roomsTable.updatedAt
+			})
+			.from(roomsTable)
+			.leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+			.leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
+			.leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
+			.where(sql`upper(${roomsTable.code}) = ${normalizedCode}`);
+		if (data.length === 0 || typeof data[0] === 'undefined') return null;
+		return data[0];
+	} catch (e) {
+		console.error('Error: ', e);
+		throw new Error('Failed to fetch rooms', { cause: e });
+	}
 }
 
 export async function searchRooms(searchString: string) {
@@ -214,112 +214,108 @@ export async function searchRooms(searchString: string) {
 	}
 }
 
-export async function getBuildingRooms(
-  buildingId: number,
-): Promise<Room[]> {
-  try {
-    const data = await db
-      .select({
-        id: roomsTable.id,
-        code: roomsTable.code,
-        fullName: roomsTable.fullName,
-        directions: roomsTable.directions,
-        building: {
-          name: buildingsTable.buildingName,
-          lat: buildingsTable.lat,
-          lon: buildingsTable.lon,
-          directions: buildingsTable.directions,
-        },
-        collegeName: collegesTable.collegeName,
-        divisionName: divisionsTable.divisionName,
-        buildingId: roomsTable.buildingId,
-        collegeId: roomsTable.collegeId,
-        divisionId: roomsTable.divisionId,
-        imageUrl: roomsTable.imageUrl,
-        photos: roomsTable.photos,
-        category: roomsTable.category,
-        version: roomsTable.version,
-        updatedAt: roomsTable.updatedAt,
-      })
-      .from(roomsTable)
-      .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
-      .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
-      .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-      .where(eq(roomsTable.buildingId, buildingId));
-    return data;
-  } catch (e) {
-    console.error("Error: ", e);
-    throw new Error("Failed to fetch rooms", { cause: e });
-  }
+export async function getBuildingRooms(buildingId: number): Promise<Room[]> {
+	try {
+		const data = await db
+			.select({
+				id: roomsTable.id,
+				code: roomsTable.code,
+				fullName: roomsTable.fullName,
+				directions: roomsTable.directions,
+				building: {
+					name: buildingsTable.buildingName,
+					lat: buildingsTable.lat,
+					lon: buildingsTable.lon,
+					directions: buildingsTable.directions
+				},
+				collegeName: collegesTable.collegeName,
+				divisionName: divisionsTable.divisionName,
+				buildingId: roomsTable.buildingId,
+				collegeId: roomsTable.collegeId,
+				divisionId: roomsTable.divisionId,
+				imageUrl: roomsTable.imageUrl,
+				photos: roomsTable.photos,
+				category: roomsTable.category,
+				version: roomsTable.version,
+				updatedAt: roomsTable.updatedAt
+			})
+			.from(roomsTable)
+			.leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+			.leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
+			.leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
+			.where(eq(roomsTable.buildingId, buildingId));
+		return data;
+	} catch (e) {
+		console.error('Error: ', e);
+		throw new Error('Failed to fetch rooms', { cause: e });
+	}
 }
 export async function getCollegeRooms(collegeId: number): Promise<Room[]> {
-  try {
-    const data = await db
-      .select({
-        id: roomsTable.id,
-        code: roomsTable.code,
-        fullName: roomsTable.fullName,
-        directions: roomsTable.directions,
-        building: {
-          name: buildingsTable.buildingName,
-          lat: buildingsTable.lat,
-          lon: buildingsTable.lon,
-          directions: buildingsTable.directions,
-        },
-        collegeName: collegesTable.collegeName,
-        divisionName: divisionsTable.divisionName,
-        buildingId: roomsTable.buildingId,
-        collegeId: roomsTable.collegeId,
-        divisionId: roomsTable.divisionId,
-        imageUrl: roomsTable.imageUrl,
-        photos: roomsTable.photos,
-        category: roomsTable.category,
-        version: roomsTable.version,
-        updatedAt: roomsTable.updatedAt,
-      })
-      .from(roomsTable)
-      .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
-      .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
-      .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-      .where(eq(roomsTable.collegeId, collegeId));
-    return data;
-  } catch (e) {
-    console.error("Error: ", e);
-    throw new Error("Failed to fetch rooms", { cause: e });
-  }
+	try {
+		const data = await db
+			.select({
+				id: roomsTable.id,
+				code: roomsTable.code,
+				fullName: roomsTable.fullName,
+				directions: roomsTable.directions,
+				building: {
+					name: buildingsTable.buildingName,
+					lat: buildingsTable.lat,
+					lon: buildingsTable.lon,
+					directions: buildingsTable.directions
+				},
+				collegeName: collegesTable.collegeName,
+				divisionName: divisionsTable.divisionName,
+				buildingId: roomsTable.buildingId,
+				collegeId: roomsTable.collegeId,
+				divisionId: roomsTable.divisionId,
+				imageUrl: roomsTable.imageUrl,
+				photos: roomsTable.photos,
+				category: roomsTable.category,
+				version: roomsTable.version,
+				updatedAt: roomsTable.updatedAt
+			})
+			.from(roomsTable)
+			.leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+			.leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
+			.leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
+			.where(eq(roomsTable.collegeId, collegeId));
+		return data;
+	} catch (e) {
+		console.error('Error: ', e);
+		throw new Error('Failed to fetch rooms', { cause: e });
+	}
 }
-export async function getDivisionRooms(
-  divisionId: number,
-): Promise<Room[]> {
-  try {
-    const data = await db
-      .select({
-        id: roomsTable.id,
-        code: roomsTable.code,
-        fullName: roomsTable.fullName,
-        directions: roomsTable.directions,
-        building: {
-          name: buildingsTable.buildingName,
-          lat: buildingsTable.lat,
-          lon: buildingsTable.lon,
-          directions: buildingsTable.directions,
-        },
-        collegeName: collegesTable.collegeName,
-        divisionName: divisionsTable.divisionName,
-        buildingId: roomsTable.buildingId,
-        collegeId: roomsTable.collegeId,
-        divisionId: roomsTable.divisionId,
-        imageUrl: roomsTable.imageUrl,
-        photos: roomsTable.photos,
-        category: roomsTable.category,
-        version: roomsTable.version,
-        updatedAt: roomsTable.updatedAt,
-      })
-      .from(roomsTable)
-      .leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
-      .leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
-      .leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
-      .where(eq(roomsTable.divisionId, divisionId));
+export async function getDivisionRooms(divisionId: number): Promise<Room[]> {
+	try {
+		const data = await db
+			.select({
+				id: roomsTable.id,
+				code: roomsTable.code,
+				fullName: roomsTable.fullName,
+				directions: roomsTable.directions,
+				building: {
+					name: buildingsTable.buildingName,
+					lat: buildingsTable.lat,
+					lon: buildingsTable.lon,
+					directions: buildingsTable.directions
+				},
+				collegeName: collegesTable.collegeName,
+				divisionName: divisionsTable.divisionName,
+				buildingId: roomsTable.buildingId,
+				collegeId: roomsTable.collegeId,
+				divisionId: roomsTable.divisionId,
+				imageUrl: roomsTable.imageUrl,
+				photos: roomsTable.photos,
+				category: roomsTable.category,
+				version: roomsTable.version,
+				updatedAt: roomsTable.updatedAt
+			})
+			.from(roomsTable)
+			.leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+			.leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
+			.leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId))
+			.where(eq(roomsTable.divisionId, divisionId));
 
 		return data;
 	} catch (e) {

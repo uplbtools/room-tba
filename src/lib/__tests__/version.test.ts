@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { APP_VERSION, APP_VERSION_LABEL } from '$lib/constants/versioning/version';
+import { APP_VERSION, APP_VERSION_LABEL } from '#lib/constants/versioning/version.js';
 import packageJson from '../../../package.json';
 
 describe('version constants', () => {

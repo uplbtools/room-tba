@@ -3,15 +3,15 @@
 	import Info from '@lucide/svelte/icons/info';
 	import Layers from '@lucide/svelte/icons/layers';
 	import X from '@lucide/svelte/icons/x';
-	import IconButton from '$lib/components/IconButton.svelte';
+	import IconButton from '#lib/components/IconButton.svelte';
 	import './map-chrome/map-chrome.css';
-	import { getAppData } from '$lib/utils/context';
-	import { floatingControlPanelStore, map, searchInfo } from '$lib/stores.svelte';
+	import { getAppData } from '#lib/utils/context.js';
+	import { floatingControlPanelStore, map, searchInfo } from '#lib/stores.svelte.js';
 	import {
 		openEphemeralOverlay,
 		registerEphemeralOverlayDismisser
-	} from '$lib/utils/overlay-stack';
-	import { campusTransit } from '$lib/campus.config';
+	} from '#lib/utils/overlay-stack.js';
+	import { campusTransit } from '#lib/campus.config.js';
 	type Props = {
 		embedded?: boolean;
 		trigger?: 'icon' | 'chip';

@@ -1,4 +1,4 @@
-import { appBootstrapStore, syncToastStore, modalStore } from '$lib/stores.svelte';
+import { appBootstrapStore, syncToastStore, modalStore } from '#lib/stores.svelte.js';
 
 export type SyncLadderKind =
 	| 'bootstrap_error'

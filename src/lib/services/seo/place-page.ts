@@ -1,13 +1,17 @@
 import { error } from '@sveltejs/kit';
-import type { EntityIndexItem, SeoData } from '$lib/components/seo/seo-data';
+import type { EntityIndexItem, SeoData } from '#lib/components/seo/seo-data.js';
 import {
 	isPlaceLandmark,
 	placeCategoryLabel,
 	placeDirectoryLabel
-} from '$lib/constants/content/categories/place';
-import { entityIndexPath, getPlaceCanonicalPath, parseRouteSlug } from '$lib/utils/entity/entity-urls';
-import { getAllPlaces } from '$lib/services/entity/map-data';
-import { getPlacePageData } from '$lib/services/page-data/entity';
+} from '#lib/constants/content/categories/place.js';
+import {
+	entityIndexPath,
+	getPlaceCanonicalPath,
+	parseRouteSlug
+} from '#lib/utils/entity/entity-urls.js';
+import { getAllPlaces } from '#lib/services/entity/map-data.js';
+import { getPlacePageData } from '#lib/services/page-data/entity.js';
 import {
 	absoluteUrl,
 	breadcrumbSchema,
@@ -15,7 +19,7 @@ import {
 	ogCardPath,
 	ogImageUrl,
 	webpageSchema
-} from '$lib/utils/site';
+} from '#lib/utils/site.js';
 
 /** PlaceEntityPage.astro, shared by /establishment/[slug] and /landmark/[slug]. */
 export async function loadPlacePage(slug: string) {

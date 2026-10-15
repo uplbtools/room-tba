@@ -1,23 +1,23 @@
 <script lang="ts">
-	import LoadingIndicator from '$lib/components/LoadingIndicator.svelte';
+	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { adminAuthStore, proposalsStore, toastStore } from '$lib/stores.svelte';
-	import { buildFieldDiffs } from '$lib/utils/proposals/diff';
-	import { appEntityNameResolver } from '$lib/utils/proposals/entity-names';
-	import { afterProposalPublished } from '$lib/utils/proposals/apply-published-entity';
-	import { syncOpenEntityQueryAfterPublish } from '$lib/utils/proposals/sync-open-entity-query';
-	import { getAppActions, getAppData } from '$lib/utils/context';
-	import type { ProposalEntityType } from '$lib/services/contribution/proposal-action';
-	import { parseBundledRooms } from '$lib/utils/proposals/create-proposal-validation';
-	import EntityEditorFormField from '$lib/components/editor/EntityEditorFormField.svelte';
-	import EntityReviewActions from '$lib/components/editor/EntityReviewActions.svelte';
-	import Avatar from '$lib/components/Avatar.svelte';
-	import { proposalPinChange } from '$lib/utils/proposals/proposal-pin';
+	import { adminAuthStore, proposalsStore, toastStore } from '#lib/stores.svelte.js';
+	import { buildFieldDiffs } from '#lib/utils/proposals/diff.js';
+	import { appEntityNameResolver } from '#lib/utils/proposals/entity-names.js';
+	import { afterProposalPublished } from '#lib/utils/proposals/apply-published-entity.js';
+	import { syncOpenEntityQueryAfterPublish } from '#lib/utils/proposals/sync-open-entity-query.js';
+	import { getAppActions, getAppData } from '#lib/utils/context.js';
+	import type { ProposalEntityType } from '#lib/services/contribution/proposal-action.js';
+	import { parseBundledRooms } from '#lib/utils/proposals/create-proposal-validation.js';
+	import EntityEditorFormField from '#lib/components/editor/EntityEditorFormField.svelte';
+	import EntityReviewActions from '#lib/components/editor/EntityReviewActions.svelte';
+	import Avatar from '#lib/components/Avatar.svelte';
+	import { proposalPinChange } from '#lib/utils/proposals/proposal-pin.js';
 	import {
 		getReviewShortcutAction,
 		stepIndex,
 		REVIEW_SHORTCUT_HINTS
-	} from '$lib/utils/proposals/review-shortcuts';
+	} from '#lib/utils/proposals/review-shortcuts.js';
 
 	const appActions = getAppActions();
 	const appData = getAppData();
@@ -613,7 +613,7 @@
 															<!-- Imported on open so maplibre stays out of the
                                    review modal's bundle for reviewers who never
                                    ask for a preview. -->
-															{#await import('$lib/components/editor/ProposalPinPreview.svelte')}
+															{#await import('#lib/components/editor/ProposalPinPreview.svelte')}
 																<p class="entity-review-preview-loading">Loading map preview…</p>
 															{:then previewModule}
 																{@const Preview = previewModule.default}

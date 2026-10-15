@@ -1,4 +1,8 @@
-import { uploadConfigurationResponse, uploadImageRequest, scopedUploadPrefix } from '$lib/utils/uploads/image-upload';
+import {
+	uploadConfigurationResponse,
+	uploadImageRequest,
+	scopedUploadPrefix
+} from '#lib/utils/uploads/image-upload.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async () => uploadConfigurationResponse();

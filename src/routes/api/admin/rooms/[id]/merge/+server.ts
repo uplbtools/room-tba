@@ -1,6 +1,6 @@
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { DuplicateNameError, EditConflictError } from '$lib/services/admin/actions';
-import { mergeRooms } from '$lib/services/contribution/merge';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { DuplicateNameError, EditConflictError } from '#lib/services/admin/actions.js';
+import { mergeRooms } from '#lib/services/contribution/merge.js';
 import type { RequestHandler } from './$types';
 
 type RoomMergeBody = {

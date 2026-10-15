@@ -1,195 +1,186 @@
 <script lang="ts">
-  import { fade, fly } from "svelte/transition";
-  import { X, Lock } from "@lucide/svelte";
-  import IconButton from "$lib/components/IconButton.svelte";
-  import { adminAuthStore, toastStore } from "$lib/stores.svelte";
-  import {
-    modalContentDismiss,
-    modalContentReveal,
-    overlayFade,
-  } from "$lib/utils/motion";
-  import { trapFocus } from "$lib/utils/focus-trap";
-  import EntityEditorFormField from "$lib/components/editor/EntityEditorFormField.svelte";
-  import EntityEditorSubmitButton from "$lib/components/editor/EntityEditorSubmitButton.svelte";
-  import EntityEditorMessage from "$lib/components/editor/EntityEditorMessage.svelte";
-  import CommunityBrandIcon from "$lib/components/community/CommunityBrandIcon.svelte";
-  import TurnstileWidget from "$lib/components/TurnstileWidget.svelte";
-  import { MESSENGER_MAINTAIN_TARGET } from "$lib/constants/content/links/community"
-  import "./editor/entity-editor.css";
-  import { MediaQuery } from "svelte/reactivity";
+	import { fade, fly } from 'svelte/transition';
+	import { X, Lock } from '@lucide/svelte';
+	import IconButton from '#lib/components/IconButton.svelte';
+	import { adminAuthStore, toastStore } from '#lib/stores.svelte.js';
+	import { modalContentDismiss, modalContentReveal, overlayFade } from '#lib/utils/motion.js';
+	import { trapFocus } from '#lib/utils/focus-trap.js';
+	import EntityEditorFormField from '#lib/components/editor/EntityEditorFormField.svelte';
+	import EntityEditorSubmitButton from '#lib/components/editor/EntityEditorSubmitButton.svelte';
+	import EntityEditorMessage from '#lib/components/editor/EntityEditorMessage.svelte';
+	import CommunityBrandIcon from '#lib/components/community/CommunityBrandIcon.svelte';
+	import TurnstileWidget from '#lib/components/TurnstileWidget.svelte';
+	import { MESSENGER_MAINTAIN_TARGET } from '#lib/constants/content/links/community.js';
+	import './editor/entity-editor.css';
+	import { MediaQuery } from 'svelte/reactivity';
 
-  import { isSupabaseConfigured } from "$lib/supabase/env";
-  import {
-    getTurnstileSiteKey,
-    isTurnstileWidgetConfigured,
-  } from "$lib/utils/turnstile/turnstile-client";
-  import { MIN_CONTRIBUTOR_PASSWORD_LENGTH } from "$lib/auth/contributor-signup";
+	import { isSupabaseConfigured } from '#lib/supabase/env.js';
+	import {
+		getTurnstileSiteKey,
+		isTurnstileWidgetConfigured
+	} from '#lib/utils/turnstile/turnstile-client.js';
+	import { MIN_CONTRIBUTOR_PASSWORD_LENGTH } from '#lib/auth/contributor-signup.js';
 
-  const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
-  const loginErrorId = "admin-login-error"; 
-  const googleEnabled = isSupabaseConfigured();
-  const turnstileEnabled = isTurnstileWidgetConfigured();
-  const turnstileSiteKey = turnstileEnabled ? getTurnstileSiteKey() : "";
+	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
+	const loginErrorId = 'admin-login-error';
+	const googleEnabled = isSupabaseConfigured();
+	const turnstileEnabled = isTurnstileWidgetConfigured();
+	const turnstileSiteKey = turnstileEnabled ? getTurnstileSiteKey() : '';
 
-  const OAUTH_ERROR_MESSAGES: Record<string, string> = {
-    missing_code: "Google sign-in was cancelled or incomplete. Try again.",
-    oauth_failed: "Google sign-in failed. Try again.",
-    account_unavailable:
-      "This Google account cannot be used to sign in. Contact the maintainers.",
-  };
+	const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+		missing_code: 'Google sign-in was cancelled or incomplete. Try again.',
+		oauth_failed: 'Google sign-in failed. Try again.',
+		account_unavailable: 'This Google account cannot be used to sign in. Contact the maintainers.'
+	};
 
-  type Mode = "signin" | "signup";
+	type Mode = 'signin' | 'signup';
 
-  let loginFrameEl = $state<HTMLDivElement | null>(null);
-  let mode = $state<Mode>("signin");
-  let username = $state("admin");
-  let password = $state("");
-  let confirmPassword = $state("");
-  let signupEmail = $state("");
-  let error: string | null = $state(null);
-  let googleLoading = $state(false);
-  let turnstileToken = $state<string | null>(null);
-  /** Bump to remount Turnstile after a failed siteverify (token is single-use). */
-  let turnstileMountKey = $state(0);
+	let loginFrameEl = $state<HTMLDivElement | null>(null);
+	let mode = $state<Mode>('signin');
+	let username = $state('admin');
+	let password = $state('');
+	let confirmPassword = $state('');
+	let signupEmail = $state('');
+	let error: string | null = $state(null);
+	let googleLoading = $state(false);
+	let turnstileToken = $state<string | null>(null);
+	/** Bump to remount Turnstile after a failed siteverify (token is single-use). */
+	let turnstileMountKey = $state(0);
 
-  function refreshTurnstile() {
-    turnstileToken = null;
-    turnstileMountKey += 1;
-  }
+	function refreshTurnstile() {
+		turnstileToken = null;
+		turnstileMountKey += 1;
+	}
 
-  const isSignup = $derived(mode === "signup");
+	const isSignup = $derived(mode === 'signup');
 
-  function switchMode(next: Mode) {
-    mode = next;
-    error = null;
-    password = "";
-    confirmPassword = "";
-    if (next === "signup") username = "";
-  }
+	function switchMode(next: Mode) {
+		mode = next;
+		error = null;
+		password = '';
+		confirmPassword = '';
+		if (next === 'signup') username = '';
+	}
 
-  let showForgotPassword = $state(false);
-  let forgotLoginDraft = $state("");
-  let forgotPasswordSending = $state(false);
-  let forgotPasswordSent = $state(false);
-  let forgotPasswordError = $state<string | null>(null);
+	let showForgotPassword = $state(false);
+	let forgotLoginDraft = $state('');
+	let forgotPasswordSending = $state(false);
+	let forgotPasswordSent = $state(false);
+	let forgotPasswordError = $state<string | null>(null);
 
-  async function sendForgotPassword() {
-    forgotPasswordSending = true;
-    forgotPasswordError = null;
-    try {
-      const res = await fetch("/api/account/request-password-reset", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ login: forgotLoginDraft }),
-      });
-      if (!res.ok && res.status === 429) {
-        const data = await res.json().catch(() => ({}) as { error?: string });
-        forgotPasswordError =
-          data.error ?? "Too many attempts. Wait a bit and try again.";
-        return;
-      }
-      // Always show success — the endpoint never reveals whether the
-      // account exists, so neither should the UI.
-      forgotPasswordSent = true;
-    } catch {
-      forgotPasswordError = "Network error. Try again.";
-    } finally {
-      forgotPasswordSending = false;
-    }
-  }
+	async function sendForgotPassword() {
+		forgotPasswordSending = true;
+		forgotPasswordError = null;
+		try {
+			const res = await fetch('/api/account/request-password-reset', {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ login: forgotLoginDraft })
+			});
+			if (!res.ok && res.status === 429) {
+				const data = await res.json().catch(() => ({}) as { error?: string });
+				forgotPasswordError = data.error ?? 'Too many attempts. Wait a bit and try again.';
+				return;
+			}
+			// Always show success — the endpoint never reveals whether the
+			// account exists, so neither should the UI.
+			forgotPasswordSent = true;
+		} catch {
+			forgotPasswordError = 'Network error. Try again.';
+		} finally {
+			forgotPasswordSending = false;
+		}
+	}
 
-  $effect(() => {
-    const code = adminAuthStore.oauthError;
-    if (code) {
-      error =
-        OAUTH_ERROR_MESSAGES[code] ?? "Google sign-in failed. Try again.";
-    }
-  });
+	$effect(() => {
+		const code = adminAuthStore.oauthError;
+		if (code) {
+			error = OAUTH_ERROR_MESSAGES[code] ?? 'Google sign-in failed. Try again.';
+		}
+	});
 
-  // Each time the modal opens, land on the tab the entry point requested
-  // (the "Sign up" menu entry opens straight into signup).
-  let wasOpen = false;
-  $effect(() => {
-    if (adminAuthStore.loginOpen && !wasOpen) {
-      switchMode(adminAuthStore.loginInitialMode);
-    }
-    wasOpen = adminAuthStore.loginOpen;
-  });
+	// Each time the modal opens, land on the tab the entry point requested
+	// (the "Sign up" menu entry opens straight into signup).
+	let wasOpen = false;
+	$effect(() => {
+		if (adminAuthStore.loginOpen && !wasOpen) {
+			switchMode(adminAuthStore.loginInitialMode);
+		}
+		wasOpen = adminAuthStore.loginOpen;
+	});
 
-  async function signInWithGoogle() {
-    error = null;
-    adminAuthStore.oauthError = null;
-    googleLoading = true;
-    const err = await adminAuthStore.loginWithGoogle();
-    if (err) {
-      error = err;
-      googleLoading = false;
-    }
-    // On success the browser navigates away to Google.
-  }
+	async function signInWithGoogle() {
+		error = null;
+		adminAuthStore.oauthError = null;
+		googleLoading = true;
+		const err = await adminAuthStore.loginWithGoogle();
+		if (err) {
+			error = err;
+			googleLoading = false;
+		}
+		// On success the browser navigates away to Google.
+	}
 
-  async function submit(e: Event) {
-    e.preventDefault();
-    if (turnstileEnabled && !turnstileToken) {
-      error = "Complete the verification check, then try again.";
-      return;
-    }
-    error = null;
+	async function submit(e: Event) {
+		e.preventDefault();
+		if (turnstileEnabled && !turnstileToken) {
+			error = 'Complete the verification check, then try again.';
+			return;
+		}
+		error = null;
 
-    if (isSignup) {
-      if (password !== confirmPassword) {
-        error = "Passwords do not match.";
-        return;
-      }
-      const err = await adminAuthStore.signup({
-        username,
-        password,
-        email: signupEmail,
-        turnstileToken,
-      });
-      if (err) {
-        error = err;
-        refreshTurnstile();
-        return;
-      }
-      password = "";
-      confirmPassword = "";
-      const label =
-        adminAuthStore.displayName ?? adminAuthStore.username ?? "contributor";
-      toastStore.show(`Signed in as ${label}.`, "success");
-      return;
-    }
+		if (isSignup) {
+			if (password !== confirmPassword) {
+				error = 'Passwords do not match.';
+				return;
+			}
+			const err = await adminAuthStore.signup({
+				username,
+				password,
+				email: signupEmail,
+				turnstileToken
+			});
+			if (err) {
+				error = err;
+				refreshTurnstile();
+				return;
+			}
+			password = '';
+			confirmPassword = '';
+			const label = adminAuthStore.displayName ?? adminAuthStore.username ?? 'contributor';
+			toastStore.show(`Signed in as ${label}.`, 'success');
+			return;
+		}
 
-    const err = await adminAuthStore.login(username, password, turnstileToken);
-    if (err) {
-      error = err;
-      refreshTurnstile();
-      return;
-    }
-    password = "";
-    const label =
-      adminAuthStore.displayName ?? adminAuthStore.username ?? "contributor";
-    toastStore.show(`Logged in as ${label}.`, "success");
-  }
+		const err = await adminAuthStore.login(username, password, turnstileToken);
+		if (err) {
+			error = err;
+			refreshTurnstile();
+			return;
+		}
+		password = '';
+		const label = adminAuthStore.displayName ?? adminAuthStore.username ?? 'contributor';
+		toastStore.show(`Logged in as ${label}.`, 'success');
+	}
 
-  function close() {
-    adminAuthStore.closeLogin();
-    error = null;
-    password = "";
-    confirmPassword = "";
-    signupEmail = "";
-    mode = "signin";
-  }
+	function close() {
+		adminAuthStore.closeLogin();
+		error = null;
+		password = '';
+		confirmPassword = '';
+		signupEmail = '';
+		mode = 'signin';
+	}
 
-  function handleKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") close();
-  }
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') close();
+	}
 
-  $effect(() => {
-    if (!loginFrameEl) return;
-    return trapFocus(loginFrameEl, { onEscape: close });
-  });
+	$effect(() => {
+		if (!loginFrameEl) return;
+		return trapFocus(loginFrameEl, { onEscape: close });
+	});
 </script>
 
 <svelte:window onkeydown={handleKeydown} />

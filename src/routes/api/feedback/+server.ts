@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
-import { db } from '$lib/server/db';
-import { feedbackTable } from '$lib/server/db/schema';
+import { ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT } from '$app/env/private';
+import { db } from '#lib/server/db/index.js';
+import { feedbackTable } from '#lib/server/db/schema.js';
 import type { RequestHandler } from './$types';
 
 // Caps inlined from astro/src/constants/feedback.ts.
@@ -49,7 +49,7 @@ function checkRateLimit(
 
 /** Same E2E escape hatch the proposal limiter uses, so specs can submit freely. */
 function skipRateLimits(): boolean {
-	return env.ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT === '1';
+	return ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT === '1';
 }
 
 /**
@@ -121,6 +121,7 @@ function validateFeedback(body: unknown): FeedbackValidation {
 	// Only a same-site path is kept: a full URL could carry a query string with
 	// whatever the sender had typed into search, which is not ours to store.
 	const screenRaw = optionalText(raw.screen, SCREEN_MAX);
+
 	const screen =
 		screenRaw?.startsWith('/') && !screenRaw.startsWith('//')
 			? (screenRaw.split('?')[0] ?? null)

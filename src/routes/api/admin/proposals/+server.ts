@@ -1,8 +1,8 @@
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import {
 	countPendingProposals,
 	listPendingProposalsForReview
-} from '$lib/services/contribution/proposal-action';
+} from '#lib/services/contribution/proposal-action.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ cookies }) => {

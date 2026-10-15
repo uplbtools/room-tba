@@ -1,104 +1,99 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import Mountain from "@lucide/svelte/icons/mountain";
-  import RotateCcw from "@lucide/svelte/icons/rotate-ccw";
-  import X from "@lucide/svelte/icons/x";
-  import IconButton from "$lib/components/IconButton.svelte";
-  import {
-    TERRAIN_EXAGGERATION_OPTIONS,
-    TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
-  } from "$lib/constants/map/terrain"
-  import { floatingControlPanelStore, terrainStore } from "$lib/stores.svelte";
-  import "./map-chrome/map-chrome.css";
+	import { onMount } from 'svelte';
+	import Mountain from '@lucide/svelte/icons/mountain';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import X from '@lucide/svelte/icons/x';
+	import IconButton from '#lib/components/IconButton.svelte';
+	import {
+		TERRAIN_EXAGGERATION_OPTIONS,
+		TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE
+	} from '#lib/constants/map/terrain.js';
+	import { floatingControlPanelStore, terrainStore } from '#lib/stores.svelte.js';
+	import './map-chrome/map-chrome.css';
 
-  type Props = {
-    embedded?: boolean;
-  };
+	type Props = {
+		embedded?: boolean;
+	};
 
-  let { embedded = false }: Props = $props();
+	let { embedded = false }: Props = $props();
 
-  type NetworkInformation = EventTarget & {
-    effectiveType?: string;
-    saveData?: boolean;
-  };
+	type NetworkInformation = EventTarget & {
+		effectiveType?: string;
+		saveData?: boolean;
+	};
 
-  let isOnline = $state(true);
-  let lowDataConnection = $state(false);
-  const panelId = "terrain";
-  const menuOpen = $derived(floatingControlPanelStore.openPanel === panelId);
-  const showPanel = $derived(embedded || menuOpen);
+	let isOnline = $state(true);
+	let lowDataConnection = $state(false);
+	const panelId = 'terrain';
+	const menuOpen = $derived(floatingControlPanelStore.openPanel === panelId);
+	const showPanel = $derived(embedded || menuOpen);
 
-  // Only says something when the state is not the plain "off and fine" one.
-  // The what-is-this copy lives on the toggle's title instead of a paragraph.
-  const statusText = $derived.by(() => {
-    if (!isOnline) return TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE;
-    if (terrainStore.status === "loading") return "Loading elevation tiles...";
-    if (terrainStore.status === "active") {
-      return "Contextual relief, not survey-grade elevation.";
-    }
-    if (terrainStore.status === "unavailable") {
-      return terrainStore.message ?? "Terrain is unavailable right now.";
-    }
-    if (lowDataConnection) return "Uses online tiles. Keep it off on low data.";
-    return "";
-  });
+	// Only says something when the state is not the plain "off and fine" one.
+	// The what-is-this copy lives on the toggle's title instead of a paragraph.
+	const statusText = $derived.by(() => {
+		if (!isOnline) return TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE;
+		if (terrainStore.status === 'loading') return 'Loading elevation tiles...';
+		if (terrainStore.status === 'active') {
+			return 'Contextual relief, not survey-grade elevation.';
+		}
+		if (terrainStore.status === 'unavailable') {
+			return terrainStore.message ?? 'Terrain is unavailable right now.';
+		}
+		if (lowDataConnection) return 'Uses online tiles. Keep it off on low data.';
+		return '';
+	});
 
-  const statusWarns = $derived(
-    !isOnline || lowDataConnection || terrainStore.status === "unavailable",
-  );
+	const statusWarns = $derived(
+		!isOnline || lowDataConnection || terrainStore.status === 'unavailable'
+	);
 
-  // Visible label is "Off"/"On", so the accessible name has to contain it
-  // (WCAG 2.5.3) while still naming the action.
-  const toggleLabel = $derived(
-    terrainStore.enabled
-      ? "Terrain is on. Turn terrain off."
-      : "Terrain is off. Turn terrain on.",
-  );
+	// Visible label is "Off"/"On", so the accessible name has to contain it
+	// (WCAG 2.5.3) while still naming the action.
+	const toggleLabel = $derived(
+		terrainStore.enabled ? 'Terrain is on. Turn terrain off.' : 'Terrain is off. Turn terrain on.'
+	);
 
-  function getConnection(): NetworkInformation | undefined {
-    return (navigator as Navigator & { connection?: NetworkInformation })
-      .connection;
-  }
+	function getConnection(): NetworkInformation | undefined {
+		return (navigator as Navigator & { connection?: NetworkInformation }).connection;
+	}
 
-  function updateNetworkState() {
-    isOnline = navigator.onLine;
-    const connection = getConnection();
-    lowDataConnection = Boolean(
-      connection?.saveData || connection?.effectiveType?.includes("2g"),
-    );
-    if (!isOnline && terrainStore.enabled) {
-      terrainStore.markUnavailable(TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE);
-    }
-  }
+	function updateNetworkState() {
+		isOnline = navigator.onLine;
+		const connection = getConnection();
+		lowDataConnection = Boolean(connection?.saveData || connection?.effectiveType?.includes('2g'));
+		if (!isOnline && terrainStore.enabled) {
+			terrainStore.markUnavailable(TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE);
+		}
+	}
 
-  function handleToggle() {
-    if (terrainStore.enabled) {
-      terrainStore.disable();
-      return;
-    }
+	function handleToggle() {
+		if (terrainStore.enabled) {
+			terrainStore.disable();
+			return;
+		}
 
-    if (!isOnline) {
-      terrainStore.markUnavailable(TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE);
-      return;
-    }
+		if (!isOnline) {
+			terrainStore.markUnavailable(TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE);
+			return;
+		}
 
-    terrainStore.enable();
-  }
+		terrainStore.enable();
+	}
 
-  onMount(() => {
-    updateNetworkState();
+	onMount(() => {
+		updateNetworkState();
 
-    const connection = getConnection();
-    window.addEventListener("online", updateNetworkState);
-    window.addEventListener("offline", updateNetworkState);
-    connection?.addEventListener?.("change", updateNetworkState);
+		const connection = getConnection();
+		window.addEventListener('online', updateNetworkState);
+		window.addEventListener('offline', updateNetworkState);
+		connection?.addEventListener?.('change', updateNetworkState);
 
-    return () => {
-      window.removeEventListener("online", updateNetworkState);
-      window.removeEventListener("offline", updateNetworkState);
-      connection?.removeEventListener?.("change", updateNetworkState);
-    };
-  });
+		return () => {
+			window.removeEventListener('online', updateNetworkState);
+			window.removeEventListener('offline', updateNetworkState);
+			connection?.removeEventListener?.('change', updateNetworkState);
+		};
+	});
 </script>
 
 <div class="terrain-control" class:embedded>

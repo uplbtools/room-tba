@@ -1,15 +1,15 @@
-import { env } from '$env/dynamic/private';
-import { parseRequiredEditorVersion } from '$lib/admin/expected-version';
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
-import { parseEventImageUrl } from '$lib/utils/r2-upload';
+import { R2_PUBLIC_URL } from '$app/env/private';
+import { parseRequiredEditorVersion } from '#lib/admin/expected-version.js';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { parseEventImageUrl } from '#lib/utils/r2-upload.js';
 import {
 	DuplicateSlugError,
 	deactivateEvent,
 	EditConflictError,
 	type EventWriteInput,
 	updateEvent
-} from '$lib/services/admin/actions';
-import { slugifySegment } from '$lib/utils/site';
+} from '#lib/services/admin/actions.js';
+import { slugifySegment } from '#lib/utils/site.js';
 import type { RequestHandler } from './$types';
 
 type EventPatchBody = EventWriteInput & {
@@ -40,7 +40,7 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 	if (!parsedVersion.ok) return parsedVersion.response;
 	const expectedVersion = parsedVersion.version;
 
-	const parsedImageUrl = parseEventImageUrl(body.imageUrl, env.R2_PUBLIC_URL);
+	const parsedImageUrl = parseEventImageUrl(body.imageUrl, R2_PUBLIC_URL);
 	if (!parsedImageUrl.ok) {
 		return json({ error: parsedImageUrl.error }, 400);
 	}

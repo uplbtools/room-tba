@@ -1,6 +1,6 @@
 import { and, eq, like, or } from 'drizzle-orm';
-import { db } from '$lib/server/db';
-import { aliasesTable, buildingsTable } from '$lib/server/db/schema';
+import { db } from '#lib/server/db/index.js';
+import { aliasesTable, buildingsTable } from '#lib/server/db/schema.js';
 import type { RequestHandler } from './$types';
 
 // Inlined from astro src/lib/site.ts normalizeAlias (#155): NFKD, lowercase,

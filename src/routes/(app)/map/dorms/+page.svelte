@@ -1,8 +1,8 @@
 <script lang="ts">
-	import MapBrowseList from "$lib/components/map/MapBrowseList.svelte";
-	import { getAppData } from "$lib/utils/context";
-	import { getDormCanonicalPath } from "$lib/utils/entity/entity-urls"
-import type { PageData } from "./$types";
+	import MapBrowseList from '#lib/components/map/MapBrowseList.svelte';
+	import { getAppData } from '#lib/utils/context.js';
+	import { getDormCanonicalPath } from '#lib/utils/entity/entity-urls.js';
+	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
 	const appData = getAppData();
@@ -15,13 +15,13 @@ import type { PageData } from "./$types";
 		data.items.length > 0
 			? data.items
 			: (appData().dorms ?? [])
-			.slice()
-			.sort((a, b) => a.dormName.localeCompare(b.dormName))
-			.map((dorm) => ({
-				href: getDormCanonicalPath(dorm),
-				label: dorm.dormName,
-				description: dorm.isUpManaged ? "UP-managed dorm" : "Private dorm",
-			})),
+					.slice()
+					.sort((a, b) => a.dormName.localeCompare(b.dormName))
+					.map((dorm) => ({
+						href: getDormCanonicalPath(dorm),
+						label: dorm.dormName,
+						description: dorm.isUpManaged ? 'UP-managed dorm' : 'Private dorm'
+					}))
 	);
 </script>
 

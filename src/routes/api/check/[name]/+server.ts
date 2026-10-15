@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import type { RequestHandler } from '@sveltejs/kit';
-import { updateTable } from '$lib/server/db/schema';
-import { db } from '$lib/server/db';
+import { updateTable } from '#lib/server/db/schema.js';
+import { db } from '#lib/server/db/index.js';
 
 const PATHS = [
 	'announcements',

@@ -1,10 +1,10 @@
 <!-- <script lang="ts">
-	import { classTypeDisplayLabel, NO_ASSIGNED_ROOM_LABEL } from '$lib/amis/room-scheduled-types';
-	import { groupClassesByOffering, offeringGroupKey } from '$lib/utils/class-offering-groups';
-	import type { ClassOfferingGroup } from '$lib/utils/class-offering-groups';
-	import type { ProbableLocation } from '$lib/utils/probable-location';
-	import type { ClassMapValue } from '$lib/utils/types';
-	import { plannerStore, searchInfo, toastStore } from '$lib/stores.svelte';
+	import { classTypeDisplayLabel, NO_ASSIGNED_ROOM_LABEL } from '#lib/amis/room-scheduled-types.js';
+	import { groupClassesByOffering, offeringGroupKey } from '#lib/utils/class-offering-groups.js';
+	import type { ClassOfferingGroup } from '#lib/utils/class-offering-groups.js';
+	import type { ProbableLocation } from '#lib/utils/probable-location.js';
+	import type { ClassMapValue } from '#lib/utils/types';
+	import { plannerStore, searchInfo, toastStore } from '#lib/stores.svelte.js';
 
 	interface Props {
 		classes: ClassMapValue[];

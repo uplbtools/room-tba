@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import OnlineCounter from '$lib/components/OnlineCounter.svelte';
+import OnlineCounter from '#lib/components/OnlineCounter.svelte';
 
 function jsonResponse(body: unknown, status = 200): Response {
 	return new Response(JSON.stringify(body), {

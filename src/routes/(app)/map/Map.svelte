@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { CAMPUS_DEFAULT_CAMERA, CAMPUS_MAX_BOUNDS } from '$lib/constants/map/terrain';
+	import { CAMPUS_DEFAULT_CAMERA, CAMPUS_MAX_BOUNDS } from '#lib/constants/map/terrain.js';
 	import { MapLibre } from 'svelte-maplibre';
 	// import UserLocationMarker from './UserLocationMarker.svelte';
 	import BuildingMarkers from './BuildingMarkers.svelte';
 	import OrgMarkers from './OrgMarkers.svelte';
 	import PlaceMarkers from './PlaceMarkers.svelte';
 	import DormMarkers from './DormMarkers.svelte';
-	// import { getAllBuildings } from '$lib/functions/buildings.remote';
+	// import { getAllBuildings } from '#lib/functions/buildings.remote.js';
 	import * as maplibre from 'maplibre-gl';
-	import { getMapStore, getSearchInfo } from '$lib/utils/context';
+	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
 	import { onMount } from 'svelte';
 	import UserLocationMarker from './UserLocationMarker.svelte';
 	import { goto } from '$app/navigation';
@@ -50,7 +50,7 @@
 
 	function handleMapKeydown(event: KeyboardEvent & { currentTarget: EventTarget & Window }) {
 		if (event.key === 'Escape' && page.route.id !== '/(app)/map') {
-			goto(resolve('/map'));
+			goto(resolve('map'));
 		}
 	}
 </script>
@@ -114,12 +114,12 @@ import { MediaQuery } from "svelte/reactivity";
 import { fade } from "svelte/transition";
 import { goto } from "$app/navigation";
 import { resolve } from "$app/paths";
-import { sumRouteLegs } from "$lib/utils/campus/campus-route";
+import { sumRouteLegs } from "#lib/utils/campus/campus-route.js";
 import {
 	buildingMatchesTypeFilter,
 	dormMatchesTypeFilter,
-} from "$lib/constants/content/categories/building"
-import jeepneyGeometries from "$lib/constants/map/jeepney-geometries.json";
+} from "#lib/constants/content/categories/building.js"
+import jeepneyGeometries from "#lib/constants/map/jeepney-geometries.json";
 import {
 	type JeepneyRoute,
 	type JeepneyStop,
@@ -127,7 +127,7 @@ import {
 	type RouteGeometrySource,
 	resolveRouteGeometry,
 	type StoredRouteGeometry,
-} from "$lib/constants/map/jeepney-routes";
+} from "#lib/constants/map/jeepney-routes.js";
 import {
 	MAKILING_TRAIL_COLOR,
 	MAKILING_TRAIL_LAYER_CASING_ID,
@@ -137,8 +137,8 @@ import {
 	MAKILING_TRAIL_STATIONS,
 	MAKILING_TRAIL_STATIONS_LAYER_ID,
 	MAKILING_TRAIL_STATIONS_SOURCE_ID,
-} from "$lib/constants/map/makiling-trail";
-import { isMap2DPitch } from "$lib/constants/map/dimension";
+} from "#lib/constants/map/makiling-trail.js";
+import { isMap2DPitch } from "#lib/constants/map/dimension.js";
 import {
 	CAMPUS_DEFAULT_CAMERA,
 	CAMPUS_MAX_BOUNDS,
@@ -151,10 +151,10 @@ import {
 	TERRAIN_SOURCE_ID,
 	TERRAIN_TILE_FAILURE_MESSAGE,
 	TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE,
-} from "$lib/constants/map/terrain"
-import { isStudentOrganization } from "$lib/constants/content/categories/org"
-import { isPlaceLandmark } from "$lib/constants/content/categories/place";
-import { getAppActions, getAppData } from "$lib/utils/context";
+} from "#lib/constants/map/terrain.js"
+import { isStudentOrganization } from "#lib/constants/content/categories/org.js"
+import { isPlaceLandmark } from "#lib/constants/content/categories/place.js";
+import { getAppActions, getAppData } from "#lib/utils/context.js";
 import {
 	buildingPreviewFromRow,
 	dormPreviewFromRow,
@@ -168,25 +168,25 @@ import {
 	isPlaceHoverPreview,
 	organizationPreviewFromRow,
 	placePreviewFromRow,
-} from "$lib/utils/entity/entity-hover-preview.svelte";
-import { getEventImage } from "$lib/utils/event/event-images";
-import { formatCampusDateShort, formatCampusTime } from "$lib/utils/event/event-time";
-import { metersToLngLatCircle } from "$lib/utils/geolocation";
-import { observeBlockHeight } from "$lib/utils/layout-css-vars";
-import { patchEventLocations, patchPosition } from "$lib/utils/map-edit/patch-api";
+} from "#lib/utils/entity/entity-hover-preview.svelte.js";
+import { getEventImage } from "#lib/utils/event/event-images.js";
+import { formatCampusDateShort, formatCampusTime } from "#lib/utils/event/event-time.js";
+import { metersToLngLatCircle } from "#lib/utils/geolocation.js";
+import { observeBlockHeight } from "#lib/utils/layout-css-vars.js";
+import { patchEventLocations, patchPosition } from "#lib/utils/map-edit/patch-api.js";
 import type {
 	EditableCoords,
 	EditableEntityType,
 	EditableVersionedPosition,
 	EventLocationWriteValue,
-} from "$lib/utils/map-edit/types";
-import { formatMinutes } from "$lib/utils/schedule-import/day-stops";
-import { slugifySegment } from "$lib/utils/site";
+} from "#lib/utils/map-edit/types.js";
+import { formatMinutes } from "#lib/utils/schedule-import/day-stops.js";
+import { slugifySegment } from "#lib/utils/site.js";
 import {
 	trackSponsorClick,
 	trackSponsorImpression,
-} from "$lib/utils/sponsor-tracking";
-import { getSponsoredPlacePins, loadSponsors } from "$lib/utils/sponsors";
+} from "#lib/utils/sponsor-tracking.js";
+import { getSponsoredPlacePins, loadSponsors } from "#lib/utils/sponsors.js";
 import {
 	additionProposalStore,
 	adminAuthStore,
@@ -213,22 +213,22 @@ import {
 	trailStore,
 	transitStore,
 	travelTimeStore,
-} from "$lib/stores.svelte";
+} from "#lib/stores.svelte.js";
 import {
 	dijkstra,
 	isochroneFeatures,
 	nearestNodeIndex,
 	shortestPath,
 	type TravelMode,
-} from "$lib/utils/travel-graph/engine";
-import { loadTravelGraph } from "$lib/utils/travel-graph/load";
+} from "#lib/utils/travel-graph/engine.js";
+import { loadTravelGraph } from "#lib/utils/travel-graph/load.js";
 import type {
 	Building,
 	DormData,
 	EventData,
 	OrgData,
 	PlaceData,
-} from "$lib/utils/types";
+} from "#lib/utils/types";
 import BuildingResult from "./controls/BuildingResult.svelte";
 import DormResult from "./controls/DormResult.svelte";
 import EventResult from "./controls/EventResult.svelte";
@@ -239,14 +239,14 @@ import EventMapPin from "./map/EventMapPin.svelte";
 import MapEntityPin from "./map/MapEntityPin.svelte";
 import PinGlyph from "./map/PinGlyph.svelte";
 import EventPlacementImageField from "./map-chrome/EventPlacementImageField.svelte";
-	import { plannerRoomCodes } from "$lib/utils/planner/normalize";
-	import { ClientEditConflictError, ClientEventConflictError, editErrorMessage } from "$lib/utils/map-edit/errors";
-	import { syncBuildingLayersForDimension } from "$lib/utils/map/map-dimension-layers";
-	import { applyBasemapPalette } from "$lib/utils/map/map-basemap-palette";
-	import { completeMapMoveRedo, completeMapMoveUndo, getMapEditShortcutAction, recordMapMove, type VersionedMapMove } from "$lib/utils/map/map-move-history";
-	import { resolveSubmitterName, submitCreateProposal, submitPinPositionProposal } from "$lib/utils/proposals/client";
-	import { ISOCHRONE_CAP_MINUTES, VIRIDIS_STOPS } from "$lib/constants/travel-modes";
-	import { loadCampusMapStyle } from "$lib/utils/map/maptiler-key";
+	import { plannerRoomCodes } from "#lib/utils/planner/normalize.js";
+	import { ClientEditConflictError, ClientEventConflictError, editErrorMessage } from "#lib/utils/map-edit/errors.js";
+	import { syncBuildingLayersForDimension } from "#lib/utils/map/map-dimension-layers.js";
+	import { applyBasemapPalette } from "#lib/utils/map/map-basemap-palette.js";
+	import { completeMapMoveRedo, completeMapMoveUndo, getMapEditShortcutAction, recordMapMove, type VersionedMapMove } from "#lib/utils/map/map-move-history.js";
+	import { resolveSubmitterName, submitCreateProposal, submitPinPositionProposal } from "#lib/utils/proposals/client.js";
+	import { ISOCHRONE_CAP_MINUTES, VIRIDIS_STOPS } from "#lib/constants/travel-modes.js";
+	import { loadCampusMapStyle } from "#lib/utils/map/maptiler-key.js";
 
 const data = getAppData();
 const appActions = getAppActions();

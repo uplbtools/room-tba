@@ -1,29 +1,29 @@
 <script lang="ts">
-	import Search from '$lib/components/search/Search.svelte';
-	import { MapStore } from '$lib/stores/map/map-stores.svelte';
-	import UserLocation from '$lib/stores/map/UserLocation.svelte';
+	import Search from '#lib/components/search/Search.svelte';
+	import { MapStore } from '#lib/stores/map/map-stores.svelte.js';
+	import UserLocation from '#lib/stores/map/UserLocation.svelte.js';
 	import {
 		getSearchInfo,
 		initMapStore,
 		initSearchInfo,
 		initUserLocation
-	} from '$lib/utils/context';
+	} from '#lib/utils/context.js';
 	import type { Snippet } from 'svelte';
 	import UIMap from './Map.svelte';
-	import SearchInfo from '$lib/stores/SearchInfo.svelte';
-	import InfoPanel from '$lib/components/controls/InfoPanel.svelte';
-	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
+	import SearchInfo from '#lib/stores/SearchInfo.svelte.js';
+	import InfoPanel from '#lib/components/controls/InfoPanel.svelte';
+	import EntitySkeleton from '#lib/components/EntitySkeleton.svelte';
 	import UILayer from './UILayer.svelte';
-	import MapControlsStack from '$lib/components/map-chrome/MapControlsStack.svelte';
+	import MapControlsStack from '#lib/components/map-chrome/MapControlsStack.svelte';
 	import { afterNavigate } from '$app/navigation';
 	/* import { onMount, type Snippet } from 'svelte';
 	import { page } from '$app/state';
-	import { campusCommunity } from '$lib/campus.config';
+	import { campusCommunity } from '#lib/campus.config.js';
 	import Entry from './Entry.svelte';
-	import { type AppContextData, type DBData, setAppActions, setAppData } from '$lib/utils/context';
-	import { jitteredBackoffDelay, sleep } from '$lib/utils/local/data/fetch-json';
-	import { CAMPUS_DATA_REFRESH_EVENT } from '$lib/utils/local/data/invalidate-sync-key';
-	import { getDB } from '$lib/utils/local/data/pgliteDB';
+	import { type AppContextData, type DBData, setAppActions, setAppData } from '#lib/utils/context.js';
+	import { jitteredBackoffDelay, sleep } from '#lib/utils/local/data/fetch-json.js';
+	import { CAMPUS_DATA_REFRESH_EVENT } from '#lib/utils/local/data/invalidate-sync-key.js';
+	import { getDB } from '#lib/utils/local/data/pgliteDB.js';
 	import {
 		getSyncKeysFromLs,
 		localTableSyncCheck,
@@ -36,7 +36,7 @@
 		syncEvents,
 		syncOrganizations,
 		syncPlaces
-	} from '$lib/utils/local/data/sync';
+	} from '#lib/utils/local/data/sync.js';
 	import {
 		fetchRemoteEvents,
 		getBuildings,
@@ -49,15 +49,15 @@
 		getPlaces,
 		getRoomsData,
 		loadCachedAppData
-	} from '$lib/utils/local/data/utils';
+	} from '#lib/utils/local/data/utils.js';
 	import {
 		appBootstrapStore,
 		searchInfo,
 		syncToastStore,
 		toastStore,
 		transitStore
-	} from '$lib/stores.svelte';
-	import { normalizeDormListFields } from '$lib/utils/string-lists';
+	} from '#lib/stores.svelte.js';
+	import { normalizeDormListFields } from '#lib/utils/string-lists.js';
 	import type {
 		Building,
 		College,
@@ -67,11 +67,11 @@
 		OrgData,
 		PlaceData,
 		TableSyncInfo
-	} from '$lib/utils/types';
+	} from '#lib/utils/types';
 	import UIMap from './Map.svelte'; */
 
-	// import { MapStore } from '$lib/stores/map/map-stores.svelte';
-	// import { initMapStore } from '$lib/utils/context';
+	// import { MapStore } from '#lib/stores/map/map-stores.svelte.js';
+	// import { initMapStore } from '#lib/utils/context.js';
 
 	// const { children }: { children: Snippet } = $props();
 

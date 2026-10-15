@@ -1,5 +1,5 @@
 <!-- <script lang="ts">
-	import EntitySkeleton from '$lib/components/EntitySkeleton.svelte';
+	import EntitySkeleton from '#lib/components/EntitySkeleton.svelte';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import MapPin from '@lucide/svelte/icons/map-pin';
 	import Route from '@lucide/svelte/icons/route';
@@ -7,15 +7,15 @@
 	import EntityShareCopyLink from './EntityShareCopyLink.svelte';
 	import EntityDirectionsChip from './EntityDirectionsChip.svelte';
 	import EntityLastUpdated from '../EntityLastUpdated.svelte';
-	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
-	import EntityEditorPanel from '$lib/components/editor/EntityEditorPanel.svelte';
-	import EntityEditorFormField from '$lib/components/editor/EntityEditorFormField.svelte';
-	import EntityEditorCard from '$lib/components/editor/EntityEditorCard.svelte';
-	import EntityEditorPinRow from '$lib/components/editor/EntityEditorPinRow.svelte';
-	import EntityEditorSubmitButton from '$lib/components/editor/EntityEditorSubmitButton.svelte';
-	import ImageUpload from '$lib/components/editor/ImageUpload.svelte';
-	import { fieldSaveActionLabel } from '$lib/utils/editor/field-action-label';
-	import { getAppActions, getAppData } from '$lib/utils/context';
+	import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
+	import EntityEditorPanel from '#lib/components/editor/EntityEditorPanel.svelte';
+	import EntityEditorFormField from '#lib/components/editor/EntityEditorFormField.svelte';
+	import EntityEditorCard from '#lib/components/editor/EntityEditorCard.svelte';
+	import EntityEditorPinRow from '#lib/components/editor/EntityEditorPinRow.svelte';
+	import EntityEditorSubmitButton from '#lib/components/editor/EntityEditorSubmitButton.svelte';
+	import ImageUpload from '#lib/components/editor/ImageUpload.svelte';
+	import { fieldSaveActionLabel } from '#lib/utils/editor/field-action-label.js';
+	import { getAppActions, getAppData } from '#lib/utils/context.js';
 	import {
 		adminAuthStore,
 		eventPlacementStore,
@@ -24,22 +24,22 @@
 		map,
 		searchInfo,
 		toastStore
-	} from '$lib/stores.svelte';
-	import { getStoredProposalForEntity, persistEntityChange } from '$lib/utils/proposals/client';
-	import { CAMPUS_DEFAULT_CAMERA } from '$lib/constants/map/terrain';
-	import { getEventImage } from '$lib/utils/event/event-images';
+	} from '#lib/stores.svelte.js';
+	import { getStoredProposalForEntity, persistEntityChange } from '#lib/utils/proposals/client.js';
+	import { CAMPUS_DEFAULT_CAMERA } from '#lib/constants/map/terrain.js';
+	import { getEventImage } from '#lib/utils/event/event-images.js';
 	import {
 		campusInputToWallString,
 		formatCampusDateTime,
 		instantToCampusInput
-	} from '$lib/utils/event/event-time';
-	import { getEventShareUrl } from '$lib/utils/share-links';
-	import type { EventData } from '$lib/utils/types';
+	} from '#lib/utils/event/event-time.js';
+	import { getEventShareUrl } from '#lib/utils/share-links';
+	import type { EventData } from '#lib/utils/types';
 	import {
 		clearEntityContributorDraft,
 		readEntityContributorDraft,
 		scheduleEntityContributorDraftSave
-	} from '$lib/utils/contributor-drafts';
+	} from '#lib/utils/contributor-drafts.js';
 
 	const STATUS_LABELS: Record<EventData['status'], string> = {
 		active: 'Happening now',

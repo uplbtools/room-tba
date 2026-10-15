@@ -17,8 +17,8 @@ vi.mock('$env/dynamic/private', () => ({
 		R2_BUCKET_NAME: 'bucket'
 	}
 }));
-vi.mock('$lib/admin/require-editor', () => ({ editorSessionOrUnauthorized }));
-vi.mock('$lib/utils/r2-upload', () => ({
+vi.mock('#lib/admin/require-editor.js', () => ({ editorSessionOrUnauthorized }));
+vi.mock('#lib/utils/r2-upload.js', () => ({
 	UPLOAD_MAX_BYTES: 5 * 1024 * 1024,
 	buildUploadKey: (prefix: string) => `${prefix}/image.jpg`,
 	detectImageContentType: (bytes: Uint8Array) =>
@@ -58,20 +58,27 @@ describe('upload routes', () => {
 	});
 
 	test('suggestion upload rejects invalid image bytes', async () => {
-		const response = await postSuggestion({ request: imageRequest('events/summer-fair', [1, 2, 3]) } as never);
+		const response = await postSuggestion({
+			request: imageRequest('events/summer-fair', [1, 2, 3])
+		} as never);
 		expect(response.status).toBe(415);
 		expect(uploadImageToR2).not.toHaveBeenCalled();
 	});
 
 	test('editor upload requires authenticated editor session', async () => {
-		editorSessionOrUnauthorized.mockResolvedValueOnce(new Response('Unauthorized', { status: 401 }));
+		editorSessionOrUnauthorized.mockResolvedValueOnce(
+			new Response('Unauthorized', { status: 401 })
+		);
 		const response = await postEditor({ cookies, request: imageRequest('rooms/7') } as never);
 		expect(response.status).toBe(401);
 		expect(uploadImageToR2).not.toHaveBeenCalled();
 	});
 
 	test('account avatar upload forces session account prefix', async () => {
-		const response = await postAvatar({ cookies, request: imageRequest('accounts/99/avatar') } as never);
+		const response = await postAvatar({
+			cookies,
+			request: imageRequest('accounts/99/avatar')
+		} as never);
 		expect(response.status).toBe(200);
 		expect(uploadImageToR2).toHaveBeenCalledWith(
 			expect.objectContaining({ key: 'accounts/42/avatar/image.jpg' })

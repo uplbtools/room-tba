@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import MapEntityPin from '$lib/components/map/MapEntityPin.svelte';
-	import PinGlyph from '$lib/components/map/PinGlyph.svelte';
-	import { isPlaceLandmark } from '$lib/constants/content/categories/place';
-	import { getMapPlacesData } from '$lib/functions/places.remote';
-	import { getMapStore, getSearchInfo } from '$lib/utils/context';
+	import MapEntityPin from '#lib/components/map/MapEntityPin.svelte';
+	import PinGlyph from '#lib/components/map/PinGlyph.svelte';
+	import { isPlaceLandmark } from '#lib/constants/content/categories/place.js';
+	import { getMapPlacesData } from '#lib/functions/places.remote.js';
+	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {
@@ -31,7 +31,7 @@
 
 	function handleMarkerClick(place: (typeof filteredPlaces)[number]) {
 		return async () => {
-			await goto(resolve(`/map/places/${place.id}`));
+			await goto(resolve(`map/places/${place.id}`));
 			if (place.lon && place.lat) {
 				map.centerMarker([place.lon, place.lat]);
 			}

@@ -1,22 +1,20 @@
 <script lang="ts">
-	import { page } from "$app/state";
+	import { page } from '$app/state';
 	import {
 		absoluteUrl,
 		DEFAULT_OG_IMAGE,
 		OG_IMAGE_HEIGHT,
 		OG_IMAGE_WIDTH,
-		SITE_URL,
-	} from "$lib/utils/site";
-	import type { SeoData } from "./seo-data";
+		SITE_URL
+	} from '#lib/utils/site.js';
+	import type { SeoData } from './seo-data';
 
 	const { seo }: { seo: SeoData } = $props();
 
 	// Prefer the route's declared canonical path over the live pathname: Astro
 	// pinned these (trailing slash included) and the app rewrites the URL with
 	// history.pushState as you browse, which must not move the canonical.
-	const canonicalUrl = $derived(
-		absoluteUrl(seo.canonicalPath || page.url.pathname),
-	);
+	const canonicalUrl = $derived(absoluteUrl(seo.canonicalPath || page.url.pathname));
 	const imageUrl = $derived(absoluteUrl(seo.imagePath ?? DEFAULT_OG_IMAGE));
 	const shareTitle = $derived(seo.ogTitle ?? seo.title);
 
@@ -26,16 +24,16 @@
 		(seo.structuredData ?? [])
 			.map(
 				(entry) =>
-					`<script type="application/ld+json">${JSON.stringify(entry).replace(/</g, "\\u003c")}<\/script>`,
+					`<script type="application/ld+json">${JSON.stringify(entry).replace(/</g, '\\u003c')}<\/script>`
 			)
-			.join(""),
+			.join('')
 	);
 </script>
 
 <svelte:head>
 	<title>{seo.title}</title>
 	<meta name="description" content={seo.description} />
-	<meta name="robots" content={seo.robots ?? "index, follow"} />
+	<meta name="robots" content={seo.robots ?? 'index, follow'} />
 	<link rel="canonical" href={canonicalUrl} />
 
 	<meta property="og:site_name" content="Room TBA" />

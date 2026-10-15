@@ -1,7 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
-import { db } from '$lib/server/db';
-import { jeepneyRoutesTable, jeepneyStopsTable } from '$lib/server/db/schema';
+import { db } from '#lib/server/db/index.js';
+import { jeepneyRoutesTable, jeepneyStopsTable } from '#lib/server/db/schema.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url }) => {

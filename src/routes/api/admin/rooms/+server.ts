@@ -1,9 +1,9 @@
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import {
 	createRoom,
 	DuplicateNameError,
 	findRoomMergeCandidate
-} from '$lib/services/admin/actions';
+} from '#lib/services/admin/actions.js';
 import type { RequestHandler } from './$types';
 
 function json(data: unknown, status = 200) {

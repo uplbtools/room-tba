@@ -1,15 +1,17 @@
 <script lang="ts">
-	
-	import EntityEditorCheckboxField from '$lib/components/editor/EntityEditorCheckboxField.svelte';
-	import EntityEditorField from '$lib/components/editor/EntityEditorField.svelte';
-	import EntityEditorPanel from '$lib/components/editor/EntityEditorPanel.svelte';
-	import EntityEditorPinRow from '$lib/components/editor/EntityEditorPinRow.svelte';
-	import EntityPhotoUpload from '$lib/components/editor/EntityPhotoUpload.svelte';
-	import { entityEditorSavedMessage, fieldSaveActionLabel } from '$lib/utils/editor/field-action-label';
-	import { adminAuthStore, mapEditStore, mapProposalStore } from '$lib/stores.svelte';
-	import type { DormData } from '$lib/utils/types';
+	import EntityEditorCheckboxField from '#lib/components/editor/EntityEditorCheckboxField.svelte';
+	import EntityEditorField from '#lib/components/editor/EntityEditorField.svelte';
+	import EntityEditorPanel from '#lib/components/editor/EntityEditorPanel.svelte';
+	import EntityEditorPinRow from '#lib/components/editor/EntityEditorPinRow.svelte';
+	import EntityPhotoUpload from '#lib/components/editor/EntityPhotoUpload.svelte';
+	import {
+		entityEditorSavedMessage,
+		fieldSaveActionLabel
+	} from '#lib/utils/editor/field-action-label.js';
+	import { adminAuthStore, mapEditStore, mapProposalStore } from '#lib/stores.svelte.js';
+	import type { DormData } from '#lib/utils/types';
 	import '../editor/entity-editor.css';
-	import type { EntityPhoto } from '$lib/utils/entity/entity-photos';
+	import type { EntityPhoto } from '#lib/utils/entity/entity-photos.js';
 
 	type DormEditableField =
 		| 'dormName'
@@ -332,7 +334,7 @@
 		<EntityPhotoUpload
 			label="Dorm photos (optional)"
 			inputId="dorm-photo-editor"
-			endpoint={canPublish ? "/api/uploads/editor-photo" : "/api/uploads/suggestion-photo"}
+			endpoint={canPublish ? '/api/uploads/editor-photo' : '/api/uploads/suggestion-photo'}
 			prefix={`dorms/${dorm.id}`}
 			bind:photos={photosDraft}
 			disabled={savingField !== null}

@@ -5,7 +5,7 @@ import {
 	FALLBACK_MAP_STYLE_URL,
 	loadCampusMapStyle,
 	MAPTILER_KEY_PLACEHOLDER
-} from '$lib/utils/map/maptiler-key';
+} from '#lib/utils/map/maptiler-key.js';
 
 /** liberty-customized.json in miniature: our own origin, one keyed source. */
 const CAMPUS_STYLE = {

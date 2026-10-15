@@ -1,4 +1,4 @@
-import type { AppContextData } from '$lib/utils/context';
+import type { AppContextData } from '#lib/utils/context.js';
 
 export function loadedAppContext(
 	overrides: Partial<Extract<AppContextData, { loaded: true }>> = {}

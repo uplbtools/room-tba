@@ -4,7 +4,7 @@
  * codes return null and callers fall back to the `acad_group` college code
  * (and room-history hints) instead.
  */
-import rawAcadOrgs from '$lib/data/acad-orgs.json';
+import rawAcadOrgs from '#lib/data/acad-orgs.json';
 
 export type AcadOrgEntry = {
 	/** Human department / institute name, e.g. "Institute of Computer Science". */

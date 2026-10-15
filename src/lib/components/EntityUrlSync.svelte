@@ -1,22 +1,22 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getAppData } from '$lib/utils/context';
-	import { createEntityUrlSync, isScreenId } from '$lib/utils/entity/entity-url-sync';
-	import { openCampusBrowse } from '$lib/utils/campus/browse-campus';
-	import { getTransitStopIndex } from '$lib/utils/transit-urls';
-	import { campusTransit } from '$lib/campus.config';
+	import { getAppData } from '#lib/utils/context.js';
+	import { createEntityUrlSync, isScreenId } from '#lib/utils/entity/entity-url-sync.js';
+	import { openCampusBrowse } from '#lib/utils/campus/browse-campus.js';
+	import { getTransitStopIndex } from '#lib/utils/transit-urls.js';
+	import { campusTransit } from '#lib/campus.config.js';
 	import {
 		getBuildingCanonicalPath,
 		getOrganizationCanonicalPath,
 		getPlaceCanonicalPath,
 		getRoomCanonicalPath
-	} from '$lib/utils/entity/entity-urls';
-	import { orgCategoryLabel } from '$lib/constants/content/categories/org';
-	import { placeCategoryLabel } from '$lib/constants/content/categories/place';
+	} from '#lib/utils/entity/entity-urls.js';
+	import { orgCategoryLabel } from '#lib/constants/content/categories/org.js';
+	import { placeCategoryLabel } from '#lib/constants/content/categories/place.js';
 	import {
 		resetDocumentMeta,
 		updateTermAwareDocumentMeta
-	} from '$lib/utils/term/term-document-meta';
+	} from '#lib/utils/term/term-document-meta.js';
 	import {
 		currentRoom,
 		jeepneyStore,
@@ -26,7 +26,7 @@
 		sidebarStore,
 		termStore,
 		transitStore
-	} from '$lib/stores.svelte';
+	} from '#lib/stores.svelte.js';
 
 	const appData = getAppData();
 	let sync = $state<ReturnType<typeof createEntityUrlSync> | null>(null);

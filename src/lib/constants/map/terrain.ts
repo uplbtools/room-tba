@@ -1,5 +1,5 @@
-import { withMaptilerKey } from '$lib/utils/map/maptiler-key';
-import { campusMap, campusTerrain } from '$lib/campus.config';
+import { withMaptilerKey } from '#lib/utils/map/maptiler-key.js';
+import { campusMap, campusTerrain } from '#lib/campus.config.js';
 
 /** Campus-specific terrain values live in campusTerrain (src/campus.config.ts). */
 export const TERRAIN_ENABLED = campusTerrain.enabled;

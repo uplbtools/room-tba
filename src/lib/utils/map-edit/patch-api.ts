@@ -1,4 +1,4 @@
-import type { EventData } from '$lib/utils/types';
+import type { EventData } from '#lib/utils/types';
 import { ClientEditConflictError, ClientEventConflictError } from './errors';
 import type {
 	EditableConflictResponse,

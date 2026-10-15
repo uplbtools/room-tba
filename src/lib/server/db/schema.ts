@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql } from 'drizzle-orm';
 import {
 	pgTable,
 	bigserial,
@@ -16,136 +16,128 @@ import {
 	index,
 	uniqueIndex,
 	date,
-	time,
-} from "drizzle-orm/pg-core";
+	time
+} from 'drizzle-orm/pg-core';
 
-export const buildingEnum = pgEnum("building_type", ["admin", "non-admin"]);
-export const eventCategoryEnum = pgEnum("event_category", [
-	"tradition",
-	"fair",
-	"ceremony",
-	"sports",
-	"other",
+export const buildingEnum = pgEnum('building_type', ['admin', 'non-admin']);
+export const eventCategoryEnum = pgEnum('event_category', [
+	'tradition',
+	'fair',
+	'ceremony',
+	'sports',
+	'other'
 ]);
-export const eventRecurrenceEnum = pgEnum("event_recurrence", [
-	"none",
-	"annual",
-	"every_1st_sem",
-	"every_2nd_sem",
+export const eventRecurrenceEnum = pgEnum('event_recurrence', [
+	'none',
+	'annual',
+	'every_1st_sem',
+	'every_2nd_sem'
 ]);
-export const eventLocationAnchorEnum = pgEnum("event_location_anchor", [
-	"building",
-	"dorm",
-	"custom",
+export const eventLocationAnchorEnum = pgEnum('event_location_anchor', [
+	'building',
+	'dorm',
+	'custom'
 ]);
-export const adminRoleEnum = pgEnum("admin_role", [
-	"admin",
-	"editor",
-	"contributor",
-]);
-export const editProposalStatusEnum = pgEnum("edit_proposal_status", [
-	"pending",
-	"approved",
-	"rejected",
-	"needs_changes",
-	"withdrawn",
+export const adminRoleEnum = pgEnum('admin_role', ['admin', 'editor', 'contributor']);
+export const editProposalStatusEnum = pgEnum('edit_proposal_status', [
+	'pending',
+	'approved',
+	'rejected',
+	'needs_changes',
+	'withdrawn'
 ]);
 
 // Academic terms. `id` mirrors the CRS/SAIS term_id (e.g. 1252) rather than
 // being auto-generated, so it matches the `term_id` already stored on classes.
 export const termsTable = pgTable(
-	"terms",
+	'terms',
 	{
 		id: integer().primaryKey(),
 		label: text().notNull(),
-		schoolYear: varchar("school_year", { length: 16 }),
+		schoolYear: varchar('school_year', { length: 16 }),
 		// "1" | "2" | "midyear"
 		semester: varchar({ length: 12 }),
-		startsOn: timestamp("starts_on", { mode: "string" }),
-		endsOn: timestamp("ends_on", { mode: "string" }),
-		isDefault: boolean("is_default").default(false).notNull(),
-		isActive: boolean("is_active").default(true).notNull(),
-		sortOrder: integer("sort_order").default(0).notNull(),
-		classesImportedAt: timestamp("classes_imported_at", { mode: "string" }),
+		startsOn: timestamp('starts_on', { mode: 'string' }),
+		endsOn: timestamp('ends_on', { mode: 'string' }),
+		isDefault: boolean('is_default').default(false).notNull(),
+		isActive: boolean('is_active').default(true).notNull(),
+		sortOrder: integer('sort_order').default(0).notNull(),
+		classesImportedAt: timestamp('classes_imported_at', { mode: 'string' }),
 		version: integer().default(1).notNull(),
-		updatedAt: timestamp("updated_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 	},
 	(table) => [
 		// At most one term may be the default for anonymous visitors.
-		uniqueIndex("terms_single_default")
-			.on(table.isDefault)
-			.where(sql`${table.isDefault}`),
-	],
+		uniqueIndex('terms_single_default').on(table.isDefault).where(sql`${table.isDefault}`)
+	]
 );
 
-export const dormsTable = pgTable("dorms", {
+export const dormsTable = pgTable('dorms', {
 	id: integer().primaryKey().generatedByDefaultAsIdentity({
-		name: "dorms_id_seq",
+		name: 'dorms_id_seq',
 		startWith: 1,
 		increment: 1,
 		minValue: 1,
 		maxValue: 2147483647,
-		cache: 1,
+		cache: 1
 	}),
-	dormName: text("dorm_name").notNull(),
-	shortName: varchar("short_name", { length: 48 }),
+	dormName: text('dorm_name').notNull(),
+	shortName: varchar('short_name', { length: 48 }),
 	lat: doublePrecision(),
 	lon: doublePrecision(),
 	/** Null = policy not known. Not the same claim as co-ed; see 0050. */
 	gender: text(),
 	capacity: integer(),
-	managingOffice: text("managing_office"),
-	contactEmail: text("contact_email"),
+	managingOffice: text('managing_office'),
+	contactEmail: text('contact_email'),
 	amenities: text().array(),
-	osmLink: text("osm_link"),
+	osmLink: text('osm_link'),
 	description: text(),
-	isUpManaged: boolean("is_up_managed").default(true),
-	priceRange: text("price_range"),
-	contactPhone: varchar("contact_phone", { length: 20 }).array(),
-	facebookLink: text("facebook_link"),
-	imageUrl: text("image_url"),
+	isUpManaged: boolean('is_up_managed').default(true),
+	priceRange: text('price_range'),
+	contactPhone: varchar('contact_phone', { length: 20 }).array(),
+	facebookLink: text('facebook_link'),
+	imageUrl: text('image_url'),
 	version: integer().default(1).notNull(),
-	updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 });
 
-export const organizationsTable = pgTable("organizations", {
+export const organizationsTable = pgTable('organizations', {
 	id: integer().primaryKey().generatedByDefaultAsIdentity({
-		name: "organizations_id_seq",
+		name: 'organizations_id_seq',
 		startWith: 1,
 		increment: 1,
 		minValue: 1,
 		maxValue: 2147483647,
-		cache: 1,
+		cache: 1
 	}),
 	name: text().notNull(),
 	category: varchar({ length: 24 }).notNull(),
-	buildingId: integer("building_id"),
-	roomId: integer("room_id"),
+	buildingId: integer('building_id'),
+	roomId: integer('room_id'),
 	lat: doublePrecision(),
 	lon: doublePrecision(),
 	description: text(),
-	websiteLink: text("website_link"),
-	facebookLink: text("facebook_link"),
+	websiteLink: text('website_link'),
+	facebookLink: text('facebook_link'),
 	email: text(),
-	imageUrl: text("image_url"),
+	imageUrl: text('image_url'),
 	bio: text(),
-	orgType: varchar("org_type", { length: 32 }),
-	establishedYear: varchar("established_year", { length: 8 }),
-	memberCount: varchar("member_count", { length: 16 }),
+	orgType: varchar('org_type', { length: 32 }),
+	establishedYear: varchar('established_year', { length: 8 }),
+	memberCount: varchar('member_count', { length: 16 }),
 	version: integer().default(1).notNull(),
-	updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 });
 
-export const placesTable = pgTable("places", {
+export const placesTable = pgTable('places', {
 	id: integer().primaryKey().generatedByDefaultAsIdentity({
-		name: "places_id_seq",
+		name: 'places_id_seq',
 		startWith: 1,
 		increment: 1,
 		minValue: 1,
 		maxValue: 2147483647,
-		cache: 1,
+		cache: 1
 	}),
 	name: text().notNull(),
 	category: varchar({ length: 24 }).notNull(),
@@ -153,407 +145,384 @@ export const placesTable = pgTable("places", {
 	lon: doublePrecision(),
 	description: text(),
 	hours: text(),
-	websiteLink: text("website_link"),
-	facebookLink: text("facebook_link"),
-	imageUrl: text("image_url"),
+	websiteLink: text('website_link'),
+	facebookLink: text('facebook_link'),
+	imageUrl: text('image_url'),
 	version: integer().default(1).notNull(),
-	updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 });
 
 // Editorial notices shown in-app (#777). Severity is varchar + a TS allowlist
 // rather than a pg enum so a new severity does not need a migration, matching
 // places/organizations. `starts_on`/`ends_on` are campus wall-clock times like
 // events (see src/lib/event-time.ts).
-export const announcementsTable = pgTable("announcements", {
+export const announcementsTable = pgTable('announcements', {
 	id: integer().primaryKey().generatedByDefaultAsIdentity({
-		name: "announcements_id_seq",
+		name: 'announcements_id_seq',
 		startWith: 1,
 		increment: 1,
 		minValue: 1,
 		maxValue: 2147483647,
-		cache: 1,
+		cache: 1
 	}),
 	title: text().notNull(),
 	body: text().notNull(),
-	severity: varchar({ length: 16 }).default("info").notNull(),
-	startsOn: timestamp("starts_on", { mode: "string" }).defaultNow().notNull(),
+	severity: varchar({ length: 16 }).default('info').notNull(),
+	startsOn: timestamp('starts_on', { mode: 'string' }).defaultNow().notNull(),
 	/** Null = open-ended (runs until an editor sets an end or deletes it). */
-	endsOn: timestamp("ends_on", { mode: "string" }),
-	linkUrl: text("link_url"),
+	endsOn: timestamp('ends_on', { mode: 'string' }),
+	linkUrl: text('link_url'),
 	author: text(),
-	createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+	createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
 	version: integer().default(1).notNull(),
-	updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 });
 
 // In-app feedback (#881). Server-only: never synced to the PGlite client cache
 // (not in the generator's SYNCED_TABLES), and deliberately holds no IP address —
 // `contact` is optional free text the sender chose to leave.
 export const feedbackTable = pgTable(
-	"feedback",
+	'feedback',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "feedback_id_seq",
+			name: 'feedback_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
 		message: text().notNull(),
 		contact: text(),
 		/** Path the sender was on, e.g. `/planner` — not a full URL with query. */
 		screen: text(),
-		appVersion: text("app_version"),
-		wasOnline: boolean("was_online"),
-		createdAt: timestamp("created_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		appVersion: text('app_version'),
+		wasOnline: boolean('was_online'),
+		createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull()
 	},
-	(table) => [index("feedback_created_at_idx").on(table.createdAt.desc())],
+	(table) => [index('feedback_created_at_idx').on(table.createdAt.desc())]
 );
 
-export const collegesTable = pgTable("colleges", {
+export const collegesTable = pgTable('colleges', {
 	id: integer().primaryKey().generatedByDefaultAsIdentity({
-		name: "colleges_id_seq",
+		name: 'colleges_id_seq',
 		startWith: 1,
 		increment: 1,
 		minValue: 1,
 		maxValue: 2147483647,
-		cache: 1,
+		cache: 1
 	}),
-	collegeName: varchar("college_name", { length: 100 }).notNull(),
-	websiteLink: text("website_link"),
+	collegeName: varchar('college_name', { length: 100 }).notNull(),
+	websiteLink: text('website_link'),
 	version: integer().default(1).notNull(),
-	updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 });
 
 export const finalExamsTable = pgTable(
-	"final_exams",
+	'final_exams',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "final_exams_id_seq",
+			name: 'final_exams_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
-		termId: integer("term_id").notNull(),
-		courseCode: varchar("course_code", { length: 16 }).notNull(),
+		termId: integer('term_id').notNull(),
+		courseCode: varchar('course_code', { length: 16 }).notNull(),
 		section: varchar({ length: 16 }),
-		courseTitle: text("course_title"),
-		roomId: integer("room_id"),
-		examDate: date("exam_date", { mode: "string" }).notNull(),
-		startsAt: time("starts_at").notNull(),
-		endsAt: time("ends_at").notNull(),
+		courseTitle: text('course_title'),
+		roomId: integer('room_id'),
+		examDate: date('exam_date', { mode: 'string' }).notNull(),
+		startsAt: time('starts_at').notNull(),
+		endsAt: time('ends_at').notNull(),
 		source: varchar({ length: 64 }).notNull(),
 		version: integer().default(1).notNull(),
-		updatedAt: timestamp("updated_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 	},
 	(table) => [
 		foreignKey({
 			columns: [table.roomId],
 			foreignColumns: [roomsTable.id],
-			name: "final_exam_room",
+			name: 'final_exam_room'
 		}),
 		foreignKey({
 			columns: [table.termId],
 			foreignColumns: [termsTable.id],
-			name: "final_exam_term",
-		}),
-	],
+			name: 'final_exam_term'
+		})
+	]
 );
 
 export const classesTable = pgTable(
-	"classes",
+	'classes',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "classes_id_seq",
+			name: 'classes_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
-		courseCode: varchar("course_code", { length: 16 }),
+		courseCode: varchar('course_code', { length: 16 }),
 		section: varchar({ length: 16 }),
 		type: varchar({ length: 12 }),
 		schedule: text().array(),
-		roomId: integer("room_id"),
-		courseTitle: text("course_title"),
-		termId: integer("term_id"),
+		roomId: integer('room_id'),
+		courseTitle: text('course_title'),
+		termId: integer('term_id'),
 		// AMIS college + department codes (#846), e.g. "CAS" / "LBICS". Decode
 		// table: data/acad-orgs.json.
-		acadGroup: varchar("acad_group", { length: 8 }),
-		acadOrg: varchar("acad_org", { length: 16 }),
+		acadGroup: varchar('acad_group', { length: 8 }),
+		acadOrg: varchar('acad_org', { length: 16 }),
 		version: integer().default(1).notNull(),
-		updatedAt: timestamp("updated_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 	},
 	(table) => [
 		foreignKey({
 			columns: [table.roomId],
 			foreignColumns: [roomsTable.id],
-			name: "class_room",
+			name: 'class_room'
 		}),
 		// Keyset pagination for /api/classes (#412); see 0039_classes_keyset_index.sql
-		index("classes_term_course_section_id_idx").on(
+		index('classes_term_course_section_id_idx').on(
 			table.termId,
 			sql`(COALESCE(${table.courseCode}, ''))`,
 			sql`(COALESCE(${table.section}, ''))`,
-			table.id,
-		),
-	],
+			table.id
+		)
+	]
 );
 
-export const buildingsTable = pgTable("buildings", {
+export const buildingsTable = pgTable('buildings', {
 	id: integer().primaryKey().generatedByDefaultAsIdentity({
-		name: "buildings_id_seq",
+		name: 'buildings_id_seq',
 		startWith: 1,
 		increment: 1,
 		minValue: 1,
 		maxValue: 2147483647,
-		cache: 1,
+		cache: 1
 	}),
-	buildingName: varchar("building_name", { length: 100 }).notNull(),
+	buildingName: varchar('building_name', { length: 100 }).notNull(),
 	lon: doublePrecision().notNull(),
-	buildingType: buildingEnum("type").default("non-admin").notNull(),
+	buildingType: buildingEnum('type').default('non-admin').notNull(),
 	lat: doublePrecision().notNull(),
 	directions: text().notNull(),
-	imageUrl: text("image_url"),
-	crFacilities: text("cr_facilities").array(),
+	imageUrl: text('image_url'),
+	crFacilities: text('cr_facilities').array(),
 	// Street View *metadata* only. Google's terms forbid storing their imagery,
 	// so the pixels render live and only the lookup result is cached here.
 	// checkedAt distinguishes "no coverage" from "never looked": both leave
 	// panoId null.
-	streetViewPanoId: varchar("street_view_pano_id", { length: 128 }),
-	streetViewCaptured: varchar("street_view_captured", { length: 16 }),
-	streetViewDistanceM: integer("street_view_distance_m"),
-	streetViewCheckedAt: timestamp("street_view_checked_at", { mode: "string" }),
+	streetViewPanoId: varchar('street_view_pano_id', { length: 128 }),
+	streetViewCaptured: varchar('street_view_captured', { length: 16 }),
+	streetViewDistanceM: integer('street_view_distance_m'),
+	streetViewCheckedAt: timestamp('street_view_checked_at', { mode: 'string' }),
 	version: integer().default(1).notNull(),
-	updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 });
 
 export const roomPositionsTable = pgTable(
-	"room_positions",
+	'room_positions',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "room_positions_id_seq",
+			name: 'room_positions_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
 		floor: integer().notNull(),
-		posX: numeric("pos_x").notNull(),
-		posY: numeric("pos_y").notNull(),
-		updatedAt: timestamp("updated_at", { mode: "string" }).notNull(),
-		roomId: integer("room_id").notNull(),
+		posX: numeric('pos_x').notNull(),
+		posY: numeric('pos_y').notNull(),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).notNull(),
+		roomId: integer('room_id').notNull(),
 		/** 'manual' = an editor placed it; 'inferred' = accepted from room-code inference. */
-		source: varchar({ length: 16 }).default("manual").notNull(),
+		source: varchar({ length: 16 }).default('manual').notNull()
 	},
 	(table) => [
 		foreignKey({
 			columns: [table.roomId],
 			foreignColumns: [roomsTable.id],
-			name: "room_position_id",
-		}),
-	],
+			name: 'room_position_id'
+		})
+	]
 );
 
 export const divisionsTable = pgTable(
-	"divisions",
+	'divisions',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "divisions_id_seq",
+			name: 'divisions_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
-		divisionName: varchar("division_name", { length: 100 }).notNull(),
-		collegeId: integer("college_id"),
-		websiteLink: text("website_link"),
+		divisionName: varchar('division_name', { length: 100 }).notNull(),
+		collegeId: integer('college_id'),
+		websiteLink: text('website_link'),
 		version: integer().default(1).notNull(),
-		updatedAt: timestamp("updated_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 	},
 	(table) => [
 		foreignKey({
 			columns: [table.collegeId],
 			foreignColumns: [collegesTable.id],
-			name: "division_college",
-		}),
-	],
+			name: 'division_college'
+		})
+	]
 );
 
 export const roomsTable = pgTable(
-	"rooms",
+	'rooms',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "rooms_id_seq",
+			name: 'rooms_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
-		roomCode: text("room_code").notNull(),
+		roomCode: text('room_code').notNull(),
 		/** Unabbreviated readable name, e.g. "DSDS Main Lecture Hall" (#875). */
-		fullName: text("full_name"),
+		fullName: text('full_name'),
 		directions: text(),
-		buildingId: integer("building_id"),
-		collegeId: integer("college_id"),
-		divisionId: integer("division_id"),
-		imageUrl: text("image_url"),
+		buildingId: integer('building_id'),
+		collegeId: integer('college_id'),
+		divisionId: integer('division_id'),
+		imageUrl: text('image_url'),
 		category: varchar({ length: 24 }),
 		version: integer().default(1).notNull(),
-		updatedAt: timestamp("updated_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 	},
 	(table) => [
 		foreignKey({
 			columns: [table.buildingId],
 			foreignColumns: [buildingsTable.id],
-			name: "room_building",
+			name: 'room_building'
 		}),
 		foreignKey({
 			columns: [table.collegeId],
 			foreignColumns: [collegesTable.id],
-			name: "room_college",
+			name: 'room_college'
 		}),
 		foreignKey({
 			columns: [table.divisionId],
 			foreignColumns: [divisionsTable.id],
-			name: "room_division",
-		}),
-	],
+			name: 'room_division'
+		})
+	]
 );
 
 export const updateTable = pgTable(
-	"update",
+	'update',
 	{
 		id: integer().primaryKey().generatedAlwaysAsIdentity(),
-		tableName: varchar("table_name", { length: 20 }),
-		syncKey: uuid("sync_key").defaultRandom(),
+		tableName: varchar('table_name', { length: 20 }),
+		syncKey: uuid('sync_key').defaultRandom()
 	},
-	(table) => [uniqueIndex("update_table_name_key").on(table.tableName)],
+	(table) => [uniqueIndex('update_table_name_key').on(table.tableName)]
 );
 
-export const jeepneyRoutesTable = pgTable("jeepney_routes", {
+export const jeepneyRoutesTable = pgTable('jeepney_routes', {
 	id: varchar({ length: 64 }).primaryKey(),
 	name: varchar({ length: 120 }).notNull(),
 	description: text().notNull(),
-	directionNote: text("direction_note"),
+	directionNote: text('direction_note'),
 	color: varchar({ length: 16 }).notNull(),
-	fareRegular: doublePrecision("fare_regular").notNull(),
-	fareDiscounted: doublePrecision("fare_discounted").notNull(),
-	isActive: boolean("is_active").default(true).notNull(),
+	fareRegular: doublePrecision('fare_regular').notNull(),
+	fareDiscounted: doublePrecision('fare_discounted').notNull(),
+	isActive: boolean('is_active').default(true).notNull(),
 	version: integer().default(1).notNull(),
-	updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 });
 
 export const jeepneyStopsTable = pgTable(
-	"jeepney_stops",
+	'jeepney_stops',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "jeepney_stops_id_seq",
+			name: 'jeepney_stops_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
-		routeId: varchar("route_id", { length: 64 })
+		routeId: varchar('route_id', { length: 64 })
 			.notNull()
-			.references(() => jeepneyRoutesTable.id, { onDelete: "cascade" }),
+			.references(() => jeepneyRoutesTable.id, { onDelete: 'cascade' }),
 		name: varchar({ length: 160 }).notNull(),
 		description: text().notNull(),
 		lat: doublePrecision().notNull(),
 		lon: doublePrecision().notNull(),
-		sortOrder: integer("sort_order").default(0).notNull(),
-		isActive: boolean("is_active").default(true).notNull(),
+		sortOrder: integer('sort_order').default(0).notNull(),
+		isActive: boolean('is_active').default(true).notNull(),
 		version: integer().default(1).notNull(),
-		updatedAt: timestamp("updated_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 	},
-	(table) => [
-		uniqueIndex("jeepney_stops_route_sort_order").on(
-			table.routeId,
-			table.sortOrder,
-		),
-	],
+	(table) => [uniqueIndex('jeepney_stops_route_sort_order').on(table.routeId, table.sortOrder)]
 );
 
 export const adminUsersTable = pgTable(
-	"admin_users",
+	'admin_users',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "admin_users_id_seq",
+			name: 'admin_users_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
 		username: varchar({ length: 64 }).notNull(),
-		displayName: varchar("display_name", { length: 100 }),
-		passwordHash: text("password_hash").notNull(),
-		role: adminRoleEnum().default("editor").notNull(),
+		displayName: varchar('display_name', { length: 100 }),
+		passwordHash: text('password_hash').notNull(),
+		role: adminRoleEnum().default('editor').notNull(),
 		email: text(),
-		avatarUrl: text("avatar_url"),
-		profileUrl: text("profile_url"),
-		showInCredits: boolean("show_in_credits").default(true).notNull(),
-		legacyCredit: boolean("legacy_credit").default(false).notNull(),
-		isActive: boolean("is_active").default(true).notNull(),
-		supabaseUserId: uuid("supabase_user_id"),
-		deletedAt: timestamp("deleted_at", { mode: "string" }),
-		createdAt: timestamp("created_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
-		updatedAt: timestamp("updated_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		avatarUrl: text('avatar_url'),
+		profileUrl: text('profile_url'),
+		showInCredits: boolean('show_in_credits').default(true).notNull(),
+		legacyCredit: boolean('legacy_credit').default(false).notNull(),
+		isActive: boolean('is_active').default(true).notNull(),
+		supabaseUserId: uuid('supabase_user_id'),
+		deletedAt: timestamp('deleted_at', { mode: 'string' }),
+		createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 	},
-	(table) => [uniqueIndex("admin_users_username_unique").on(table.username)],
+	(table) => [uniqueIndex('admin_users_username_unique').on(table.username)]
 );
 
-export const editProposalsTable = pgTable("edit_proposals", {
+export const editProposalsTable = pgTable('edit_proposals', {
 	id: integer().primaryKey().generatedByDefaultAsIdentity({
-		name: "edit_proposals_id_seq",
+		name: 'edit_proposals_id_seq',
 		startWith: 1,
 		increment: 1,
 		minValue: 1,
 		maxValue: 2147483647,
-		cache: 1,
+		cache: 1
 	}),
-	entityType: varchar("entity_type", { length: 32 }).notNull(),
-	entityId: integer("entity_id").notNull(),
-	status: editProposalStatusEnum().default("pending").notNull(),
-	proposedPatch: jsonb("proposed_patch").notNull(),
-	baseVersion: integer("base_version").notNull(),
-	submitterName: varchar("submitter_name", { length: 100 }).notNull(),
-	submitterUserId: integer("submitter_user_id").references(
-		() => adminUsersTable.id,
-	),
+	entityType: varchar('entity_type', { length: 32 }).notNull(),
+	entityId: integer('entity_id').notNull(),
+	status: editProposalStatusEnum().default('pending').notNull(),
+	proposedPatch: jsonb('proposed_patch').notNull(),
+	baseVersion: integer('base_version').notNull(),
+	submitterName: varchar('submitter_name', { length: 100 }).notNull(),
+	submitterUserId: integer('submitter_user_id').references(() => adminUsersTable.id),
 	// contributor_id uuid (migration 0053) exists but is not declared here:
 	// see readProposalContributorId in contribution-service.ts.
-	adminNote: text("admin_note"),
+	adminNote: text('admin_note'),
 	/** Contributor's message to the reviewer. Never published (#873). */
-	submitterNote: text("submitter_note"),
-	reviewedBy: varchar("reviewed_by", { length: 100 }),
-	reviewedAt: timestamp("reviewed_at", { mode: "string" }),
-	createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+	submitterNote: text('submitter_note'),
+	reviewedBy: varchar('reviewed_by', { length: 100 }),
+	reviewedAt: timestamp('reviewed_at', { mode: 'string' }),
+	createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 });
 
 /**
@@ -562,95 +531,89 @@ export const editProposalsTable = pgTable("edit_proposals", {
  * `verified_email` counts only while it equals the account's current email.
  */
 export const adminUserAuthTable = pgTable(
-	"admin_user_auth",
+	'admin_user_auth',
 	{
-		userId: integer("user_id")
+		userId: integer('user_id')
 			.primaryKey()
-			.references(() => adminUsersTable.id, { onDelete: "cascade" }),
-		sessionVersion: integer("session_version").default(0).notNull(),
-		verifiedEmail: text("verified_email"),
-		emailVerifiedAt: timestamp("email_verified_at", { mode: "string" }),
-		updatedAt: timestamp("updated_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+			.references(() => adminUsersTable.id, { onDelete: 'cascade' }),
+		sessionVersion: integer('session_version').default(0).notNull(),
+		verifiedEmail: text('verified_email'),
+		emailVerifiedAt: timestamp('email_verified_at', { mode: 'string' }),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 	},
-	(table) => [
-		index("admin_user_auth_verified_email_idx").on(table.verifiedEmail),
-	],
+	(table) => [index('admin_user_auth_verified_email_idx').on(table.verifiedEmail)]
 );
 
 /** SHA-256 of each proposal's owner token (0057). Server-only. */
-export const proposalOwnerTokensTable = pgTable("proposal_owner_tokens", {
-	proposalId: integer("proposal_id")
+export const proposalOwnerTokensTable = pgTable('proposal_owner_tokens', {
+	proposalId: integer('proposal_id')
 		.primaryKey()
-		.references(() => editProposalsTable.id, { onDelete: "cascade" }),
-	tokenHash: varchar("token_hash", { length: 64 }).notNull(),
-	createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+		.references(() => editProposalsTable.id, { onDelete: 'cascade' }),
+	tokenHash: varchar('token_hash', { length: 64 }).notNull(),
+	createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull()
 });
 
 /** Shared fixed-window rate-limit buckets (0056). Server-only. */
 export const rateLimitsTable = pgTable(
-	"rate_limits",
+	'rate_limits',
 	{
 		key: varchar({ length: 200 }).primaryKey(),
 		count: integer().default(0).notNull(),
-		resetAt: timestamp("reset_at", {
+		resetAt: timestamp('reset_at', {
 			withTimezone: true,
-			mode: "string",
-		}).notNull(),
+			mode: 'string'
+		}).notNull()
 	},
-	(table) => [index("rate_limits_reset_at_idx").on(table.resetAt)],
+	(table) => [index('rate_limits_reset_at_idx').on(table.resetAt)]
 );
 
-export const editorHistoryTable = pgTable("editor_history", {
+export const editorHistoryTable = pgTable('editor_history', {
 	id: integer().primaryKey().generatedAlwaysAsIdentity(),
-	entityType: varchar("entity_type", { length: 32 }).notNull(),
-	entityId: integer("entity_id").notNull(),
+	entityType: varchar('entity_type', { length: 32 }).notNull(),
+	entityId: integer('entity_id').notNull(),
 	action: varchar({ length: 32 }).notNull(),
-	before: jsonb("before_snapshot"),
-	after: jsonb("after_snapshot"),
-	versionBefore: integer("version_before"),
-	versionAfter: integer("version_after"),
-	editedBy: varchar("edited_by", { length: 100 }).default("admin").notNull(),
+	before: jsonb('before_snapshot'),
+	after: jsonb('after_snapshot'),
+	versionBefore: integer('version_before'),
+	versionAfter: integer('version_after'),
+	editedBy: varchar('edited_by', { length: 100 }).default('admin').notNull(),
 	summary: text(),
-	createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
+	createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull()
 });
 
 export const contributionsTable = pgTable(
-	"contributions",
+	'contributions',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "contributions_id_seq",
+			name: 'contributions_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
-		userId: integer("user_id").references(() => adminUsersTable.id),
-		submitterName: varchar("submitter_name", { length: 100 }),
-		entityType: varchar("entity_type", { length: 32 }).notNull(),
-		entityId: integer("entity_id").notNull(),
-		entityLabel: text("entity_label").notNull(),
+		userId: integer('user_id').references(() => adminUsersTable.id),
+		submitterName: varchar('submitter_name', { length: 100 }),
+		entityType: varchar('entity_type', { length: 32 }).notNull(),
+		entityId: integer('entity_id').notNull(),
+		entityLabel: text('entity_label').notNull(),
 		source: varchar({ length: 32 }).notNull(),
-		proposalId: integer("proposal_id").references(() => editProposalsTable.id),
+		proposalId: integer('proposal_id').references(() => editProposalsTable.id),
 		/** Browser-held uuid crediting a public submitter (never published). */
-		contributorId: uuid("contributor_id"),
+		contributorId: uuid('contributor_id'),
 		/** Leaderboard weight class; null on legacy rows (classified on read). */
 		kind: varchar({ length: 16 }),
 		/** Set when a later restore undid this edit; it stops earning points. */
-		revertedAt: timestamp("reverted_at", {
-			mode: "string",
-			withTimezone: true,
+		revertedAt: timestamp('reverted_at', {
+			mode: 'string',
+			withTimezone: true
 		}),
-		createdAt: timestamp("created_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull()
 	},
 	(table) => [
-		index("contributions_source_created_idx").on(table.source, table.createdAt),
-		index("contributions_entity_idx").on(table.entityType, table.entityId),
-	],
+		index('contributions_source_created_idx').on(table.source, table.createdAt),
+		index('contributions_entity_idx').on(table.entityType, table.entityId)
+	]
 );
 
 /**
@@ -658,198 +621,188 @@ export const contributionsTable = pgTable(
  * whole PlannerPersisted blob ({ v, plans, activePlanIdByTerm }) as jsonb, so
  * the existing serialize/parsePlanner codec round-trips it unchanged.
  */
-export const plannerPlansTable = pgTable("planner_plans", {
-	userId: integer("user_id")
+export const plannerPlansTable = pgTable('planner_plans', {
+	userId: integer('user_id')
 		.primaryKey()
-		.references(() => adminUsersTable.id, { onDelete: "cascade" }),
+		.references(() => adminUsersTable.id, { onDelete: 'cascade' }),
 	data: jsonb().notNull(),
-	updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 });
 
 export const eventsTable = pgTable(
-	"events",
+	'events',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "events_id_seq",
+			name: 'events_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
 		slug: varchar({ length: 120 }).notNull(),
 		title: varchar({ length: 160 }).notNull(),
 		description: text(),
-		category: eventCategoryEnum().default("other").notNull(),
-		startsAt: timestamp("starts_at", { mode: "string" }).notNull(),
-		endsAt: timestamp("ends_at", { mode: "string" }).notNull(),
-		timezone: varchar({ length: 64 }).default("Asia/Manila").notNull(),
-		recurrence: eventRecurrenceEnum().default("none").notNull(),
-		isActive: boolean("is_active").default(true).notNull(),
-		sourceUrl: text("source_url"),
-		imageUrl: text("image_url"),
+		category: eventCategoryEnum().default('other').notNull(),
+		startsAt: timestamp('starts_at', { mode: 'string' }).notNull(),
+		endsAt: timestamp('ends_at', { mode: 'string' }).notNull(),
+		timezone: varchar({ length: 64 }).default('Asia/Manila').notNull(),
+		recurrence: eventRecurrenceEnum().default('none').notNull(),
+		isActive: boolean('is_active').default(true).notNull(),
+		sourceUrl: text('source_url'),
+		imageUrl: text('image_url'),
 		priority: integer().default(0).notNull(),
-		includeInSeo: boolean("include_in_seo").default(false).notNull(),
+		includeInSeo: boolean('include_in_seo').default(false).notNull(),
 		version: integer().default(1).notNull(),
-		updatedAt: timestamp("updated_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 	},
-	(table) => [uniqueIndex("events_slug_unique").on(table.slug)],
+	(table) => [uniqueIndex('events_slug_unique').on(table.slug)]
 );
 
 export const eventLocationsTable = pgTable(
-	"event_locations",
+	'event_locations',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "event_locations_id_seq",
+			name: 'event_locations_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
-		eventId: integer("event_id").notNull(),
-		anchorType: eventLocationAnchorEnum("anchor_type").notNull(),
-		buildingId: integer("building_id"),
-		dormId: integer("dorm_id"),
+		eventId: integer('event_id').notNull(),
+		anchorType: eventLocationAnchorEnum('anchor_type').notNull(),
+		buildingId: integer('building_id'),
+		dormId: integer('dorm_id'),
 		label: text().notNull(),
 		lat: doublePrecision(),
 		lon: doublePrecision(),
-		highlightPriority: integer("highlight_priority").default(0).notNull(),
-		sortOrder: integer("sort_order").default(0).notNull(),
-		isPrimary: boolean("is_primary").default(false).notNull(),
-		updatedAt: timestamp("updated_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		highlightPriority: integer('highlight_priority').default(0).notNull(),
+		sortOrder: integer('sort_order').default(0).notNull(),
+		isPrimary: boolean('is_primary').default(false).notNull(),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 	},
 	(table) => [
 		foreignKey({
 			columns: [table.eventId],
 			foreignColumns: [eventsTable.id],
-			name: "event_location_event",
+			name: 'event_location_event'
 		}),
 		foreignKey({
 			columns: [table.buildingId],
 			foreignColumns: [buildingsTable.id],
-			name: "event_location_building",
+			name: 'event_location_building'
 		}),
 		foreignKey({
 			columns: [table.dormId],
 			foreignColumns: [dormsTable.id],
-			name: "event_location_dorm",
-		}),
-	],
+			name: 'event_location_dorm'
+		})
+	]
 );
 
 export const eventRoutesTable = pgTable(
-	"event_routes",
+	'event_routes',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "event_routes_id_seq",
+			name: 'event_routes_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
-		eventId: integer("event_id").notNull(),
+		eventId: integer('event_id').notNull(),
 		name: varchar({ length: 120 }).notNull(),
 		description: text(),
-		sortOrder: integer("sort_order").default(0).notNull(),
-		updatedAt: timestamp("updated_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		sortOrder: integer('sort_order').default(0).notNull(),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 	},
 	(table) => [
 		foreignKey({
 			columns: [table.eventId],
 			foreignColumns: [eventsTable.id],
-			name: "event_route_event",
-		}),
-	],
+			name: 'event_route_event'
+		})
+	]
 );
 
 export const eventRouteStopsTable = pgTable(
-	"event_route_stops",
+	'event_route_stops',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "event_route_stops_id_seq",
+			name: 'event_route_stops_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
-		routeId: integer("route_id").notNull(),
-		eventLocationId: integer("event_location_id"),
+		routeId: integer('route_id').notNull(),
+		eventLocationId: integer('event_location_id'),
 		label: text().notNull(),
 		lat: doublePrecision(),
 		lon: doublePrecision(),
-		sortOrder: integer("sort_order").default(0).notNull(),
-		updatedAt: timestamp("updated_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		sortOrder: integer('sort_order').default(0).notNull(),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 	},
 	(table) => [
 		foreignKey({
 			columns: [table.routeId],
 			foreignColumns: [eventRoutesTable.id],
-			name: "event_route_stop_route",
+			name: 'event_route_stop_route'
 		}),
 		foreignKey({
 			columns: [table.eventLocationId],
 			foreignColumns: [eventLocationsTable.id],
-			name: "event_route_stop_location",
-		}),
-	],
+			name: 'event_route_stop_location'
+		})
+	]
 );
 
 // Search aliases / synonyms (e.g. "PhySci" -> Physical Sciences Building),
 // including retired names. Seeded from public/room_info.json (#155).
 export const aliasesTable = pgTable(
-	"aliases",
+	'aliases',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "aliases_id_seq",
+			name: 'aliases_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
 		alias: text().notNull(),
-		normalizedAlias: text("normalized_alias").notNull(),
+		normalizedAlias: text('normalized_alias').notNull(),
 		// "building" | "room" | "college" | "division"
-		targetType: varchar("target_type", { length: 16 }).notNull(),
-		targetId: integer("target_id").notNull(),
+		targetType: varchar('target_type', { length: 16 }).notNull(),
+		targetId: integer('target_id').notNull(),
 		source: varchar({ length: 32 }),
-		confidence: varchar({ length: 16 }).default("unverified").notNull(),
-		createdAt: timestamp("created_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		confidence: varchar({ length: 16 }).default('unverified').notNull(),
+		createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull()
 	},
 	(table) => [
-		uniqueIndex("aliases_normalized_target").on(
+		uniqueIndex('aliases_normalized_target').on(
 			table.normalizedAlias,
 			table.targetType,
-			table.targetId,
-		),
-	],
+			table.targetId
+		)
+	]
 );
 
 // First-party sponsor impression/click log (docs/ad-policy.md). Server-only —
 // not in the PGlite SYNCED_TABLES set. Written by /api/sponsor-event.
-export const sponsorImpressionsTable = pgTable("sponsor_impressions", {
-	id: bigserial({ mode: "number" }).primaryKey(),
-	sponsorId: text("sponsor_id").notNull(),
+export const sponsorImpressionsTable = pgTable('sponsor_impressions', {
+	id: bigserial({ mode: 'number' }).primaryKey(),
+	sponsorId: text('sponsor_id').notNull(),
 	zone: text().notNull(),
-	eventType: text("event_type").notNull().default("impression"),
-	recordedAt: timestamp("recorded_at", { withTimezone: true, mode: "string" })
+	eventType: text('event_type').notNull().default('impression'),
+	recordedAt: timestamp('recorded_at', { withTimezone: true, mode: 'string' })
 		.defaultNow()
 		.notNull(),
-	userAgent: text("user_agent"),
-	pagePath: text("page_path"),
+	userAgent: text('user_agent'),
+	pagePath: text('page_path')
 });
 
 // Anonymous presence heartbeats behind the "N online" counter. A sid is a
@@ -860,48 +813,37 @@ export const sponsorImpressionsTable = pgTable("sponsor_impressions", {
 // "Jeep is here" reports (0054). Server-only: not in the PGlite generator's
 // SYNCED_TABLES. `deviceId` is an anonymous localStorage UUID; no IP is stored.
 export const jeepReportsTable = pgTable(
-	"jeep_reports",
+	'jeep_reports',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "jeep_reports_id_seq",
+			name: 'jeep_reports_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
-		routeId: varchar("route_id", { length: 64 }).notNull(),
+		routeId: varchar('route_id', { length: 64 }).notNull(),
 		/** `transitStopKey()`: the stop's rounded "lat,lon". */
-		stopKey: varchar("stop_key", { length: 32 }).notNull(),
+		stopKey: varchar('stop_key', { length: 32 }).notNull(),
 		/** "forward" | "reverse" for two-way routes, null otherwise. */
 		direction: varchar({ length: 8 }),
-		deviceId: varchar("device_id", { length: 64 }).notNull(),
-		isFull: boolean("is_full").default(false).notNull(),
-		createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
-			.defaultNow()
-			.notNull(),
+		deviceId: varchar('device_id', { length: 64 }).notNull(),
+		isFull: boolean('is_full').default(false).notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull()
 	},
 	(table) => [
-		index("jeep_reports_stop_created_idx").on(
-			table.stopKey,
-			table.createdAt.desc(),
-		),
-		index("jeep_reports_route_created_idx").on(
-			table.routeId,
-			table.createdAt.desc(),
-		),
-		index("jeep_reports_device_created_idx").on(
-			table.deviceId,
-			table.createdAt.desc(),
-		),
-	],
+		index('jeep_reports_stop_created_idx').on(table.stopKey, table.createdAt.desc()),
+		index('jeep_reports_route_created_idx').on(table.routeId, table.createdAt.desc()),
+		index('jeep_reports_device_created_idx').on(table.deviceId, table.createdAt.desc())
+	]
 );
 
-export const presenceTable = pgTable("presence", {
+export const presenceTable = pgTable('presence', {
 	sid: varchar({ length: 64 }).primaryKey(),
-	lastSeenAt: timestamp("last_seen_at", { withTimezone: true, mode: "string" })
+	lastSeenAt: timestamp('last_seen_at', { withTimezone: true, mode: 'string' })
 		.defaultNow()
-		.notNull(),
+		.notNull()
 });
 
 /**
@@ -910,63 +852,61 @@ export const presenceTable = pgTable("presence", {
  * hangs many specimens off a species to build a distribution view. Modelling
  * both as one table now would make that a rewrite rather than an addition.
  */
-export const floraSpeciesTable = pgTable("flora_species", {
+export const floraSpeciesTable = pgTable('flora_species', {
 	id: integer().primaryKey().generatedByDefaultAsIdentity({
-		name: "flora_species_id_seq",
+		name: 'flora_species_id_seq',
 		startWith: 1,
 		increment: 1,
 		minValue: 1,
 		maxValue: 2147483647,
-		cache: 1,
+		cache: 1
 	}),
-	scientificName: text("scientific_name").notNull().unique(),
+	scientificName: text('scientific_name').notNull().unique(),
 	family: text(),
 	/** Filipino and English both; most of these have no single common name. */
-	commonNames: text("common_names").array(),
+	commonNames: text('common_names').array(),
 	description: text(),
-	imageUrl: text("image_url"),
-	conservationStatus: varchar("conservation_status", { length: 32 }),
-	isNative: boolean("is_native"),
+	imageUrl: text('image_url'),
+	conservationStatus: varchar('conservation_status', { length: 32 }),
+	isNative: boolean('is_native'),
 	version: integer().default(1).notNull(),
-	updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 });
 
 export const floraSpecimensTable = pgTable(
-	"flora_specimens",
+	'flora_specimens',
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity({
-			name: "flora_specimens_id_seq",
+			name: 'flora_specimens_id_seq',
 			startWith: 1,
 			increment: 1,
 			minValue: 1,
 			maxValue: 2147483647,
-			cache: 1,
+			cache: 1
 		}),
-		speciesId: integer("species_id")
+		speciesId: integer('species_id')
 			.notNull()
-			.references(() => floraSpeciesTable.id, { onDelete: "cascade" }),
+			.references(() => floraSpeciesTable.id, { onDelete: 'cascade' }),
 		lat: doublePrecision().notNull(),
 		lon: doublePrecision().notNull(),
-		tagNumber: varchar("tag_number", { length: 32 }),
-		plantedYear: integer("planted_year"),
+		tagNumber: varchar('tag_number', { length: 32 }),
+		plantedYear: integer('planted_year'),
 		notes: text(),
-		isNotable: boolean("is_notable").default(false).notNull(),
+		isNotable: boolean('is_notable').default(false).notNull(),
 		/** `manual` | `crowdsourced` | `inaturalist` | `gbif` | `cfnr` */
-		source: varchar({ length: 32 }).default("manual").notNull(),
-		sourceRef: text("source_ref"),
+		source: varchar({ length: 32 }).default('manual').notNull(),
+		sourceRef: text('source_ref'),
 		/**
 		 * Per-row licence, not bookkeeping. Campus data ships as CC-BY 4.0 and many
 		 * iNaturalist observations are CC-BY-NC, which that claim cannot cover. This
 		 * column is what lets a bulk CC-BY export drop the rows it may not carry.
 		 */
-		sourceLicence: varchar("source_licence", { length: 64 }),
+		sourceLicence: varchar('source_licence', { length: 64 }),
 		version: integer().default(1).notNull(),
-		updatedAt: timestamp("updated_at", { mode: "string" })
-			.defaultNow()
-			.notNull(),
+		updatedAt: timestamp('updated_at', { mode: 'string' }).defaultNow().notNull()
 	},
 	(table) => [
-		index("flora_specimens_species_idx").on(table.speciesId),
-		index("flora_specimens_notable_idx").on(table.isNotable),
-	],
+		index('flora_specimens_species_idx').on(table.speciesId),
+		index('flora_specimens_notable_idx').on(table.isNotable)
+	]
 );

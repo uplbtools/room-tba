@@ -19,18 +19,18 @@
 import { readBuffer, removeEntries, truncateBuffer } from './live/manual-edits-buffer.mjs';
 
 function argVal(args, name) {
-  const prefix = name + '=';
-  for (const a of args) {
-    if (a === name) return true;
-    if (a.startsWith(prefix)) return a.slice(prefix.length);
-  }
-  return null;
+	const prefix = name + '=';
+	for (const a of args) {
+		if (a === name) return true;
+		if (a.startsWith(prefix)) return a.slice(prefix.length);
+	}
+	return null;
 }
 
 const args = process.argv.slice(2);
 if (args.includes('--help') || args.includes('-h')) {
-  console.log('Usage: node live-discard-manual-edits.mjs [--page-url=<url>]');
-  process.exit(0);
+	console.log('Usage: node live-discard-manual-edits.mjs [--page-url=<url>]');
+	process.exit(0);
 }
 
 const pageUrlFilter = argVal(args, '--page-url');
@@ -40,11 +40,11 @@ let discarded;
 let entries;
 const buffer = readBuffer(cwd);
 if (pageUrlFilter) {
-  entries = buffer.entries.filter((entry) => entry.pageUrl === pageUrlFilter);
-  discarded = removeEntries(cwd, (entry) => entry.pageUrl === pageUrlFilter);
+	entries = buffer.entries.filter((entry) => entry.pageUrl === pageUrlFilter);
+	discarded = removeEntries(cwd, (entry) => entry.pageUrl === pageUrlFilter);
 } else {
-  entries = buffer.entries;
-  discarded = truncateBuffer(cwd);
+	entries = buffer.entries;
+	discarded = truncateBuffer(cwd);
 }
 
 const remaining = readBuffer(cwd).entries.reduce((n, e) => n + e.ops.length, 0);

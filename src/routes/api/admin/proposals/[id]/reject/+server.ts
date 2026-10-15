@@ -1,9 +1,9 @@
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import {
 	emitProposalReviewed,
 	logNotificationEmitFailure
-} from '$lib/utils/notifications/proposal-events';
-import { ProposalActionError, rejectProposal } from '$lib/services/contribution/proposal-action';
+} from '#lib/utils/notifications/proposal-events.js';
+import { ProposalActionError, rejectProposal } from '#lib/services/contribution/proposal-action.js';
 import type { RequestHandler } from './$types';
 
 type RejectBody = { note?: string };

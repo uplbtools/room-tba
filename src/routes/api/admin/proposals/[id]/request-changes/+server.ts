@@ -1,13 +1,13 @@
-import { editorSessionOrUnauthorized } from '$lib/admin/require-editor';
+import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import {
 	emitProposalReviewed,
 	logNotificationEmitFailure
-} from '$lib/utils/notifications/proposal-events';
+} from '#lib/utils/notifications/proposal-events.js';
 import {
 	ProposalActionError,
 	ProposalValidationError,
 	requestProposalChanges
-} from '$lib/services/contribution/proposal-action';
+} from '#lib/services/contribution/proposal-action.js';
 import type { RequestHandler } from './$types';
 
 type RequestChangesBody = { note?: string };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { absoluteUrl, ogCardPath, ogImageUrl } from '$lib/utils/site';
+import { absoluteUrl, ogCardPath, ogImageUrl } from '#lib/utils/site.js';
 
 describe('OG meta helpers', () => {
 	it('ogImageUrl returns absolute image URL', () => {

@@ -14,7 +14,6 @@ vi.mock('../utils/local/data/utils.js', () => ({
 
 import PlannerBuildingsStore from './data/PlannerBuildingsStore.svelte.js';
 
-
 describe('PlannerBuildingsStore', () => {
 	beforeEach(() => {
 		getJSONFetch.mockReset();

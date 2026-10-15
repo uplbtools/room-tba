@@ -1,4 +1,4 @@
-import { fetchAllClasses } from '$lib/utils/classes-api.js';
+import { fetchAllClasses } from '#lib/utils/classes-api.js';
 import type { DecodedSharePlan } from './share-codec.js';
 import { sectionNaturalKey, type PlannedSection } from './types.js';
 

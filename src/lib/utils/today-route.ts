@@ -3,7 +3,7 @@
 // never disagree about when a day is routable.
 
 import { WEEKDAYS, type Weekday } from './schedule-import/types';
-import { plannerStore, scheduleRouteStore, termStore } from '$lib/stores.svelte';
+import { plannerStore, scheduleRouteStore, termStore } from '#lib/stores.svelte.js';
 import { formatTermDateRange, isDateWithinTerm } from './term/term-calendar';
 import { buildAgenda } from './today-agenda';
 

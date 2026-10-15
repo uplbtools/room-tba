@@ -1,10 +1,10 @@
 import type { Results } from '@electric-sql/pglite';
-import type { JeepneyRoute, JeepneyStop } from '$lib/constants/map/jeepney-routes';
-import type { DBData } from '$lib/utils/context';
-import { refreshStoredEventTiming, sortStoredEvents } from '$lib/utils/event/event-time';
-import { escapeLikePattern } from '$lib/utils/like-escape';
-import { normalizeAlias } from '$lib/utils/site';
-import { normalizeDormListFields } from '$lib/utils/string-lists';
+import type { JeepneyRoute, JeepneyStop } from '#lib/constants/map/jeepney-routes.js';
+import type { DBData } from '#lib/utils/context.js';
+import { refreshStoredEventTiming, sortStoredEvents } from '#lib/utils/event/event-time.js';
+import { escapeLikePattern } from '#lib/utils/like-escape.js';
+import { normalizeAlias } from '#lib/utils/site.js';
+import { normalizeDormListFields } from '#lib/utils/string-lists.js';
 import type {
 	AnnouncementData,
 	Building,
@@ -18,8 +18,8 @@ import type {
 	PlaceData,
 	Room,
 	TableSyncInfo
-} from '$lib/utils/types';
-import { normalizeEntityPhotos } from '$lib/utils/entity/entity-photos';
+} from '#lib/utils/types';
+import { normalizeEntityPhotos } from '#lib/utils/entity/entity-photos.js';
 import { getDB, isLocalCacheReady } from './pgliteDB';
 import { ENTITY_FETCH_OPTIONS, fetchJsonWithRetry } from './fetch-json';
 import { getLocalBuildingRooms, getLocalCollegeRooms, getLocalDivisionRooms } from './sync';
@@ -70,20 +70,20 @@ export async function getLocalJeepneyRoutes(): Promise<JeepneyRoute[] | undefine
 }
 
 export async function getLocalBuildings(): Promise<Building[] | undefined> {
-  try {
-    const localDB = await getDB();
-    await localDB.waitReady;
-    const data = (await localDB.query(`
+	try {
+		const localDB = await getDB();
+		await localDB.waitReady;
+		const data = (await localDB.query(`
          SELECT building_name AS "buildingName", lon, lat, id, directions, type AS "buildingType", image_url AS "imageUrl", photos, cr_facilities AS "crFacilities", version, updated_at AS "updatedAt" FROM buildings
       `)) as Results<Building>;
-    return data.rows.map((row) => ({
-      ...row,
-      photos: normalizeEntityPhotos(row.photos),
-    }));
-  } catch (e) {
-    console.error("Error: ", e);
-    return undefined;
-  }
+		return data.rows.map((row) => ({
+			...row,
+			photos: normalizeEntityPhotos(row.photos)
+		}));
+	} catch (e) {
+		console.error('Error: ', e);
+		return undefined;
+	}
 }
 
 export async function getLocalColleges(): Promise<College[] | undefined> {
@@ -142,14 +142,14 @@ export async function getLocalDorms(): Promise<DormData[] | undefined> {
         updated_at AS "updatedAt"
       FROM dorms;
       `)) as Results<DormData>;
-    return data.rows.map((row) => ({
-      ...normalizeDormListFields(row),
-      photos: normalizeEntityPhotos(row.photos),
-    }));
-  } catch (e) {
-    console.error("Error: ", e);
-    return undefined;
-  }
+		return data.rows.map((row) => ({
+			...normalizeDormListFields(row),
+			photos: normalizeEntityPhotos(row.photos)
+		}));
+	} catch (e) {
+		console.error('Error: ', e);
+		return undefined;
+	}
 }
 
 export async function getLocalOrganizations(): Promise<OrgData[] | undefined> {
@@ -338,12 +338,12 @@ export async function getLocalEvents(): Promise<EventData[] | undefined> {
 }
 
 export async function getLocalRoomByCode(code: string) {
-  try {
-    const normalizedCode = code.toUpperCase();
-    const localDB = await getDB();
-    await localDB.waitReady;
-    const data = (await localDB.query(
-      `
+	try {
+		const normalizedCode = code.toUpperCase();
+		const localDB = await getDB();
+		await localDB.waitReady;
+		const data = (await localDB.query(
+			`
              SELECT
              r.id,
              r.room_code AS code,
@@ -366,25 +366,25 @@ export async function getLocalRoomByCode(code: string) {
              LEFT JOIN divisions AS d ON d.id = r.division_id
              WHERE upper(r.room_code) = $1
          `,
-      [normalizedCode],
-    )) as Results<Room>;
-    if (data.rows.length === 0) return null;
-    return {
-      ...data.rows[0],
-      photos: normalizeEntityPhotos(data.rows[0].photos),
-    };
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
+			[normalizedCode]
+		)) as Results<Room>;
+		if (data.rows.length === 0) return null;
+		return {
+			...data.rows[0],
+			photos: normalizeEntityPhotos(data.rows[0].photos)
+		};
+	} catch (e) {
+		console.error(e);
+		return null;
+	}
 }
 
 export async function getLocalRoomById(id: number) {
-  try {
-    const localDB = await getDB();
-    await localDB.waitReady;
-    const data = (await localDB.query(
-      `
+	try {
+		const localDB = await getDB();
+		await localDB.waitReady;
+		const data = (await localDB.query(
+			`
              SELECT
              r.id,
              r.room_code AS code,
@@ -407,17 +407,17 @@ export async function getLocalRoomById(id: number) {
              LEFT JOIN divisions AS d ON d.id = r.division_id
              WHERE r.id = $1
          `,
-      [id],
-    )) as Results<Room>;
-    if (data.rows.length === 0) return null;
-    return {
-      ...data.rows[0],
-      photos: normalizeEntityPhotos(data.rows[0].photos),
-    };
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
+			[id]
+		)) as Results<Room>;
+		if (data.rows.length === 0) return null;
+		return {
+			...data.rows[0],
+			photos: normalizeEntityPhotos(data.rows[0].photos)
+		};
+	} catch (e) {
+		console.error(e);
+		return null;
+	}
 }
 
 // export async function getLocalRooms(): Promise<Room[] | undefined> {
@@ -806,7 +806,7 @@ export async function getLocalRoomsCounts(): Promise<
  * when there are none (matching the server contract). */
 export async function searchLocalRooms(
 	searchString: string
-): Promise<{ value: string; fullName: string | null, id: number }[] | null> {
+): Promise<{ value: string; fullName: string | null; id: number }[] | null> {
 	try {
 		const escaped = escapeLikePattern(searchString);
 		const localDB = await getDB();
@@ -818,7 +818,7 @@ export async function searchLocalRooms(
        ORDER BY length(room_code), room_code
        LIMIT 6`,
 			[`%${escaped}%`]
-		)) as Results<{ value: string; fullName: string | null, id: number }>;
+		)) as Results<{ value: string; fullName: string | null; id: number }>;
 		return data.rows.length ? data.rows : null;
 	} catch (e) {
 		console.error(e);

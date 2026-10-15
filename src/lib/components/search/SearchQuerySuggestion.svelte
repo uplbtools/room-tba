@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { searchInfo } from '$lib/stores.svelte';
+	import { searchInfo } from '#lib/stores.svelte.js';
 
 	function handleRoomSearchSuggestion() {
 		searchInfo.updateQuery({

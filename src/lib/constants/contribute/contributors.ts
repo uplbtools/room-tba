@@ -1,6 +1,6 @@
 // Campus editors credited manually. GitHub developers load from /api/github/contributors.
 
-import type { ContributorInfo } from '$lib/utils/types';
+import type { ContributorInfo } from '#lib/utils/types';
 
 /** Optional display overrides keyed by GitHub login. */
 export const githubProfileOverrides: Record<string, { name?: string; href?: string }> = {

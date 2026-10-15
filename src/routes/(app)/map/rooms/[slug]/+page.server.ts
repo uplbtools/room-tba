@@ -1,9 +1,9 @@
 import { error } from '@sveltejs/kit';
-import { getRoomRouteSlug } from '$lib/utils/app-data';
-import type { SeoData } from '$lib/components/seo/seo-data';
-import { entityIndexPath, getRoomCanonicalPath } from '$lib/utils/entity/entity-urls';
-import { parseIdRouteSlug } from '$lib/utils/route/route-slugs';
-import { getRoomPageData } from '$lib/services/page-data/entity';
+import { getRoomRouteSlug } from '#lib/utils/app-data.js';
+import type { SeoData } from '#lib/components/seo/seo-data.js';
+import { entityIndexPath, getRoomCanonicalPath } from '#lib/utils/entity/entity-urls.js';
+import { parseIdRouteSlug } from '#lib/utils/route/route-slugs.js';
+import { getRoomPageData } from '#lib/services/page-data/entity.js';
 import {
 	absoluteUrl,
 	breadcrumbSchema,
@@ -11,7 +11,7 @@ import {
 	ogCardPath,
 	ogImageUrl,
 	webpageSchema
-} from '$lib/utils/site';
+} from '#lib/utils/site.js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {

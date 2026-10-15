@@ -1,769 +1,733 @@
 <script lang="ts">
-  import { getPlannerBlockColor } from "$lib/utils/schedule-renderer";
-  import { sectionBlocks } from "$lib/utils/planner/conflicts";
-  import { alternativeOfferings } from "$lib/utils/planner/alternatives";
-  import type { Conflict, ScheduleBlock } from "$lib/utils/planner/conflicts";
-  import type { PlannedSection } from "$lib/utils/planner/types";
-  import type { ClassMapValue } from "$lib/utils/types";
+	import { getPlannerBlockColor } from '#lib/utils/schedule-renderer.js';
+	import { sectionBlocks } from '#lib/utils/planner/conflicts.js';
+	import { alternativeOfferings } from '#lib/utils/planner/alternatives.js';
+	import type { Conflict, ScheduleBlock } from '#lib/utils/planner/conflicts.js';
+	import type { PlannedSection } from '#lib/utils/planner/types.js';
+	import type { ClassMapValue } from '#lib/utils/types';
 
-  interface Props {
-    sections: PlannedSection[];
-    conflicts: Conflict[];
-    /** All class rows for the plan's courses — the source for drag targets (#506). */
-    alternatives?: ClassMapValue[];
-    /** Courses whose alternate-section lookup has finished (successfully or not). */
-    resolvedAlternativeCourses?: string[];
-    onremove: (courseCode: string, section: string) => void;
-    onopenroom: (roomCode: string) => void;
-    onswap?: (courseCode: string, toSections: ClassMapValue[]) => void;
-  }
+	interface Props {
+		sections: PlannedSection[];
+		conflicts: Conflict[];
+		/** All class rows for the plan's courses — the source for drag targets (#506). */
+		alternatives?: ClassMapValue[];
+		/** Courses whose alternate-section lookup has finished (successfully or not). */
+		resolvedAlternativeCourses?: string[];
+		onremove: (courseCode: string, section: string) => void;
+		onopenroom: (roomCode: string) => void;
+		onswap?: (courseCode: string, toSections: ClassMapValue[]) => void;
+	}
 
-  const {
-    sections,
-    conflicts,
-    alternatives = [],
-    resolvedAlternativeCourses = [],
-    onremove,
-    onopenroom,
-    onswap,
-  }: Props = $props();
+	const {
+		sections,
+		conflicts,
+		alternatives = [],
+		resolvedAlternativeCourses = [],
+		onremove,
+		onopenroom,
+		onswap
+	}: Props = $props();
 
-  // Same window as the room-schedule canvas (ScheduleRenderer.config).
-  const START_HOUR = 7;
-  const END_HOUR = 20;
-  const TOTAL_MIN = (END_HOUR - START_HOUR) * 60;
-  const DAYS = ["M", "T", "W", "Th", "F", "S"];
-  const HOURS = Array.from(
-    { length: END_HOUR - START_HOUR },
-    (_, i) => START_HOUR + i,
-  );
+	// Same window as the room-schedule canvas (ScheduleRenderer.config).
+	const START_HOUR = 7;
+	const END_HOUR = 20;
+	const TOTAL_MIN = (END_HOUR - START_HOUR) * 60;
+	const DAYS = ['M', 'T', 'W', 'Th', 'F', 'S'];
+	const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
 
-  type GridBlock = ScheduleBlock & {
-    key: string;
-    roomCode: string | null;
-    conflicted: boolean;
-  };
+	type GridBlock = ScheduleBlock & {
+		key: string;
+		roomCode: string | null;
+		conflicted: boolean;
+	};
 
-  const blockKey = (b: ScheduleBlock) =>
-    `${b.courseCode}::${b.section}::${b.type}::${b.dayIndex}::${b.startMin}`;
+	const blockKey = (b: ScheduleBlock) =>
+		`${b.courseCode}::${b.section}::${b.type}::${b.dayIndex}::${b.startMin}`;
 
-  const conflictedKeys = $derived(
-    new Set(conflicts.flatMap((c) => [blockKey(c.a), blockKey(c.b)])),
-  );
+	const conflictedKeys = $derived(
+		new Set(conflicts.flatMap((c) => [blockKey(c.a), blockKey(c.b)]))
+	);
 
-  const blocksByDay = $derived.by(() => {
-    const byDay: GridBlock[][] = DAYS.map(() => []);
-    for (const section of sections) {
-      for (const block of sectionBlocks(section)) {
-        if (block.dayIndex < 0 || block.dayIndex >= DAYS.length) continue;
-        byDay[block.dayIndex]?.push({
-          ...block,
-          key: blockKey(block),
-          roomCode: section.roomCode,
-          conflicted: conflictedKeys.has(blockKey(block)),
-        });
-      }
-    }
-    return byDay;
-  });
+	const blocksByDay = $derived.by(() => {
+		const byDay: GridBlock[][] = DAYS.map(() => []);
+		for (const section of sections) {
+			for (const block of sectionBlocks(section)) {
+				if (block.dayIndex < 0 || block.dayIndex >= DAYS.length) continue;
+				byDay[block.dayIndex]?.push({
+					...block,
+					key: blockKey(block),
+					roomCode: section.roomCode,
+					conflicted: conflictedKeys.has(blockKey(block))
+				});
+			}
+		}
+		return byDay;
+	});
 
-  let selectedKey = $state<string | null>(null);
+	let selectedKey = $state<string | null>(null);
 
-  // --- Drag to switch section (#506) -------------------------------------
-  type Drag = { courseCode: string; fromSection: string; fromKey: string };
-  let drag = $state<Drag | null>(null);
-  let hoverGhost = $state<string | null>(null);
-  let pointerPos = $state<{ x: number; y: number } | null>(null);
+	// --- Drag to switch section (#506) -------------------------------------
+	type Drag = { courseCode: string; fromSection: string; fromKey: string };
+	let drag = $state<Drag | null>(null);
+	let hoverGhost = $state<string | null>(null);
+	let pointerPos = $state<{ x: number; y: number } | null>(null);
 
-  let pointerId: number | null = null;
-  let startX = 0;
-  let startY = 0;
-  let pending: { block: GridBlock; el: HTMLElement } | null = null;
-  let longPress: ReturnType<typeof setTimeout> | null = null;
-  let suppressClick = false;
+	let pointerId: number | null = null;
+	let startX = 0;
+	let startY = 0;
+	let pending: { block: GridBlock; el: HTMLElement } | null = null;
+	let longPress: ReturnType<typeof setTimeout> | null = null;
+	let suppressClick = false;
 
-  const THRESHOLD = 6;
-  const LONG_PRESS_MS = 400;
+	const THRESHOLD = 6;
+	const LONG_PRESS_MS = 400;
 
-  const ghostBlocksByDay = $derived.by(() => {
-    const byDay: {
-      dayIndex: number;
-      startMin: number;
-      endMin: number;
-      ghostKey: string;
-      roomCode: string | null;
-      col: number;
-      colCount: number;
-    }[][] = DAYS.map(() => []);
-    if (!drag) return byDay;
-    const offerings = alternativeOfferings(
-      alternatives,
-      drag.courseCode,
-      drag.fromSection,
-    );
-    for (const offering of offerings) {
-      // The lecture is shared across all of a course's lab offerings, so a ghost
-      // at the lecture slot would show the lab key ("C-4L") over the lecture and
-      // repeat for every offering. When an offering has a distinguishing lab/
-      // recit, ghost only that; keep the lecture ghost for lecture-only offerings.
-      const hasDistinguishing = offering.sections.some(
-        (r) => (r.type ?? "").trim().toUpperCase() !== "LEC",
-      );
-      for (const row of offering.sections) {
-        if (
-          hasDistinguishing &&
-          (row.type ?? "").trim().toUpperCase() === "LEC"
-        ) {
-          continue;
-        }
-        const blocks = sectionBlocks({
-          courseCode: row.courseCode ?? drag.courseCode,
-          section: row.section ?? offering.section,
-          type: row.type ?? "",
-          schedule: row.schedule ?? [],
-          roomCode: row.roomCode ?? null,
-          courseTitle: row.courseTitle ?? null,
-        });
-        for (const b of blocks) {
-          if (b.dayIndex < 0 || b.dayIndex >= DAYS.length) continue;
-          byDay[b.dayIndex]?.push({
-            dayIndex: b.dayIndex,
-            startMin: b.startMin,
-            endMin: b.endMin,
-            ghostKey: offering.section,
-            roomCode: row.roomCode ?? null,
-            col: 0,
-            colCount: 1,
-          });
-        }
-      }
-    }
-    // Sections at the same day+time (e.g. HUM 3 C1 & C2, both WF 10:00) would
-    // otherwise stack exactly and hide all but the top ghost. Split each shared
-    // slot into side-by-side columns so every alternative stays droppable.
-    for (const dayGhosts of byDay) {
-      const bySlot = new Map<string, typeof dayGhosts>();
-      for (const g of dayGhosts) {
-        const slot = `${g.startMin}-${g.endMin}`;
-        const list = bySlot.get(slot) ?? [];
-        list.push(g);
-        bySlot.set(slot, list);
-      }
-      for (const list of bySlot.values()) {
-        list.forEach((g, i) => {
-          g.col = i;
-          g.colCount = list.length;
-        });
-      }
-    }
-    return byDay;
-  });
+	const ghostBlocksByDay = $derived.by(() => {
+		const byDay: {
+			dayIndex: number;
+			startMin: number;
+			endMin: number;
+			ghostKey: string;
+			roomCode: string | null;
+			col: number;
+			colCount: number;
+		}[][] = DAYS.map(() => []);
+		if (!drag) return byDay;
+		const offerings = alternativeOfferings(alternatives, drag.courseCode, drag.fromSection);
+		for (const offering of offerings) {
+			// The lecture is shared across all of a course's lab offerings, so a ghost
+			// at the lecture slot would show the lab key ("C-4L") over the lecture and
+			// repeat for every offering. When an offering has a distinguishing lab/
+			// recit, ghost only that; keep the lecture ghost for lecture-only offerings.
+			const hasDistinguishing = offering.sections.some(
+				(r) => (r.type ?? '').trim().toUpperCase() !== 'LEC'
+			);
+			for (const row of offering.sections) {
+				if (hasDistinguishing && (row.type ?? '').trim().toUpperCase() === 'LEC') {
+					continue;
+				}
+				const blocks = sectionBlocks({
+					courseCode: row.courseCode ?? drag.courseCode,
+					section: row.section ?? offering.section,
+					type: row.type ?? '',
+					schedule: row.schedule ?? [],
+					roomCode: row.roomCode ?? null,
+					courseTitle: row.courseTitle ?? null
+				});
+				for (const b of blocks) {
+					if (b.dayIndex < 0 || b.dayIndex >= DAYS.length) continue;
+					byDay[b.dayIndex]?.push({
+						dayIndex: b.dayIndex,
+						startMin: b.startMin,
+						endMin: b.endMin,
+						ghostKey: offering.section,
+						roomCode: row.roomCode ?? null,
+						col: 0,
+						colCount: 1
+					});
+				}
+			}
+		}
+		// Sections at the same day+time (e.g. HUM 3 C1 & C2, both WF 10:00) would
+		// otherwise stack exactly and hide all but the top ghost. Split each shared
+		// slot into side-by-side columns so every alternative stays droppable.
+		for (const dayGhosts of byDay) {
+			const bySlot = new Map<string, typeof dayGhosts>();
+			for (const g of dayGhosts) {
+				const slot = `${g.startMin}-${g.endMin}`;
+				const list = bySlot.get(slot) ?? [];
+				list.push(g);
+				bySlot.set(slot, list);
+			}
+			for (const list of bySlot.values()) {
+				list.forEach((g, i) => {
+					g.col = i;
+					g.colCount = list.length;
+				});
+			}
+		}
+		return byDay;
+	});
 
-  const hasGhostTargets = $derived(
-    ghostBlocksByDay.some((dayGhosts) => dayGhosts.length > 0),
-  );
-  const alternativesLoading = $derived(
-    !!drag && !resolvedAlternativeCourses.includes(drag.courseCode),
-  );
+	const hasGhostTargets = $derived(ghostBlocksByDay.some((dayGhosts) => dayGhosts.length > 0));
+	const alternativesLoading = $derived(
+		!!drag && !resolvedAlternativeCourses.includes(drag.courseCode)
+	);
 
-  function ghostAtPoint(x: number, y: number): string | null {
-    return (
-      document
-        .elementFromPoint(x, y)
-        ?.closest<HTMLElement>("[data-ghost]")
-        ?.dataset.ghost ?? null
-    );
-  }
+	function ghostAtPoint(x: number, y: number): string | null {
+		return (
+			document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-ghost]')?.dataset.ghost ?? null
+		);
+	}
 
-  function beginDrag(block: GridBlock, el: HTMLElement, e: PointerEvent) {
-    drag = {
-      courseCode: block.courseCode,
-      fromSection: block.section,
-      fromKey: block.key,
-    };
-    selectedKey = null;
-    pointerPos = { x: e.clientX, y: e.clientY };
-    // Stop the browser from scrolling the grid once a drag is underway.
-    el.style.touchAction = "none";
-    // touch-action changes are ignored mid-gesture: once the finger moves the
-    // browser pans the grid and fires pointercancel, killing the drag. Cancel
-    // the pan directly with a non-passive touchmove preventer instead.
-    el.addEventListener("touchmove", preventTouchScroll, { passive: false });
-    try {
-      el.setPointerCapture(e.pointerId);
-    } catch {
-      // capture unsupported — pointer events still bubble to the element
-    }
-  }
+	function beginDrag(block: GridBlock, el: HTMLElement, e: PointerEvent) {
+		drag = {
+			courseCode: block.courseCode,
+			fromSection: block.section,
+			fromKey: block.key
+		};
+		selectedKey = null;
+		pointerPos = { x: e.clientX, y: e.clientY };
+		// Stop the browser from scrolling the grid once a drag is underway.
+		el.style.touchAction = 'none';
+		// touch-action changes are ignored mid-gesture: once the finger moves the
+		// browser pans the grid and fires pointercancel, killing the drag. Cancel
+		// the pan directly with a non-passive touchmove preventer instead.
+		el.addEventListener('touchmove', preventTouchScroll, { passive: false });
+		try {
+			el.setPointerCapture(e.pointerId);
+		} catch {
+			// capture unsupported — pointer events still bubble to the element
+		}
+	}
 
-  function preventTouchScroll(e: TouchEvent) {
-    e.preventDefault();
-  }
+	function preventTouchScroll(e: TouchEvent) {
+		e.preventDefault();
+	}
 
-  function cleanup() {
-    if (longPress) clearTimeout(longPress);
-    longPress = null;
-    if (pending && pointerId !== null) {
-      pending.el.style.touchAction = "";
-      pending.el.removeEventListener("touchmove", preventTouchScroll);
-      try {
-        pending.el.releasePointerCapture(pointerId);
-      } catch {
-        // capture may already be released
-      }
-    }
-    if (drag) suppressClick = true;
-    drag = null;
-    hoverGhost = null;
-    pointerPos = null;
-    pointerId = null;
-    pending = null;
-  }
+	function cleanup() {
+		if (longPress) clearTimeout(longPress);
+		longPress = null;
+		if (pending && pointerId !== null) {
+			pending.el.style.touchAction = '';
+			pending.el.removeEventListener('touchmove', preventTouchScroll);
+			try {
+				pending.el.releasePointerCapture(pointerId);
+			} catch {
+				// capture may already be released
+			}
+		}
+		if (drag) suppressClick = true;
+		drag = null;
+		hoverGhost = null;
+		pointerPos = null;
+		pointerId = null;
+		pending = null;
+	}
 
-  function onBlockPointerDown(e: PointerEvent, block: GridBlock) {
-    if (e.button > 0) return; // ignore right/middle click
-    suppressClick = false; // clear any stale post-drag guard from a prior gesture
-    pointerId = e.pointerId;
-    startX = e.clientX;
-    startY = e.clientY;
-    pending = { block, el: e.currentTarget as HTMLElement };
-    // Capture on press, before the movement threshold. Otherwise a quick
-    // pointer can leave a short timetable block before its first move handler
-    // gets to start the drag, so the gesture silently becomes a no-op.
-    try {
-      pending.el.setPointerCapture(e.pointerId);
-    } catch {
-      // capture unsupported — move/up events still bubble while in the block
-    }
-    if (e.pointerType !== "mouse") {
-      // Touch/pen: only a stationary long-press starts a drag, so a normal
-      // tap still selects and a swipe still scrolls the grid.
-      longPress = setTimeout(() => {
-        longPress = null;
-        if (pending) beginDrag(pending.block, pending.el, e);
-      }, LONG_PRESS_MS);
-    }
-  }
+	function onBlockPointerDown(e: PointerEvent, block: GridBlock) {
+		if (e.button > 0) return; // ignore right/middle click
+		suppressClick = false; // clear any stale post-drag guard from a prior gesture
+		pointerId = e.pointerId;
+		startX = e.clientX;
+		startY = e.clientY;
+		pending = { block, el: e.currentTarget as HTMLElement };
+		// Capture on press, before the movement threshold. Otherwise a quick
+		// pointer can leave a short timetable block before its first move handler
+		// gets to start the drag, so the gesture silently becomes a no-op.
+		try {
+			pending.el.setPointerCapture(e.pointerId);
+		} catch {
+			// capture unsupported — move/up events still bubble while in the block
+		}
+		if (e.pointerType !== 'mouse') {
+			// Touch/pen: only a stationary long-press starts a drag, so a normal
+			// tap still selects and a swipe still scrolls the grid.
+			longPress = setTimeout(() => {
+				longPress = null;
+				if (pending) beginDrag(pending.block, pending.el, e);
+			}, LONG_PRESS_MS);
+		}
+	}
 
-  function onBlockPointerMove(e: PointerEvent) {
-    if (pointerId === null || e.pointerId !== pointerId || !pending) return;
-    const moved = Math.hypot(e.clientX - startX, e.clientY - startY);
-    if (!drag) {
-      if (e.pointerType === "mouse") {
-        if (moved > THRESHOLD) beginDrag(pending.block, pending.el, e);
-      } else if (moved > THRESHOLD && longPress) {
-        // Moved before the long-press fired — treat as a scroll, not a drag.
-        clearTimeout(longPress);
-        cleanup();
-      }
-      return;
-    }
-    e.preventDefault();
-    pointerPos = { x: e.clientX, y: e.clientY };
-    hoverGhost = ghostAtPoint(e.clientX, e.clientY);
-  }
+	function onBlockPointerMove(e: PointerEvent) {
+		if (pointerId === null || e.pointerId !== pointerId || !pending) return;
+		const moved = Math.hypot(e.clientX - startX, e.clientY - startY);
+		if (!drag) {
+			if (e.pointerType === 'mouse') {
+				if (moved > THRESHOLD) beginDrag(pending.block, pending.el, e);
+			} else if (moved > THRESHOLD && longPress) {
+				// Moved before the long-press fired — treat as a scroll, not a drag.
+				clearTimeout(longPress);
+				cleanup();
+			}
+			return;
+		}
+		e.preventDefault();
+		pointerPos = { x: e.clientX, y: e.clientY };
+		hoverGhost = ghostAtPoint(e.clientX, e.clientY);
+	}
 
-  function onBlockPointerUp(e: PointerEvent) {
-    if (pointerId === null || e.pointerId !== pointerId) return;
-    // The first move starts the drag and renders its ghosts. A quick mouse
-    // gesture can then release directly over a ghost before a second move has
-    // updated hoverGhost, so resolve the final pointer position again here.
-    const targetGhost = ghostAtPoint(e.clientX, e.clientY) ?? hoverGhost;
-    if (drag && targetGhost) {
-      const target = alternativeOfferings(
-        alternatives,
-        drag.courseCode,
-        drag.fromSection,
-      ).find((o) => o.section === targetGhost);
-      if (target) onswap?.(drag.courseCode, target.sections);
-    }
-    cleanup();
-  }
+	function onBlockPointerUp(e: PointerEvent) {
+		if (pointerId === null || e.pointerId !== pointerId) return;
+		// The first move starts the drag and renders its ghosts. A quick mouse
+		// gesture can then release directly over a ghost before a second move has
+		// updated hoverGhost, so resolve the final pointer position again here.
+		const targetGhost = ghostAtPoint(e.clientX, e.clientY) ?? hoverGhost;
+		if (drag && targetGhost) {
+			const target = alternativeOfferings(alternatives, drag.courseCode, drag.fromSection).find(
+				(o) => o.section === targetGhost
+			);
+			if (target) onswap?.(drag.courseCode, target.sections);
+		}
+		cleanup();
+	}
 
-  function onBlockClick(block: GridBlock) {
-    if (suppressClick) {
-      suppressClick = false;
-      return;
-    }
-    selectedKey = selectedKey === block.key ? null : block.key;
-  }
+	function onBlockClick(block: GridBlock) {
+		if (suppressClick) {
+			suppressClick = false;
+			return;
+		}
+		selectedKey = selectedKey === block.key ? null : block.key;
+	}
 
-  $effect(() => {
-    if (!drag) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") cleanup();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  });
+	$effect(() => {
+		if (!drag) return;
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') cleanup();
+		};
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	});
 
-  const hourLabel = (hour: number) =>
-    `${hour > 12 ? hour - 12 : hour}${hour >= 12 ? "PM" : "AM"}`;
+	const hourLabel = (hour: number) => `${hour > 12 ? hour - 12 : hour}${hour >= 12 ? 'PM' : 'AM'}`;
 
-  const topPct = (min: number) => ((min - START_HOUR * 60) / TOTAL_MIN) * 100;
-  const heightPct = (startMin: number, endMin: number) =>
-    ((endMin - startMin) / TOTAL_MIN) * 100;
+	const topPct = (min: number) => ((min - START_HOUR * 60) / TOTAL_MIN) * 100;
+	const heightPct = (startMin: number, endMin: number) => ((endMin - startMin) / TOTAL_MIN) * 100;
 </script>
 
 <div>
-  <div class="planner-legend" aria-label="Block colors">
-    <span class="planner-legend__item">
-      <span
-        class="planner-legend__dot"
-        style:background-color={getPlannerBlockColor("LEC")}
-      ></span>
-      Lecture
-    </span>
-    <span class="planner-legend__item">
-      <span
-        class="planner-legend__dot"
-        style:background-color={getPlannerBlockColor("LAB")}
-      ></span>
-      Lab
-    </span>
-    <span class="planner-legend__item">
-      <span
-        class="planner-legend__dot"
-        style:background-color={getPlannerBlockColor("RCT")}
-      ></span>
-      Recitation
-    </span>
-  </div>
+	<div class="planner-legend" aria-label="Block colors">
+		<span class="planner-legend__item">
+			<span class="planner-legend__dot" style:background-color={getPlannerBlockColor('LEC')}></span>
+			Lecture
+		</span>
+		<span class="planner-legend__item">
+			<span class="planner-legend__dot" style:background-color={getPlannerBlockColor('LAB')}></span>
+			Lab
+		</span>
+		<span class="planner-legend__item">
+			<span class="planner-legend__dot" style:background-color={getPlannerBlockColor('RCT')}></span>
+			Recitation
+		</span>
+	</div>
 
-  <p class="planner-grid__scroll-hint" aria-hidden="true">
-    Swipe to see all days →
-  </p>
-  <p class="planner-grid__drag-hint" role="note">
-    Drag a class onto a dashed section to switch it. On touch, hold first.
-  </p>
-  <div class="planner-grid-scroll">
-    <div class="planner-grid" class:planner-grid--dragging={drag}>
-      <div class="planner-grid__time" aria-hidden="true">
-        {#each HOURS as hour (hour)}
-          <div class="planner-grid__hour">{hourLabel(hour)}</div>
-        {/each}
-      </div>
-      {#each DAYS as day, dayIndex (day)}
-        <div class="planner-grid__day">
-          <div class="planner-grid__day-label">{day}</div>
-          <div class="planner-grid__day-body">
-            {#each blocksByDay[dayIndex] as block (block.key)}
-              <div
-                class="planner-block"
-                class:planner-block--conflict={block.conflicted}
-                class:planner-block--selected={selectedKey === block.key}
-                class:planner-block--dragging={drag?.fromKey === block.key}
-                style:top="{topPct(block.startMin)}%"
-                style:height="{heightPct(block.startMin, block.endMin)}%"
-                style:background-color={getPlannerBlockColor(block.type)}
-              >
-                <button
-                  type="button"
-                  class="planner-block__label"
-                  title="{block.courseCode} {block.type} {block.section}{block.roomCode
-                    ? ` · ${block.roomCode}`
-                    : ''} — drag to switch section"
-                  onclick={() => onBlockClick(block)}
-                  onpointerdown={(e) => onBlockPointerDown(e, block)}
-                  onpointermove={onBlockPointerMove}
-                  onpointerup={onBlockPointerUp}
-                  onpointercancel={cleanup}
-                >
-                  <span class="planner-block__course">{block.courseCode}</span>
-                  <span class="planner-block__section">
-                    {block.type} · {block.section}
-                  </span>
-                </button>
-                {#if selectedKey === block.key}
-                  <div class="planner-block__actions">
-                    <button
-                      type="button"
-                      onclick={() => onremove(block.courseCode, block.section)}
-                    >
-                      Remove
-                    </button>
-                    {#if block.roomCode}
-                      <button
-                        type="button"
-                        onclick={() => onopenroom(block.roomCode ?? "")}
-                      >
-                        Room
-                      </button>
-                    {/if}
-                  </div>
-                {/if}
-              </div>
-            {/each}
+	<p class="planner-grid__scroll-hint" aria-hidden="true">Swipe to see all days →</p>
+	<p class="planner-grid__drag-hint" role="note">
+		Drag a class onto a dashed section to switch it. On touch, hold first.
+	</p>
+	<div class="planner-grid-scroll">
+		<div class="planner-grid" class:planner-grid--dragging={drag}>
+			<div class="planner-grid__time" aria-hidden="true">
+				{#each HOURS as hour (hour)}
+					<div class="planner-grid__hour">{hourLabel(hour)}</div>
+				{/each}
+			</div>
+			{#each DAYS as day, dayIndex (day)}
+				<div class="planner-grid__day">
+					<div class="planner-grid__day-label">{day}</div>
+					<div class="planner-grid__day-body">
+						{#each blocksByDay[dayIndex] as block (block.key)}
+							<div
+								class="planner-block"
+								class:planner-block--conflict={block.conflicted}
+								class:planner-block--selected={selectedKey === block.key}
+								class:planner-block--dragging={drag?.fromKey === block.key}
+								style:top="{topPct(block.startMin)}%"
+								style:height="{heightPct(block.startMin, block.endMin)}%"
+								style:background-color={getPlannerBlockColor(block.type)}
+							>
+								<button
+									type="button"
+									class="planner-block__label"
+									title="{block.courseCode} {block.type} {block.section}{block.roomCode
+										? ` · ${block.roomCode}`
+										: ''} — drag to switch section"
+									onclick={() => onBlockClick(block)}
+									onpointerdown={(e) => onBlockPointerDown(e, block)}
+									onpointermove={onBlockPointerMove}
+									onpointerup={onBlockPointerUp}
+									onpointercancel={cleanup}
+								>
+									<span class="planner-block__course">{block.courseCode}</span>
+									<span class="planner-block__section">
+										{block.type} · {block.section}
+									</span>
+								</button>
+								{#if selectedKey === block.key}
+									<div class="planner-block__actions">
+										<button type="button" onclick={() => onremove(block.courseCode, block.section)}>
+											Remove
+										</button>
+										{#if block.roomCode}
+											<button type="button" onclick={() => onopenroom(block.roomCode ?? '')}>
+												Room
+											</button>
+										{/if}
+									</div>
+								{/if}
+							</div>
+						{/each}
 
-            {#if drag}
-              {#each ghostBlocksByDay[dayIndex] as ghost (ghost.ghostKey + ghost.startMin)}
-                <div
-                  class="planner-ghost"
-                  class:planner-ghost--hover={hoverGhost === ghost.ghostKey}
-                  data-ghost={ghost.ghostKey}
-                  style:top="{topPct(ghost.startMin)}%"
-                  style:height="{heightPct(ghost.startMin, ghost.endMin)}%"
-                  style:left="calc({(ghost.col / ghost.colCount) * 100}% + 1px)"
-                  style:width="calc({100 / ghost.colCount}% - 2px)"
-                >
-                  <span class="planner-ghost__label">{ghost.ghostKey}</span>
-                </div>
-              {/each}
-            {/if}
-          </div>
-        </div>
-      {/each}
-    </div>
-  </div>
+						{#if drag}
+							{#each ghostBlocksByDay[dayIndex] as ghost (ghost.ghostKey + ghost.startMin)}
+								<div
+									class="planner-ghost"
+									class:planner-ghost--hover={hoverGhost === ghost.ghostKey}
+									data-ghost={ghost.ghostKey}
+									style:top="{topPct(ghost.startMin)}%"
+									style:height="{heightPct(ghost.startMin, ghost.endMin)}%"
+									style:left="calc({(ghost.col / ghost.colCount) * 100}% + 1px)"
+									style:width="calc({100 / ghost.colCount}% - 2px)"
+								>
+									<span class="planner-ghost__label">{ghost.ghostKey}</span>
+								</div>
+							{/each}
+						{/if}
+					</div>
+				</div>
+			{/each}
+		</div>
+	</div>
 </div>
 
 {#if drag && pointerPos}
-  <div
-    class="planner-drag-pill"
-    style:left="{pointerPos.x}px"
-    style:top="{pointerPos.y}px"
-    aria-hidden="true"
-  >
-    {drag.courseCode}
-    {#if hoverGhost}
-      → {hoverGhost}
-    {:else if alternativesLoading}
-      · loading other sections…
-    {:else if !hasGhostTargets}
-      · no scheduled alternate section
-    {:else}
-      · drop on a section
-    {/if}
-  </div>
+	<div
+		class="planner-drag-pill"
+		style:left="{pointerPos.x}px"
+		style:top="{pointerPos.y}px"
+		aria-hidden="true"
+	>
+		{drag.courseCode}
+		{#if hoverGhost}
+			→ {hoverGhost}
+		{:else if alternativesLoading}
+			· loading other sections…
+		{:else if !hasGhostTargets}
+			· no scheduled alternate section
+		{:else}
+			· drop on a section
+		{/if}
+	</div>
 {/if}
 
 <style>
-  .planner-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 1rem;
-    padding: 0.375rem 0.125rem;
-    font-size: 0.75rem;
-    color: hsl(0, 0%, 35%);
-  }
+	.planner-legend {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 1rem;
+		padding: 0.375rem 0.125rem;
+		font-size: 0.75rem;
+		color: hsl(0, 0%, 35%);
+	}
 
-  /* Mobile-only affordance that the week grid scrolls sideways (hidden on
+	/* Mobile-only affordance that the week grid scrolls sideways (hidden on
      desktop, where all six days already fit). */
-  .planner-grid__scroll-hint {
-    display: none;
-    align-items: center;
-    justify-content: flex-end;
-    margin: 0;
-    padding: 0 0.125rem 0.375rem;
-    color: hsl(0, 0%, 45%);
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
+	.planner-grid__scroll-hint {
+		display: none;
+		align-items: center;
+		justify-content: flex-end;
+		margin: 0;
+		padding: 0 0.125rem 0.375rem;
+		color: hsl(0, 0%, 45%);
+		font-size: 0.75rem;
+		font-weight: 600;
+	}
 
-  .planner-grid__drag-hint {
-    margin: 0;
-    padding: 0 0.125rem 0.375rem;
-    color: hsl(0, 0%, 35%);
-    font-size: 0.75rem;
-  }
+	.planner-grid__drag-hint {
+		margin: 0;
+		padding: 0 0.125rem 0.375rem;
+		color: hsl(0, 0%, 35%);
+		font-size: 0.75rem;
+	}
 
-  .planner-legend__item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-weight: 600;
-  }
+	.planner-legend__item {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		font-weight: 600;
+	}
 
-  .planner-legend__dot {
-    width: 0.75rem;
-    height: 0.75rem;
-    border-radius: 0.1875rem;
-    flex: 0 0 auto;
-  }
+	.planner-legend__dot {
+		width: 0.75rem;
+		height: 0.75rem;
+		border-radius: 0.1875rem;
+		flex: 0 0 auto;
+	}
 
-  .planner-grid-scroll {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+	.planner-grid-scroll {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
 
-  .planner-grid {
-    display: grid;
-    grid-template-columns: 3rem repeat(6, minmax(4.5rem, 1fr));
-    min-width: 30rem;
-    border: 1px solid hsl(0, 0%, 88%);
-    border-radius: 0.5rem;
-    background: white;
-    overflow: hidden;
-  }
+	.planner-grid {
+		display: grid;
+		grid-template-columns: 3rem repeat(6, minmax(4.5rem, 1fr));
+		min-width: 30rem;
+		border: 1px solid hsl(0, 0%, 88%);
+		border-radius: 0.5rem;
+		background: white;
+		overflow: hidden;
+	}
 
-  .planner-grid__time {
-    display: flex;
-    flex-direction: column;
-    padding-top: 1.5rem;
-    background: hsl(5, 53%, 28%);
-  }
+	.planner-grid__time {
+		display: flex;
+		flex-direction: column;
+		padding-top: 1.5rem;
+		background: hsl(5, 53%, 28%);
+	}
 
-  .planner-grid__hour {
-    flex: 1;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    color: white;
-    font-size: 0.625rem;
-    padding-top: 0.125rem;
-  }
+	.planner-grid__hour {
+		flex: 1;
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		color: white;
+		font-size: 0.625rem;
+		padding-top: 0.125rem;
+	}
 
-  .planner-grid__day {
-    display: flex;
-    flex-direction: column;
-    border-left: 1px solid hsl(0, 0%, 90%);
-    min-width: 0;
-  }
+	.planner-grid__day {
+		display: flex;
+		flex-direction: column;
+		border-left: 1px solid hsl(0, 0%, 90%);
+		min-width: 0;
+	}
 
-  .planner-grid__day-label {
-    height: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: hsl(5, 53%, 32%);
-    color: white;
-    font-size: 0.75rem;
-    font-weight: 700;
-  }
+	.planner-grid__day-label {
+		height: 1.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: hsl(5, 53%, 32%);
+		color: white;
+		font-size: 0.75rem;
+		font-weight: 700;
+	}
 
-  .planner-grid__day-body {
-    position: relative;
-    height: 32.5rem; /* 13 hours × 2.5rem */
-    background-image: repeating-linear-gradient(
-      to bottom,
-      transparent,
-      transparent calc(2.5rem - 1px),
-      hsl(0, 0%, 93%) calc(2.5rem - 1px),
-      hsl(0, 0%, 93%) 2.5rem
-    );
-  }
+	.planner-grid__day-body {
+		position: relative;
+		height: 32.5rem; /* 13 hours × 2.5rem */
+		background-image: repeating-linear-gradient(
+			to bottom,
+			transparent,
+			transparent calc(2.5rem - 1px),
+			hsl(0, 0%, 93%) calc(2.5rem - 1px),
+			hsl(0, 0%, 93%) 2.5rem
+		);
+	}
 
-  .planner-block {
-    position: absolute;
-    left: 1px;
-    right: 1px;
-    border-radius: 0.25rem;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    touch-action: pan-x pan-y;
-  }
+	.planner-block {
+		position: absolute;
+		left: 1px;
+		right: 1px;
+		border-radius: 0.25rem;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		touch-action: pan-x pan-y;
+	}
 
-  /* While dragging, other blocks stop intercepting hit-tests so
+	/* While dragging, other blocks stop intercepting hit-tests so
      elementFromPoint resolves to the ghost drop targets under the pointer.
      The dragged block keeps pointer-events so its captured pointer stream
      (move/up) keeps flowing — it only ever covers its own cell, never a ghost. */
-  .planner-grid--dragging .planner-block {
-    pointer-events: none;
-  }
+	.planner-grid--dragging .planner-block {
+		pointer-events: none;
+	}
 
-  .planner-grid--dragging .planner-block--dragging {
-    pointer-events: auto;
-    opacity: 0.4;
-  }
+	.planner-grid--dragging .planner-block--dragging {
+		pointer-events: auto;
+		opacity: 0.4;
+	}
 
-  .planner-block--conflict {
-    outline: 2px solid hsl(0, 85%, 45%);
-    outline-offset: -2px;
-  }
+	.planner-block--conflict {
+		outline: 2px solid hsl(0, 85%, 45%);
+		outline-offset: -2px;
+	}
 
-  .planner-block--selected {
-    z-index: 2;
-    overflow: visible;
-  }
+	.planner-block--selected {
+		z-index: 2;
+		overflow: visible;
+	}
 
-  .planner-block__label {
-    all: unset;
-    box-sizing: border-box;
-    display: block;
-    flex: 1;
-    min-height: 0;
-    width: 100%;
-    padding: 0.125rem 0.25rem;
-    color: white;
-    cursor: grab;
-    overflow: hidden;
-    /* Long-press starts a drag; don't let iOS select text or show the callout. */
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-  }
+	.planner-block__label {
+		all: unset;
+		box-sizing: border-box;
+		display: block;
+		flex: 1;
+		min-height: 0;
+		width: 100%;
+		padding: 0.125rem 0.25rem;
+		color: white;
+		cursor: grab;
+		overflow: hidden;
+		/* Long-press starts a drag; don't let iOS select text or show the callout. */
+		user-select: none;
+		-webkit-user-select: none;
+		-webkit-touch-callout: none;
+	}
 
-  .planner-block__label:focus-visible {
-    outline: 2px solid white;
-    outline-offset: -2px;
-  }
+	.planner-block__label:focus-visible {
+		outline: 2px solid white;
+		outline-offset: -2px;
+	}
 
-  .planner-block__course {
-    display: block;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+	.planner-block__course {
+		display: block;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		line-height: 1.2;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
 
-  .planner-block__section {
-    display: block;
-    font-size: 0.625rem;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    opacity: 0.9;
-  }
+	.planner-block__section {
+		display: block;
+		font-size: 0.625rem;
+		line-height: 1.2;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		opacity: 0.9;
+	}
 
-  .planner-block__actions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    z-index: 3;
-    display: flex;
-    gap: 0.25rem;
-    padding: 0.25rem;
-    background: white;
-    border: 1px solid hsl(0, 0%, 85%);
-    border-radius: 0.375rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
+	.planner-block__actions {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		z-index: 3;
+		display: flex;
+		gap: 0.25rem;
+		padding: 0.25rem;
+		background: white;
+		border: 1px solid hsl(0, 0%, 85%);
+		border-radius: 0.375rem;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	}
 
-  .planner-block__actions button {
-    all: unset;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    color: hsl(5, 53%, 32%);
-    cursor: pointer;
-  }
+	.planner-block__actions button {
+		all: unset;
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.25rem;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: hsl(5, 53%, 32%);
+		cursor: pointer;
+	}
 
-  .planner-block__actions button:hover,
-  .planner-block__actions button:focus-visible {
-    background: hsl(5, 53%, 96%);
-  }
+	.planner-block__actions button:hover,
+	.planner-block__actions button:focus-visible {
+		background: hsl(5, 53%, 96%);
+	}
 
-  .planner-ghost {
-    position: absolute;
-    /* left/width are set inline so same-slot ghosts tile into columns. */
-    box-sizing: border-box;
-    z-index: 5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px dashed hsl(0, 0%, 55%);
-    border-radius: 0.25rem;
-    background: hsl(0, 0%, 100%, 0.55);
-    color: hsl(0, 0%, 25%);
-    cursor: copy;
-  }
+	.planner-ghost {
+		position: absolute;
+		/* left/width are set inline so same-slot ghosts tile into columns. */
+		box-sizing: border-box;
+		z-index: 5;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 2px dashed hsl(0, 0%, 55%);
+		border-radius: 0.25rem;
+		background: hsl(0, 0%, 100%, 0.55);
+		color: hsl(0, 0%, 25%);
+		cursor: copy;
+	}
 
-  .planner-ghost--hover {
-    background: hsl(140, 60%, 92%, 0.9);
-    border-style: solid;
-    box-shadow: 0 0 0 2px hsl(140, 60%, 35%);
-  }
+	.planner-ghost--hover {
+		background: hsl(140, 60%, 92%, 0.9);
+		border-style: solid;
+		box-shadow: 0 0 0 2px hsl(140, 60%, 35%);
+	}
 
-  .planner-ghost__label {
-    font-size: 0.6875rem;
-    font-weight: 700;
-    pointer-events: none;
-  }
+	.planner-ghost__label {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		pointer-events: none;
+	}
 
-  .planner-drag-pill {
-    position: fixed;
-    z-index: 40;
-    transform: translate(-50%, calc(-100% - 0.75rem));
-    padding: 0.25rem 0.5rem;
-    border-radius: 999px;
-    background: hsl(0, 0%, 12%);
-    color: white;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    white-space: nowrap;
-    pointer-events: none;
-  }
+	.planner-drag-pill {
+		position: fixed;
+		z-index: 40;
+		transform: translate(-50%, calc(-100% - 0.75rem));
+		padding: 0.25rem 0.5rem;
+		border-radius: 999px;
+		background: hsl(0, 0%, 12%);
+		color: white;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		white-space: nowrap;
+		pointer-events: none;
+	}
 
-  @media (prefers-reduced-motion: reduce) {
-    .planner-ghost {
-      transition: none;
-    }
-  }
+	@media (prefers-reduced-motion: reduce) {
+		.planner-ghost {
+			transition: none;
+		}
+	}
 
-  /* --- Mobile (phones): bigger text, taller rows, wider day columns, and a
+	/* --- Mobile (phones): bigger text, taller rows, wider day columns, and a
      horizontally-scrollable week grid instead of a squeezed six-up view. --- */
-  @media (max-width: 640px) {
-    .planner-legend {
-      gap: 0.375rem 1.25rem;
-      font-size: 0.8125rem;
-    }
+	@media (max-width: 640px) {
+		.planner-legend {
+			gap: 0.375rem 1.25rem;
+			font-size: 0.8125rem;
+		}
 
-    .planner-legend__dot {
-      width: 0.875rem;
-      height: 0.875rem;
-    }
+		.planner-legend__dot {
+			width: 0.875rem;
+			height: 0.875rem;
+		}
 
-    .planner-grid__scroll-hint {
-      display: flex;
-    }
+		.planner-grid__scroll-hint {
+			display: flex;
+		}
 
-    /* Wider day columns so blocks are readable and tappable; the grid overflows
+		/* Wider day columns so blocks are readable and tappable; the grid overflows
        its scroll container and scrolls sideways on a narrow phone. */
-    .planner-grid {
-      grid-template-columns: 3.25rem repeat(6, minmax(5.25rem, 1fr));
-      min-width: 34.75rem;
-    }
+		.planner-grid {
+			grid-template-columns: 3.25rem repeat(6, minmax(5.25rem, 1fr));
+			min-width: 34.75rem;
+		}
 
-    /* Taller rows use the phone's vertical space and give a 1-hour block a
+		/* Taller rows use the phone's vertical space and give a 1-hour block a
        3rem (48px) height — above the 44px tap-target minimum. */
-    .planner-grid__day-body {
-      height: 39rem; /* 13 hours × 3rem */
-      background-image: repeating-linear-gradient(
-        to bottom,
-        transparent,
-        transparent calc(3rem - 1px),
-        hsl(0, 0%, 93%) calc(3rem - 1px),
-        hsl(0, 0%, 93%) 3rem
-      );
-    }
+		.planner-grid__day-body {
+			height: 39rem; /* 13 hours × 3rem */
+			background-image: repeating-linear-gradient(
+				to bottom,
+				transparent,
+				transparent calc(3rem - 1px),
+				hsl(0, 0%, 93%) calc(3rem - 1px),
+				hsl(0, 0%, 93%) 3rem
+			);
+		}
 
-    .planner-grid__day-label {
-      font-size: 0.875rem;
-    }
+		.planner-grid__day-label {
+			font-size: 0.875rem;
+		}
 
-    .planner-grid__hour {
-      font-size: 0.75rem;
-    }
+		.planner-grid__hour {
+			font-size: 0.75rem;
+		}
 
-    .planner-block__label {
-      padding: 0.25rem 0.375rem;
-    }
+		.planner-block__label {
+			padding: 0.25rem 0.375rem;
+		}
 
-    .planner-block__course {
-      font-size: 0.8125rem;
-    }
+		.planner-block__course {
+			font-size: 0.8125rem;
+		}
 
-    .planner-block__section {
-      font-size: 0.75rem;
-    }
+		.planner-block__section {
+			font-size: 0.75rem;
+		}
 
-    .planner-block__actions {
-      gap: 0.375rem;
-      padding: 0.375rem;
-    }
+		.planner-block__actions {
+			gap: 0.375rem;
+			padding: 0.375rem;
+		}
 
-    .planner-block__actions button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 2.75rem;
-      padding: 0.5rem 0.875rem;
-      font-size: 0.875rem;
-    }
-  }
+		.planner-block__actions button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 2.75rem;
+			padding: 0.5rem 0.875rem;
+			font-size: 0.875rem;
+		}
+	}
 </style>

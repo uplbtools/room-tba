@@ -6,30 +6,30 @@
 	// 	searchInfo,
 	// 	sidePanelStore,
 	// 	toastStore
-	// } from '$lib/stores.svelte';
-	import { getAppActions, getAppData, getSearchInfo } from '$lib/utils/context';
+	// } from '#lib/stores.svelte.js';
+	import { getAppActions, getAppData, getSearchInfo } from '#lib/utils/context.js';
 	import Users from '@lucide/svelte/icons/users';
 	import Mail from '@lucide/svelte/icons/mail';
 	import Info from '@lucide/svelte/icons/info';
 	import Building2 from '@lucide/svelte/icons/building-2';
-	import EntityGoogleMapsLink from '$lib/components/controls/EntityGoogleMapsLink.svelte';
-	import EntityStreetAddress from '$lib/components/controls/EntityStreetAddress.svelte';
-	import EntityDirectionsChip from '$lib/components/controls/EntityDirectionsChip.svelte';
-	import EntityExternalLink from '$lib/components/controls/EntityExternalLink.svelte';
-	import EntityLastUpdated from '$lib/components/EntityLastUpdated.svelte';
-	import EntityShareCopyLink from '$lib/components/controls/EntityShareCopyLink.svelte';
-	import EntityEditorToggle from '$lib/components/editor/EntityEditorToggle.svelte';
-	import EntityEditorPinRow from '$lib/components/editor/EntityEditorPinRow.svelte';
-	import type { OrgData } from '$lib/utils/types';
+	import EntityGoogleMapsLink from '#lib/components/controls/EntityGoogleMapsLink.svelte';
+	import EntityStreetAddress from '#lib/components/controls/EntityStreetAddress.svelte';
+	import EntityDirectionsChip from '#lib/components/controls/EntityDirectionsChip.svelte';
+	import EntityExternalLink from '#lib/components/controls/EntityExternalLink.svelte';
+	import EntityLastUpdated from '#lib/components/EntityLastUpdated.svelte';
+	import EntityShareCopyLink from '#lib/components/controls/EntityShareCopyLink.svelte';
+	import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
+	import EntityEditorPinRow from '#lib/components/editor/EntityEditorPinRow.svelte';
+	import type { OrgData } from '#lib/utils/types';
 	import {
 		isStudentOrganization,
 		orgCategoryLabel,
 		ORG_CATEGORIES
-	} from '$lib/constants/content/categories/org';
-	import { persistEntityChange } from '$lib/utils/proposals/client';
-	import { handlePersistEntityResult } from '$lib/utils/editor/handle-persist-result';
+	} from '#lib/constants/content/categories/org.js';
+	import { persistEntityChange } from '#lib/utils/proposals/client.js';
+	import { handlePersistEntityResult } from '#lib/utils/editor/handle-persist-result.js';
 	import { goto } from '$app/navigation';
-	import { getBuildingById } from '$lib/functions/buildings.remote';
+	import { getBuildingById } from '#lib/functions/buildings.remote.js';
 	import { page } from '$app/state';
 
 	interface Props {

@@ -8,10 +8,10 @@ import {
 	eventLocationsTable,
 	roomsTable,
 	roomPositionsTable
-} from '$lib/server/db/schema';
-import { normalizeEntityName } from '$lib/utils/entity/entity-names';
-import { db } from '$lib/utils/db';
-import type { Room } from '$lib/utils/types';
+} from '#lib/server/db/schema.js';
+import { normalizeEntityName } from '#lib/utils/entity/entity-names.js';
+import { db } from '#lib/utils/db.js';
+import type { Room } from '#lib/utils/types';
 import {
 	EditConflictError,
 	DuplicateNameError,
