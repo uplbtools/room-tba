@@ -16,7 +16,7 @@
 		crFacilityLabel,
 		sanitizeCrFacilities
 	} from '#lib/constants/map/cr-facilities.js';
-	import { getAppActions, getAppData, getSearchInfo } from '#lib/utils/context.js';
+	import { getAppActions, getAppData, getSearchInfo, getToast } from '#lib/utils/context.js';
 	import {
 		clearEntityContributorDraft,
 		readEntityContributorDraft,
@@ -586,6 +586,7 @@
 
 	const { building }: Props = $props();
 	const searchInfo = getSearchInfo();
+	const toastStore = getToast();
 
 	// $effect(() => {
 	// 	if (building?.id) pinnedBuildingId = building.id;
@@ -649,7 +650,12 @@
 				<ResultAction
 					icon={copyIcon}
 					onclick={async () => {
-						await copyTextToClipboard(page.url.href);
+						try {
+							await copyTextToClipboard(page.url.href);
+							toastStore.show('Copied link successfully', 'success');
+						} catch {
+							toastStore.show('An error occurred', 'error');
+						}
 					}}>Copy Link</ResultAction
 				>
 				<EntityShareCopyLink url={page.url.href} entityLabel={building.buildingName} />

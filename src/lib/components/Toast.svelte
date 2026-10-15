@@ -3,88 +3,92 @@
 	import { onMount } from 'svelte';
 	import X from '@lucide/svelte/icons/x';
 	import IconButton from '#lib/components/IconButton.svelte';
+	import { getToast } from '#lib/utils/context.js';
 
-	let {
-		message,
-		type = 'info',
-		onclose
-	} = $props<{
-		message: string;
-		type?: 'info' | 'error' | 'success';
-		onclose: () => void;
-	}>();
+	// let {
+	// 	message,
+	// 	type = 'info',
+	// 	onclose
+	// } = $props<{
+	// 	message: string;
+	// 	type?: 'info' | 'error' | 'success';
+	// 	onclose: () => void;
+	// }>();
 
+	const toastStore = getToast();
 	onMount(() => {
 		const timer = setTimeout(() => {
-			onclose();
+			toastStore.clear();
 		}, 5000);
 		return () => clearTimeout(timer);
 	});
 </script>
 
-<div
-	class="toast {type}"
-	role="status"
-	aria-live="polite"
-	in:fly={{ y: 20, duration: 300 }}
-	out:fade={{ duration: 200 }}
->
-	<div class="icon">
-		{#if type === 'error'}
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="20"
-				height="20"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line
-					x1="12"
-					y1="16"
-					x2="12.01"
-					y2="16"
-				/></svg
-			>
-		{:else if type === 'success'}
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="20"
-				height="20"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg
-			>
-		{:else}
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="20"
-				height="20"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line
-					x1="12"
-					y1="8"
-					x2="12.01"
-					y2="8"
-				/></svg
-			>
-		{/if}
+{#if toastStore.message}
+	<div
+		class="toast {toastStore.type}"
+		role="status"
+		aria-live="polite"
+		in:fly={{ y: 20, duration: 300 }}
+		out:fade={{ duration: 200 }}
+	>
+		<div class="icon">
+			{#if toastStore.type === 'error'}
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line
+						x1="12"
+						y1="16"
+						x2="12.01"
+						y2="16"
+					/></svg
+				>
+			{:else if toastStore.type === 'success'}
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg
+				>
+			{:else}
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line
+						x1="12"
+						y1="8"
+						x2="12.01"
+						y2="8"
+					/></svg
+				>
+			{/if}
+		</div>
+		<div class="message">{toastStore.message}</div>
+		<IconButton size="sm" class="toast-close" label="Close" onclick={() => toastStore.clear()}>
+			<X size={16} aria-hidden="true" />
+		</IconButton>
 	</div>
-	<div class="message">{message}</div>
-	<IconButton size="sm" class="toast-close" label="Close" onclick={onclose}>
-		<X size={16} aria-hidden="true" />
-	</IconButton>
-</div>
+{/if}
 
 <style>
 	.toast {

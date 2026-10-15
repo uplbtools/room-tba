@@ -41,7 +41,7 @@
 </script>
 
 {#if map.withinZoom(zoomLevel) && showBuildingPins}
-	{#each filteredBuildings as building}
+	{#each filteredBuildings as building (building.id)}
 		{#if building.lat && building.lon}
 			<!-- {@const editKey = buildingEditKey(building.id)}
 			{@const position = getEditablePosition(editKey, {
@@ -55,7 +55,6 @@
 			<!-- {#key `${editKey}:${canDragPin(editKey)}`} -->
 			<Marker
 				lngLat={[building.lon, building.lat]}
-				// draggable={canDragPin(editKey)}
 				onclick={// draggable={canDragPin(editKey)}
 				handleMarkerClick(building)}
 			>

@@ -6,8 +6,6 @@ import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 
 if (!DATABASE_URL) throw new Error('DATABASE_URL is not set');
 
-console.log(DATABASE_URL);
-
 export const client = postgres(DATABASE_URL);
 export const db = drizzle({ client });
 

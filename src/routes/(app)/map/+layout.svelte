@@ -6,6 +6,7 @@
 		getSearchInfo,
 		initMapStore,
 		initSearchInfo,
+		initToast,
 		initUserLocation
 	} from '#lib/utils/context.js';
 	import type { Snippet } from 'svelte';
@@ -16,6 +17,8 @@
 	import UILayer from './UILayer.svelte';
 	import MapControlsStack from '#lib/components/map-chrome/MapControlsStack.svelte';
 	import { afterNavigate } from '$app/navigation';
+	import Toast from '#lib/components/Toast.svelte';
+	import ToastStore from '#lib/stores/ui/ToastStore.svelte.ts';
 	/* import { onMount, type Snippet } from 'svelte';
 	import { page } from '$app/state';
 	import { campusCommunity } from '#lib/campus.config.js';
@@ -528,6 +531,14 @@
 			{@render children()}
 			<MapControlsStack />
 		</div>
+		<!-- {#if toastStore.message}
+			<Toast
+				message={toastStore.message}
+				type={toastStore.type}
+				onclose={() => toastStore.clear()}
+			/>
+		{/if} -->
+		<Toast />
 	</UILayer>
 	<UIMap />
 </main>

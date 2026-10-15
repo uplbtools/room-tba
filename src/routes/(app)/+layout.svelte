@@ -18,6 +18,8 @@
 		webpageSchema,
 		websiteSchema
 	} from '#lib/utils/site.js';
+	import { initToast } from '#lib/utils/context.ts';
+	import ToastStore from '#lib/stores/ui/ToastStore.svelte.ts';
 
 	const { children }: { children: Snippet } = $props();
 
@@ -71,6 +73,7 @@
 	// 		apply(event.matches);
 	// 	});
 	// }
+	initToast(new ToastStore());
 </script>
 
 <SeoHead {seo} />

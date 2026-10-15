@@ -78,6 +78,7 @@
 <button
 	class="map-entity-pin"
 	class:active
+	// class={true}
 	class:building={tone === 'building'}
 	class:dorm={tone === 'dorm'}
 	class:private={tone === 'privateDorm'}

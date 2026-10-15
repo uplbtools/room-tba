@@ -3,12 +3,9 @@
 	import { resolve } from '$app/paths';
 	import MapEntityPin from '#lib/components/map/MapEntityPin.svelte';
 	import PinGlyph from '#lib/components/map/PinGlyph.svelte';
-	import { dormMatchesTypeFilter } from '#lib/constants/content/categories/building.js';
 	import { getMapDormsData } from '#lib/functions/dorms.remote.js';
 	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
-	import type { DormData } from '#lib/utils/types';
 	import { Marker } from 'svelte-maplibre';
-	import type { inspect } from 'util';
 
 	interface Props {
 		showDormPins: boolean;

@@ -7,7 +7,6 @@ import { SW_KILL_SWITCH } from './src/lib/constants/sw-kill-switch';
 
 export default defineConfig({
 	plugins: [
-		tailwindcss(),
 		sveltekit({
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
@@ -26,7 +25,8 @@ export default defineConfig({
 			// registration is suppressed, so new visitors never pick one up.
 			serviceWorker: { register: !SW_KILL_SWITCH },
 			inspector: true
-		})
+		}),
+		tailwindcss(),
 	],
 	// @vercel/og loads resvg/yoga WASM through its own resolver. Letting Vite
 	// pre-bundle or SSR-transform it breaks that and the /og.png request dies

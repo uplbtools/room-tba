@@ -1,5 +1,7 @@
 import { CAMPUS_BOUNDS } from '#lib/constants/map/terrain.js';
+import { getToast } from '#lib/utils/context.js';
 import { describeLocationFix } from '#lib/utils/geolocation.js';
+import type ToastStore from '../ui/ToastStore.svelte.js';
 import type { MapStore } from './map-stores.svelte.js';
 
 export default class UserLocation {
@@ -12,10 +14,15 @@ export default class UserLocation {
 	routeOrigin: [number, number] | null = $state(null);
 	/** Multi-stop foot route (schedule import or 2-point fallback). */
 	routeWaypoints: [number, number][] | null = $state(null);
+	private toastStore: ToastStore;
 	private watchId: number | null = null;
 	/** Avoid re-toasting every watch tick; still toast once when accuracy improves. */
 	private announcedGoodFix = false;
 	private announcedApproximateFix = false;
+
+	constructor () {
+		this.toastStore = getToast();
+	}
 
 	private isWithinBounds(lng: number, lat: number) {
 		return (
@@ -28,13 +35,13 @@ export default class UserLocation {
 
 	requestLocation() {
 		if (!navigator.geolocation) {
-			// toastStore.show('Geolocation is not supported by your browser.', 'error');
+			this.toastStore.show('Geolocation is not supported by your browser.', 'error');
 			return;
 		}
 
 		if (this.isTracking) {
 			if (!this.coords) {
-				// toastStore.show('Still getting your location...', 'info');
+				this.toastStore.show('Still getting your location...', 'info');
 			}
 			return;
 		}
@@ -42,20 +49,22 @@ export default class UserLocation {
 		this.isTracking = true;
 		this.announcedGoodFix = false;
 		this.announcedApproximateFix = false;
-		// toastStore.show('Requesting location access...', 'info');
+		this.toastStore.show('Requesting location access...', 'info');
 
 		this.watchId = navigator.geolocation.watchPosition(
 			(position) => {
+				console.log(position);
 				const { longitude, latitude, heading, accuracy } = position.coords;
 
-				if (!this.isWithinBounds(longitude, latitude)) {
-					/* toastStore.show(
-                        'You appear to be outside the UPLB Campus. Location features are limited to the campus area.',
-                        'error'
-                    ); */
-					this.stopTracking();
-					return;
-				}
+				// if (!this.isWithinBounds(longitude, latitude)) {
+				// 	/* toastStore.show(
+                //         'You appear to be outside the UPLB Campus. Location features are limited to the campus area.',
+                //         'error'
+                //     ); */
+				// 	this.stopTracking();
+				// 	// console.log("within bounds");
+				// 	return;
+				// }
 
 				this.coords = [longitude, latitude];
 				this.accuracyMeters = Number.isFinite(accuracy) && accuracy > 0 ? accuracy : null;
@@ -91,7 +100,7 @@ export default class UserLocation {
 						msg = 'Location request timed out.';
 						break;
 				}
-				// toastStore.show(msg, 'error');
+				this.toastStore.show(msg, 'error');
 				this.stopTracking();
 			},
 			// maximumAge 0: avoid a stale cell/Wi‑Fi fix that can place you hundreds
@@ -106,7 +115,7 @@ export default class UserLocation {
 			return;
 		}
 		if (map.isMapReady()) {
-			// toastStore.show('Map component is still initializing', 'info');
+			this.toastStore.show('Map component is still initializing', 'info');
 			return;
 		}
 		map.flyTo({

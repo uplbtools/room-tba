@@ -6,8 +6,6 @@
 	import { isStudentOrganization } from '#lib/constants/content/categories/org.js';
 	import { getMapOrgsData } from '#lib/functions/organizations.remote.js';
 	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
-	import { slugifySegment } from '#lib/utils/site.js';
-	import type { OrgData } from '#lib/utils/types';
 	import { Marker } from 'svelte-maplibre';
 
 	interface Props {
@@ -61,9 +59,9 @@
 					// dimmed={searchInfo.hasActiveMarker()}
 					// labelVisible={(isStudentOrganization(org.category)
 					isStudentOrganization(org.category)}
-						<PinGlyph name="organization" size={16} />
+						<PinGlyph name="organization" size={14} />
 					{:else}
-						<PinGlyph name="office" size={16} />
+						<PinGlyph name="office" size={14} />
 					{/if}
 				</MapEntityPin>
 			</Marker>

@@ -11,6 +11,7 @@ import type {
 import type { MapStore } from '#lib/stores/map/map-stores.svelte.js';
 import type UserLocation from '#lib/stores/map/UserLocation.svelte.js';
 import type SearchInfo from '#lib/stores/SearchInfo.svelte.js';
+import type ToastStore from '#lib/stores/ui/ToastStore.svelte.ts';
 export type AppContextData =
 	| {
 			buildings: Building[];
@@ -54,3 +55,4 @@ export const [getAppActions, setAppActions] = createContext<AppActions>();
 export const [getMapStore, initMapStore] = createContext<MapStore>();
 export const [getUserLocation, initUserLocation] = createContext<UserLocation>();
 export const [getSearchInfo, initSearchInfo] = createContext<SearchInfo>();
+export const [getToast, initToast] = createContext<ToastStore>()
