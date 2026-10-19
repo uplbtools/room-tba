@@ -10,7 +10,7 @@
         "@astrojs/svelte": "^9.0.1",
         "@astrojs/vercel": "^11.0.13",
         "@aws-sdk/client-s3": "^3.1148.0",
-        "@datadog/browser-rum": "^7.15.0",
+        "@datadog/browser-rum": "^7.16.0",
         "@electric-sql/pglite": "^0.5.8",
         "@esri/wayback-core": "^1.1.0",
         "@lucide/svelte": "^1.53.0",
@@ -396,15 +396,15 @@
 
     "@colors/colors": ["@colors/colors@1.5.0", "", {}, "sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ=="],
 
-    "@datadog/browser-core": ["@datadog/browser-core@7.15.0", "", { "dependencies": { "@datadog/js-core": "0.0.16" } }, "sha512-htDnhCpWiP/dKItxi0unTp7j7m9X1+Bxh1PjLY3gTn6U+oWa1wo42UqnPt5Vmje5wHMmmuuNRxnr9zXH61xyag=="],
+    "@datadog/browser-core": ["@datadog/browser-core@7.16.0", "", { "dependencies": { "@datadog/js-core": "0.0.17" } }, "sha512-Yw3IqMOPxRBpxa2w0VKQjjkiK/YptR4o7f2ROTtFzljvomzlJcnqMeUhSDOVoltJOe4cJxPXjjrbkAThrcj3wg=="],
 
-    "@datadog/browser-rum": ["@datadog/browser-rum@7.15.0", "", { "dependencies": { "@datadog/browser-core": "7.15.0", "@datadog/browser-rum-core": "7.15.0", "@datadog/js-core": "0.0.16" }, "peerDependencies": { "@datadog/browser-logs": "7.15.0" }, "optionalPeers": ["@datadog/browser-logs"] }, "sha512-pnyu2fbEKOcTLhJvggHOKKOquXQaYpnY4AWiZArQ4ygsSKEbUG9QVSIl/dgZwzJ6VF0zWxt88SrSVhbxH3LWZg=="],
+    "@datadog/browser-rum": ["@datadog/browser-rum@7.16.0", "", { "dependencies": { "@datadog/browser-core": "7.16.0", "@datadog/browser-rum-core": "7.16.0", "@datadog/js-core": "0.0.17" }, "peerDependencies": { "@datadog/browser-logs": "7.16.0" }, "optionalPeers": ["@datadog/browser-logs"] }, "sha512-WXN+p0mik6sJIf1A7bxJ6CJJBL7+kehny59Q/sql9poenrIr6t89EmS86Fqe7YRKLYMhijVAWEpig2P7A6hv6Q=="],
 
-    "@datadog/browser-rum-core": ["@datadog/browser-rum-core@7.15.0", "", { "dependencies": { "@datadog/browser-core": "7.15.0", "@datadog/js-core": "0.0.16" } }, "sha512-ReTr9t5Nx6ZCPlyN2f+weh6wzd9bi+l0+NKka0uswV8vC0/AnyAaKANW+49763LxBMtn4L+jrKHc5DfvXHiZAA=="],
+    "@datadog/browser-rum-core": ["@datadog/browser-rum-core@7.16.0", "", { "dependencies": { "@datadog/browser-core": "7.16.0", "@datadog/js-core": "0.0.17" } }, "sha512-Dl0RNjRSr48nWDL/jrzb7tBdnGFMiG0cad5VvJ7lmzjRzpCeyABneQPFXA9qPD1wvLRzyLBDD7gx5yWrfFEBgA=="],
 
     "@datadog/datadog-ci": ["@datadog/datadog-ci@5.23.0", "", { "bin": "dist/bundle.js" }, "sha512-NWeCH75OSS8td3Kx7ZXVQy3SOUjtof/m61ufQt6p9GHJBleiyqQ9DuufWnaNYGta7MJX8dVZq0EUD6PaVa5YiQ=="],
 
-    "@datadog/js-core": ["@datadog/js-core@0.0.16", "", {}, "sha512-JHDE2CrVWz3kpS2SwZij4/NjFB1vvYtG4qtQTmnXVtVKabgQoane1XqRc4FiITYsZkrGdABfETTJJVEPW0xVpQ=="],
+    "@datadog/js-core": ["@datadog/js-core@0.0.17", "", {}, "sha512-UQGmCVybuvigrI8KhE4IZpCkg6uPbeBd7317DA5UnfvoWzeBPMldhVBAGsO8J4v0e3r2Rb0833s44lTVQVS1qg=="],
 
     "@datadog/libdatadog": ["@datadog/libdatadog@0.12.1", "", {}, "sha512-4cKRaO1mB9npfklJjOizzJaNBdZvw1V62EVbSD6Y32zX92bTBq/vAno/TTN9dMAvzomXYmvADpGo4798E9fMoA=="],
 
