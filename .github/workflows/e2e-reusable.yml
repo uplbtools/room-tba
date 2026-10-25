@@ -11,9 +11,23 @@ on:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    services:
+      # Throwaway Postgres per job instead of the hosted E2E project: every run
+      # starts clean, and no database secret is needed.
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
-      DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
-      E2E_DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      E2E_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
       # #773: own schema per run so blocking/advisory/staging stop racing.
       E2E_SCHEMA: e2e_${{ github.run_id }}_${{ github.run_attempt }}
       E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}

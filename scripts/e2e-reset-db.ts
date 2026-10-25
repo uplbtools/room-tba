@@ -42,11 +42,16 @@ export const E2E_FIXTURES = {
   dormLon: campusTestFixtures.dormLon,
 } as const;
 
-/** Guard the target: E2E project, and an `e2e_*` schema when one is requested. */
+/**
+ * Guard the target: the E2E project or a throwaway local Postgres (the CI
+ * service container), and an `e2e_*` schema when one is requested.
+ */
 function assertE2eDatabase(url: string): string | null {
-  if (!url.includes(E2E_PROJECT_REF)) {
+  const host = new URL(url).hostname;
+  const local = host === "localhost" || host === "127.0.0.1";
+  if (!local && !url.includes(E2E_PROJECT_REF)) {
     throw new Error(
-      `Refusing to reset DB: host must include E2E project ref ${E2E_PROJECT_REF}.`,
+      `Refusing to reset DB: host must be local or include E2E project ref ${E2E_PROJECT_REF}.`,
     );
   }
   return e2eSchema();
