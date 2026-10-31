@@ -442,6 +442,14 @@ export default defineConfig({
         // (?dpl= pinning) instead of 404ing after every release. Second
         // layer of the boot-failure fix; the first is precaching pglite.
         skewProtection: true,
+        // Vite 8's rolldown transform resolves its native binding via a
+        // runtime require(), so Vercel's static file tracer never sees the
+        // dependency and drops the 20MB .node file from the function
+        // bundle — every route 500s with "Cannot find native binding" the
+        // moment anything touches the server bundle. Force it in explicitly.
+        includeFiles: [
+          "node_modules/@rolldown/binding-linux-x64-gnu/rolldown-binding.linux-x64-gnu.node",
+        ],
         // Entity SEO pages use prerender=false and render on first request; Vercel
         // caches HTML at the edge (ISR). Admin writes revalidate via ISR_BYPASS_TOKEN.
         isr: {
