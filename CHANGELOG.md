@@ -1,3 +1,10 @@
+## [2.38.1](https://github.com/uplbtools/room-tba/compare/v2.38.0...v2.38.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* **deploy:** include rolldown native binding in Vercel function bundle ([#1336](https://github.com/uplbtools/room-tba/issues/1336)) ([8e1e697](https://github.com/uplbtools/room-tba/commit/8e1e697ff3fa8109984c58987ea1b9b9b41b2b52))
+
 # [2.38.0](https://github.com/uplbtools/room-tba/compare/v2.37.1...v2.38.0) (2026-10-08)
 
 
