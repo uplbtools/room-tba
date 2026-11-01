@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "astro dev",
     "dev:debug": "astro dev --verbose",
-    "build": "bash scripts/vercel-build-guard.sh && bash scripts/ensure-rolldown-wasm-binding.sh && bun run generate:release-timestamps && bun run scripts/copy-maplibre-worker.ts && astro build && bun run scripts/vercel-security-headers.ts",
+    "build": "bash scripts/vercel-build-guard.sh && bun run generate:release-timestamps && bun run scripts/copy-maplibre-worker.ts && astro build && bun run scripts/vercel-security-headers.ts",
     "generate:release-timestamps": "bun run scripts/generate-release-timestamps.ts",
     "check:vercel-env": "bash scripts/check-vercel-env.sh",
     "check:prod-branch": "bash scripts/check-production-branch.sh",
@@ -74,7 +74,7 @@
     "@astrojs/check": "^0.9.9",
     "@astrojs/node": "^11.1.7",
     "@astrojs/svelte": "^9.0.1",
-    "@astrojs/vercel": "^11.0.13",
+    "@astrojs/vercel": "^11.0.17",
     "@aws-sdk/client-s3": "^3.1156.0",
     "@datadog/browser-rum": "^7.15.0",
     "@electric-sql/pglite": "^0.5.11",
