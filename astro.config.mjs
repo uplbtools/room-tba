@@ -442,20 +442,6 @@ export default defineConfig({
         // (?dpl= pinning) instead of 404ing after every release. Second
         // layer of the boot-failure fix; the first is precaching pglite.
         skewProtection: true,
-        // Vite 8's rolldown transform resolves its binding via a runtime
-        // require(), so Vercel's static file tracer never sees the
-        // dependency. Including the native .node file alone wasn't enough:
-        // the loader skips straight to the wasm32-wasi fallback inside
-        // Vercel's sandboxed runtime (never tries the native binary at
-        // all), and bun silently fails to extract that optional package
-        // locally (the exact npm/cli#4828 class of bug) — had to pull the
-        // tarball from the registry by hand. Force both in explicitly.
-        includeFiles: [
-          "node_modules/@rolldown/binding-linux-x64-gnu/rolldown-binding.linux-x64-gnu.node",
-          "node_modules/@rolldown/binding-wasm32-wasi/rolldown-binding.wasi.cjs",
-          "node_modules/@rolldown/binding-wasm32-wasi/rolldown-binding.wasm32-wasi.wasm",
-          "node_modules/@rolldown/binding-wasm32-wasi/wasi-worker.mjs",
-        ],
         // Entity SEO pages use prerender=false and render on first request; Vercel
         // caches HTML at the edge (ISR). Admin writes revalidate via ISR_BYPASS_TOKEN.
         isr: {
