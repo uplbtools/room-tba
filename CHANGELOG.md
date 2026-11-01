@@ -1,3 +1,10 @@
+## [2.38.2](https://github.com/uplbtools/room-tba/compare/v2.38.1...v2.38.2) (2026-11-01)
+
+
+### Bug Fixes
+
+* **deploy:** fetch rolldown's wasm32-wasi binding at build time ([#1338](https://github.com/uplbtools/room-tba/issues/1338)) ([1d6fc7a](https://github.com/uplbtools/room-tba/commit/1d6fc7ae2d69509347fd78b4c30e7335ec7b21b3)), closes [npm/cli#4828](https://github.com/npm/cli/issues/4828)
+
 ## [2.38.1](https://github.com/uplbtools/room-tba/compare/v2.38.0...v2.38.1) (2026-10-31)
 
 
