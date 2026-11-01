@@ -1,3 +1,10 @@
+## [2.38.3](https://github.com/uplbtools/room-tba/compare/v2.38.2...v2.38.3) (2026-11-01)
+
+
+### Bug Fixes
+
+* **deploy:** bump @astrojs/vercel past the rolldown runtime-import regression ([#1340](https://github.com/uplbtools/room-tba/issues/1340)) ([4e0fda9](https://github.com/uplbtools/room-tba/commit/4e0fda9b3190aa277dd547f56691242f6c83271e)), closes [withastro/astro#18328](https://github.com/withastro/astro/issues/18328) [withastro/astro#18339](https://github.com/withastro/astro/issues/18339) [#1336](https://github.com/uplbtools/room-tba/issues/1336) [#1338](https://github.com/uplbtools/room-tba/issues/1338)
+
 ## [2.38.2](https://github.com/uplbtools/room-tba/compare/v2.38.1...v2.38.2) (2026-11-01)
 
 
