@@ -77,7 +77,7 @@
     "@astrojs/vercel": "^11.0.17",
     "@aws-sdk/client-s3": "^3.1156.0",
     "@datadog/browser-rum": "^7.15.0",
-    "@electric-sql/pglite": "^0.5.11",
+    "@electric-sql/pglite": "^0.5.13",
     "@esri/wayback-core": "^1.1.0",
     "@lucide/svelte": "^1.61.0",
     "@maplibre/maplibre-gl-directions": "^0.10.1",
