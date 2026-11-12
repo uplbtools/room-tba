@@ -1,8 +1,8 @@
-import { getJSONFetch } from '#lib/utils/local/data/utils.js';
+import { getTerms } from '#lib/functions/terms.remote.js';
 import { resolveDefaultTermFromList, resolveInitialTermId } from '#lib/utils/term/term-calendar.js';
 import { parseTermIdFromSearch, syncTermQueryParam } from '#lib/utils/term/term-url.js';
 import type { TermWithCount } from '#lib/utils/types';
-import { ACTIVE_TERM_LS_KEY } from '../store-types';
+import { ACTIVE_TERM_LS_KEY } from '../../store-types';
 
 export default class TermStore {
 	terms = $state<TermWithCount[]>([]);
@@ -18,7 +18,7 @@ export default class TermStore {
 		if (this._hydrated) return;
 		this._hydrated = true;
 		try {
-			const terms = await getJSONFetch<TermWithCount[]>('/api/terms');
+			const terms = await getTerms();
 			this.terms = terms;
 
 			const fromUrl =

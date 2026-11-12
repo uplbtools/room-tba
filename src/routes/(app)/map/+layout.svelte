@@ -7,6 +7,7 @@
 		initSearchInfo,
 		initModalStore,
 		initUserLocation,
+		initTermStore,
 		getEscapeActions
 	} from '#lib/utils/context.js';
 	import type { Snippet } from 'svelte';
@@ -16,6 +17,7 @@
 	import MapControlsStack from '#lib/components/map-chrome/MapControlsStack.svelte';
 	import Toast from '#lib/components/Toast.svelte';
 	import ModalStore from '#lib/stores/new/ui/ModalStore.svelte.js';
+	import TermStore from '#lib/stores/new/data/TermStore.svelte.js';
 	import Modal from '#lib/components/new/Modal.svelte';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
@@ -514,6 +516,7 @@
 	initUserLocation(new UserLocation());
 	initSearchInfo(new SearchInfo());
 	initModalStore(new ModalStore());
+	initTermStore(new TermStore());
 
 	const escapeActionStack = getEscapeActions();
 
