@@ -1,3 +1,10 @@
+## [2.38.4](https://github.com/uplbtools/room-tba/compare/v2.38.3...v2.38.4) (2026-11-12)
+
+
+### Bug Fixes
+
+* **e2e:** trust 127.0.0.1 as the preview host ([#1357](https://github.com/uplbtools/room-tba/issues/1357)) ([e5e8b15](https://github.com/uplbtools/room-tba/commit/e5e8b156c3c5e3712ab29ab150bb48671fa070a4)), closes [#1312](https://github.com/uplbtools/room-tba/issues/1312)
+
 ## [2.38.3](https://github.com/uplbtools/room-tba/compare/v2.38.2...v2.38.3) (2026-11-01)
 
 
