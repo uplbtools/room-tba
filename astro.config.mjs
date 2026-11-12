@@ -435,6 +435,9 @@ export default defineConfig({
       }),
     },
   },
+  security: {
+    allowedDomains: e2eNodeAdapter ? [{ hostname: "127.0.0.1" }] : [],
+  },
   adapter: e2eNodeAdapter
     ? node({ mode: "standalone" })
     : vercel({
