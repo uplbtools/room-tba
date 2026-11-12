@@ -7,11 +7,13 @@ import type {
 	EventData,
 	OrgData,
 	PlaceData
-} from '#lib/utils/types';
-import type { MapStore } from '#lib/stores/map/map-stores.svelte.js';
-import type UserLocation from '#lib/stores/map/UserLocation.svelte.js';
+} from '#lib/utils/types.d.ts';
+import type { MapStore } from '#lib/stores/new/map/map-stores.svelte.js';
+import type UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
 import type SearchInfo from '#lib/stores/SearchInfo.svelte.js';
-import type ToastStore from '#lib/stores/ui/ToastStore.svelte.ts';
+import type ToastStore from '#lib/stores/new/ui/ToastStore.svelte.ts';
+import type ModalStore from '#lib/stores/new/ui/ModalStore.svelte.ts';
+import type EscapeActions from '#lib/stores/new/ui/EscapeActionStack.svelte.ts';
 export type AppContextData =
 	| {
 			buildings: Building[];
@@ -55,4 +57,6 @@ export const [getAppActions, setAppActions] = createContext<AppActions>();
 export const [getMapStore, initMapStore] = createContext<MapStore>();
 export const [getUserLocation, initUserLocation] = createContext<UserLocation>();
 export const [getSearchInfo, initSearchInfo] = createContext<SearchInfo>();
-export const [getToast, initToast] = createContext<ToastStore>()
+export const [getToast, initToast] = createContext<ToastStore>();
+export const [getModalStore, initModalStore] = createContext<ModalStore>();
+export const [getEscapeActions, initEscapeActions] = createContext<EscapeActions>();

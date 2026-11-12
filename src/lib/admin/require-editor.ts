@@ -1,4 +1,4 @@
-import type { Cookies } from '@sveltejs/kit';
+import { error, type Cookies } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
 import { adminUsersTable } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
@@ -9,7 +9,6 @@ import {
 	getSessionUser,
 	sessionPublishingActor,
 	sessionEditedBy,
-	type AdminRole,
 	type SessionUser
 } from './auth';
 
@@ -55,41 +54,27 @@ async function revalidateSession(session: SessionUser): Promise<SessionUser | nu
 export async function editorSessionOrUnauthorized(
 	cookies: Cookies,
 	options: EditorSessionOptions = {}
-): Promise<{ session: SessionUser; editedBy: string; role: AdminRole } | Response> {
+) {
 	const cookieSession = getEditorSession(cookies);
 	if (!cookieSession) {
-		return unauthorized();
+		error(401, "Unauthorized");
 	}
 	const session = await revalidateSession(cookieSession);
 	if (!session) {
-		return unauthorized();
+		error(401, "Unauthorized");
 	}
 	if (options.requirePublish && !canPublishDirectly(session.role)) {
-		return forbidden('Your account can suggest edits but cannot publish directly.');
+		error(403, "Your account can suggest edits but cannot publish directly.")
 	}
 	if (options.requireReview && !canReviewProposals(session.role)) {
-		return forbidden('Your account cannot review edit proposals.');
+		error(403, "Your account cannot review edit proposals.")
 	}
 	if (options.requireAdmin && session.role !== 'admin') {
-		return forbidden('Your account cannot manage other users.');
+		error(403, "Your account cannot manage other users.")
 	}
 	return {
 		session,
 		editedBy: options.requirePublish ? sessionPublishingActor(session) : sessionEditedBy(session),
 		role: session.role
 	};
-}
-
-function unauthorized() {
-	return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-		status: 401,
-		headers: { 'Content-Type': 'application/json' }
-	});
-}
-
-function forbidden(message: string) {
-	return new Response(JSON.stringify({ error: message }), {
-		status: 403,
-		headers: { 'Content-Type': 'application/json' }
-	});
 }

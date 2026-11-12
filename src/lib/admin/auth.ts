@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { env } from '$env/dynamic/private';
-const { ADMIN_SESSION_SECRET } = env;
+import { ADMIN_SESSION_SECRET } from '$app/env/private';
+// const { ADMIN_SESSION_SECRET } = env;
 import type { AdminRole } from './roles';
 export type { AdminRole } from './roles';
 export { canPublishDirectly, canReviewProposals } from './roles';

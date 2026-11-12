@@ -1,7 +1,7 @@
 import { R2_PUBLIC_URL } from '$app/env/private';
 import { parseRequiredEditorVersion } from '#lib/admin/expected-version.js';
 import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
-import { errorResponse, json } from '#lib/api/json.js';
+import { json } from '#lib/api/json.js';
 import { parseEntityPhotoUrls, reconcileEntityPhotos } from '#lib/utils/entity/entity-photos.js';
 import { resolvePhotoAttribution } from '#lib/services/contribution/entity-photo.js';
 import {
@@ -11,6 +11,7 @@ import {
 	updateBuilding
 } from '#lib/services/admin/actions.js';
 import type { RequestHandler } from './$types';
+import { error } from '@sveltejs/kit';
 
 type BuildingPatchBody = {
 	buildingName?: string;
@@ -27,31 +28,30 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 	const auth = await editorSessionOrUnauthorized(cookies, {
 		requirePublish: true
 	});
-	if (auth instanceof Response) return auth;
 
 	const id = parseInt(params.id ?? '', 10);
 	if (Number.isNaN(id)) {
-		return errorResponse('Invalid building ID', 400);
+		error(400, 'Invalid building ID');
 	}
 
 	let body: BuildingPatchBody;
 	try {
 		body = await request.json();
 	} catch {
-		return errorResponse('Invalid JSON body', 400);
+		error(400, 'Invalid JSON body');
 	}
 
 	if (body.buildingName !== undefined && body.buildingName.trim().length === 0) {
-		return errorResponse('Building name cannot be empty', 400);
+		error(400, 'Building name cannot be empty');
 	}
 
 	if (body.buildingType && !['admin', 'non-admin'].includes(body.buildingType)) {
-		return errorResponse('Invalid building type', 400);
+		error(400, 'Invalid building type');
 	}
 
 	const parsedPhotoUrls = parseEntityPhotoUrls(body.photoUrls, R2_PUBLIC_URL);
 	if (!parsedPhotoUrls.ok) {
-		return errorResponse(parsedPhotoUrls.error, 400);
+		error(400, parsedPhotoUrls.error);
 	}
 
 	const parsedVersion = parseRequiredEditorVersion(body.version);
@@ -104,6 +104,6 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 		}
 
 		console.error('Failed to update building:', err);
-		return errorResponse('Failed to save building', 500);
+		error(500, 'Failed to save building');
 	}
 };

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { fade, fly } from 'svelte/transition';
-	import { onMount } from 'svelte';
 	import X from '@lucide/svelte/icons/x';
 	import IconButton from '#lib/components/IconButton.svelte';
 	import { getToast } from '#lib/utils/context.js';
@@ -16,12 +15,6 @@
 	// }>();
 
 	const toastStore = getToast();
-	onMount(() => {
-		const timer = setTimeout(() => {
-			toastStore.clear();
-		}, 5000);
-		return () => clearTimeout(timer);
-	});
 </script>
 
 {#if toastStore.message}

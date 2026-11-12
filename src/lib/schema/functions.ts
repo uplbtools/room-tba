@@ -3,10 +3,20 @@ import * as v from 'valibot';
 /**
  * Querying Rooms with pagination (ID-based)
  */
-export const QueryPaginationSchema = v.object({
+export const RoomQueryPaginationSchema = v.object({
 	id: v.pipe(v.number(), v.integer()),
 	offset: v.pipe(v.optional(v.number()), v.toNumber(), v.integer(), v.minValue(0))
 });
+
+/**
+ * Querying the list only 
+ */
+export const ListQuerySchema = v.pipe(
+	v.optional(v.number()),
+	v.toNumber(),
+	v.integer(),
+	v.minValue(0)
+);
 
 /**
  * Schema for querying entities using its id
@@ -23,9 +33,7 @@ export const ProposalMetaSchema = v.object({
 	entityId: v.pipe(v.number(), v.integer()),
 	baseVersion: v.number(),
 	// patch is a record,
-	submitterName: v.string(),
-	proposalId: v.number(),
-	proposalToken: v.number()
+	submitterName: v.pipe(v.string(), v.trim(), v.nonEmpty("Submitter name is empty")),
 });
 
 /**
@@ -37,8 +45,8 @@ export const ProposalMetaSchema = v.object({
 export const BuildingProposalSchema = v.object({
 	meta: ProposalMetaSchema,
 	body: v.object({
-		buildingName: v.string(),
-		directions: v.string(),
+		buildingName: v.pipe(v.string(), v.nonEmpty()),
+		directions: v.pipe(v.string(), v.nonEmpty()),
 		lon: v.optional(v.number()),
 		lat: v.optional(v.number()),
 		buildingType: v.optional(v.union([v.literal('non-admin'), v.literal('admin')]))

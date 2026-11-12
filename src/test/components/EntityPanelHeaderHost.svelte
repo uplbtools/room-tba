@@ -1,5 +1,5 @@
 <script lang="ts">
-	import EntityPanelHeader from '#lib/components/controls/EntityPanelHeader.svelte';
+	import EntityPanelHeader from '#lib/components/entity/EntityPanelHeader.svelte';
 </script>
 
 <EntityPanelHeader closeAriaLabel="Close building" onclose={() => {}}>

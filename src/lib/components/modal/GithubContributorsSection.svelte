@@ -1,8 +1,8 @@
 <script lang="ts">
 	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	import PeopleAvatarGrid from './PeopleAvatarGrid.svelte';
-	import type { GithubContributor } from '#lib/utils/github-contributors.js';
 	import { formatGithubContributions } from '#lib/utils/github-contributors.js';
+	import type { GithubContributor } from '#lib/schema/github.js';
 
 	type Props = {
 		title: string;
@@ -18,9 +18,9 @@
 
 	const people = $derived(
 		contributors.map((person) => ({
-			name: person.name ?? person.login,
-			href: person.profileHref,
-			imageSrc: person.avatarUrl,
+			name: person.login,
+			href: person.html_url,
+			imageSrc: person.avatar_url,
 			login: person.login,
 			subtitle: formatGithubContributions(person.contributions)
 		}))

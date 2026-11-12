@@ -1,9 +1,8 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import bcrypt from 'bcrypt';
 import { and, desc, eq, ne, sql } from 'drizzle-orm';
-import { env } from '$env/dynamic/private';
 
-const { ADMIN_PASSWORD } = env;
+import { ADMIN_PASSWORD } from "$app/env/private";
 
 import type { SessionUser } from '#lib/admin/auth.js';
 import { createSignedToken, verifySignedToken } from '#lib/admin/signed-token.js';

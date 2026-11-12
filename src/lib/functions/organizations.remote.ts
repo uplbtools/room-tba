@@ -1,10 +1,11 @@
 import { form, query } from '$app/server';
-import { OrgProposalSchema, TableIdSchema } from '#lib/schema/functions.js';
+import { ListQuerySchema, OrgProposalSchema, TableIdSchema } from '#lib/schema/functions.js';
 import { client } from '#lib/server/db/index.js';
 import { editProposalsTable, organizationsTable } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
 import { error } from '@sveltejs/kit';
 import { eq, isNotNull, or } from 'drizzle-orm';
+import { delay } from 'es-toolkit';
 
 export const getMapOrgsData = query(async () => {
 	const hasLocationRows = await db
@@ -40,9 +41,18 @@ export const getOrgsByBuildingId = query(TableIdSchema, async (id) => {
 		.select()
 		.from(organizationsTable)
 		.where(eq(organizationsTable.buildingId, id));
-
 	return rows;
 });
+
+export const getOrgsList = query(ListQuerySchema, async(offset = 0) => {
+	const rows = await db
+		.select()
+		.from(organizationsTable)
+		.orderBy(organizationsTable.name)
+		.limit(8)
+		.offset(8 * offset);
+	return rows;
+})
 
 export const addOrgSuggestion = form(OrgProposalSchema, async ({ meta, body: proposedPatch }) => {
 	try {

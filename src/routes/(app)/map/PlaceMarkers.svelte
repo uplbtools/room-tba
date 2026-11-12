@@ -6,7 +6,7 @@
 	import { isPlaceLandmark } from '#lib/constants/content/categories/place.js';
 	import { getMapPlacesData } from '#lib/functions/places.remote.js';
 	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
-	import { Marker } from 'svelte-maplibre';
+	import { hasLocation } from '#lib/utils/map/marker.ts';
 
 	interface Props {
 		placePinFilter: 'all' | 'landmark' | 'establishment' | 'none';
@@ -39,28 +39,28 @@
 	}
 </script>
 
-{#if map.withinZoom(zoomLevel)}
-	{#each filteredPlaces as place (`place:${place.id}`)}
+{#each filteredPlaces as place (`place:${place.id}`)}
+	{#if hasLocation(place) && (map.withinZoom(zoomLevel) || searchInfo.isActiveMarker(place.name, 'place'))}
 		<!-- /* poiPinsVisible || sponsoredPlacePins.has(place.name) || */ /* searchInfo.category === 'place' && searchInfo.inputValue === place.name */ -->
 		{#if place.lon && place.lat}
 			<!-- {@const centralHoverPreview = shouldShowEntityHoverPreview()}
 			{@const previewSuppressed =
 				centralHoverPreview && isPlaceHoverPreview(entityHoverPreviewStore.entity, place.id)}
 			{@const pinSponsorId = sponsoredPlacePins.get(place.name)} -->
-			<Marker lngLat={[place.lon, place.lat]} onclick={handleMarkerClick(place)}>
-				<MapEntityPin
-					label={place.name}
-					tone={isPlaceLandmark(place.category) ? 'landmark' : 'establishment'}
-					active={searchInfo.isActiveMarker(place.name, 'place')}
-					dimmed={searchInfo.hasActiveResult()}
-				>
-					{#if isPlaceLandmark(place.category)}
-						<PinGlyph name="landmark" size={16} />
-					{:else}
-						<PinGlyph name="establishment" size={16} />
-					{/if}
-				</MapEntityPin>
-			</Marker>
+			<MapEntityPin
+				label={place.name}
+				tone={isPlaceLandmark(place.category) ? 'landmark' : 'establishment'}
+				active={searchInfo.isActiveMarker(place.name, 'place')}
+				dimmed={searchInfo.hasActiveResult()}
+				lngLat={[place.lon, place.lat]}
+				onclick={handleMarkerClick(place)}
+			>
+				{#if isPlaceLandmark(place.category)}
+					<PinGlyph name="landmark" size={16} />
+				{:else}
+					<PinGlyph name="establishment" size={16} />
+				{/if}
+			</MapEntityPin>
 		{/if}
-	{/each}
-{/if}
+	{/if}
+{/each}

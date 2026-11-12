@@ -6,7 +6,7 @@
 	// import AdminLoginModal from '#lib/components/AdminLoginModal.svelte';
 	// import Building3DViewer from '#lib/components/Building3DViewer.svelte';
 	// import AcademicCalendarScreen from '#lib/components/calendar/AcademicCalendarScreen.svelte';
-	// import MainControls from '#lib/components/controls/MainControls.svelte';
+	// import MainControls from '#lib/components/entity/MainControls.svelte';
 	// import EditorAdditionModal from '#lib/components/EditorAdditionModal.svelte';
 	// import EntityUrlSync from '#lib/components/EntityUrlSync.svelte';
 	// import FinalExamsScreen from '#lib/components/final-exams/FinalExamsScreen.svelte';
@@ -15,7 +15,7 @@
 	// import MeasureRoutePanel from '#lib/components/MeasureRoutePanel.svelte';
 	// import EntityHoverPreview from '#lib/components/map/EntityHoverPreview.svelte';
 	// import ManageUsersModal from '#lib/components/modal/ManageUsersModal.svelte';
-	// import Modal from '#lib/components/modal/Modal.svelte';
+	// import Modal from '#lib/components/new/Modal.svelte';
 	// import PlannerScreen from '#lib/components/planner/PlannerScreen.svelte';
 	import Toast from '#lib/components/Toast.svelte';
 	// import TravelTimeLegend from '#lib/components/TravelTimeLegend.svelte';

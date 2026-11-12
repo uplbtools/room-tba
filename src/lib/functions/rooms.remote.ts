@@ -1,11 +1,11 @@
 import { form, query } from '$app/server';
-import { QueryPaginationSchema, RoomProposalSchema } from '#lib/schema/functions.js';
+import { RoomQueryPaginationSchema, RoomProposalSchema } from '#lib/schema/functions.js';
 import { editProposalsTable, roomsTable } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
 import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 
-export const getRoomsByBuildingId = query(QueryPaginationSchema, async ({ id, offset = 0 }) => {
+export const getRoomsByBuildingId = query(RoomQueryPaginationSchema, async ({ id, offset = 0 }) => {
 	const rows = await db
 		.select()
 		.from(roomsTable)

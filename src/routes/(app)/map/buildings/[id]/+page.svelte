@@ -5,7 +5,7 @@
 	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
 	import { onMount } from 'svelte';
 	import BuildingResult from './BuildingResult.svelte';
-	import InfoPanel from '#lib/components/controls/InfoPanel.svelte';
+	import InfoPanel from '#lib/components/new/InfoPanel.svelte';
 
 	const { params } = $props();
 	const searchInfo = getSearchInfo();

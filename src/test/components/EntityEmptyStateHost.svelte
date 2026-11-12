@@ -1,5 +1,5 @@
 <script lang="ts">
-	import EntityEmptyState from '#lib/components/controls/EntityEmptyState.svelte';
+	import EntityEmptyState from '#lib/components/entity/EntityEmptyState.svelte';
 </script>
 
 <div class="host">

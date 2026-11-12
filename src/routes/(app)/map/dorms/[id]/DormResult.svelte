@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Users from '@lucide/svelte/icons/users';
 	import Building2 from '@lucide/svelte/icons/building-2';
-	import EntityGoogleMapsLink from '#lib/components/controls/EntityGoogleMapsLink.svelte';
-	import EntityStreetAddress from '#lib/components/controls/EntityStreetAddress.svelte';
+	import EntityGoogleMapsLink from '#lib/components/entity/EntityGoogleMapsLink.svelte';
+	import EntityStreetAddress from '#lib/components/entity/EntityStreetAddress.svelte';
 	import BadgeCheck from '@lucide/svelte/icons/badge-check';
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import CircleDollarSign from '@lucide/svelte/icons/circle-dollar-sign';
@@ -21,12 +21,12 @@
 		readEntityContributorDraft,
 		scheduleEntityContributorDraftSave
 	} from '#lib/utils/contributor-drafts.js';
-	// import DormEditorPanel from '#lib/components/controls/DormEditorPanel.svelte';
+	// import DormEditorPanel from '#lib/components/entity/DormEditorPanel.svelte';
 	// import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
-	import EntityPhotoGallery from '#lib/components/controls/EntityPhotoGallery.svelte';
-	import EntityLastUpdated from '#lib/components/EntityLastUpdated.svelte';
-	import EntityShareCopyLink from '#lib/components/controls/EntityShareCopyLink.svelte';
-	import EntityExternalLink from '#lib/components/controls/EntityExternalLink.svelte';
+	import EntityPhotoGallery from '#lib/components/entity/EntityPhotoGallery.svelte';
+	import EntityLastUpdated from '#lib/components/new/EntityLastUpdated.svelte';
+	import EntityShareCopyLink from '#lib/components/entity/EntityShareCopyLink.svelte';
+	import EntityExternalLink from '#lib/components/entity/EntityExternalLink.svelte';
 	import {
 		getKuboDormCta,
 		kuboDormDirectory,
@@ -876,7 +876,7 @@
 </div>
 
 <!-- <style>
-	@import './entity-detail.css';
+	/* @import './entity-detail.css'; */
 	@import '../editor/entity-editor.css';
 	@import '../map-chrome/map-chrome.css';
 

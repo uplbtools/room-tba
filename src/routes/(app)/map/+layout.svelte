@@ -1,24 +1,26 @@
 <script lang="ts">
-	import Search from '#lib/components/search/Search.svelte';
-	import { MapStore } from '#lib/stores/map/map-stores.svelte.js';
-	import UserLocation from '#lib/stores/map/UserLocation.svelte.js';
+	import Search from '#lib/components/new/Search.svelte';
+	import { MapStore } from '#lib/stores/new/map/map-stores.svelte.js';
+	import UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
 	import {
-		getSearchInfo,
 		initMapStore,
 		initSearchInfo,
-		initToast,
-		initUserLocation
+		initModalStore,
+		initUserLocation,
+		getEscapeActions
 	} from '#lib/utils/context.js';
 	import type { Snippet } from 'svelte';
 	import UIMap from './Map.svelte';
 	import SearchInfo from '#lib/stores/SearchInfo.svelte.js';
-	import InfoPanel from '#lib/components/controls/InfoPanel.svelte';
-	import EntitySkeleton from '#lib/components/EntitySkeleton.svelte';
 	import UILayer from './UILayer.svelte';
 	import MapControlsStack from '#lib/components/map-chrome/MapControlsStack.svelte';
-	import { afterNavigate } from '$app/navigation';
 	import Toast from '#lib/components/Toast.svelte';
-	import ToastStore from '#lib/stores/ui/ToastStore.svelte.ts';
+	import ModalStore from '#lib/stores/new/ui/ModalStore.svelte.js';
+	import Modal from '#lib/components/new/Modal.svelte';
+	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
+	import { goto } from '$app/navigation';
+
 	/* import { onMount, type Snippet } from 'svelte';
 	import { page } from '$app/state';
 	import { campusCommunity } from '#lib/campus.config.js';
@@ -71,7 +73,7 @@
 		PlaceData,
 		TableSyncInfo
 	} from '#lib/utils/types';
-	import UIMap from './Map.svelte'; */
+	import UIMap from './Map.svelte';
 
 	// import { MapStore } from '#lib/stores/map/map-stores.svelte.js';
 	// import { initMapStore } from '#lib/utils/context.js';
@@ -81,7 +83,7 @@
 	// Entity routes return the search that opens their result view. Re-running on
 	// every navigation is what lets a link from a browse list land on the entity:
 	// the store, not the router, is what the panel and the map read.
-	/* $effect(() => {
+	$effect(() => {
 		const initial = page.data.initialSearch;
 		searchInfo.hydrateQuery(
 			initial
@@ -93,9 +95,9 @@
 					}
 				: { category: null, type: 'query', value: '' }
 		);
-	}); */
+	});
 
-	/* let buildings: Building[] | null = $state.raw(null);
+	let buildings: Building[] | null = $state.raw(null);
 	let colleges: College[] | null = $state.raw(null);
 	let directionCount: number | null = $state.raw(null);
 	let divisions: Division[] | null = $state.raw(null);
@@ -116,9 +118,9 @@
 		places,
 		totalRooms,
 		loaded
-	}); */
+	});
 
-	/* function applyData(data: DBData) {
+	function applyData(data: DBData) {
 		buildings = data.buildings;
 		colleges = data.colleges;
 		directionCount = data.directionCount;
@@ -152,9 +154,9 @@
 		// The shell may still be up if the crash happened before bootstrap
 		// finished, and it would cover the fallback with a stuck spinner.
 		dismissStaticLoadingShell();
-	} */
+	}
 
-	/* const EMPTY_DB_DATA: DBData = {
+	const EMPTY_DB_DATA: DBData = {
 		buildings: [],
 		colleges: [],
 		divisions: [],
@@ -333,9 +335,9 @@
 		} finally {
 			syncToastStore.endSync(didSync);
 		}
-	} */
+	}
 
-	/* onMount(() => {
+	onMount(() => {
 		applyData(EMPTY_DB_DATA);
 		loaded = true;
 		appBootstrapStore.setRetryHandler(() => {
@@ -411,9 +413,9 @@
 			window.removeEventListener('online', onOnline);
 			window.removeEventListener(CAMPUS_DATA_REFRESH_EVENT, onCampusRefresh);
 		};
-	}); */
+	});
 
-	/* setAppData(() => appData);
+	setAppData(() => appData);
 	setAppActions({
 		replaceEvent: (updated) => {
 			if (!events) return;
@@ -511,15 +513,24 @@
 	initMapStore(new MapStore());
 	initUserLocation(new UserLocation());
 	initSearchInfo(new SearchInfo());
+	initModalStore(new ModalStore());
+
+	const escapeActionStack = getEscapeActions();
+
+	function handleMapKeydown(event: KeyboardEvent & { currentTarget: EventTarget & Window }) {
+		if (event.key !== 'Escape') return;
+		if (escapeActionStack.hasAction()) {
+			escapeActionStack.trigger();
+		} else if (page.route.id !== '/(app)/map') {
+			goto(resolve('map'));
+		}
+	}
 </script>
 
 <!-- The bootstrap try/catch above only covers data loading. An error thrown
      while rendering happens after the loading shell is dismissed, which unmounts
      the tree and leaves blank white with no explanation. -->
-<!-- <svelte:boundary onerror={handleRenderError}> -->
-<!-- <Entry suppressLandingModal={Boolean(page.data.initialSearch)}>
-		{@render children()}
-	</Entry> -->
+<svelte:window onkeydown={handleMapKeydown} />
 
 <main class="layout-root">
 	<UILayer>
@@ -531,80 +542,8 @@
 			{@render children()}
 			<MapControlsStack />
 		</div>
-		<!-- {#if toastStore.message}
-			<Toast
-				message={toastStore.message}
-				type={toastStore.type}
-				onclose={() => toastStore.clear()}
-			/>
-		{/if} -->
-		<Toast />
 	</UILayer>
 	<UIMap />
+	<Modal />
+	<Toast />
 </main>
-
-<!-- <style>
-	.app-crash {
-		position: fixed;
-		inset: 0;
-		z-index: 9999;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 1.5rem;
-		background: hsl(5, 22%, 96%);
-	}
-
-	.app-crash__card {
-		max-width: 26rem;
-		text-align: center;
-	}
-
-	.app-crash__title {
-		margin: 0;
-		color: hsl(5, 12%, 16%);
-		font-size: 1.0625rem;
-		font-weight: 700;
-	}
-
-	.app-crash__body {
-		margin: 0.5rem 0 0;
-		color: hsl(5, 12%, 42%);
-		font-size: 0.875rem;
-		line-height: 1.5;
-	}
-
-	.app-crash__actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		justify-content: center;
-		margin-top: 1.25rem;
-	}
-
-	.app-crash__button {
-		padding: 0.6rem 1rem;
-		border: 1px solid hsl(5, 28%, 78%);
-		border-radius: 0.625rem;
-		background: hsl(0, 0%, 100%);
-		color: hsl(5, 12%, 16%);
-		font: inherit;
-		font-size: 0.875rem;
-		font-weight: 600;
-		text-decoration: none;
-		cursor: pointer;
-	}
-
-	.app-crash__button--primary {
-		border-color: transparent;
-		background: hsl(5, 53%, 32%);
-		color: hsl(0, 0%, 100%);
-	}
-
-	.app-crash__detail {
-		margin: 1rem 0 0;
-		color: hsl(5, 12%, 52%);
-		font-size: 0.75rem;
-		word-break: break-word;
-	}
-</style> -->

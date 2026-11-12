@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Move from '@lucide/svelte/icons/move';
+	import { cn } from 'cn';
 	import type { Snippet } from 'svelte';
+	import { Marker } from 'svelte-maplibre';
 	import { fade } from 'svelte/transition';
 
 	type EntityPinTone =
@@ -14,10 +16,9 @@
 		editing?: boolean;
 		dimmed?: boolean;
 		eventLinked?: boolean;
-		hovered?: boolean;
 		label: string;
 		labelVisible?: boolean;
-		onclick?: (event: MouseEvent | KeyboardEvent) => void;
+		onclick?: (() => void) | undefined;
 		/** Hide inline pin label while the shared EntityHoverPreview is shown for this pin. */
 		previewSuppressed?: boolean;
 		onpointerenter?: (event: PointerEvent) => void;
@@ -29,6 +30,7 @@
 		tone?: EntityPinTone;
 		/** Read mode: hover detail comes from EntityHoverPreview, not the pin label. */
 		useCentralHoverPreview?: boolean;
+		lngLat: [number, number];
 	};
 
 	let {
@@ -38,7 +40,6 @@
 		editing = false,
 		dimmed = false,
 		eventLinked = false,
-		hovered = false,
 		label,
 		labelVisible = false,
 		onclick,
@@ -48,8 +49,11 @@
 		saveState = 'idle',
 		sponsored = false,
 		tone = 'building',
-		useCentralHoverPreview = false
+		useCentralHoverPreview = false,
+		lngLat: coords
 	}: Props = $props();
+
+	let hovered = $state<boolean>(false);
 
 	const showPinLabel = $derived((labelVisible || active || sponsored) && !previewSuppressed);
 
@@ -68,67 +72,74 @@
 	);
 	const showExpandedPin = $derived(editable && showDragAffordance);
 
-	function handleKeydown(event: KeyboardEvent) {
-		if (!onclick || (event.key !== 'Enter' && event.key !== ' ')) return;
-		event.preventDefault();
-		onclick(event);
-	}
+	// function handleKeydown(event: KeyboardEvent) {
+	// 	if (!onclick || (event.key !== 'Enter' && event.key !== ' ')) return;
+	// 	event.preventDefault();
+	// 	onclick(event);
+	// }
 </script>
 
-<button
-	class="map-entity-pin"
-	class:active
-	// class={true}
-	class:building={tone === 'building'}
-	class:dorm={tone === 'dorm'}
-	class:private={tone === 'privateDorm'}
-	class:organization={tone === 'organization'}
-	class:office={tone === 'office'}
-	class:landmark={tone === 'landmark'}
-	class:establishment={tone === 'establishment'}
-	class:central-hover-preview={useCentralHoverPreview}
-	class:editable={showExpandedPin}
-	class:editing
-	class:dimmed={dimmed && !active}
-	class:event-linked={eventLinked}
-	class:hovered
-	class:preview-suppressed={previewSuppressed}
-	class:saving={saveState === 'saving'}
-	class:saved={saveState === 'saved'}
-	class:failed={saveState === 'failed'}
-	class:sponsored
-	aria-label={sponsored ? `${label}, sponsored` : label}
-	role={onclick ? 'button' : undefined}
-	tabindex={onclick ? 0 : undefined}
+<Marker
+	lngLat={[coords[0], coords[1]]}
 	{onclick}
-	onkeydown={handleKeydown}
-	{onpointerenter}
-	{onpointerleave}
-	transition:fade={{ duration: 125 }}
+	// draggable={canDragPin(editKey)}}
+	class={cn(active && 'z-30', 'hover:z-30')}
+	onmouseenter={() => (hovered = true)}
+	onmouseleave={() => (hovered = false)}
 >
-	<span class="pin-icon" aria-hidden="true">
-		{@render children()}
-	</span>
-	{#if showDragAffordance}
-		<span class="drag-handle" aria-hidden="true">
-			<Move size={13} />
-		</span>
-	{/if}
-	<div
-		class="pin-label"
-		class:active={showPinLabel}
-		class:persistent={showPinLabel}
-		aria-hidden="true"
+	<button
+		class="map-entity-pin"
+		class:active
+		class:building={tone === 'building'}
+		class:dorm={tone === 'dorm'}
+		class:private={tone === 'privateDorm'}
+		class:organization={tone === 'organization'}
+		class:office={tone === 'office'}
+		class:landmark={tone === 'landmark'}
+		class:establishment={tone === 'establishment'}
+		class:central-hover-preview={useCentralHoverPreview}
+		class:editable={showExpandedPin}
+		class:editing
+		class:dimmed={dimmed && !active && !hovered}
+		class:event-linked={eventLinked}
+		class:hovered
+		class:preview-suppressed={previewSuppressed}
+		class:saving={saveState === 'saving'}
+		class:saved={saveState === 'saved'}
+		class:failed={saveState === 'failed'}
+		class:sponsored
+		aria-label={sponsored ? `${label}, sponsored` : label}
+		role={onclick ? 'button' : undefined}
+		tabindex={onclick ? 0 : undefined}
+		// onkeydown={handleKeydown}
+		{onpointerenter}
+		{onpointerleave}
+		transition:fade={{ duration: 125 }}
 	>
-		{label}
-		{#if sponsored}
-			<span class="pin-status pin-sponsored">Sponsored</span>
+		<span class="pin-icon" aria-hidden="true">
+			{@render children()}
+		</span>
+		{#if showDragAffordance}
+			<span class="drag-handle" aria-hidden="true">
+				<Move size={13} />
+			</span>
 		{/if}
-		{#if statusLabel}
-			<span class="pin-status">{statusLabel}</span>
-		{/if}
-	</div>
-</button>
+		<div
+			class="pin-label"
+			class:active={showPinLabel}
+			class:persistent={showPinLabel}
+			aria-hidden="true"
+		>
+			{label}
+			{#if sponsored}
+				<span class="pin-status pin-sponsored">Sponsored</span>
+			{/if}
+			{#if statusLabel}
+				<span class="pin-status">{statusLabel}</span>
+			{/if}
+		</div>
+	</button>
+</Marker>
 
 <style>
 	button.map-entity-pin {
@@ -263,9 +274,6 @@
 	.map-entity-pin.hovered {
 		z-index: 82;
 		transform: scale(1.08);
-		box-shadow:
-			0 0 0 0.2rem rgba(255, 255, 255, 0.9),
-			0 4px 0.75rem rgba(0, 0, 0, 0.28);
 	}
 
 	.map-entity-pin.editing {

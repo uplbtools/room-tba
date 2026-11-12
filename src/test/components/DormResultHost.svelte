@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DormResult from '#lib/components/controls/DormResult.svelte';
+	import DormResult from '#lib/components/entity/DormResult.svelte';
 	import type { DormData } from '#lib/utils/types';
 	import AppContextTestShell from '@test/AppContextTestShell.svelte';
 	import { loadedAppContext } from '@test/fixtures/app-context';

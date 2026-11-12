@@ -1,0 +1,713 @@
+<script lang="ts">
+	import Download from '@lucide/svelte/icons/download';
+	import { untrack } from 'svelte';
+	import CommunityPlatformLink from '#lib/components/community/CommunityPlatformLink.svelte';
+	import GithubStarLink from '#lib/components/GithubStarLink.svelte';
+	import VisitorCounter from '#lib/components/VisitorCounter.svelte';
+	import {
+		DISCORD_URL,
+		GITHUB_ROOM_TBA_URL,
+		MESSENGER_CONTRIBUTE_TARGET,
+		MESSENGER_MAINTAIN_TARGET,
+		UPLB_TOOLS_URL
+	} from '#lib/constants/content/links/community.js';
+	import { designers } from '#lib/constants/contribute/contributors.js';
+	import { getModalStore } from '#lib/utils/context.js';
+	import ModalContent from './ModalContent.svelte';
+	import type { GithubContributor } from '#lib/schema/github.js';
+	import { getGithubContributors, getGithubStars } from '#lib/functions/analytics.remote.js';
+	import LandingGuideSteps from '../modal/LandingGuideSteps.svelte';
+	import GithubContributorsSection from '../modal/GithubContributorsSection.svelte';
+	import PeopleAvatarGrid from '../modal/PeopleAvatarGrid.svelte';
+
+	const modalStore = getModalStore();
+
+	type LandingTab = 'welcome' | 'campus';
+
+	let activeTab = $state<LandingTab>('welcome');
+	let dontShowAgain = $state(false);
+	let installPrompt = $state<
+		| (Event & {
+				prompt: () => Promise<void>;
+				userChoice: Promise<{ outcome: string }>;
+		  })
+		| null
+	>(null);
+	let isInstalled = $state(false);
+
+	let githubContributors = $state<GithubContributor[]>([]);
+	let githubLoading = $state(false);
+	let githubError = $state<string | null>(null);
+	let githubLoaded = $state(false);
+	let githubRepoStars = $state<number | null>(null);
+	type EditorCredit = {
+		name: string;
+		avatarUrl: string | null;
+		profileUrl: string | null;
+	};
+	let campusCredits = $state<EditorCredit[]>([]);
+	let creditsLoading = $state(false);
+	let creditsLoaded = $state(false);
+
+	const tabs: { id: LandingTab; label: string }[] = [
+		{ id: 'welcome', label: 'Welcome' },
+		{ id: 'campus', label: 'Campus team' }
+	];
+
+	function toAvatarPeople(list: typeof designers) {
+		return list.map((person) => ({
+			name: person.name,
+			href: person.href,
+			imageSrc: ''
+		}));
+	}
+
+	const designerPeople = $derived(toAvatarPeople(designers));
+	const campusCreditPeople = $derived(
+		campusCredits.map((person) => ({
+			name: person.name,
+			href: person.profileUrl ?? undefined,
+			imageSrc: person.avatarUrl ?? '/profile.svg'
+		}))
+	);
+
+	async function loadCampusCredits() {
+		if (creditsLoaded || creditsLoading) return;
+		creditsLoading = true;
+		try {
+			const res = await fetch('/api/editor-credits');
+			campusCredits = res.ok ? ((await res.json()) as EditorCredit[]) : [];
+			creditsLoaded = true;
+		} catch {
+			campusCredits = [];
+		} finally {
+			creditsLoading = false;
+		}
+	}
+
+	async function loadGithubData() {
+		if (githubLoaded || githubLoading) return;
+		githubLoading = true;
+		githubError = null;
+		try {
+			const [contributorsRes, repoStarsRes] = await Promise.all([
+				getGithubContributors(),
+				getGithubStars()
+			]);
+			githubContributors = contributorsRes;
+			githubRepoStars = repoStarsRes.stars;
+			githubLoaded = true;
+		} catch (err) {
+			githubError = err instanceof Error ? err.message : 'Could not load GitHub data';
+		} finally {
+			githubLoading = false;
+		}
+	}
+
+	function retryGithubData() {
+		githubLoaded = false;
+		void loadGithubData();
+	}
+
+	function selectTab(tab: LandingTab) {
+		activeTab = tab;
+		if (tab === 'campus') {
+			void loadGithubData();
+			void loadCampusCredits();
+		}
+	}
+
+	function handleGetStarted() {
+		if (dontShowAgain) {
+			localStorage.setItem('hideLandingModal', 'true');
+		}
+		if (installPrompt) {
+			void installPrompt.prompt();
+			installPrompt.userChoice.then(({ outcome }) => {
+				if (outcome === 'accepted') isInstalled = true;
+			});
+			installPrompt = null;
+			return;
+		}
+		modalStore.closeModal();
+	}
+
+	$effect(() => {
+		const handler = (e: Event) => {
+			e.preventDefault();
+			installPrompt = e as BeforeInstallPromptEvent;
+		};
+		window.addEventListener('beforeinstallprompt', handler);
+		const iosStandalone =
+			'standalone' in window.navigator &&
+			(window.navigator as unknown as { standalone: boolean }).standalone === true;
+		isInstalled = iosStandalone || window.matchMedia('(display-mode: standalone)').matches;
+		return () => window.removeEventListener('beforeinstallprompt', handler);
+	});
+
+	$effect(() => {
+		if (!modalStore.open) return;
+		activeTab = untrack(() => modalStore.landingTab) ?? 'welcome';
+		if (untrack(() => activeTab) === 'campus') {
+			void loadGithubData();
+			void loadCampusCredits();
+		}
+	});
+</script>
+
+<ModalContent className="basis-3xl h-full">
+	<div class="flex h-full w-full flex-col overflow-y-auto bg-white">
+		<header class="shrink-0">
+			<div class="hero-image flex bg-cover bg-center">
+				<div
+					class="hero-overlay flex min-h-0 flex-1 flex-col items-center justify-center gap-1 px-4 py-3 text-center text-white"
+					class:collapse-hero={activeTab === 'campus'}
+				>
+					<h2 class="m-0 font-[Raleway,sans-serif] leading-none font-semibold text-white">
+						<span class="inline-flex items-center gap-[0.35rem]" id="landing-modal-title">
+							<img
+								src="/logo.png"
+								alt="logo with a tower in magnifying glass"
+								class="hero-logo"
+								aria-hidden="true"
+								width="512"
+								height="512"
+								decoding="async"
+							/>
+							Room TBA
+						</span>
+					</h2>
+					<p class="hero-tagline">
+						Find rooms, explore the map, and discover campus events at UPLB.
+					</p>
+				</div>
+			</div>
+
+			<div class="tab-bar" role="tablist" aria-label="About Room TBA">
+				{#each tabs as tab (tab.id)}
+					<button
+						type="button"
+						role="tab"
+						id="landing-tab-{tab.id}"
+						class="tab-btn"
+						class:active={activeTab === tab.id}
+						aria-selected={activeTab === tab.id}
+						aria-controls="landing-panel-{tab.id}"
+						onclick={() => selectTab(tab.id)}
+					>
+						{tab.label}
+					</button>
+				{/each}
+			</div>
+		</header>
+
+		<div class="scroll-region flex-1 overflow-y-auto">
+			{#if activeTab === 'welcome'}
+				<div
+					class="tab-panel"
+					role="tabpanel"
+					id="landing-panel-welcome"
+					aria-labelledby="landing-tab-welcome"
+				>
+					<LandingGuideSteps />
+				</div>
+			{:else}
+				<div
+					class="tab-panel"
+					role="tabpanel"
+					id="landing-panel-campus"
+					aria-labelledby="landing-tab-campus"
+				>
+					<section class="people-block">
+						<h3>Campus editors &amp; contributors</h3>
+						<p class="section-note">People credited for published campus data changes.</p>
+						{#if creditsLoading}
+							<p class="section-note">Loading credits…</p>
+						{:else if campusCredits.length > 0}
+							<PeopleAvatarGrid people={campusCreditPeople} />
+						{:else if creditsLoaded}
+							<p class="section-note">No public credits yet.</p>
+						{/if}
+					</section>
+
+					<GithubContributorsSection
+						title="Developers"
+						note="From GitHub commit history on the Room TBA repo."
+						contributors={githubContributors}
+						loading={githubLoading}
+						loaded={githubLoaded}
+						error={githubError}
+						onRetry={retryGithubData}
+					/>
+
+					<section class="people-block">
+						<h3>Design</h3>
+						<p class="section-note">
+							Visual and UX design (manual credits, not from GitHub commits).
+						</p>
+						<PeopleAvatarGrid people={designerPeople} imageFolder="contributors" />
+					</section>
+
+					<div class="github-cta">
+						<p class="cta-text">Like the project? Support us by starring the repository!</p>
+						<a
+							href="https://github.com/uplbtools/room-tba"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="cta-button"
+						>
+							<span class="cta-button__icon">★</span>
+							<span class="cta-button__text">Star on GitHub</span>
+							{#if githubRepoStars !== null}
+								<span class="cta-button__count">{githubRepoStars.toLocaleString()}</span>
+							{/if}
+						</a>
+					</div>
+
+					<section class="community-block">
+						<h3>Join the community</h3>
+						<p class="section-note">
+							Suggest fixes in the map, or chat on Discord or Messenger if you want to help verify
+							data.
+						</p>
+						<ul class="community-links">
+							<li>
+								<a
+									href={UPLB_TOOLS_URL}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="inline-link">UPLB Tools</a
+								>
+							</li>
+							<li>
+								<CommunityPlatformLink brand="discord" href={DISCORD_URL} label="Discord" />
+							</li>
+							<li>
+								<CommunityPlatformLink
+									brand="messenger"
+									href={MESSENGER_CONTRIBUTE_TARGET}
+									label="Messenger (contribute)"
+								/>
+							</li>
+							<li>
+								<CommunityPlatformLink
+									brand="messenger"
+									href={MESSENGER_MAINTAIN_TARGET}
+									label="Maintainer chat"
+								/>
+							</li>
+						</ul>
+					</section>
+
+					<section class="inspiration-block">
+						<h3>Inspiration &amp; similar tools</h3>
+						<ul class="inspiration-links">
+							<li>
+								<a
+									href="https://upsked.com/"
+									target="_blank"
+									rel="noopener noreferrer"
+									class="inline-link">Upsked.com</a
+								>
+								by John Paul Poliquit
+							</li>
+							<li>
+								<a
+									href="https://uplb-trail.vercel.app/"
+									target="_blank"
+									rel="noopener noreferrer"
+									class="inline-link">UPLB Trail</a
+								>
+								by Bernard Jezua Tandang
+							</li>
+							<li>
+								<a
+									href="https://chromewebstore.google.com/detail/amissu/mkdgckblaojfigmbnknehcmnjpkcehcj"
+									target="_blank"
+									rel="noopener noreferrer"
+									class="inline-link">AMISSU</a
+								>
+								by Garth Hendrich Lapitan
+							</li>
+						</ul>
+					</section>
+				</div>
+			{/if}
+
+			<div class="scroll-footer">
+				<div class="footer-meta">
+					<VisitorCounter />
+					<GithubStarLink />
+				</div>
+				<p class="legal-hint">
+					<a href="/privacy" class="inline-link">Privacy</a>
+					·
+					<a href="/terms" class="inline-link">Terms</a>
+				</p>
+			</div>
+		</div>
+		<!-- <div class="flex-1 shrink-0"></div> -->
+		<footer class="footer flex shrink-0 flex-col items-center gap-2.5 px-4 pt-3.5 pb-4">
+			{#if installPrompt && !isInstalled}
+				<button class="primary-btn install-btn" onclick={handleGetStarted}>
+					<Download size={16} aria-hidden="true" />
+					Install Room TBA
+				</button>
+			{:else}
+				<button class="primary-btn" onclick={handleGetStarted}>Get Started</button>
+			{/if}
+			<label class="checkbox-label">
+				<input type="checkbox" bind:checked={dontShowAgain} />
+				Don't show again
+			</label>
+		</footer>
+	</div>
+</ModalContent>
+
+<style>
+	.hero-image {
+		background-image: url('/uplb-bg.webp');
+	}
+
+	.hero-overlay {
+		background-color: rgba(123, 17, 19, 0.85);
+	}
+
+	.hero-overlay h2 {
+		font-size: clamp(1.25rem, 3.5vw, 1.625rem);
+	}
+
+	.hero-logo {
+		width: clamp(1.5rem, 4vw, 1.75rem);
+		height: clamp(1.5rem, 4vw, 1.75rem);
+		object-fit: contain;
+	}
+
+	.hero-tagline {
+		font-size: 0.8125rem;
+		margin: 0;
+		font-weight: 500;
+		max-width: 24rem;
+		line-height: 1.35;
+	}
+
+	.tab-bar {
+		display: flex;
+		gap: 0.25rem;
+		padding: 0.5rem 0.875rem 0;
+		border-bottom: 1px solid hsl(0, 0%, 90%);
+		background: hsl(0, 0%, 99%);
+	}
+
+	.tab-btn {
+		flex: 1;
+		min-width: 0;
+		min-height: 2.75rem;
+		border: none;
+		background: transparent;
+		color: hsl(0, 0%, 32%);
+		font-size: 0.8125rem;
+		font-weight: 600;
+		padding: 0.45rem 0.5rem;
+		border-radius: 0.5rem 0.5rem 0 0;
+		cursor: pointer;
+		border-bottom: 2px solid transparent;
+		margin-bottom: -1px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.tab-btn.active {
+		color: hsl(5, 53%, 28%);
+		background: white;
+		border-bottom-color: hsl(5, 53%, 35%);
+	}
+
+	.tab-btn:focus-visible {
+		outline: 2px solid hsl(5, 53%, 35%);
+		outline-offset: 1px;
+	}
+
+	.scroll-region {
+		flex: 1;
+		overflow-x: hidden;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+		padding: 0.875rem 1rem 0.5rem;
+	}
+
+	.footer {
+		box-shadow: 0 0.5rem 1.25rem 0 hsl(0, 0%, 22%);
+	}
+
+	.tab-panel {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+		width: 100%;
+		max-width: 36rem;
+		margin: 0 auto;
+	}
+
+	.people-block {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+		width: 100%;
+	}
+
+	.people-block h3 {
+		margin: 0;
+		font-size: 0.9375rem;
+		font-weight: 700;
+		color: hsl(5, 53%, 28%);
+	}
+
+	.inspiration-block {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.375rem;
+		width: 100%;
+	}
+
+	.inspiration-block h3 {
+		margin: 0;
+		font-size: 0.9375rem;
+		font-weight: 700;
+		color: hsl(5, 53%, 28%);
+	}
+
+	.inspiration-links {
+		list-style: none;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.25rem 0.25rem;
+		margin: 0;
+		padding: 0;
+		font-size: 0.8125rem;
+		color: hsl(0, 0%, 30%);
+	}
+
+	.section-note {
+		margin: 0;
+		font-size: 0.75rem;
+		line-height: 1.45;
+		color: hsl(0, 0%, 30%);
+		max-width: 28rem;
+		text-align: center;
+	}
+
+	.inline-link {
+		color: hsl(5, 53%, 32%);
+		font-weight: 600;
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
+	.github-cta {
+		margin: 1.25rem 0 0.5rem;
+		padding: 1rem;
+		background: hsl(0, 0%, 98%);
+		border: 1px solid hsl(0, 0%, 90%);
+		border-radius: 0.75rem;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.625rem;
+		width: 100%;
+		box-sizing: border-box;
+	}
+
+	.cta-text {
+		margin: 0;
+		font-size: 0.875rem;
+		color: hsl(0, 0%, 25%);
+		font-weight: 500;
+	}
+
+	.cta-button {
+		display: inline-flex;
+		align-items: center;
+		background-color: #24292e;
+		color: white;
+		padding: 0.5rem 1.125rem;
+		border-radius: 0.5rem;
+		text-decoration: none;
+		font-size: 0.9375rem;
+		font-weight: 600;
+		transition: background-color 0.2s ease;
+	}
+
+	.cta-button:hover {
+		background-color: hsl(0, 0%, 12%);
+	}
+
+	.cta-button:active {
+		background-color: hsl(0, 0%, 18%);
+	}
+
+	.cta-button__icon {
+		margin-right: 0.5rem;
+		font-size: 1.1em;
+	}
+
+	.cta-button__count {
+		margin-left: 0.625rem;
+		padding-left: 0.625rem;
+		border-left: 1px solid rgba(255, 255, 255, 0.3);
+		font-weight: 700;
+	}
+
+	.community-block {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.375rem;
+		width: 100%;
+	}
+
+	.community-block h3 {
+		margin: 0;
+		font-size: 0.9375rem;
+		font-weight: 700;
+		color: hsl(5, 53%, 28%);
+	}
+
+	.community-links {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.375rem 0.75rem;
+		font-size: 0.8125rem;
+	}
+
+	.footer-meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: stretch;
+		justify-content: center;
+		gap: 0.625rem;
+		width: 100%;
+		padding: 0.125rem 0 0.25rem;
+	}
+
+	.legal-hint {
+		margin: 0;
+		font-size: 0.75rem;
+		color: hsl(0, 0%, 38%);
+	}
+
+	.scroll-footer {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.625rem;
+		margin-top: 1.5rem;
+		padding-top: 1rem;
+		border-top: 1px solid hsl(0, 0%, 92%);
+		width: 100%;
+	}
+
+	/* .actions {
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0.875rem 1rem 1rem;
+		border-top: 1px solid hsl(0, 0%, 92%);
+		background: white;
+		width: 100%;
+		box-sizing: border-box;
+	} */
+
+	.primary-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		border-radius: 0.5rem;
+		min-height: 2.75rem;
+		padding: 0.6875rem 1.75rem;
+		font-size: 0.9375rem;
+		font-weight: 700;
+		cursor: pointer;
+		background-color: hsl(5, 75%, 28%);
+		color: white;
+		border: none;
+		box-shadow: 0 2px 4px rgba(123, 17, 19, 0.2);
+		width: min(100%, 16rem);
+		box-sizing: border-box;
+	}
+
+	.primary-btn:hover {
+		background-color: hsl(5, 75%, 22%);
+	}
+
+	.primary-btn:focus-visible {
+		outline: 2px solid hsl(5, 75%, 22%);
+		outline-offset: 2px;
+	}
+
+	.install-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		background-color: hsl(5, 75%, 28%);
+	}
+
+	.checkbox-label {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.8125rem;
+		color: hsl(0, 0%, 22%);
+		cursor: pointer;
+		user-select: none;
+	}
+
+	.checkbox-label input[type='checkbox'] {
+		cursor: pointer;
+		width: 1rem;
+		height: 1rem;
+		accent-color: hsl(5, 75%, 28%);
+	}
+
+	@media screen and (max-width: 48rem) {
+		.scroll-region {
+			padding: 0.75rem 0.875rem 0.375rem;
+		}
+
+		.actions {
+			padding: 0.625rem 0.875rem 0.875rem;
+		}
+
+		/* Phones read the header as a title bar, not a splash screen: the tagline
+       is the only pitch here, the rest are cards in the panel below. */
+		.hero-overlay {
+			padding: 0.5rem 0.875rem;
+		}
+
+		.tab-bar {
+			padding-top: 0.25rem;
+		}
+
+		.hero-overlay.collapse-hero {
+			padding: 0.5rem 0.875rem;
+		}
+
+		.hero-overlay.collapse-hero .hero-tagline {
+			display: none;
+		}
+	}
+</style>

@@ -47,15 +47,7 @@
 			map.setZoomLevel(mapInstance.getZoom());
 		};
 	}
-
-	function handleMapKeydown(event: KeyboardEvent & { currentTarget: EventTarget & Window }) {
-		if (event.key === 'Escape' && page.route.id !== '/(app)/map') {
-			goto(resolve('map'));
-		}
-	}
 </script>
-
-<svelte:window onkeydown={handleMapKeydown} />
 
 <div class="map-container">
 	<MapLibre
@@ -82,10 +74,10 @@
 		<DormMarkers showDormPins={true} zoomLevel={16} />
 
 		<!-- Orgs -->
-		<OrgMarkers orgPinFilter={'all'} zoomLevel={17} />
+		<OrgMarkers orgPinFilter="all" zoomLevel={17} />
 
 		<!-- Places -->
-		<PlaceMarkers placePinFilter={'all'} zoomLevel={13} />
+		<PlaceMarkers placePinFilter="all" zoomLevel={13} />
 	</MapLibre>
 </div>
 

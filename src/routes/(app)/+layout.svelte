@@ -18,8 +18,9 @@
 		webpageSchema,
 		websiteSchema
 	} from '#lib/utils/site.js';
-	import { initToast } from '#lib/utils/context.ts';
-	import ToastStore from '#lib/stores/ui/ToastStore.svelte.ts';
+	import { initEscapeActions, initToast } from '#lib/utils/context.js';
+	import ToastStore from '#lib/stores/new/ui/ToastStore.svelte.js';
+	import EscapeActions from '#lib/stores/new/ui/EscapeActionStack.svelte.js';
 
 	const { children }: { children: Snippet } = $props();
 
@@ -74,6 +75,7 @@
 	// 	});
 	// }
 	initToast(new ToastStore());
+	initEscapeActions(new EscapeActions());
 </script>
 
 <SeoHead {seo} />

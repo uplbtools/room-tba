@@ -1,5 +1,5 @@
 import { form, query } from '$app/server';
-import { PlaceProposalSchema, TableIdSchema } from '#lib/schema/functions.js';
+import { ListQuerySchema, PlaceProposalSchema, TableIdSchema } from '#lib/schema/functions.js';
 import { editProposalsTable, placesTable } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
 import { error } from '@sveltejs/kit';
@@ -26,6 +26,16 @@ export const getPlaceById = query(TableIdSchema, async (id) => {
 
 	return entry;
 });
+
+export const getPlacesList = query(ListQuerySchema, async(offset = 0) => {
+	const rows = await db
+		.select()
+		.from(placesTable)
+		.orderBy(placesTable.name)
+		.limit(8)
+		.offset(8 * offset);
+	return rows;
+})
 
 export const addPlaceSuggestion = form(
 	PlaceProposalSchema,

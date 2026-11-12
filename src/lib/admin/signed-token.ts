@@ -1,5 +1,4 @@
-import { env } from '$env/dynamic/private';
-const { ADMIN_SESSION_SECRET } = env;
+import { ADMIN_SESSION_SECRET } from "$app/env/private";
 import {
 	createSignedToken as createSignedTokenCore,
 	verifySignedToken as verifySignedTokenCore

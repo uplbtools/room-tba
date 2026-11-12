@@ -9,5 +9,7 @@ export const variables = defineEnvVars({
 	R2_PUBLIC_URL: { schema: (input) => input ?? '' },
 	ANTHROPIC_API_KEY: { schema: (input) => input ?? '' },
 	DATABASE_URL: { schema: (input) => input ?? '' },
-	PUBLIC_GOOGLE_MAPS_API_KEY: { public: true, schema: (input) => input ?? '' }
+	PUBLIC_GOOGLE_MAPS_API_KEY: { public: true, schema: (input) => input ?? '' },
+	ADMIN_SESSION_SECRET: {schema: (input) => input ?? ""},
+	ADMIN_PASSWORD: {schema: (input) => input ?? ""},
 });

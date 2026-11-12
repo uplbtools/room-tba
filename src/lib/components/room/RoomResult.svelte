@@ -10,7 +10,7 @@
 	import EntityEditorPanel from '#lib/components/editor/EntityEditorPanel.svelte';
 	import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
 	import EntityPhotoUpload from '#lib/components/editor/EntityPhotoUpload.svelte';
-	import EntityPhotoGallery from '#lib/components/controls/EntityPhotoGallery.svelte';
+	import EntityPhotoGallery from '#lib/components/entity/EntityPhotoGallery.svelte';
 	import TermSelector from '#lib/components/TermSelector.svelte';
 	import {
 		ROOM_CATEGORIES,
@@ -47,9 +47,9 @@
 		toastStore
 	} from '#lib/stores.svelte.js';
 	import type { FinalExamRow, Room } from '#lib/utils/types';
-	import EntityDirectionsChip from '../controls/EntityDirectionsChip.svelte';
-	import EntityGoogleMapsLink from '../controls/EntityGoogleMapsLink.svelte';
-	import EntityShareCopyLink from '../controls/EntityShareCopyLink.svelte';
+	import EntityDirectionsChip from '../entity/EntityDirectionsChip.svelte';
+	import EntityGoogleMapsLink from '../entity/EntityGoogleMapsLink.svelte';
+	import EntityShareCopyLink from '../entity/EntityShareCopyLink.svelte';
 	import EntityLastUpdated from '../EntityLastUpdated.svelte';
 	import MapChromeActionChip from '../map-chrome/MapChromeActionChip.svelte';
 	import Classes from './Classes.svelte';

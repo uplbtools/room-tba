@@ -5,7 +5,7 @@
 	import PinGlyph from '#lib/components/map/PinGlyph.svelte';
 	import { getMapDormsData } from '#lib/functions/dorms.remote.js';
 	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
-	import { Marker } from 'svelte-maplibre';
+	import { hasLocation } from '#lib/utils/map/marker.ts';
 
 	interface Props {
 		showDormPins: boolean;
@@ -32,8 +32,8 @@
 	}
 </script>
 
-{#if map.withinZoom(zoomLevel)}
-	{#each filteredDorms as dorm (`dorm:${dorm.id}`)}
+{#each filteredDorms as dorm (`dorm:${dorm.id}`)}
+	{#if hasLocation(dorm) && (map.withinZoom(zoomLevel) || searchInfo.isActiveMarker(dorm.name, 'dorm'))}
 		{#if dorm.lat && dorm.lon}
 			<!-- {@const editKey = dormEditKey(dorm.id)}
 			{@const position = getEditablePosition(editKey, {
@@ -45,32 +45,32 @@
 			{@const previewSuppressed =
 				centralHoverPreview && isDormHoverPreview(entityHoverPreviewStore.entity, dorm.id)}
 			{#key `${editKey}:${canDragPin(editKey)}`} -->
-			<Marker lngLat={[dorm.lon, dorm.lat]} onclick={handleMarkerClick(dorm)}>
-				<MapEntityPin
-					label={// draggable={canDragPin(editKey)}
-					dorm.name}
-					tone={dorm.isUpManaged ? 'dorm' : 'privateDorm'}
-					active={searchInfo.isActiveMarker(dorm.name, 'dorm')}
-					dimmed={searchInfo.hasActiveResult()}
-				>
-					<PinGlyph
-						name="dorm"
-						size={// eventLinked={isDormEventLinked(dorm.id)}
-						// editable={canDragPin(editKey)}
-						// editing={selectedEditKey === editKey}
-						// hovered={hoveredEditKey === editKey}
-						// saveState={savingEditKey === editKey
-						// 	? 'saving'
-						// 	: savedEditKey === editKey
-						// 		? 'saved'
-						// 		: failedEditKey === editKey
-						// 			? 'failed'
-						// 			: 'idle'}
-						18}
-					/>
-				</MapEntityPin>
-			</Marker>
+			<MapEntityPin
+				label={// draggable={canDragPin(editKey)}
+				dorm.name}
+				tone={dorm.isUpManaged ? 'dorm' : 'privateDorm'}
+				active={searchInfo.isActiveMarker(dorm.name, 'dorm')}
+				lngLat={[dorm.lon, dorm.lat]}
+				onclick={handleMarkerClick(dorm)}
+				dimmed={searchInfo.hasActiveResult()}
+			>
+				<PinGlyph
+					name="dorm"
+					size={// eventLinked={isDormEventLinked(dorm.id)}
+					// editable={canDragPin(editKey)}
+					// editing={selectedEditKey === editKey}
+					// hovered={hoveredEditKey === editKey}
+					// saveState={savingEditKey === editKey
+					// 	? 'saving'
+					// 	: savedEditKey === editKey
+					// 		? 'saved'
+					// 		: failedEditKey === editKey
+					// 			? 'failed'
+					// 			: 'idle'}
+					18}
+				/>
+			</MapEntityPin>
 			<!-- {/key} -->
 		{/if}
-	{/each}
-{/if}
+	{/if}
+{/each}

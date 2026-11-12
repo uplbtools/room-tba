@@ -13,5 +13,7 @@ export const modalOptions = [
 	'jeepney-route',
 	'editor-tools',
 	'privacy',
-	'offline-maps'
+	'offline-maps',
+	'add-suggestion',
+	'modify-suggestion'
 ] as const;

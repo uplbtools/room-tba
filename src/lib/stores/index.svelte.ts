@@ -22,16 +22,8 @@ import { syncTableLabel } from './store-types.js';
 // 	TrailStore,
 // 	TravelTimeStore
 // } from './map/map-stores.svelte';
-import PlannerStore from './PlannerStore.svelte';
-import TransitStore from './map/TransitStore.svelte.js';
-import searchInfo from './searchInfo.svelte';
-import SidebarStore from './ui/SidebarStore.svelte';
-import SidePanelStore from './ui/SidePanelStore.svelte';
-import ModalStore from './ui/ModalStore.svelte';
-import ToastStore from './ui/ToastStore.svelte';
-import FloatingControlPanelStore from './ui/FloatingControlPanelStore.svelte';
 
-export type { MeasureLeg, MeasureSummaries } from './map/map-stores.svelte';
+export type { MeasureLeg, MeasureSummaries } from './new/map/map-stores.svelte.js';
 
 export { deactivateMapModesExcept, syncTableLabel };
 

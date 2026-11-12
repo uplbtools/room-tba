@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { navigating } from '$app/state';
-	import InfoPanel from '#lib/components/controls/InfoPanel.svelte';
+	import InfoPanel from '#lib/components/new/InfoPanel.svelte';
 	import OrgResult from './OrgResult.svelte';
 	import { getOrgById } from '#lib/functions/organizations.remote.js';
 	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';

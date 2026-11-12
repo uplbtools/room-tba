@@ -1,5 +1,5 @@
 <script lang="ts">
-	import EntityShareCopyLink from '#lib/components/controls/EntityShareCopyLink.svelte';
+	import EntityShareCopyLink from '#lib/components/entity/EntityShareCopyLink.svelte';
 	import EventShelfToolbar from '#lib/components/map-chrome/EventShelfToolbar.svelte';
 	import { getAppData } from '#lib/utils/context.js';
 	import { getEventImage } from '#lib/utils/event/event-images.js';

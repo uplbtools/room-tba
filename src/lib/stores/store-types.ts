@@ -18,12 +18,9 @@ export interface SearchInfoState {
 		| 'college'
 		| 'room'
 		| 'class'
-		| 'classes'
-		| 'browse'
 		| 'dorm'
 		| 'place'
 		| 'event'
-		| 'events'
 		| 'organization'
 		| null;
 	value: string;

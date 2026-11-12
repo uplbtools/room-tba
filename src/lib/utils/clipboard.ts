@@ -1,11 +1,7 @@
 export async function copyTextToClipboard(text: string) {
 	if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-		try {
-			await navigator.clipboard.writeText(text);
-			return;
-		} catch {
-			// Fall back for browsers that expose Clipboard API but reject the call.
-		}
+		await navigator.clipboard.writeText(text);
+		return;
 	}
 
 	fallbackCopyTextToClipboard(text);

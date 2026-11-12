@@ -6,7 +6,7 @@
 	// import { buildingMatchesTypeFilter } from '#lib/constants/content/categories/building.js';
 	import { getMapBuildingsData } from '#lib/functions/buildings.remote.js';
 	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
-	import { Marker } from 'svelte-maplibre';
+	import { hasLocation } from '#lib/utils/map/marker.js';
 
 	interface Props {
 		showBuildingPins: boolean;
@@ -40,10 +40,9 @@
 	}
 </script>
 
-{#if map.withinZoom(zoomLevel) && showBuildingPins}
-	{#each filteredBuildings as building (building.id)}
-		{#if building.lat && building.lon}
-			<!-- {@const editKey = buildingEditKey(building.id)}
+{#each filteredBuildings as building (building.id)}
+	{#if hasLocation(building) && (map.withinZoom(zoomLevel) || searchInfo.isActiveMarker(building.buildingName, 'building'))}
+		<!-- {@const editKey = buildingEditKey(building.id)}
 			{@const position = getEditablePosition(editKey, {
 				lat: building.lat,
 				lon: building.lon,
@@ -52,36 +51,32 @@
 			{@const centralHoverPreview = shouldShowEntityHoverPreview()}
 			{@const previewSuppressed =
 				centralHoverPreview && isBuildingHoverPreview(entityHoverPreviewStore.entity, building.id)} -->
-			<!-- {#key `${editKey}:${canDragPin(editKey)}`} -->
-			<Marker
-				lngLat={[building.lon, building.lat]}
-				onclick={// draggable={canDragPin(editKey)}
-				handleMarkerClick(building)}
-			>
-				<MapEntityPin
-					label={building.buildingName}
-					active={searchInfo.isActiveMarker(building.buildingName, 'building')}
-					dimmed={searchInfo.hasActiveResult()}
-				>
-					<PinGlyph
-						name="building"
-						size={// // editable={canDragPin(editKey)}
-						// editing={selectedEditKey === editKey}
-						// dimmed={hasActiveMarker()}
-						// eventLinked={isBuildingEventLinked(building.id)}
-						// hovered={hoveredEditKey === editKey}
-						// saveState={savingEditKey === editKey
-						// 	? 'saving'
-						// 	: savedEditKey === editKey
-						// 		? 'saved'
-						// 		: failedEditKey === editKey
-						// 			? 'failed'
-						// 			: 'idle'}
-						20}
-					/>
-				</MapEntityPin>
-			</Marker>
-			<!-- {/key} -->
-		{/if}
-	{/each}
-{/if}
+		<!-- {#key `${editKey}:${canDragPin(editKey)}`} -->
+		<MapEntityPin
+			label={building.buildingName}
+			active={searchInfo.isActiveMarker(building.buildingName, 'building')}
+			dimmed={searchInfo.hasActiveResult()}
+			onclick={handleMarkerClick(building)}
+			lngLat={[building.lon, building.lat]}
+			labelVisible={map.withinZoom(18)}
+		>
+			<PinGlyph
+				name="building"
+				size={// // editable={canDragPin(editKey)}
+				// editing={selectedEditKey === editKey}
+				// dimmed={hasActiveMarker()}
+				// eventLinked={isBuildingEventLinked(building.id)}
+				// hovered={hoveredEditKey === editKey}
+				// saveState={savingEditKey === editKey
+				// 	? 'saving'
+				// 	: savedEditKey === editKey
+				// 		? 'saved'
+				// 		: failedEditKey === editKey
+				// 			? 'failed'
+				// 			: 'idle'}
+				20}
+			/>
+		</MapEntityPin>
+		<!-- {/key} -->
+	{/if}
+{/each}

@@ -12,12 +12,12 @@
 	import Mail from '@lucide/svelte/icons/mail';
 	import Info from '@lucide/svelte/icons/info';
 	import Building2 from '@lucide/svelte/icons/building-2';
-	import EntityGoogleMapsLink from '#lib/components/controls/EntityGoogleMapsLink.svelte';
-	import EntityStreetAddress from '#lib/components/controls/EntityStreetAddress.svelte';
-	import EntityDirectionsChip from '#lib/components/controls/EntityDirectionsChip.svelte';
-	import EntityExternalLink from '#lib/components/controls/EntityExternalLink.svelte';
-	import EntityLastUpdated from '#lib/components/EntityLastUpdated.svelte';
-	import EntityShareCopyLink from '#lib/components/controls/EntityShareCopyLink.svelte';
+	import EntityGoogleMapsLink from '#lib/components/entity/EntityGoogleMapsLink.svelte';
+	import EntityStreetAddress from '#lib/components/entity/EntityStreetAddress.svelte';
+	import EntityDirectionsChip from '#lib/components/entity/EntityDirectionsChip.svelte';
+	import EntityExternalLink from '#lib/components/entity/EntityExternalLink.svelte';
+	import EntityLastUpdated from '#lib/components/new/EntityLastUpdated.svelte';
+	import EntityShareCopyLink from '#lib/components/entity/EntityShareCopyLink.svelte';
 	import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
 	import EntityEditorPinRow from '#lib/components/editor/EntityEditorPinRow.svelte';
 	import type { OrgData } from '#lib/utils/types';
@@ -243,7 +243,6 @@
 						ariaLabel={`Open ${org.name} in Google Maps`}
 					/>
 				{/if}
-				<EntityShareCopyLink url={page.url.href} entityLabel={org.name} />
 				<!-- <EntityEditorToggle
 					expanded={editing}
 					{canPublish}
@@ -395,8 +394,8 @@
 	/* 
 	@import './entity-detail.css';
 	@import '../editor/entity-editor.css';
-	@import '../map-chrome/map-chrome.css'; */
-
+	@import '../map-chrome/map-chrome.css';
+	*/
 	.entity-header__title-row {
 		display: flex;
 		align-items: center;

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-import { Building3DStore, MapToolsStore, TerrainStore } from './map-stores.svelte';
+import { Building3DStore, MapToolsStore, TerrainStore } from '../new/map/map-stores.svelte';
 import { mapEditStore, mapToolsStore, terrainStore } from '#lib/stores.svelte.js';
 
 describe('MapToolsStore', () => {

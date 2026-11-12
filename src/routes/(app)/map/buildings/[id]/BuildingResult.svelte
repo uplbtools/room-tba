@@ -16,7 +16,13 @@
 		crFacilityLabel,
 		sanitizeCrFacilities
 	} from '#lib/constants/map/cr-facilities.js';
-	import { getAppActions, getAppData, getSearchInfo, getToast } from '#lib/utils/context.js';
+	import {
+		getAppActions,
+		getAppData,
+		getModalStore,
+		getSearchInfo,
+		getToast
+	} from '#lib/utils/context.js';
 	import {
 		clearEntityContributorDraft,
 		readEntityContributorDraft,
@@ -43,38 +49,31 @@
 		persistEntityChange
 	} from '#lib/utils/proposals/client.js';
 	import { normalizeEntityPhotos, type EntityPhoto } from '#lib/utils/entity/entity-photos.js';
-	import type { Building, Room } from '#lib/utils/types';
-	import ResultDisplay from '#lib/components/controls/ResultDisplay.svelte';
+	import type { Building, Room } from '#lib/utils/types.d.ts';
+	import ResultDisplay from '#lib/components/entity/ResultDisplay.svelte';
 	// import EntityLastUpdated from '#lib/components/EntityLastUpdated.svelte';
-	// import EntityStreetAddress from '#lib/components/controls/EntityStreetAddress.svelte';
-	// import BuildingPhoto from '#lib/components/controls/BuildingPhoto.svelte';
-	// import EntityDirectionsChip from '#lib/components/controls/EntityDirectionsChip.svelte';
-	// import EntityGoogleMapsLink from '#lib/components/controls/EntityGoogleMapsLink.svelte';
-	// import EntityShareCopyLink from '#lib/components/controls/EntityShareCopyLink.svelte';
+	// import EntityStreetAddress from '#lib/components/entity/EntityStreetAddress.svelte';
+	// import BuildingPhoto from '#lib/components/entity/BuildingPhoto.svelte';
+	// import EntityDirectionsChip from '#lib/components/entity/EntityDirectionsChip.svelte';
+	// import EntityGoogleMapsLink from '#lib/components/entity/EntityGoogleMapsLink.svelte';
+	// import EntityShareCopyLink from '#lib/components/entity/EntityShareCopyLink.svelte';
 	import { getOrgsByBuildingId } from '#lib/functions/organizations.remote.js';
+	import { getGithubContributors } from '#lib/functions/analytics.remote.js';
 	import { getRoomsByBuildingId } from '#lib/functions/rooms.remote.js';
-	import EntityDirectionsChip from '#lib/components/controls/EntityDirectionsChip.svelte';
-	import EntityGoogleMapsLink from '#lib/components/controls/EntityGoogleMapsLink.svelte';
-	import EntityShareCopyLink from '#lib/components/controls/EntityShareCopyLink.svelte';
-	import { page } from '$app/state';
+	import EntityDirectionsChip from '#lib/components/entity/EntityDirectionsChip.svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import ResultAction from '#lib/components/new/ResultAction.svelte';
-	import { CopyIcon, MapIcon, MapPin, PinIcon } from '@lucide/svelte';
-	import { copyTextToClipboard } from '#lib/utils/clipboard.js';
+	import EntityLastUpdated from '#lib/components/new/EntityLastUpdated.svelte';
+	import type { getBuildingById } from '#lib/functions/buildings.remote.js';
+	import ResultActions from '#lib/components/new/ResultActions.svelte';
 	// // import EntityDirectionsChip from './EntityDirectionsChip.svelte';
 	// import EntityGoogleMapsLink from './EntityGoogleMapsLink.svelte';
 	// import EntityShareCopyLink from './EntityShareCopyLink.svelte';
 	// import EntityStreetAddress from './EntityStreetAddress.svelte';
 	// import ResultDisplay from './ResultDisplay.svelte';
 
-	type BuildingEditableField =
-		'buildingName' | 'directions' | 'buildingType' | 'photos' | 'crFacilities';
-
-	let pinnedBuildingId = $state<number | null>(null);
-
 	interface Props {
-		building: Building;
+		building: Awaited<ReturnType<typeof getBuildingById>>;
 	}
 
 	// Reverse-lookup: orgs and offices housed in this building.
@@ -585,92 +584,64 @@
 	// when the building or the active term changes; null while loading/offline.
 
 	const { building }: Props = $props();
-	const searchInfo = getSearchInfo();
 	const toastStore = getToast();
+	const modalStore = getModalStore();
 
-	// $effect(() => {
-	// 	if (building?.id) pinnedBuildingId = building.id;
-	// });
-
-	let editing = $state(false);
-
-	const buildingOrgs = $derived(await getOrgsByBuildingId(building.id));
-	const buildingRooms = $derived(await getRoomsByBuildingId({ id: building.id }));
+	// let editing = $state(false);
+	// const githubContributors = $derived(await getGithubContributors());
+	// $inspect(githubContributors);
+	const orgsPromise = $derived(getOrgsByBuildingId(building.id));
 	const buildingTypeLabel = $derived.by(() => {
 		const isAdmin = building.buildingType === 'admin';
 		if (isAdmin) /* && hostsClasses */ return 'Administrative · Class venue';
 		return isAdmin ? 'Administrative' : 'Class building';
 	});
 	const hasMapPin = $derived(Boolean(building.lat && building.lon));
-	$inspect(building.buildingName);
 </script>
 
 {#key building}
-	<div class="entity-detail building-query-wrapper">
-		<header class="entity-header">
-			<div class="entity-header__title-row">
-				<h2 class="entity-header__title">{building.buildingName}</h2>
-				<span class="entity-header__badge">{buildingTypeLabel}</span>
-			</div>
-
-			<div class="flex gap-1">
-				{#if hasMapPin}
-					<!-- <MapChromeActionChip
-						toolbar
-						ariaLabel="3D view"
-						onclick={() => building3DStore.open(building.buildingName)}
-					>
-						<Box size={14} aria-hidden="true" />
-						3D view
-					</MapChromeActionChip> -->
-					<!-- <EntityDirectionsChip
-						lat={building.lat ?? 0}
-						lon={building.lon ?? 0}
-						destinationLabel={building.buildingName}
-					/>
-					<EntityGoogleMapsLink
-						lat={building.lat ?? 0}
-						lon={building.lon ?? 0}
-						ariaLabel={`Open ${building.buildingName} in Google Maps`}
-					/> -->
-
-					{#snippet mapPinIcon()}
-						<MapPin size={18} />
-					{/snippet}
-					<ResultAction
-						icon={mapPinIcon}
-						onclick={() => {
-							alert('It works?');
-						}}>Google Maps</ResultAction
-					>
-				{/if}
-				{#snippet copyIcon()}
-					<CopyIcon size={18} />
-				{/snippet}
-				<ResultAction
-					icon={copyIcon}
-					onclick={async () => {
-						try {
-							await copyTextToClipboard(page.url.href);
-							toastStore.show('Copied link successfully', 'success');
-						} catch {
-							toastStore.show('An error occurred', 'error');
-						}
-					}}>Copy Link</ResultAction
-				>
-				<EntityShareCopyLink url={page.url.href} entityLabel={building.buildingName} />
-				<!-- <EntityEditorToggle
-					expanded={editing}
-					{canPublish}
-					publishOpenLabel="Edit building"
-					variant="toolbar"
-					onclick={() => (editing = !editing)}
-				/> -->
-			</div>
+	<img
+		src={building.imageUrl ?? 'https://dummyimage.com/960x540/000/fff&text=Lorem+ipsum+dolor'}
+		alt={building.buildingName}
+	/>
+	<div class="flex flex-col gap-3 px-6">
+		<header class="flex flex-col">
+			<h2 class="text-2xl font-semibold">{building.buildingName}</h2>
+			<span class="text-sm text-neutral-700">{buildingTypeLabel}</span>
 		</header>
+		<ResultActions data={building} />
 
-		{#if editing}
-			<!-- <section
+		<section class="entity-directions" aria-label="Directions">
+			<div class="entity-directions__segment">
+				{#if hasMapPin}
+					<!-- <EntityStreetAddress lat={building.lat ?? 0} lon={building.lon ?? 0} /> -->
+				{/if}
+				{#if building.directions}
+					<p class="text-sm text-neutral-800">{building.directions}</p>
+				{:else}
+					<p class="entity-directions__empty">
+						No directions yet. <span
+							onclick={() => {
+								/* Some suggestion panel logic */
+							}}>Add one?</span
+						>
+					</p>
+				{/if}
+			</div>
+			<EntityLastUpdated updatedAt={building.updatedAt} lastEditedBy={building.lastEditedBy} />
+		</section>
+		{#if sanitizeCrFacilities(building.crFacilities).length > 0}
+			<section class="building-cr" aria-label="CR facilities">
+				<h3 class="entity-section-heading">CR facilities</h3>
+				<div class="entity-tag-list">
+					{#each sanitizeCrFacilities(building.crFacilities) as slug (slug)}
+						<span class="entity-tag-chip building-cr__chip">{crFacilityLabel(slug)}</span>
+					{/each}
+				</div>
+			</section>
+		{/if}
+		<!-- {#if editing}
+			<section
 				class="entity-editor"
 				aria-label={canPublish ? 'Edit building details' : 'Suggest building edits'}
 			>
@@ -854,9 +825,9 @@
 						</div>
 					</details>
 				</EntityEditorPanel>
-			</section> -->
+			</section>
 		{:else}
-			<!-- <BuildingPhoto
+			<BuildingPhoto
 				photos={building.photos}
 				imageUrl={building.imageUrl}
 				name={building.buildingName}
@@ -864,72 +835,42 @@
 				lon={building.lon}
 				panoId={building.streetViewPanoId}
 				captured={building.streetViewCaptured}
-			/> -->
-			<section class="entity-directions" aria-label="Directions">
-				<div class="entity-directions__segment">
-					{#if hasMapPin}
-						<!-- <EntityStreetAddress lat={building.lat ?? 0} lon={building.lon ?? 0} /> -->
-					{/if}
-					{#if building.directions}
-						<p class="entity-directions__label">Directions</p>
-						<p class="entity-directions__text">{building.directions}</p>
-					{:else}
-						<p class="entity-directions__empty">No directions listed.</p>
-					{/if}
-				</div>
-				<!-- <EntityLastUpdated
-					updatedAt={building.updatedAt}
-					entityType="building"
-					entityId={building.id}
-				/> -->
-			</section>
-			{#if sanitizeCrFacilities(building.crFacilities).length > 0}
-				<section class="building-cr" aria-label="CR facilities">
-					<h3 class="entity-section-heading">CR facilities</h3>
+			/>
+		{/if} -->
+		<svelte:boundary>
+			{#snippet pending()}
+				Loading
+			{/snippet}
+			{@const buildingOrgs = await orgsPromise}
+			{#if buildingOrgs.length > 0}
+				<section class="building-orgs" aria-label="Organizations and offices here">
+					<h3 class="entity-section-heading">Orgs & offices here</h3>
+
 					<div class="entity-tag-list">
-						{#each sanitizeCrFacilities(building.crFacilities) as slug (slug)}
-							<span class="entity-tag-chip building-cr__chip">{crFacilityLabel(slug)}</span>
+						{#each buildingOrgs as org (org.id)}
+							<button
+								type="button"
+								class="entity-tag-chip building-orgs__chip"
+								onclick={async () => {
+									await goto(resolve(`map/organizations/${org.id}`));
+								}}
+							>
+								{org.name}
+							</button>
 						{/each}
 					</div>
 				</section>
 			{/if}
-		{/if}
-
-		{#if buildingOrgs.length > 0}
-			<section class="building-orgs" aria-label="Organizations and offices here">
-				<h3 class="entity-section-heading">Orgs & offices here</h3>
-
-				<div class="entity-tag-list">
-					{#each buildingOrgs as org (org.id)}
-						<button
-							type="button"
-							class="entity-tag-chip building-orgs__chip"
-							onclick={async () => {
-								await goto(resolve(`map/organizations/${org.id}`));
-							}}
-						>
-							{org.name}
-						</button>
-					{/each}
-				</div>
-			</section>
-		{/if}
-		{#if buildingRooms}
-			<ResultDisplay filteredRooms={buildingRooms} />
-		{:else if /* {classCounts} */ building}
-			<EntitySkeleton
-				variant="rooms"
-				heading="Rooms in the building"
-				label="Loading rooms for {building.buildingName}…"
-			/>
-		{/if}
+		</svelte:boundary>
+		<button
+			onclick={() => {
+				modalStore.openModal('modify-suggestion', building);
+			}}>Suggest Edit</button
+		>
 	</div>
 {/key}
 
-<style>
-	/* @import './entity-detail.css';
-	@import '../editor/entity-editor.css';
-	@import '../map-chrome/map-chrome.css'; */
+<!-- <style>
 	.building-orgs {
 		padding: 0.5rem 0.25rem 0;
 	}
@@ -1006,4 +947,4 @@
 			transition: none;
 		}
 	}
-</style>
+</style> -->
