@@ -12,9 +12,18 @@ export function isTypingTarget(target: EventTarget | null) {
 	return 'isContentEditable' in target && target.isContentEditable === true;
 }
 
+export function isApplePlatform(nav: {
+	platform?: string;
+	userAgent: string;
+	userAgentData?: { platform?: string };
+}) {
+	const platform = nav.userAgentData?.platform || nav.platform || '';
+	return /Mac|macOS|iPhone|iPad|iPod/.test(`${platform} ${nav.userAgent}`);
+}
+
 export function modifierLabel() {
 	if (typeof navigator === 'undefined') return 'Ctrl';
-	return /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? '⌘' : 'Ctrl';
+	return isApplePlatform(navigator) ? '⌘' : 'Ctrl';
 }
 
 export function getGlobalShortcutAction(
@@ -75,10 +84,6 @@ export function getKeyboardShortcutGroups() {
 					description: 'Undo / redo pin drag (edit mode)'
 				}
 			]
-		},
-		{
-			title: 'Help',
-			items: [{ keys: ['?'], description: 'Keyboard shortcuts' }]
 		}
 	] as const;
 }
