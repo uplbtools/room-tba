@@ -80,8 +80,6 @@
 
 	// Write fresh rooms and times into the saved plan once per open.
 	onMount(async () => {
-		void termStore.init();
-		plannerStore.init();
 		const { rows, fetchedCourses } = await courseClasses;
 		if (fetchedCourses.size > 0) plannerStore.refreshActivePlan(rows, fetchedCourses);
 	});
