@@ -18,6 +18,7 @@
   import TransitRouteLifecycle from "./TransitRouteLifecycle.svelte";
   import { trackOverlay } from "@lib/track-overlay.svelte";
   import { parseEntityPathname } from "@lib/entity-urls";
+  import { on } from "svelte/events";
 
   const mobile = new MediaQuery("max-width:48rem");
   // Entity detail views only, never list/browse panels (docs/ad-policy.md).
@@ -43,6 +44,31 @@
   /** Mobile sheet snap, independent of sidePanelStore.collapsed (Map.expand race). */
   let mobileSnap = $state<BottomSheetSnap>("peek");
   let openedFromPlaceUrl = parseEntityPathname(location.pathname) !== null;
+  let sheetBody = $state<HTMLElement | null>(null);
+
+  // Back to a place left from its full-screen view reopens it at the same
+  // scroll. Silent overlay backs never reach this listener.
+  const fullScreenScroll = new Map<string, number>();
+  let sheetScroll = 0;
+  let poppedAt = Number.NEGATIVE_INFINITY;
+  $effect(() => on(window, "popstate", () => (poppedAt = performance.now())));
+  $effect(() => {
+    const body = sheetBody;
+    if (body) return on(body, "scroll", () => (sheetScroll = body.scrollTop));
+  });
+
+  function scrollSheetTo(top: number) {
+    // The place may still be loading, so retry for up to a second.
+    let frames = 0;
+    const step = () => {
+      if (!sheetBody) return;
+      sheetBody.scrollTop = top;
+      if (sheetBody.scrollTop < top - 1 && ++frames < 60) {
+        requestAnimationFrame(step);
+      }
+    };
+    requestAnimationFrame(step);
+  }
 
   /** Navigation is a map-first view: the bar takes a strip, the map the rest. */
   const navPeek = $derived(directionsStore.navigating);
@@ -144,6 +170,10 @@
   $effect(() => {
     const identity = panelIdentity;
     if (identity === lastPanelIdentity) return;
+    if (lastPanelIdentity !== null && mobileSnap === "expanded") {
+      fullScreenScroll.set(lastPanelIdentity, sheetScroll);
+    }
+    sheetScroll = 0;
 
     if (identity !== null) {
       // Navigating to another entity drops the metadata the previous view was
@@ -152,9 +182,18 @@
       sidePanelStore.state = null;
       // A new entity starts at its own header, not the previous scroll offset.
       if (detailsEl) detailsEl.scrollTop = 0;
-      // Peek on mobile, except a place link opened cold, which opens full screen.
-      mobileSnap = openedFromPlaceUrl && entitySheet ? "expanded" : "peek";
+      // Peek on mobile, except a place link opened cold or a place reached
+      // by Back after leaving it from full screen.
+      const backTo =
+        performance.now() - poppedAt < 1000
+          ? fullScreenScroll.get(identity)
+          : undefined;
+      mobileSnap =
+        (openedFromPlaceUrl || backTo !== undefined) && entitySheet
+          ? "expanded"
+          : "peek";
       openedFromPlaceUrl = false;
+      if (backTo) scrollSheetTo(backTo);
       if (mobile.current) sidePanelStore.collapse();
       else sidePanelStore.expand();
     }
@@ -236,6 +275,7 @@
     topInset="var(--mobile-detail-sheet-top-inset, 0px)"
     bottomInset={sheetBottomInset}
     scrollResetKey={panelIdentity}
+    bind:contentEl={sheetBody}
     onDismiss={dismissMobileSheet}
   >
     {@render panelBody()}

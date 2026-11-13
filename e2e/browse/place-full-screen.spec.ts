@@ -64,6 +64,24 @@ test.describe("place full-screen view @mobile", () => {
     await expect(title(page)).toHaveText(name);
   });
 
+  test("Back from a room reopens the building full screen at the same scroll", async ({
+    page,
+  }) => {
+    await openFullScreen(page);
+    const body = page.locator(".bottom-sheet__body");
+    await page.getByRole("tab", { name: "Rooms" }).click();
+    await page.waitForTimeout(600);
+    const top = await body.evaluate((el) => el.scrollTop);
+
+    await fullScreen(page).getByText(E2E_FIXTURES.roomCode).first().click();
+    await expect(page).toHaveURL(/\/room\//);
+    await page.goBack();
+
+    await expect(fullScreen(page)).toBeVisible();
+    await expect(title(page)).toHaveText(name);
+    await expect.poll(() => body.evaluate((el) => el.scrollTop)).toBe(top);
+  });
+
   test("a place link opened cold shows the full-screen view", async ({
     page,
   }) => {

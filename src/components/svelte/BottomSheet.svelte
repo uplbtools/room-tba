@@ -21,6 +21,7 @@
     topInset = "0px",
     bottomInset = "0px",
     scrollResetKey,
+    contentEl = $bindable(null),
     onDismiss,
     children,
   }: {
@@ -51,6 +52,7 @@
      * own name, not at the parent's scroll offset.
      */
     scrollResetKey?: unknown;
+    contentEl?: HTMLElement | null;
     onDismiss?: () => void;
     children: Snippet;
   } = $props();
@@ -66,7 +68,6 @@
 
   let rootEl = $state<HTMLElement | null>(null);
   let sheetEl = $state<HTMLElement | null>(null);
-  let contentEl = $state<HTMLElement | null>(null);
   let backEl = $state<HTMLElement | null>(null);
 
   let availableH = $state(0);
