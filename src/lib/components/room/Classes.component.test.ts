@@ -1,8 +1,21 @@
 import { render, screen } from '@testing-library/svelte';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import Classes from './Classes.svelte';
 import { mountAtWidth } from '@test/layout-assertions';
-import type { ClassMapValue } from '#lib/utils/types';
+import type { ClassMapValue } from '#lib/utils/types.js';
+import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
+import SearchInfo from '#lib/stores/SearchInfo.svelte.js';
+import ToastStore from '#lib/stores/new/ui/ToastStore.svelte.js';
+
+vi.mock('#lib/utils/context.js', () => ({
+	getPlannerStore: () => plannerStore,
+	getSearchInfo: () => searchInfo,
+	getToast: () => toastStore
+}));
+
+const plannerStore = new PlannerStore(() => 1252);
+const searchInfo = new SearchInfo();
+const toastStore = new ToastStore();
 
 const roomlessClass: ClassMapValue = {
 	id: 1,

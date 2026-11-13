@@ -1,10 +1,10 @@
-<!-- <script lang="ts">
+<script lang="ts">
 	import { classTypeDisplayLabel, NO_ASSIGNED_ROOM_LABEL } from '#lib/amis/room-scheduled-types.js';
 	import { groupClassesByOffering, offeringGroupKey } from '#lib/utils/class-offering-groups.js';
 	import type { ClassOfferingGroup } from '#lib/utils/class-offering-groups.js';
 	import type { ProbableLocation } from '#lib/utils/probable-location.js';
-	import type { ClassMapValue } from '#lib/utils/types';
-	import { plannerStore, searchInfo, toastStore } from '#lib/stores.svelte.js';
+	import type { ClassMapValue } from '#lib/utils/types.js';
+	import { getPlannerStore, getSearchInfo, getToast } from '#lib/utils/context.js';
 
 	interface Props {
 		classes: ClassMapValue[];
@@ -12,6 +12,9 @@
 	}
 
 	const { classes, currentRoomCode = null }: Props = $props();
+	const plannerStore = getPlannerStore();
+	const searchInfo = getSearchInfo();
+	const toastStore = getToast();
 
 	const groups = $derived(groupClassesByOffering(classes));
 
@@ -22,12 +25,11 @@
 			category: 'room',
 			value: roomCode
 		});
-		searchInfo.inputValue = roomCode;
 	}
 
 	function formatSchedule(schedule: string[] | null): string {
 		if (!schedule?.length) return 'Schedule TBA';
-		return schedule.join(' · ');
+		return schedule.join(', ');
 	}
 
 	/** "Offered by Institute of Computer Science (CAS)" — hedged, never "is at". */
@@ -48,7 +50,6 @@
 				: null;
 		if (!target) return;
 		searchInfo.updateQuery({ type: 'result', ...target });
-		searchInfo.inputValue = target.value;
 	}
 
 	function planKey(group: ClassOfferingGroup): string | null {
@@ -114,7 +115,7 @@
 									</span>
 								{:else if !sectionClass.roomCode}
 									<span class="class-section-row__room class-section-row__room--unassigned">
-										· {NO_ASSIGNED_ROOM_LABEL}
+										({NO_ASSIGNED_ROOM_LABEL})
 									</span>
 								{/if}
 							</div>
@@ -168,20 +169,20 @@
 	}
 
 	.class-offering {
-		border: 1px solid hsl(0, 0%, 88%);
+		border: 1px solid var(--theme-border, hsl(0, 0%, 88%));
 		border-radius: 0.5rem;
-		background: hsl(0, 0%, 98%);
+		background: var(--theme-surface, hsl(0, 0%, 98%));
 		overflow: hidden;
 	}
 
 	.class-offering--multi {
-		border-color: hsl(5, 35%, 82%);
+		border-color: var(--theme-accent-border, hsl(5, 35%, 82%));
 		box-shadow: inset 3px 0 0 hsl(5, 53%, 42%);
 	}
 
 	.class-offering__header {
 		padding: 0.625rem 0.75rem 0.375rem;
-		border-bottom: 1px solid hsl(0, 0%, 92%);
+		border-bottom: 1px solid var(--theme-border, hsl(0, 0%, 92%));
 	}
 
 	.class-offering__heading {
@@ -194,15 +195,15 @@
 	.class-offering__title {
 		font-weight: 600;
 		font-size: 0.9375rem;
-		color: #111;
+		color: var(--theme-text, #111);
 	}
 
 	.class-offering__plan {
 		flex-shrink: 0;
-		border: 1px solid hsl(5, 53%, 82%);
+		border: 1px solid var(--theme-accent-border, hsl(5, 53%, 82%));
 		border-radius: 999px;
-		background: white;
-		color: hsl(5, 53%, 32%);
+		background: var(--theme-surface, white);
+		color: var(--theme-accent-text, hsl(5, 53%, 32%));
 		font-size: 0.6875rem;
 		font-weight: 600;
 		padding: 0.25rem 0.625rem;
@@ -210,29 +211,29 @@
 	}
 
 	.class-offering__plan:hover {
-		background: hsl(5, 53%, 96%);
+		background: var(--theme-accent-soft, hsl(5, 53%, 96%));
 	}
 
 	.class-offering__plan--added {
-		background: hsl(5, 53%, 32%);
-		border-color: hsl(5, 53%, 32%);
+		background: var(--theme-accent-fill, hsl(5, 53%, 32%));
+		border-color: var(--theme-accent-text, hsl(5, 53%, 32%));
 		color: white;
 	}
 
 	.class-offering__plan--added:hover {
-		background: hsl(5, 53%, 26%);
+		background: var(--theme-accent-fill, hsl(5, 53%, 26%));
 	}
 
 	.class-offering__subtitle {
 		margin-top: 0.125rem;
-		color: #555;
+		color: var(--theme-text-2, #555);
 		font-size: 0.8125rem;
 		line-height: 1.35;
 	}
 
 	.class-offering__section {
 		margin-top: 0.25rem;
-		color: #777;
+		color: var(--theme-text-2, #777);
 		font-size: 0.75rem;
 	}
 
@@ -250,8 +251,8 @@
 		gap: 0.5rem;
 		padding: 0.5rem 0.625rem;
 		border-radius: 0.375rem;
-		background: white;
-		border: 1px solid hsl(0, 0%, 92%);
+		background: var(--theme-surface, white);
+		border: 1px solid var(--theme-border, hsl(0, 0%, 92%));
 	}
 
 	.class-section-row__main {
@@ -262,13 +263,13 @@
 	.class-section-row__type {
 		font-size: 0.8125rem;
 		font-weight: 600;
-		color: #222;
+		color: var(--theme-text, #222);
 	}
 
 	.class-section-row__room {
 		margin-left: 0.25rem;
 		font-weight: 500;
-		color: #666;
+		color: var(--theme-text-2, #666);
 	}
 
 	.class-section-row__room--unassigned {
@@ -279,7 +280,7 @@
 	.class-section-row__schedule {
 		margin-top: 0.125rem;
 		font-size: 0.75rem;
-		color: #555;
+		color: var(--theme-text-2, #555);
 		line-height: 1.35;
 	}
 
@@ -293,7 +294,7 @@
 		column-gap: 0.5rem;
 		row-gap: 0.125rem;
 		font-size: 0.6875rem;
-		color: #777;
+		color: var(--theme-text-2, #777);
 		line-height: 1.4;
 	}
 
@@ -303,22 +304,22 @@
 		padding: 0.125rem 0;
 		font-size: 0.6875rem;
 		font-weight: 500;
-		color: #777;
+		color: var(--theme-text-2, #777);
 		text-decoration: underline;
 		text-underline-offset: 2px;
 		cursor: pointer;
 	}
 
 	.class-section-row__probable-pin:hover {
-		color: hsl(5, 53%, 32%);
+		color: var(--theme-accent-text, hsl(5, 53%, 32%));
 	}
 
 	.class-section-row__open {
 		flex-shrink: 0;
-		border: 1px solid hsl(5, 53%, 82%);
+		border: 1px solid var(--theme-accent-border, hsl(5, 53%, 82%));
 		border-radius: 999px;
-		background: white;
-		color: hsl(5, 53%, 32%);
+		background: var(--theme-surface, white);
+		color: var(--theme-accent-text, hsl(5, 53%, 32%));
 		font-size: 0.6875rem;
 		font-weight: 600;
 		padding: 0.25rem 0.625rem;
@@ -326,6 +327,6 @@
 	}
 
 	.class-section-row__open:hover {
-		background: hsl(5, 53%, 96%);
+		background: var(--theme-accent-soft, hsl(5, 53%, 96%));
 	}
-</style> -->
+</style>
