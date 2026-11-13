@@ -1,9 +1,10 @@
 <script lang="ts">
 	import Search from '#lib/components/new/Search.svelte';
-	import { MapStore } from '#lib/stores/new/map/map-stores.svelte.js';
+	import { MapStore, TravelTimeStore } from '#lib/stores/new/map/map-stores.svelte.js';
 	import UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
 	import {
 		initMapStore,
+		initTravelTimeStore,
 		initSearchInfo,
 		initModalStore,
 		initUserLocation,
@@ -511,6 +512,7 @@
 	const { children }: { children: Snippet } = $props();
 
 	initMapStore(new MapStore());
+	initTravelTimeStore(new TravelTimeStore());
 	initUserLocation(new UserLocation());
 	initSearchInfo(new SearchInfo());
 	initModalStore(new ModalStore());
