@@ -4,6 +4,7 @@
 		MapStore,
 		MapToolsStore,
 		MeasureRouteStore,
+		TrailStore,
 		TravelTimeStore
 	} from '#lib/stores/new/map/map-stores.svelte.js';
 	import UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
@@ -12,6 +13,7 @@
 		initTravelTimeStore,
 		initMapToolsStore,
 		initMeasureRouteStore,
+		initTrailStore,
 		initSearchInfo,
 		initModalStore,
 		initUserLocation,
@@ -522,6 +524,7 @@
 	initTravelTimeStore(new TravelTimeStore());
 	initMapToolsStore(new MapToolsStore());
 	initMeasureRouteStore(new MeasureRouteStore());
+	initTrailStore(new TrailStore());
 	initUserLocation(new UserLocation());
 	initSearchInfo(new SearchInfo());
 	initModalStore(new ModalStore());

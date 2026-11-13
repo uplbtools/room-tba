@@ -12,6 +12,7 @@ import type {
 	MapStore,
 	MapToolsStore,
 	MeasureRouteStore,
+	TrailStore,
 	TravelTimeStore
 } from '#lib/stores/new/map/map-stores.svelte.js';
 import type UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
@@ -63,6 +64,7 @@ export const [getMapStore, initMapStore] = createContext<MapStore>();
 export const [getTravelTimeStore, initTravelTimeStore] = createContext<TravelTimeStore>();
 export const [getMapToolsStore, initMapToolsStore] = createContext<MapToolsStore>();
 export const [getMeasureRouteStore, initMeasureRouteStore] = createContext<MeasureRouteStore>();
+export const [getTrailStore, initTrailStore] = createContext<TrailStore>();
 export const [getUserLocation, initUserLocation] = createContext<UserLocation>();
 export const [getSearchInfo, initSearchInfo] = createContext<SearchInfo>();
 export const [getToast, initToast] = createContext<ToastStore>();
