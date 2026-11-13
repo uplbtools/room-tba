@@ -1,75 +1,27 @@
 <script lang="ts">
 	import Search from '@lucide/svelte/icons/search';
+	import { debounce } from 'es-toolkit';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { fetchClassPage, fetchAllClasses } from '#lib/utils/classes-api.js';
+	import { getClassesByCourseCode } from '#lib/functions/classes.remote.js';
 	import {
 		groupClassesByOffering,
 		offeringGroupKey,
 		type ClassOfferingGroup
 	} from '#lib/utils/class-offering-groups.js';
-	import { plannerStore, termStore, toastStore } from '#lib/stores.svelte.js';
-	import type { ClassMapValue } from '#lib/utils/types';
+	import { getPlannerStore, getTermStore, getToast } from '#lib/utils/context.js';
+	import type { ClassMapValue } from '#lib/utils/types.js';
+
+	const plannerStore = getPlannerStore();
+	const termStore = getTermStore();
+	const toastStore = getToast();
 
 	const termId = $derived(plannerStore.activePlan?.termId ?? termStore.activeTermId);
 
-	let query = $state('');
-	let loading = $state(false);
-	let loadingMore = $state(false);
-	let rows = $state<ClassMapValue[]>([]);
-	let nextCursor = $state<string | null>(null);
-	let hasMore = $state(false);
+	let courseCode = $state('');
+	const setCourseCode = debounce((value: string) => {
+		courseCode = value.trim();
+	}, 250);
 	const expanded = new SvelteSet<string>();
-
-	// Browse mode (no query) pages through the term 100 at a time (#planner).
-	async function loadMore() {
-		if (loadingMore || query.trim() || !nextCursor) return;
-		loadingMore = true;
-		try {
-			const page = await fetchClassPage({
-				termId,
-				limit: 100,
-				cursor: nextCursor
-			});
-			rows = [...rows, ...page.rows];
-			nextCursor = page.nextCursor;
-			hasMore = page.hasMore;
-		} catch {
-			// keep what we have; the note still offers searching by course code
-		} finally {
-			loadingMore = false;
-		}
-	}
-
-	$effect(() => {
-		const q = query.trim();
-		const t = termId;
-		const timer = setTimeout(
-			() => {
-				loading = true;
-				// With a course code typed, pull every section (HK 12 has 147, past the
-				// 100/page cap). Browsing the whole term stays a single capped page.
-				const request = q
-					? fetchAllClasses({ termId: t, courseCodePrefix: q })
-					: fetchClassPage({ termId: t, limit: 100 });
-				request
-					.then((page) => {
-						rows = page.rows;
-						nextCursor = page.nextCursor;
-						hasMore = page.hasMore;
-					})
-					.catch(() => {
-						rows = [];
-						nextCursor = null;
-						hasMore = false;
-					})
-					.finally(() => {
-						loading = false;
-					});
-			},
-			q ? 250 : 0
-		);
-		return () => clearTimeout(timer);
-	});
 
 	type CourseGroup = {
 		/** Stable list/expand key: courseCode + title. */
@@ -84,7 +36,7 @@
 		return `${courseCode}::${title ?? ''}`;
 	}
 
-	const courses = $derived.by(() => {
+	function groupCourses(rows: ClassMapValue[]): CourseGroup[] {
 		const byCourse = new Map<string, CourseGroup>();
 		for (const offering of groupClassesByOffering(rows)) {
 			if (offering.key.startsWith('__solo__')) continue;
@@ -109,7 +61,7 @@
 			if (byCode !== 0) return byCode;
 			return (a.title ?? '').localeCompare(b.title ?? '');
 		});
-	});
+	}
 
 	function selectedCount(course: CourseGroup): number {
 		return course.offerings.filter((o) =>
@@ -164,96 +116,85 @@
 			id="planner-course-search"
 			type="search"
 			placeholder="Search courses (e.g. CMSC 12)"
-			bind:value={query}
+			oninput={(event) => setCourseCode(event.currentTarget.value)}
 		/>
 	</label>
 
-	{#if loading}
-		<p class="course-search__note">Searching…</p>
-	{:else if courses.length === 0}
-		<p class="course-search__note">
-			{query.trim() ? 'No courses found this term.' : 'No classes this term.'}
-		</p>
+	{#if !courseCode || termId == null}
+		<p class="course-search__note">Search a course code to see its sections.</p>
 	{:else}
-		<div class="course-search__list">
-			<div class="course-search__list-container">
-				{#each courses as course (course.key)}
-					{@const picked = selectedCount(course)}
-					<div class="course-item">
-						<button
-							type="button"
-							class="course-item__header"
-							aria-expanded={expanded.has(course.key)}
-							onclick={() => toggleExpanded(course.key)}
-						>
-							<span class="course-item__code">
-								{#if course.courseCode.includes('HK 12')}
-									{course.courseCode}
-									{#if stripHk12Title(course.title)}
-										{' '}({stripHk12Title(course.title)})
+		<svelte:boundary>
+			{#snippet pending()}
+				<p class="course-search__note">Searching…</p>
+			{/snippet}
+			{#snippet failed()}
+				<p class="course-search__note">Could not load classes.</p>
+			{/snippet}
+			<div class="course-search__list">
+				<div class="course-search__list-container">
+					{#each groupCourses(await getClassesByCourseCode( { termId, courseCode } )) as course (course.key)}
+						{@const picked = selectedCount(course)}
+						<div class="course-item">
+							<button
+								type="button"
+								class="course-item__header"
+								aria-expanded={expanded.has(course.key)}
+								onclick={() => toggleExpanded(course.key)}
+							>
+								<span class="course-item__code">
+									{#if course.courseCode.includes('HK 12')}
+										{course.courseCode}
+										{#if stripHk12Title(course.title)}
+											{' '}({stripHk12Title(course.title)})
+										{/if}
+									{:else}
+										{course.courseCode}
 									{/if}
-								{:else}
-									{course.courseCode}
-								{/if}
-							</span>
-							<span class="course-item__meta">
-								{#if picked > 0}
-									<span class="course-item__picked">{picked} in plan</span>
-								{/if}
-								{course.offerings.length}
-								section{course.offerings.length === 1 ? '' : 's'}
-							</span>
-							{#if course.title}
-								<span class="course-item__title">
-									{course.title}
 								</span>
+								<span class="course-item__meta">
+									{#if picked > 0}
+										<span class="course-item__picked">{picked} in plan</span>
+									{/if}
+									{course.offerings.length}
+									section{course.offerings.length === 1 ? '' : 's'}
+								</span>
+								{#if course.title}
+									<span class="course-item__title">
+										{course.title}
+									</span>
+								{/if}
+							</button>
+							{#if expanded.has(course.key)}
+								<ul class="course-item__sections">
+									{#each course.offerings as offering (offering.key)}
+										{@const key = offeringGroupKey(offering.courseCode, offering.section)}
+										{@const added = plannerStore.addedKeys.has(key ?? '')}
+										<li class="section-row">
+											<div class="section-row__main">
+												<span class="section-row__name">{offering.section}</span>
+												<span class="section-row__schedule">
+													{offeringSchedule(offering)}
+												</span>
+											</div>
+											<button
+												type="button"
+												class="section-row__toggle"
+												class:section-row__toggle--added={added}
+												onclick={() => togglePlan(offering)}
+											>
+												{added ? '✓' : 'Add'}
+											</button>
+										</li>
+									{/each}
+								</ul>
 							{/if}
-						</button>
-						{#if expanded.has(course.key)}
-							<ul class="course-item__sections">
-								{#each course.offerings as offering (offering.key)}
-									{@const key = offeringGroupKey(offering.courseCode, offering.section)}
-									{@const added = plannerStore.addedKeys.has(key ?? '')}
-									<li class="section-row">
-										<div class="section-row__main">
-											<span class="section-row__name">{offering.section}</span>
-											<span class="section-row__schedule">
-												{offeringSchedule(offering)}
-											</span>
-										</div>
-										<button
-											type="button"
-											class="section-row__toggle"
-											class:section-row__toggle--added={added}
-											onclick={() => togglePlan(offering)}
-										>
-											{added ? '✓' : 'Add'}
-										</button>
-									</li>
-								{/each}
-							</ul>
-						{/if}
-					</div>
-				{/each}
+						</div>
+					{:else}
+						<p class="course-search__note">No courses found this term.</p>
+					{/each}
+				</div>
 			</div>
-		</div>
-		{#if hasMore}
-			<p class="course-search__note">
-				Showing the first {rows.length} sections.
-				{#if !query.trim()}
-					<button
-						type="button"
-						class="course-search__more"
-						onclick={loadMore}
-						disabled={loadingMore}
-					>
-						{loadingMore ? 'Loading…' : 'Show more'}
-					</button>
-				{:else}
-					Search a course code to find the rest.
-				{/if}
-			</p>
-		{/if}
+		</svelte:boundary>
 	{/if}
 </aside>
 
@@ -300,28 +241,6 @@
 		color: hsl(0, 0%, 28%);
 		background: hsl(0, 0%, 100%);
 		border-top: 1px solid hsl(0, 0%, 90%);
-	}
-
-	.course-search__more {
-		all: unset;
-		margin-left: 0.25rem;
-		padding: 0.125rem 0.625rem;
-		border: 1px solid hsl(5, 53%, 82%);
-		border-radius: 999px;
-		color: hsl(5, 53%, 32%);
-		font-size: 0.75rem;
-		font-weight: 600;
-		cursor: pointer;
-	}
-
-	.course-search__more:hover:not(:disabled),
-	.course-search__more:focus-visible {
-		background: hsl(5, 53%, 96%);
-	}
-
-	.course-search__more:disabled {
-		opacity: 0.6;
-		cursor: progress;
 	}
 
 	.course-search__list {

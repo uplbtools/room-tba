@@ -13,13 +13,16 @@ export const getClassesByCourseCode = query(
 	async ({ termId, courseCode }) => {
 		const rows = await db
 			.select({
+				id: classesTable.id,
 				termId: classesTable.termId,
 				courseCode: classesTable.courseCode,
 				courseTitle: classesTable.courseTitle,
 				section: classesTable.section,
 				type: classesTable.type,
 				schedule: classesTable.schedule,
-				roomCode: roomsTable.roomCode
+				roomId: classesTable.roomId,
+				roomCode: roomsTable.roomCode,
+				directions: roomsTable.directions
 			})
 			.from(classesTable)
 			.leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
