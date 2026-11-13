@@ -5,7 +5,7 @@
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Plus from '@lucide/svelte/icons/plus';
-	import X from '@lucide/svelte/icons/x';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import { fly } from 'svelte/transition';
 	import { trapFocus } from '#lib/utils/focus-trap.js';
 	import { fullScreenDismiss, fullScreenReveal } from '#lib/utils/motion.js';
@@ -14,10 +14,18 @@
 	import { getClassesByCourseCode } from '#lib/functions/classes.remote.js';
 	import { getFinalExams } from '#lib/functions/final-exams.remote.js';
 	import { getPlannerStore, getSearchInfo, getTermStore, getToast } from '#lib/utils/context.js';
-	import { COURSE_CHANGE_DISCLAIMER } from '#lib/amis/room-scheduled-types.js';
+	import {
+		COURSE_CHANGE_DISCLAIMER,
+		ROOM_SCHEDULE_SCOPE_NOTE
+	} from '#lib/amis/room-scheduled-types.js';
 	import { changeOfMatriculationLabel } from '#lib/utils/term/term-calendar.js';
 	import { FINALS_SCOPE_NOTE } from '#lib/utils/final-exams/final-exams.js';
 	import { isUnscheduled } from '#lib/utils/planner/conflicts.js';
+	import {
+		formatMinutesRange,
+		formatScheduleShort,
+		formatSectionType
+	} from '#lib/utils/planner/format.js';
 	import { buildPlanIcs } from '#lib/utils/planner/ics.js';
 	import { renderPlanToPng } from '#lib/utils/planner/plan-image.js';
 	import { encodeSharePlan } from '#lib/utils/planner/share-codec.js';
@@ -127,6 +135,26 @@
 			g.sections.sort((a, b) => (a.type === 'LEC' ? 0 : 1) - (b.type === 'LEC' ? 0 : 1));
 		}
 		return [...byCourse.values()];
+	});
+
+	const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+	const conflictPairs = $derived.by(() => {
+		const byPair = new Map<string, { label: string; days: string[]; range: string }>();
+		for (const { a, b } of plannerStore.conflicts) {
+			const key = `${a.courseCode} ${a.section}|${b.courseCode} ${b.section}`;
+			let pair = byPair.get(key);
+			if (!pair) {
+				pair = {
+					label: `${a.courseCode} ${a.section} overlaps ${b.courseCode} ${b.section}`,
+					days: [],
+					range: formatMinutesRange(Math.max(a.startMin, b.startMin), Math.min(a.endMin, b.endMin))
+				};
+				byPair.set(key, pair);
+			}
+			const day = DAY_NAMES[a.dayIndex] ?? '';
+			if (!pair.days.includes(day)) pair.days.push(day);
+		}
+		return [...byPair.values()];
 	});
 
 	const unscheduled = $derived((plan?.sections ?? []).filter((s) => !s.stale && isUnscheduled(s)));
@@ -240,6 +268,22 @@
 		plannerStore.deletePlan(tabPlan.id);
 	}
 
+	function onEscape() {
+		const el = document.activeElement;
+		if (el instanceof HTMLInputElement && screenEl?.contains(el)) {
+			if (renaming) {
+				renaming = false;
+			} else if (el.type === 'search' && el.value) {
+				el.value = '';
+				el.dispatchEvent(new Event('input', { bubbles: true }));
+			} else {
+				el.blur();
+			}
+			return;
+		}
+		close();
+	}
+
 	async function startRename(tabPlan?: { id: string; label: string }) {
 		const target = tabPlan ?? plan;
 		if (!target) return;
@@ -268,10 +312,14 @@
 		node.focus();
 	}
 
-	// Switching plans cancels an in-progress rename.
 	$effect(() => {
 		void plan?.id;
 		renaming = false;
+		tick().then(() =>
+			screenEl
+				?.querySelector('.planner-tab-item--active')
+				?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+		);
 	});
 
 	// Never leave the active term with zero plans — empty chrome is unusable.
@@ -283,7 +331,7 @@
 
 	$effect(() => {
 		if (!screenEl) return;
-		return trapFocus(screenEl, { onEscape: close });
+		return trapFocus(screenEl, { onEscape });
 	});
 </script>
 
@@ -311,51 +359,69 @@
 			<TermSelector variant="chip" />
 		{/if}
 		{#if plan}
-			<button
-				type="button"
-				class="planner-action"
-				onclick={copyShareLink}
-				disabled={!hasSchedule}
-				aria-label="Share plan"
-				title={hasSchedule ? 'Copy a link that reopens this plan' : 'Add a scheduled class first'}
-			>
-				<Share2 size={15} aria-hidden="true" />
-				<span class="planner-action__label">Share</span>
-			</button>
-			<button
-				type="button"
-				class="planner-action"
-				onclick={downloadIcs}
-				disabled={!hasSchedule}
-				aria-label="Add to Google Calendar"
-				title={hasSchedule
-					? 'Downloads an .ics file you can import into Google Calendar, Apple Calendar, or Outlook'
-					: 'Add a scheduled class first'}
-			>
-				<GoogleCalendarIcon size={15} />
-				<span class="planner-action__label">Add to Google Calendar</span>
-			</button>
-			<button
-				type="button"
-				class="planner-action"
-				onclick={saveAsImage}
-				disabled={!hasSchedule || exportingImage}
-				aria-label="Save image"
-				title={hasSchedule ? 'Download the timetable as an image' : 'Add a scheduled class first'}
-			>
-				<ImageDown size={15} aria-hidden="true" />
-				<span class="planner-action__label">
-					{exportingImage ? 'Saving…' : 'Save image'}
-				</span>
-			</button>
+			<div class="planner-actions">
+				<button
+					type="button"
+					class="planner-action"
+					onclick={copyShareLink}
+					disabled={!hasSchedule}
+					aria-label="Share plan"
+					title={hasSchedule ? 'Copy a link that reopens this plan' : 'Add a scheduled class first'}
+				>
+					<Share2 size={15} aria-hidden="true" />
+					<span>Share</span>
+				</button>
+				<button
+					type="button"
+					class="planner-action"
+					onclick={downloadIcs}
+					disabled={!hasSchedule}
+					aria-label="Add to Google Calendar"
+					title={hasSchedule
+						? 'Downloads an .ics file you can import into Google Calendar, Apple Calendar, or Outlook'
+						: 'Add a scheduled class first'}
+				>
+					<GoogleCalendarIcon size={15} />
+					<span class="planner-action__label">Add to Google Calendar</span>
+					<span class="planner-action__short">Calendar</span>
+				</button>
+				<button
+					type="button"
+					class="planner-action"
+					onclick={saveAsImage}
+					disabled={!hasSchedule || exportingImage}
+					aria-label="Save image"
+					title={hasSchedule ? 'Download the timetable as an image' : 'Add a scheduled class first'}
+				>
+					<ImageDown size={15} aria-hidden="true" />
+					<span class="planner-action__label">
+						{exportingImage ? 'Saving…' : 'Save image'}
+					</span>
+					<span class="planner-action__short">
+						{exportingImage ? 'Saving…' : 'Image'}
+					</span>
+				</button>
+			</div>
 		{/if}
 	</header>
 
-	<p class="planner-disclaimer" role="note">
-		{COURSE_CHANGE_DISCLAIMER}{changeOfMatriculationLabel(termStore.activeTermId)
-			? ` (${changeOfMatriculationLabel(termStore.activeTermId)})`
-			: ''}
-	</p>
+	<details class="planner-notice">
+		<summary class="planner-disclaimer">
+			<span class="planner-disclaimer__text">
+				{COURSE_CHANGE_DISCLAIMER}{changeOfMatriculationLabel(termStore.activeTermId)
+					? ` (${changeOfMatriculationLabel(termStore.activeTermId)})`
+					: ''}
+			</span>
+		</summary>
+		<p class="planner-save-note" role="note">
+			Plans save automatically on this device. Use <strong>Share</strong> to copy a link you can reopen
+			anywhere or send to someone.
+		</p>
+		<p class="planner-save-note" role="note">
+			<strong>Why a class may be missing from your day's stops:</strong>
+			{ROOM_SCHEDULE_SCOPE_NOTE}
+		</p>
+	</details>
 
 	<div class="planner-tabs" role="tablist" aria-label="Plans">
 		{#each plannerStore.plansForTerm as tabPlan (tabPlan.id)}
@@ -405,9 +471,9 @@
 							class="planner-tab__action planner-tab__action--danger"
 							onclick={() => deletePlan(tabPlan)}
 							aria-label="Delete {tabPlan.label}"
-							title="Delete"
+							title="Delete plan"
 						>
-							<X size={12} aria-hidden="true" />
+							<Trash2 size={12} aria-hidden="true" />
 						</button>
 					</div>
 				{/if}
@@ -424,11 +490,6 @@
 			</button>
 		</div>
 	</div>
-
-	<p class="planner-save-note" role="note">
-		Plans save automatically on this device. Use <strong>Share</strong> to copy a link you can reopen
-		anywhere or send to someone.
-	</p>
 
 	<div class="planner-body" class:planner-body--no-side={!plan || plan.sections.length === 0}>
 		<PlannerCourseSearch />
@@ -463,9 +524,7 @@
 					Sections ({offerings.length})
 					{#if plannerStore.conflicts.length > 0}
 						<span class="planner-conflict-badge" role="status">
-							{plannerStore.conflicts.length} conflict{plannerStore.conflicts.length === 1
-								? ''
-								: 's'}
+							{conflictPairs.length} conflict{conflictPairs.length === 1 ? '' : 's'}
 						</span>
 					{:else if plan && plan.sections.length > 0}
 						<span class="planner-conflict-badge planner-conflict-badge--clear" role="status">
@@ -473,9 +532,20 @@
 						</span>
 					{/if}
 				</h2>
+				{#if conflictPairs.length > 0}
+					<ul class="planner-conflicts">
+						{#each conflictPairs as pair (pair.label)}
+							<li>
+								<strong>{pair.label}</strong>,
+								{pair.days.join('/')}
+								{pair.range}
+							</li>
+						{/each}
+					</ul>
+				{/if}
 				<p class="planner-side__hint" role="note">
-					Room TBA cannot show instructor names from AMIS. Write the professor for each section here
-					— saved to your account when signed in, never shared.
+					AMIS doesn't list instructors here. Jot each section's professor below; notes stay private
+					(synced to your account when signed in).
 				</p>
 				<ul class="planner-offerings">
 					{#each courseGroups as group (group.courseCode)}
@@ -503,10 +573,15 @@
 									<li class="planner-offering__part planner-offering__part--with-note">
 										<div class="planner-offering__part-head">
 											<span class="planner-offering__part-type">
-												{s.type ?? 'Class'}
+												{formatSectionType(s.type)}
 											</span>
 											<span class="planner-offering__part-section">
 												{s.section}
+											</span>
+											<span class="planner-offering__part-time">
+												{(s.schedule ?? []).map(formatScheduleShort).join(', ')}{s.roomCode
+													? ` in ${s.roomCode}`
+													: ''}
 											</span>
 										</div>
 										<input
@@ -534,7 +609,7 @@
 					<h2 class="planner-side__heading">Unscheduled (TBA)</h2>
 					<ul class="planner-plain-list">
 						{#each unscheduled as s (s.courseCode + s.section + s.type)}
-							<li>{s.courseCode} {s.type} · {s.section}</li>
+							<li>{s.courseCode} {s.type} {s.section}</li>
 						{/each}
 					</ul>
 				{/if}
@@ -543,7 +618,7 @@
 					<h2 class="planner-side__heading">No longer offered</h2>
 					<ul class="planner-plain-list planner-plain-list--stale">
 						{#each staleSections as s (s.courseCode + s.section + s.type)}
-							<li>{s.courseCode} {s.type} · {s.section}</li>
+							<li>{s.courseCode} {s.type} {s.section}</li>
 						{/each}
 					</ul>
 				{/if}
@@ -569,11 +644,15 @@
        (tabs, week grid) own their horizontal scrolling; the root never does. */
 		flex: 1 1 auto;
 		min-width: 0;
+		min-height: 0;
 		max-width: 100%;
 		overflow-x: clip;
 		display: flex;
 		flex-direction: column;
-		background-color: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
+		background-color: var(
+			--map-chrome-surface,
+			var(--theme-surface-translucent, rgba(255, 255, 255, 0.98))
+		);
 		pointer-events: auto;
 	}
 
@@ -584,7 +663,7 @@
 		gap: 0.5rem;
 		min-width: 0;
 		padding: calc(env(safe-area-inset-top, 0px) + 0.375rem) 0.625rem 0.375rem;
-		border-bottom: 1px solid var(--map-chrome-border, hsl(0, 0%, 58%));
+		border-bottom: 1px solid var(--map-chrome-border, var(--theme-border-strong, hsl(0, 0%, 58%)));
 	}
 
 	/* The chip ships flex: 0 0 auto; let it shrink here (its label already
@@ -603,7 +682,7 @@
 		min-height: 2rem;
 		padding: 0.25rem 0.375rem 0.25rem 0.125rem;
 		border-radius: 0.5rem;
-		color: hsl(5, 53%, 32%);
+		color: var(--theme-accent-text, hsl(5, 53%, 32%));
 		cursor: pointer;
 		font: inherit;
 		font-size: 0.875rem;
@@ -613,11 +692,11 @@
 
 	.planner-back:hover,
 	.planner-back:focus-visible {
-		background-color: hsl(5, 53%, 96%);
+		background-color: var(--theme-accent-soft, hsl(5, 53%, 96%));
 	}
 
 	.planner-back:focus-visible {
-		outline: 2px solid hsl(5, 53%, 32%);
+		outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
 		outline-offset: 1px;
 	}
 
@@ -629,9 +708,15 @@
 		font-size: 0.9375rem;
 		font-weight: 700;
 		line-height: 1.2;
-		color: hsl(0, 0%, 15%);
+		color: var(--theme-text, hsl(0, 0%, 15%));
 		text-overflow: ellipsis;
 		white-space: nowrap;
+	}
+
+	.planner-actions {
+		display: flex;
+		flex: 0 0 auto;
+		gap: 0.5rem;
 	}
 
 	.planner-action {
@@ -639,13 +724,14 @@
 		box-sizing: border-box;
 		display: inline-flex;
 		align-items: center;
+		justify-content: center;
 		gap: 0.375rem;
 		flex: 0 0 auto;
 		padding: 0.375rem 0.625rem;
-		border: 1px solid hsl(5, 53%, 82%);
+		border: 1px solid hsl(5, 53%, 62%);
 		border-radius: 999px;
-		background: white;
-		color: hsl(5, 53%, 32%);
+		background: var(--theme-accent-soft, hsl(5, 53%, 97%));
+		color: var(--theme-accent-text, hsl(5, 53%, 30%));
 		font-size: 0.75rem;
 		font-weight: 600;
 		cursor: pointer;
@@ -653,39 +739,78 @@
 
 	.planner-action:hover:not(:disabled),
 	.planner-action:focus-visible:not(:disabled) {
-		background: hsl(5, 53%, 96%);
+		background: var(--theme-accent-soft, hsl(5, 53%, 92%));
 	}
 
 	.planner-action:disabled {
-		opacity: 0.4;
+		opacity: 0.55;
 		cursor: not-allowed;
-		border-color: hsl(0, 0%, 82%);
-		color: hsl(0, 0%, 55%);
+		border-color: var(--theme-border, hsl(0, 0%, 85%));
+		background: var(--theme-surface, white);
+		color: var(--theme-text-muted, hsl(0, 0%, 50%));
+	}
+
+	.planner-action:disabled :global(svg) {
+		filter: grayscale(1);
+	}
+
+	.planner-action__short {
+		display: none;
+	}
+
+	.planner-notice {
+		flex-shrink: 0;
+		background: var(--theme-amber-soft, hsl(38, 92%, 95%));
+		border-bottom: 1px solid var(--theme-amber-border, hsl(38, 70%, 85%));
 	}
 
 	.planner-disclaimer {
-		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
 		margin: 0;
-		padding: 0.4375rem 0.75rem;
-		background: hsl(38, 92%, 95%);
-		border-bottom: 1px solid hsl(38, 70%, 85%);
-		color: hsl(32, 60%, 30%);
+		padding: 0.375rem 0.75rem;
+		color: var(--theme-amber-text, hsl(32, 60%, 30%));
 		font-size: 0.75rem;
 		font-weight: 600;
 		line-height: 1.35;
+		cursor: pointer;
+		list-style: none;
+	}
+
+	.planner-disclaimer::-webkit-details-marker {
+		display: none;
+	}
+
+	.planner-disclaimer::after {
+		content: '';
+		flex: 0 0 auto;
+		width: 0.4rem;
+		height: 0.4rem;
+		margin-left: auto;
+		border-right: 1.5px solid currentColor;
+		border-bottom: 1.5px solid currentColor;
+		transform: rotate(45deg) translateY(-0.1rem);
+	}
+
+	.planner-notice[open] .planner-disclaimer::after {
+		transform: rotate(-135deg);
+	}
+
+	.planner-disclaimer__text {
+		min-width: 0;
 	}
 
 	.planner-save-note {
-		flex-shrink: 0;
 		margin: 0;
-		padding: 0.375rem 0.75rem;
-		color: hsl(0, 0%, 42%);
+		padding: 0 0.75rem 0.5rem;
+		color: var(--theme-text, hsl(32, 30%, 30%));
 		font-size: 0.75rem;
 		line-height: 1.35;
 	}
 
 	.planner-save-note strong {
-		color: hsl(5, 53%, 32%);
+		color: var(--theme-accent-text, hsl(5, 53%, 32%));
 	}
 
 	.planner-tabs {
@@ -693,8 +818,8 @@
 		flex-shrink: 0;
 		gap: 0.125rem;
 		padding-top: 0.25rem;
-		border-bottom: 1px solid hsl(0, 0%, 86%);
-		background: hsl(0, 0%, 94%);
+		border-bottom: 1px solid var(--theme-border, hsl(0, 0%, 86%));
+		background: var(--theme-surface-2, hsl(0, 0%, 94%));
 		overflow-x: auto;
 	}
 
@@ -710,26 +835,32 @@
 		border-bottom: none;
 		border-radius: 0.5rem 0.5rem 0 0;
 		background: transparent;
-		color: hsl(0, 0%, 35%);
+		color: var(--theme-text-2, hsl(0, 0%, 35%));
 	}
 
 	.planner-tab-item:hover {
-		background: hsl(0, 0%, 98%);
-		color: hsl(5, 53%, 28%);
+		background: var(--theme-surface, hsl(0, 0%, 98%));
+		color: var(--theme-accent-text, hsl(5, 53%, 28%));
 	}
 
 	.planner-tab-item--active {
 		position: relative;
 		z-index: 1;
 		margin-bottom: -1px;
-		border-color: hsl(0, 0%, 86%);
-		background: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-		color: hsl(5, 53%, 28%);
+		border-color: var(--theme-border, hsl(0, 0%, 86%));
+		background: var(
+			--map-chrome-surface,
+			var(--theme-surface-translucent, rgba(255, 255, 255, 0.98))
+		);
+		color: var(--theme-accent-text, hsl(5, 53%, 28%));
 	}
 
 	.planner-tab-item--active:hover {
-		background: var(--map-chrome-surface, rgba(255, 255, 255, 0.98));
-		color: hsl(5, 53%, 28%);
+		background: var(
+			--map-chrome-surface,
+			var(--theme-surface-translucent, rgba(255, 255, 255, 0.98))
+		);
+		color: var(--theme-accent-text, hsl(5, 53%, 28%));
 	}
 
 	.planner-tab {
@@ -748,7 +879,7 @@
 	}
 
 	.planner-tab:focus-visible {
-		outline: 2px solid hsl(5, 53%, 32%);
+		outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
 		outline-offset: -2px;
 	}
 
@@ -785,18 +916,18 @@
 
 	.planner-tab__action:hover,
 	.planner-tab__action:focus-visible {
-		background: hsl(5, 30%, 90%);
-		color: hsl(5, 53%, 28%);
+		background: var(--theme-accent-soft, hsl(5, 30%, 90%));
+		color: var(--theme-accent-text, hsl(5, 53%, 28%));
 	}
 
 	.planner-tab__action--danger:hover,
 	.planner-tab__action--danger:focus-visible {
-		background: hsl(0, 60%, 92%);
-		color: hsl(0, 60%, 32%);
+		background: var(--theme-accent-soft, hsl(0, 60%, 92%));
+		color: var(--theme-accent-text, hsl(0, 60%, 32%));
 	}
 
 	.planner-tab__action:focus-visible {
-		outline: 2px solid hsl(5, 53%, 32%);
+		outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
 		outline-offset: 1px;
 	}
 
@@ -808,8 +939,8 @@
 		padding: 0.5rem 0.75rem;
 		border: none;
 		border-radius: 0.5rem 0.5rem 0 0;
-		background: white;
-		color: hsl(0, 0%, 15%);
+		background: var(--theme-surface, white);
+		color: var(--theme-text, hsl(0, 0%, 15%));
 		font: inherit;
 		font-size: 0.75rem;
 		font-weight: 600;
@@ -818,8 +949,8 @@
 	}
 
 	.planner-tab-item:has(.planner-tab--rename) {
-		border-color: hsl(5, 53%, 50%);
-		background: white;
+		border-color: var(--theme-accent-text, hsl(5, 53%, 50%));
+		background: var(--theme-surface, white);
 	}
 
 	.planner-tab__tool--new {
@@ -839,11 +970,11 @@
 	.planner-tab__tool--new:hover,
 	.planner-tab__tool--new:focus-visible {
 		border-color: hsl(5, 53%, 55%);
-		background: hsl(5, 53%, 97%);
+		background: var(--theme-accent-soft, hsl(5, 53%, 97%));
 	}
 
 	.planner-tab__tool--new:focus-visible {
-		outline: 2px solid hsl(5, 53%, 32%);
+		outline: 2px solid var(--theme-accent-text, hsl(5, 53%, 32%));
 		outline-offset: 1px;
 	}
 
@@ -864,15 +995,15 @@
 		margin-inline-end: 0.25rem;
 		padding: 0.25rem 0.625rem;
 		border-radius: 999px;
-		background: hsl(0, 85%, 95%);
-		color: hsl(0, 85%, 35%);
+		background: var(--theme-accent-soft, hsl(0, 85%, 95%));
+		color: var(--theme-accent-text, hsl(0, 85%, 35%));
 		font-size: 0.75rem;
 		font-weight: 700;
 	}
 
 	.planner-conflict-badge--clear {
-		background: hsl(140, 60%, 94%);
-		color: hsl(140, 60%, 25%);
+		background: var(--theme-green-soft, hsl(140, 60%, 94%));
+		color: var(--theme-green-text, hsl(140, 60%, 25%));
 	}
 
 	.planner-body {
@@ -908,18 +1039,29 @@
 		margin: 0.75rem 0 0.375rem;
 		font-size: 0.8125rem;
 		font-weight: 700;
-		color: hsl(0, 0%, 25%);
+		color: var(--theme-text, hsl(0, 0%, 25%));
 	}
 
 	.planner-side__heading:first-child {
 		margin-top: 0;
 	}
 
+	.planner-conflicts {
+		list-style: none;
+		margin: 0 0 0.5rem;
+		padding: 0.5rem 0.625rem;
+		border-radius: 0.5rem;
+		background: var(--theme-accent-soft, hsl(0, 85%, 97%));
+		color: var(--theme-accent-text, hsl(0, 70%, 32%));
+		font-size: 0.75rem;
+		line-height: 1.4;
+	}
+
 	.planner-side__hint {
 		margin: 0 0 0.5rem;
 		font-size: 0.75rem;
 		line-height: 1.45;
-		color: hsl(0, 0%, 38%);
+		color: var(--theme-text-2, hsl(0, 0%, 38%));
 	}
 
 	.planner-offerings {
@@ -937,9 +1079,9 @@
 		justify-content: space-between;
 		gap: 0.5rem;
 		padding: 0.5rem 0.625rem;
-		border: 1px solid hsl(0, 0%, 90%);
+		border: 1px solid var(--theme-border, hsl(0, 0%, 90%));
 		border-radius: 0.5rem;
-		background: white;
+		background: var(--theme-surface, white);
 	}
 
 	.planner-offering--group {
@@ -963,7 +1105,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.125rem;
-		border-left: 2px solid hsl(5, 40%, 82%);
+		border-left: 2px solid var(--theme-accent-border, hsl(5, 40%, 82%));
 	}
 
 	.planner-offering__part {
@@ -976,39 +1118,47 @@
 
 	.planner-offering__part-head {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: baseline;
-		gap: 0.5rem;
+		gap: 0 0.5rem;
+	}
+
+	.planner-offering__part-time {
+		color: var(--theme-text-2, hsl(0, 0%, 40%));
 	}
 
 	.planner-offering__part-note {
+		box-sizing: border-box;
 		width: 100%;
 		background: transparent;
 		border: none;
+		border-bottom: 1px dashed var(--theme-border, hsl(0, 0%, 75%));
 		font-size: 0.75rem;
-		color: hsl(0, 0%, 40%);
-		padding: 0;
+		color: var(--theme-text, hsl(0, 0%, 25%));
+		padding: 0.25rem 0;
 		margin: 0;
 		font-family: inherit;
 	}
 
 	.planner-offering__part-note::placeholder {
-		color: hsl(0, 0%, 65%);
+		color: var(--theme-text-muted, hsl(0, 0%, 65%));
 		font-style: italic;
 	}
 
 	.planner-offering__part-note:focus {
 		outline: none;
-		color: hsl(0, 0%, 15%);
+		border-bottom: 1px solid var(--theme-accent-text, hsl(5, 53%, 42%));
+		color: var(--theme-text, hsl(0, 0%, 15%));
 	}
 
 	.planner-offering__part-type {
 		min-width: 2.4rem;
 		font-weight: 700;
-		color: hsl(5, 53%, 32%);
+		color: var(--theme-accent-text, hsl(5, 53%, 32%));
 	}
 
 	.planner-offering__part-section {
-		color: hsl(0, 0%, 30%);
+		color: var(--theme-text, hsl(0, 0%, 30%));
 	}
 
 	.planner-offering__main {
@@ -1020,12 +1170,12 @@
 	.planner-offering__course {
 		font-size: 0.8125rem;
 		font-weight: 700;
-		color: hsl(0, 0%, 15%);
+		color: var(--theme-text, hsl(0, 0%, 15%));
 	}
 
 	.planner-offering__title {
 		font-size: 0.75rem;
-		color: hsl(0, 0%, 40%);
+		color: var(--theme-text-2, hsl(0, 0%, 40%));
 		line-height: 1.3;
 		/* Show the full course title (its description) - wrap instead of truncate. */
 		overflow-wrap: anywhere;
@@ -1033,18 +1183,19 @@
 
 	.planner-offering__remove {
 		all: unset;
+		box-sizing: border-box;
 		flex-shrink: 0;
 		padding: 0.25rem 0.5rem;
 		border-radius: 999px;
 		font-size: 0.6875rem;
 		font-weight: 600;
-		color: hsl(0, 60%, 40%);
+		color: var(--theme-accent-text, hsl(0, 60%, 40%));
 		cursor: pointer;
 	}
 
 	.planner-offering__remove:hover,
 	.planner-offering__remove:focus-visible {
-		background: hsl(0, 60%, 96%);
+		background: var(--theme-accent-soft, hsl(0, 60%, 96%));
 	}
 
 	.planner-plain-list {
@@ -1055,24 +1206,39 @@
 		flex-direction: column;
 		gap: 0.25rem;
 		font-size: 0.8125rem;
-		color: hsl(0, 0%, 35%);
+		color: var(--theme-text-2, hsl(0, 0%, 35%));
 	}
 
 	.planner-plain-list--stale {
-		color: hsl(0, 60%, 40%);
+		color: var(--theme-accent-text, hsl(0, 60%, 40%));
 	}
 
 	.planner-finals-note {
 		margin: 0.375rem 0 0;
 		font-size: 0.6875rem;
-		color: hsl(0, 0%, 50%);
+		color: var(--theme-text-muted, hsl(0, 0%, 50%));
 	}
 
-	/* 320px: the back chevron + term + actions are the essentials; the plan
-     tabs below already identify the screen. Title stays for aria-labelledby. */
-	@media (max-width: 400px) {
-		.planner-title {
-			display: none;
+	@media (min-width: 48.0625rem) and (max-width: 64rem) {
+		.planner-body,
+		.planner-body--no-side {
+			grid-template-columns: 15rem minmax(0, 1fr);
+		}
+
+		.planner-side {
+			grid-column: 1 / -1;
+		}
+	}
+
+	@media (max-height: 30rem) {
+		.planner-screen {
+			overflow-y: auto;
+			overscroll-behavior: contain;
+		}
+
+		.planner-body {
+			flex: 0 0 auto;
+			overflow-y: visible;
 		}
 	}
 
@@ -1081,9 +1247,16 @@
      the schedule gets the viewport. --- */
 	@media (max-width: 640px) {
 		.planner-header {
-			gap: 0.375rem;
+			flex-wrap: wrap;
+			gap: 0.25rem 0.375rem;
 			padding-left: 0.375rem;
 			padding-right: 0.5rem;
+		}
+
+		.planner-actions {
+			flex: 1 0 100%;
+			gap: 0.375rem;
+			padding: 0 0.125rem 0.125rem;
 		}
 
 		/* Icon-only chevron; "Class Planner" beside it already says where you are. */
@@ -1097,37 +1270,48 @@
 		}
 
 		.planner-title {
-			flex: 0 1 auto;
-			font-size: 0.9375rem;
+			flex: 0 0 auto;
+			font-size: 1rem;
 		}
 
-		/* Term selector takes the leftover slack between title and actions. */
 		.planner-header :global(.term-filter-chip) {
+			flex: 1 1 0;
+			min-width: 0;
+			max-width: max-content;
 			margin-left: auto;
 		}
 
-		/* Actions collapse to round icon buttons; the label lives in aria/title. */
 		.planner-action {
-			justify-content: center;
-			width: 2.5rem;
-			height: 2.5rem;
-			padding: 0;
-			border-radius: 999px;
+			flex: 1 1 0;
+			min-width: 0;
+			min-height: 2.25rem;
+			padding: 0.25rem 0.5rem;
+			font-size: 0.8125rem;
 		}
 
 		.planner-action__label {
 			display: none;
 		}
 
-		.planner-disclaimer {
-			padding: 0.3125rem 0.625rem;
-			font-size: 0.6875rem;
+		.planner-action__short {
+			display: inline;
 		}
 
-		/* Keep the account-sync and privacy status visible on small screens too. */
-		.planner-save-note {
+		.planner-disclaimer {
+			min-height: 2rem;
 			padding: 0.25rem 0.625rem;
-			font-size: 0.6875rem;
+			font-size: 0.75rem;
+		}
+
+		.planner-notice:not([open]) .planner-disclaimer__text {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.planner-save-note {
+			padding: 0 0.625rem 0.5rem;
+			font-size: 0.75rem;
 		}
 
 		.planner-tabs {
@@ -1136,7 +1320,7 @@
 
 		.planner-tab__action,
 		.planner-tab__tool--new {
-			width: 2.75rem;
+			width: 2.5rem;
 			height: 2.75rem;
 		}
 
@@ -1146,10 +1330,13 @@
 
 		.planner-tab-item--active {
 			flex: 0 0 auto;
+			width: auto;
+			max-width: none;
 		}
 
 		.planner-tab-item--active .planner-tab__name {
-			min-width: 5.5rem;
+			min-width: 4rem;
+			max-width: 9.5rem;
 		}
 
 		.planner-back {
@@ -1185,19 +1372,27 @@
 			font-size: 0.8125rem;
 		}
 
-		/* Obvious, tappable Remove. */
 		.planner-offering__remove {
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
-			min-height: 2.5rem;
+			min-height: 2.25rem;
 			padding: 0.375rem 0.75rem;
-			border: 1px solid hsl(0, 60%, 80%);
+			border: 1px solid var(--theme-accent-border, hsl(0, 60%, 80%));
 			font-size: 0.8125rem;
 		}
 
 		.planner-plain-list {
 			gap: 0.375rem;
+			font-size: 0.875rem;
+		}
+
+		.planner-conflicts {
+			font-size: 0.8125rem;
+		}
+
+		.planner-offering__part-note {
+			min-height: 2.25rem;
 			font-size: 0.875rem;
 		}
 

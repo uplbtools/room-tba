@@ -89,6 +89,12 @@ describe('PlannerScreen', () => {
 		render(PlannerScreen);
 		expect(await screen.findByText('1 conflict')).toBeVisible();
 		expect(document.querySelectorAll('.planner-block--conflict').length).toBeGreaterThan(0);
+		expect(screen.getByText('CMSC 128 AB-1L overlaps MATH 27 B-2')).toBeVisible();
+		expect(document.querySelector('.planner-conflicts')?.textContent).toMatch(/Mon\s+7:30–8 AM/);
+		const widths = [...document.querySelectorAll<HTMLElement>('.planner-block--conflict')].map(
+			(el) => el.style.width
+		);
+		expect(widths.every((w) => w.includes('50%'))).toBe(true);
 	});
 
 	test('lists TBA sections under Unscheduled', async () => {
@@ -116,6 +122,17 @@ describe('PlannerScreen', () => {
 		render(PlannerScreen);
 		const tabs = screen.getAllByRole('tab');
 		expect(tabs.map((t) => t.textContent?.trim())).toEqual(['Untitled Plan 1', 'Untitled Plan 2']);
+	});
+
+	test('Escape in the search box clears it instead of closing the planner', async () => {
+		render(PlannerScreen);
+		const search = screen.getByPlaceholderText(/Search courses/i) as HTMLInputElement;
+		await Promise.resolve();
+		search.focus();
+		await fireEvent.input(search, { target: { value: 'CHEM' } });
+		await fireEvent.keyDown(search, { key: 'Escape' });
+		expect(search.value).toBe('');
+		expect(screen.getByRole('dialog')).toBeTruthy();
 	});
 
 	test('asks before deleting a plan that has classes', async () => {
