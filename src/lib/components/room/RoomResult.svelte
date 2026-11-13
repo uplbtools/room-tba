@@ -46,7 +46,7 @@
 		termStore,
 		toastStore
 	} from '#lib/stores.svelte.js';
-	import type { FinalExamRow, Room } from '#lib/utils/types';
+	import type { FinalExamRow, Room } from '#lib/utils/types.js';
 	import EntityDirectionsChip from '../entity/EntityDirectionsChip.svelte';
 	import EntityGoogleMapsLink from '../entity/EntityGoogleMapsLink.svelte';
 	import EntityShareCopyLink from '../entity/EntityShareCopyLink.svelte';

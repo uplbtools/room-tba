@@ -18,7 +18,7 @@ import type {
 	PlaceData,
 	Room,
 	TableSyncInfo
-} from '#lib/utils/types';
+} from '#lib/utils/types.js';
 import { normalizeEntityPhotos } from '#lib/utils/entity/entity-photos.js';
 import { getDB, isLocalCacheReady } from './pgliteDB';
 import { ENTITY_FETCH_OPTIONS, fetchJsonWithRetry } from './fetch-json';

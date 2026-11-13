@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import type { Building } from '#lib/utils/types';
+import type { Building } from '#lib/utils/types.js';
 
 const query = vi.fn();
 

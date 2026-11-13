@@ -1,5 +1,5 @@
 import { getLocalClassesForRoom, getJSONFetch } from '#lib/utils/local/data/utils.js';
-import type { ClassMapValue } from '#lib/utils/types';
+import type { ClassMapValue } from '#lib/utils/types.js';
 
 export default class RoomClassesStore {
 	classes = $state<ClassMapValue[]>([]);

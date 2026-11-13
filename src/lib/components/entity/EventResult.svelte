@@ -34,7 +34,7 @@
 		instantToCampusInput
 	} from '#lib/utils/event/event-time.js';
 	import { getEventShareUrl } from '#lib/utils/share-links';
-	import type { EventData } from '#lib/utils/types';
+	import type { EventData } from '#lib/utils/types.js';
 	import {
 		clearEntityContributorDraft,
 		readEntityContributorDraft,

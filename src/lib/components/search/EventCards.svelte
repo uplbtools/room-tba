@@ -11,7 +11,7 @@
 		readProposeEventDraft,
 		scheduleProposeEventDraftSave
 	} from '#lib/utils/contributor-drafts.js';
-	import type { EventData } from '#lib/utils/types';
+	import type { EventData } from '#lib/utils/types.js';
 	import { onMount } from 'svelte';
 
 	let {

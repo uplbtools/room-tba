@@ -14,7 +14,7 @@
 		scheduleEntityContributorDraftSave
 	} from '#lib/utils/contributor-drafts.js';
 	import { getAppActions, getAppData } from '#lib/utils/context.js';
-	import type { Division, Room } from '#lib/utils/types';
+	import type { Division, Room } from '#lib/utils/types.js';
 	import {
 		getDivisionRooms,
 		fetchRoomClassCounts,

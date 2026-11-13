@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import DormResultHost from '@test/components/DormResultHost.svelte';
-import type { DormData } from '#lib/utils/types';
+import type { DormData } from '#lib/utils/types.js';
 import { searchInfo } from '#lib/stores.svelte.js';
 import { kuboDormDirectory } from '#lib/utils/integrations/kubo/kubo-dorms.js';
 import { expectNoHorizontalOverflow, mountAtWidth } from '@test/layout-assertions';

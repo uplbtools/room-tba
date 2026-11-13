@@ -32,7 +32,7 @@ import type {
 	PlaceData,
 	FinalExamRow,
 	Room
-} from '#lib/utils/types';
+} from '#lib/utils/types.js';
 
 // Cached getters for SSG (#331)
 export async function getAllBuildingsCached(): Promise<Building[]> {

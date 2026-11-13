@@ -8,7 +8,7 @@
 		type ClassOfferingGroup
 	} from '#lib/utils/class-offering-groups.js';
 	import { plannerStore, termStore, toastStore } from '#lib/stores.svelte.js';
-	import type { ClassMapValue } from '#lib/utils/types';
+	import type { ClassMapValue } from '#lib/utils/types.js';
 
 	const termId = $derived(plannerStore.activePlan?.termId ?? termStore.activeTermId);
 

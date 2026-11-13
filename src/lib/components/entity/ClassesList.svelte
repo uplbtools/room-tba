@@ -9,7 +9,7 @@
 	import { CLASS_BROWSE_SCOPE_NOTE } from '#lib/amis/room-scheduled-types.js';
 	import { searchInfo, termStore } from '#lib/stores.svelte.js';
 	import ScheduleFreshnessNote from '#lib/components/ScheduleFreshnessNote.svelte';
-	import type { ClassMapValue } from '#lib/utils/types';
+	import type { ClassMapValue } from '#lib/utils/types.js';
 	import { onMount } from 'svelte';
 	import TermSelector from '#lib/components/TermSelector.svelte';
 

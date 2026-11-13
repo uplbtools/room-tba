@@ -3,7 +3,7 @@
 	import { groupClassesByOffering, offeringGroupKey } from '#lib/utils/class-offering-groups.js';
 	import type { ClassOfferingGroup } from '#lib/utils/class-offering-groups.js';
 	import type { ProbableLocation } from '#lib/utils/probable-location.js';
-	import type { ClassMapValue } from '#lib/utils/types';
+	import type { ClassMapValue } from '#lib/utils/types.js';
 	import { plannerStore, searchInfo, toastStore } from '#lib/stores.svelte.js';
 
 	interface Props {

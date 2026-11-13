@@ -12,7 +12,7 @@ import {
 	validateSubmitterName,
 	validateSubmitterNote
 } from '#lib/constants/contribute/proposals.js';
-import type { Room } from '#lib/utils/types';
+import type { Room } from '#lib/utils/types.js';
 import { FIELD_LABELS } from './diff';
 import { isOpenProposalStatus, type PendingProposalRow } from './pending-proposals';
 

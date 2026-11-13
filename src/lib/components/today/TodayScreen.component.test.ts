@@ -9,7 +9,7 @@ import {
 	termStore
 } from '#lib/stores.svelte.js';
 import { mountAtWidth } from '@test/layout-assertions';
-import type { ClassMapValue } from '#lib/utils/types';
+import type { ClassMapValue } from '#lib/utils/types.js';
 
 const row = (overrides: Partial<ClassMapValue> = {}): ClassMapValue => ({
 	id: 1,
