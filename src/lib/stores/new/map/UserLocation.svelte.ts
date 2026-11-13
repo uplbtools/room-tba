@@ -10,12 +10,14 @@ export default class UserLocation {
 	accuracyMeters: number | null = $state(null);
 	bearing: number | null = $state(null);
 	isTracking: boolean = $state(false);
+	followMode: 'off' | 'follow' | 'heading' = $state('off');
 	destination: [number, number] | null = $state(null);
 	routeOrigin: [number, number] | null = $state(null);
 	/** Multi-stop foot route (schedule import or 2-point fallback). */
 	routeWaypoints: [number, number][] | null = $state(null);
 	private toastStore: ToastStore;
 	private watchId: number | null = null;
+	private flyOnFix = false;
 	/** Avoid re-toasting every watch tick; still toast once when accuracy improves. */
 	private announcedGoodFix = false;
 	private announcedApproximateFix = false;
@@ -109,33 +111,60 @@ export default class UserLocation {
 		);
 	}
 
-	recenter(map: MapStore) {
+	cycleFollow(map: MapStore) {
 		if (!this.coords) {
+			this.flyOnFix = true;
+			this.followMode = 'follow';
 			this.requestLocation();
 			return;
 		}
-		if (!map.isMapReady()) {
+		const mapInstance = map.getRawInstance();
+		if (!mapInstance) {
 			this.toastStore.show('Map component is still initializing', 'info');
 			return;
 		}
-		map.flyTo({
-			center: this.coords,
-			zoom: 17,
-			offset: [0, -24],
-			bearing: this.bearing ?? 0,
-			duration: 1500
-		});
+		if (this.followMode === 'off') {
+			this.followMode = 'follow';
+			mapInstance.flyTo({
+				center: this.coords,
+				zoom: Math.max(mapInstance.getZoom(), 17),
+				duration: 1200
+			});
+			return;
+		}
+		if (this.followMode === 'follow' && this.bearing !== null) {
+			this.followMode = 'heading';
+			mapInstance.easeTo({ center: this.coords, bearing: this.bearing, duration: 600 });
+			return;
+		}
+		const bearing = this.followMode === 'heading' ? 0 : mapInstance.getBearing();
+		this.followMode = 'follow';
+		mapInstance.easeTo({ center: this.coords, bearing, duration: 600 });
 	}
 
-	isCentered(map: MapStore) {
+	follow(map: MapStore) {
 		const mapInstance = map.getRawInstance();
-		if (!mapInstance || this.coords === null) return false;
-		const mapCenter = mapInstance.getCenter();
-		return mapCenter.lng === this.coords[0] && mapCenter.lat === this.coords[1];
+		if (!mapInstance || !this.coords || this.followMode === 'off') return;
+		if (this.flyOnFix) {
+			this.flyOnFix = false;
+			mapInstance.flyTo({
+				center: this.coords,
+				zoom: Math.max(mapInstance.getZoom(), 17),
+				duration: 1200
+			});
+			return;
+		}
+		mapInstance.easeTo({
+			center: this.coords,
+			...(this.followMode === 'heading' && this.bearing !== null ? { bearing: this.bearing } : {}),
+			duration: 300
+		});
 	}
 
 	private stopTracking() {
 		this.isTracking = false;
+		this.followMode = 'off';
+		this.flyOnFix = false;
 		this.coords = null;
 		this.accuracyMeters = null;
 		this.routeOrigin = null;
