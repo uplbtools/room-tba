@@ -30,12 +30,18 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.375rem;
-		color: hsl(5, 53%, 32%);
+		color: var(--theme-accent-text, hsl(5, 53%, 32%));
 		font-weight: 600;
 		text-decoration: none;
 	}
 
-	.community-platform-link:hover,
+	@media (hover: hover) {
+		.community-platform-link:hover {
+			text-decoration: underline;
+			text-underline-offset: 2px;
+		}
+	}
+
 	.community-platform-link:focus-visible {
 		text-decoration: underline;
 		text-underline-offset: 2px;
