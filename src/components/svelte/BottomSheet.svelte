@@ -335,6 +335,9 @@
     class="bottom-sheet-root"
     class:bottom-sheet-root--side={sidePanel.current}
     class:bottom-sheet-root--full={full}
+    class:bottom-sheet-root--preview={fullScreen &&
+      snap === "peek" &&
+      !sidePanel.current}
     bind:this={rootEl}
     style:--bs-top={topInset}
     style:--bs-bottom={bottomInset}

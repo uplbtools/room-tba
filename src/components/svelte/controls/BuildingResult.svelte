@@ -153,6 +153,7 @@
     sync();
     const ro = new ResizeObserver(sync);
     ro.observe(header);
+    if (tabsEl) ro.observe(tabsEl);
     return () => ro.disconnect();
   });
 
@@ -1071,6 +1072,10 @@
     top: var(--place-header-h, 6.5rem);
     z-index: 3;
     background: var(--entity-sheet-bg, var(--theme-surface, #fff));
+  }
+
+  :global(.bottom-sheet-root--preview) .building-tabs {
+    display: none;
   }
 
   /* Landscape phones leave too little height to pin the strip. */

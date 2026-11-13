@@ -279,12 +279,15 @@ describe("bottom sheet that opens full screen", () => {
   test("a tap on the peek opens the whole screen with a back bar", async () => {
     const { container } = mount();
     await vi.waitFor(() => expect(translateOf(container)).toBe(800 - 384));
+    const root = container.querySelector(".bottom-sheet-root");
+    expect(root).toHaveClass("bottom-sheet-root--preview");
 
     const body = container.querySelector("p") as HTMLElement;
     press(body, "pointerdown", 500);
     press(body, "pointerup", 500);
 
     await vi.waitFor(() => expect(translateOf(container)).toBe(0));
+    expect(root).not.toHaveClass("bottom-sheet-root--preview");
     expect(screen.getByRole("button", { name: "Back to map" })).toBeVisible();
     expect(container.querySelector(".bottom-sheet__handle")).toBeNull();
   });
