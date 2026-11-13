@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
+  import ArrowLeft from "@lucide/svelte/icons/arrow-left";
   import {
     LANDSCAPE_COMPACT_MEDIA,
     neighbourSnap,
@@ -20,6 +21,7 @@
     halfRatio,
     peekFitTo,
     expandedRatio = 0.92,
+    fullScreen = false,
     topInset = "0px",
     bottomInset = "0px",
     scrollResetKey,
@@ -47,6 +49,11 @@
     peekFitTo?: string;
     /** Fraction used when expanded — leave a map strip for tap-to-collapse. */
     expandedRatio?: number;
+    /**
+     * Expanded covers the whole screen behind a back bar and never drags
+     * (entity detail). A tap on the peek opens it.
+     */
+    fullScreen?: boolean;
     topInset?: string;
     bottomInset?: string;
     /**
@@ -93,7 +100,12 @@
           ),
     ),
   );
-  const expandedH = $derived(Math.round(availableH * expandedRatio));
+  const full = $derived(
+    fullScreen && snap === "expanded" && !sidePanel.current,
+  );
+  const expandedH = $derived(
+    Math.round(availableH * (fullScreen ? 1 : expandedRatio)),
+  );
   const HALF_MIN_GAP_PX = 64;
   const halfH = $derived.by(() => {
     if (halfRatio === undefined || sidePanel.current) return undefined;
@@ -214,7 +226,7 @@
   }
 
   function beginDrag(event: PointerEvent, fromHandle: boolean) {
-    if (!open || sidePanel.current) return;
+    if (!open || sidePanel.current || full) return;
     dragStartY = event.clientY;
     dragStartTime = performance.now();
     dragMoved = false;
@@ -273,6 +285,8 @@
       if (fromHandle) {
         cycleSnap();
         pointerToggledAt = performance.now();
+      } else if (fullScreen && snap === "peek") {
+        snap = "expanded";
       }
       return;
     }
@@ -336,7 +350,7 @@
   // above it (Entry's locate button at peek). The resting snap, not the live
   // drag: controls should not chase the finger.
   $effect(() => {
-    if (!open || !rootEl || availableH === 0) return;
+    if (!open || !rootEl || availableH === 0 || full) return;
     const top = rootEl.getBoundingClientRect().top + baseTranslate;
     const root = document.documentElement;
     root.style.setProperty("--bottom-sheet-top", `${Math.round(top)}px`);
@@ -352,6 +366,7 @@
   <div
     class="bottom-sheet-root"
     class:bottom-sheet-root--side={sidePanel.current}
+    class:bottom-sheet-root--full={full}
     bind:this={rootEl}
     style:--bs-top={topInset}
     style:--bs-bottom={bottomInset}
@@ -377,7 +392,18 @@
       onpointercancel={onSheetPointerCancel}
       onlostpointercapture={onSheetPointerCancel}
     >
-      {#if !sidePanel.current}
+      {#if full}
+        <div class="bottom-sheet__bar">
+          <button
+            type="button"
+            class="bottom-sheet__back"
+            aria-label="Back to map"
+            onclick={() => (snap = "peek")}
+          >
+            <ArrowLeft size={22} aria-hidden="true" />
+          </button>
+        </div>
+      {:else if !sidePanel.current}
       <button
         type="button"
         class="bottom-sheet__handle"
@@ -486,6 +512,46 @@
     outline: 2px solid var(--theme-accent-text, #7b1113);
     outline-offset: -2px;
     border-radius: 1rem 1rem 0 0;
+  }
+
+  /* Full screen: a page over the search bar and the bottom nav. */
+  .bottom-sheet-root--full {
+    top: var(--staging-banner-height, 0px);
+    bottom: 0;
+    z-index: calc(var(--z-search-elevated, 18) + 1);
+    clip-path: none;
+  }
+
+  .bottom-sheet-root--full .bottom-sheet {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    touch-action: auto;
+  }
+
+  .bottom-sheet__bar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    min-height: 3.5rem;
+    padding: env(safe-area-inset-top, 0px) 0.25rem 0;
+  }
+
+  .bottom-sheet__back {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--theme-text, #18181b);
+    cursor: pointer;
+  }
+
+  .bottom-sheet__back:focus-visible {
+    outline: 2px solid var(--theme-accent-text, #7b1113);
+    outline-offset: -2px;
   }
 
   .bottom-sheet__body {

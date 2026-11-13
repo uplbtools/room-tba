@@ -275,3 +275,74 @@ describe("bottom sheet in phone landscape", () => {
     }
   });
 });
+
+describe("bottom sheet that opens full screen", () => {
+  const rect = (height: number) =>
+    ({
+      top: 0,
+      bottom: height,
+      height,
+      left: 0,
+      right: 390,
+      width: 390,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    }) as DOMRect;
+
+  const translateOf = (container: HTMLElement) =>
+    Number(
+      /translate3d\(0, ([\d.]+)px/.exec(
+        (container.querySelector(".bottom-sheet") as HTMLElement).style
+          .transform,
+      )?.[1],
+    );
+
+  function mount() {
+    const view = render(BottomSheetHost, { open: true, fullScreen: true });
+    const root = view.container.querySelector(
+      ".bottom-sheet-root",
+    ) as HTMLElement;
+    root.getBoundingClientRect = () => rect(800);
+    window.dispatchEvent(new Event("resize"));
+    return view;
+  }
+
+  const press = (el: Element, type: string, clientY: number) =>
+    el.dispatchEvent(
+      new PointerEvent(type, { clientY, bubbles: true, pointerId: 1 }),
+    );
+
+  test("a tap on the peek opens the whole screen with a back bar", async () => {
+    const { container } = mount();
+    await vi.waitFor(() => expect(translateOf(container)).toBe(800 - 384));
+
+    const body = container.querySelector("p") as HTMLElement;
+    press(body, "pointerdown", 500);
+    press(body, "pointerup", 500);
+
+    await vi.waitFor(() => expect(translateOf(container)).toBe(0));
+    expect(screen.getByRole("button", { name: "Back to map" })).toBeVisible();
+    expect(container.querySelector(".bottom-sheet__handle")).toBeNull();
+  });
+
+  test("nothing drags the full-screen view, and Back returns to the peek", async () => {
+    const onDismiss = vi.fn();
+    const { container, rerender } = mount();
+    await rerender({ open: true, fullScreen: true, onDismiss });
+    (container.querySelector(".bottom-sheet__handle") as HTMLElement).click();
+    await vi.waitFor(() => expect(translateOf(container)).toBe(0));
+
+    const sheet = container.querySelector(".bottom-sheet") as HTMLElement;
+    const body = container.querySelector("p") as HTMLElement;
+    press(body, "pointerdown", 100);
+    press(sheet, "pointermove", 600);
+    press(sheet, "pointerup", 600);
+    expect(translateOf(container)).toBe(0);
+    expect(onDismiss).not.toHaveBeenCalled();
+
+    screen.getByRole("button", { name: "Back to map" }).click();
+    await vi.waitFor(() => expect(translateOf(container)).toBe(800 - 384));
+    expect(container.querySelector(".bottom-sheet__handle")).not.toBeNull();
+  });
+});

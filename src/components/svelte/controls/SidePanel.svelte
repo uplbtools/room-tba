@@ -16,6 +16,7 @@
   import { resolvePanelContent } from "@lib/side-panel-content";
   import type { BottomSheetSnap } from "@lib/bottom-sheet-snap";
   import TransitRouteLifecycle from "./TransitRouteLifecycle.svelte";
+  import { trackOverlay } from "@lib/track-overlay.svelte";
 
   const mobile = new MediaQuery("max-width:48rem");
   // Entity detail views only, never list/browse panels (docs/ad-policy.md).
@@ -108,7 +109,7 @@
   const sheetBottomInset =
     "calc(var(--mobile-bottom-nav-height, 4.5rem) + 0.25rem)";
 
-  /** Place sheets get a middle stop (peek, half, full) like GMaps. */
+  /** Place sheets are a preview card that opens full screen, like GMaps. */
   const entitySheet = $derived(
     !directionsStore.active &&
       jeepneyStore.selectedStopIndex === null &&
@@ -120,6 +121,16 @@
     PanelContent !== null ||
       jeepneyStore.selectedStopIndex !== null ||
       directionsStore.active,
+  );
+
+  // Back leaves the full-screen view for the preview card.
+  trackOverlay(
+    "place-detail",
+    () =>
+      mobile.current && panelOpen && entitySheet && mobileSnap === "expanded",
+    () => {
+      mobileSnap = "peek";
+    },
   );
 
   const toggleLabel = $derived(
@@ -217,7 +228,7 @@
     open={panelOpen}
     bind:snap={mobileSnap}
     peekRatio={sheetPeekRatio}
-    halfRatio={entitySheet ? 0.62 : undefined}
+    fullScreen={entitySheet}
     peekFitTo={navPeek
       ? ".nav__bar"
       : directionsPeek
