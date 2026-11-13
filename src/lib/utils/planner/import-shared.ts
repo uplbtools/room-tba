@@ -1,9 +1,9 @@
-import { fetchAllClasses } from '#lib/utils/classes-api.js';
+import { getClassesByCourseCode } from '#lib/functions/classes.remote.js';
 import type { DecodedSharePlan } from './share-codec.js';
 import { sectionNaturalKey, type PlannedSection } from './types.js';
 
 /**
- * Resolve a decoded `?plan=` payload against /api/classes. Refs that no
+ * Resolve a decoded `?plan=` payload against the class query. Refs that no
  * longer exist become stale TBA placeholders instead of being dropped.
  */
 export async function resolveSharedPlan(decoded: DecodedSharePlan): Promise<{
@@ -13,13 +13,7 @@ export async function resolveSharedPlan(decoded: DecodedSharePlan): Promise<{
 	const courseCodes = [...new Set(decoded.refs.map((ref) => ref.courseCode))];
 	const pages = await Promise.all(
 		courseCodes.map((code) =>
-			fetchAllClasses({
-				termId: decoded.termId,
-				courseCodePrefix: code
-			}).then(
-				(page) => page.rows,
-				() => []
-			)
+			getClassesByCourseCode({ termId: decoded.termId, courseCode: code }).catch(() => [])
 		)
 	);
 	const rowsByKey = new Map(

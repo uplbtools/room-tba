@@ -168,7 +168,7 @@
 
 	async function copyShareLink() {
 		if (!plan || !hasSchedule) return;
-		const url = `${location.origin}/?plan=${encodeSharePlan(plan)}`;
+		const url = `${location.origin}/map/planner?plan=${encodeSharePlan(plan)}`;
 		try {
 			await navigator.clipboard.writeText(url);
 			toastStore.show('Share link copied', 'success');
