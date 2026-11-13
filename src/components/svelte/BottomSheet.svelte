@@ -452,7 +452,7 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 1.75rem;
+    min-height: 3rem;
     margin: 0;
     padding: 0.5rem 0 0.25rem;
     border: none;
