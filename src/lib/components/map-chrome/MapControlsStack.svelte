@@ -1,6 +1,9 @@
 <script lang="ts">
 	import Locate from '@lucide/svelte/icons/locate';
 	import LocateFixed from '@lucide/svelte/icons/locate-fixed';
+	import Navigation2 from '@lucide/svelte/icons/navigation-2';
+	import { untrack } from 'svelte';
+	import type { MapLibreEvent } from 'maplibre-gl';
 	import { isMap2DPitch } from '#lib/constants/map/dimension.js';
 	// import { userLocation, map } from '#lib/stores.svelte.js';
 	import compassIcon from '../../../assets/icons/compass.svg?url';
@@ -22,6 +25,21 @@
 	/** compass.svg has N + red tip upright at 0°; counter-rotate with map bearing. */
 	const northRotation = $derived(-bearing);
 
+	const followMode = $derived(userLocation.followMode);
+	const locateLabel = $derived(
+		followMode === 'heading'
+			? 'Following your heading. Show north up'
+			: followMode === 'follow'
+				? userLocation.bearing !== null
+					? 'Following your location. Follow your heading'
+					: 'Following your location'
+				: 'My location'
+	);
+
+	function stopFollowing(event: MapLibreEvent<unknown>) {
+		if (event.originalEvent) userLocation.followMode = 'off';
+	}
+
 	function syncCamera() {
 		const mapInstance = map.getRawInstance();
 		if (!mapInstance) return;
@@ -37,11 +55,20 @@
 		mapInstance.on('rotate', onChange);
 		mapInstance.on('pitch', onChange);
 		mapInstance.on('move', onChange);
+		mapInstance.on('dragstart', stopFollowing);
+		mapInstance.on('rotatestart', stopFollowing);
 		return () => {
 			mapInstance.off('rotate', onChange);
 			mapInstance.off('pitch', onChange);
 			mapInstance.off('move', onChange);
+			mapInstance.off('dragstart', stopFollowing);
+			mapInstance.off('rotatestart', stopFollowing);
 		};
+	});
+
+	$effect(() => {
+		if (!map.getRawInstance() || !userLocation.coords) return;
+		untrack(() => userLocation.follow(map));
 	});
 
 	function zoomBy(delta: number) {
@@ -81,13 +108,15 @@
 		type="button"
 		class="map-ctrl"
 		class:map-ctrl--round={hideCompass}
-		class:map-ctrl--active={userLocation.isCentered(map)}
-		aria-label="My location"
-		title="My location"
-		aria-pressed={userLocation.isCentered(map)}
-		onclick={() => userLocation.recenter(map)}
+		class:map-ctrl--active={followMode !== 'off'}
+		aria-label={locateLabel}
+		title={locateLabel}
+		aria-pressed={followMode !== 'off'}
+		onclick={() => userLocation.cycleFollow(map)}
 	>
-		{#if userLocation.isCentered(map)}
+		{#if followMode === 'heading'}
+			<Navigation2 size={18} aria-hidden="true" fill="currentColor" />
+		{:else if followMode === 'follow' && userLocation.coords}
 			<LocateFixed size={18} aria-hidden="true" />
 		{:else}
 			<Locate size={18} aria-hidden="true" />
