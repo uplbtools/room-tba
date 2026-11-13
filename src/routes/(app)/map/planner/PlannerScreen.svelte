@@ -9,18 +9,14 @@
 	import { fly } from 'svelte/transition';
 	import { trapFocus } from '#lib/utils/focus-trap.js';
 	import { fullScreenDismiss, fullScreenReveal } from '#lib/utils/motion.js';
-	import {
-		adminAuthStore,
-		plannerStore,
-		searchInfo,
-		sidebarStore,
-		termStore,
-		toastStore
-	} from '#lib/stores.svelte.js';
-	import { fetchAllClasses } from '#lib/utils/classes-api.js';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { getClassesByCourseCode } from '#lib/functions/classes.remote.js';
+	import { getFinalExams } from '#lib/functions/final-exams.remote.js';
+	import { getPlannerStore, getSearchInfo, getTermStore, getToast } from '#lib/utils/context.js';
 	import { COURSE_CHANGE_DISCLAIMER } from '#lib/amis/room-scheduled-types.js';
 	import { changeOfMatriculationLabel } from '#lib/utils/term/term-calendar.js';
-	import { fetchFinalExams, FINALS_SCOPE_NOTE } from '#lib/utils/final-exams/final-exams.js';
+	import { FINALS_SCOPE_NOTE } from '#lib/utils/final-exams/final-exams.js';
 	import { isUnscheduled } from '#lib/utils/planner/conflicts.js';
 	import { buildPlanIcs } from '#lib/utils/planner/ics.js';
 	import { renderPlanToPng } from '#lib/utils/planner/plan-image.js';
@@ -30,22 +26,63 @@
 	import GoogleCalendarIcon from '#lib/components/icons/GoogleCalendarIcon.svelte';
 	import PlannerCourseSearch from './PlannerCourseSearch.svelte';
 	import PlannerGrid from './PlannerGrid.svelte';
-	import type { ClassMapValue, FinalExamRow } from '#lib/utils/types';
-	import { tick } from 'svelte';
+	import type { ClassMapValue, FinalExamRow } from '#lib/utils/types.js';
+	import { onMount, tick } from 'svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 
 	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 
+	const plannerStore = getPlannerStore();
+	const termStore = getTermStore();
+	const toastStore = getToast();
+	const searchInfo = getSearchInfo();
+
 	let screenEl = $state<HTMLDivElement | null>(null);
-	let finals = $state<FinalExamRow[]>([]);
-	let courseRows = $state<ClassMapValue[]>([]);
-	let resolvedAlternativeCourses = $state<string[]>([]);
-	let lastRefreshKey = $state<string | null>(null);
-	// Monotonic id so an out-of-order fetch (older, fewer courses) can't overwrite
-	// a newer one and wrongly flag just-added sections as "no longer offered".
-	let refreshSeq = 0;
 
 	const plan = $derived(plannerStore.activePlan);
+	const termId = $derived(plan?.termId ?? null);
+	// A string, so a plan write that keeps the same courses does not reload them.
+	const courseKey = $derived(
+		[...new Set((plan?.sections ?? []).map((s) => s.courseCode))].sort().join('\n')
+	);
+	const courseClasses = $derived(loadCourseClasses(termId, courseKey));
+	const finals = $derived(loadFinals(termId, courseKey));
+
+	async function loadCourseClasses(termId: number | null, courseKey: string) {
+		const codes = courseKey ? courseKey.split('\n') : [];
+		const results = await Promise.all(
+			codes.map((code) =>
+				termId == null
+					? { code, rows: [] as ClassMapValue[], ok: false }
+					: getClassesByCourseCode({ termId, courseCode: code }).then(
+							(rows) => ({ code, rows, ok: true }),
+							() => ({ code, rows: [] as ClassMapValue[], ok: false })
+						)
+			)
+		);
+		const ok = results.filter((r) => r.ok);
+		return {
+			rows: ok.flatMap((r) => r.rows),
+			fetchedCourses: new Set(ok.map((r) => r.code)),
+			resolvedCourses: results.map((r) => r.code)
+		};
+	}
+
+	async function loadFinals(termId: number | null, courseKey: string): Promise<FinalExamRow[]> {
+		if (termId == null || !courseKey) return [];
+		const results = await Promise.all(
+			courseKey
+				.split('\n')
+				.map((courseCode) => getFinalExams({ termId, courseCode }).catch(() => []))
+		);
+		return results.flat();
+	}
+
+	// Write fresh rooms and times into the saved plan once per open.
+	onMount(async () => {
+		const { rows, fetchedCourses } = await courseClasses;
+		if (fetchedCourses.size > 0) plannerStore.refreshActivePlan(rows, fetchedCourses);
+	});
 	const offerings = $derived.by(() => {
 		const seen = new Map<string, { courseCode: string; section: string; titles: string[] }>();
 		for (const s of plan?.sections ?? []) {
@@ -94,7 +131,7 @@
 
 	const unscheduled = $derived((plan?.sections ?? []).filter((s) => !s.stale && isUnscheduled(s)));
 	const staleSections = $derived((plan?.sections ?? []).filter((s) => s.stale));
-	const planFinals = $derived.by(() => {
+	function planFinals(finals: FinalExamRow[]) {
 		const sectionsByCourse = new Map<string, Set<string>>();
 		for (const s of plan?.sections ?? []) {
 			if (!sectionsByCourse.has(s.courseCode)) {
@@ -107,16 +144,14 @@
 				sectionsByCourse.has(exam.courseCode) &&
 				(!exam.section || sectionsByCourse.get(exam.courseCode)?.has(exam.section))
 		);
-	});
+	}
 
 	function swapSection(courseCode: string, toSections: ClassMapValue[]) {
 		plannerStore.replaceCourse(courseCode, toSections);
 	}
 
-	// The store's open/close was removed (babff7b) - the screen now mounts only
-	// while the sidebar's planner panel is active, so closing = back to the map.
 	function close() {
-		sidebarStore.changeOpened('map');
+		goto(resolve('map'));
 	}
 
 	function openRoom(roomCode: string) {
@@ -126,13 +161,12 @@
 			category: 'room',
 			value: roomCode
 		});
-		searchInfo.inputValue = roomCode;
 		close();
 	}
 
 	async function copyShareLink() {
 		if (!plan || !hasSchedule) return;
-		const url = `${location.origin}/?plan=${encodeSharePlan(plan)}`;
+		const url = `${location.origin}/map/planner?plan=${encodeSharePlan(plan)}`;
 		try {
 			await navigator.clipboard.writeText(url);
 			toastStore.show('Share link copied', 'success');
@@ -237,56 +271,6 @@
 	$effect(() => {
 		if (!screenEl) return;
 		return trapFocus(screenEl, { onEscape: close });
-	});
-
-	// Re-resolve natural keys and load finals once per plan per open (#planner).
-	// No `open` gate: the component only exists while the planner panel is open.
-	$effect(() => {
-		if (!plan || plan.sections.length === 0) return;
-		// Key on the course set too: adding a course to the plan must refetch its
-		// sections, otherwise dragging a newly added block has no alternatives to
-		// drop onto (drag "doesn't work" for just-added courses).
-		const courseCodes = [...new Set(plan.sections.map((s) => s.courseCode))].sort();
-		const refreshKey = `${plan.id}::${plan.termId}::${courseCodes.join(',')}`;
-		if (refreshKey === lastRefreshKey) return;
-		lastRefreshKey = refreshKey;
-		courseRows = [];
-		resolvedAlternativeCourses = [];
-
-		const seq = ++refreshSeq;
-		Promise.all(
-			courseCodes.map((code) =>
-				// fetchAllClasses (not a single 100-cap page) so a big course like
-				// HK 12 (147 sections) surfaces every drag alternative, not just 100.
-				fetchAllClasses({
-					termId: plan.termId,
-					courseCodePrefix: code
-				}).then(
-					(page) => ({ code, rows: page.rows, ok: true }),
-					() => ({ code, rows: [] as ClassMapValue[], ok: false })
-				)
-			)
-		).then((results) => {
-			if (seq !== refreshSeq) return; // superseded by a newer refresh
-			const okResults = results.filter((r) => r.ok);
-			const rows = okResults.flatMap((r) => r.rows);
-			const fetchedCourses = new Set(okResults.map((r) => r.code));
-			courseRows = rows;
-			// A failed lookup is resolved too: the grid should say that no alternate
-			// section is available, rather than leaving a permanent loading state.
-			resolvedAlternativeCourses = results.map((r) => r.code);
-			if (fetchedCourses.size > 0) {
-				plannerStore.refreshActivePlan(rows, fetchedCourses);
-			}
-		});
-
-		Promise.all(
-			courseCodes.map((code) =>
-				fetchFinalExams({ courseCode: code, termId: plan.termId }).catch(() => [])
-			)
-		).then((results) => {
-			finals = results.flat();
-		});
 	});
 </script>
 
@@ -429,27 +413,36 @@
 	</div>
 
 	<p class="planner-save-note" role="note">
-		{#if adminAuthStore.isLoggedIn}
-			Plans and professor notes save automatically on this device and sync to your account.
-		{:else}
-			Plans save automatically on this device. Sign in to keep your plans across devices. Use <strong
-				>Share</strong
-			> to copy a link you can reopen anywhere or send to someone.
-		{/if}
+		Plans save automatically on this device. Use <strong>Share</strong> to copy a link you can reopen
+		anywhere or send to someone.
 	</p>
 
 	<div class="planner-body" class:planner-body--no-side={!plan || plan.sections.length === 0}>
 		<PlannerCourseSearch />
 
-		<PlannerGrid
-			sections={plan?.sections ?? []}
-			conflicts={plannerStore.conflicts}
-			alternatives={courseRows}
-			{resolvedAlternativeCourses}
-			onremove={plannerStore.removeOffering}
-			onopenroom={openRoom}
-			onswap={swapSection}
-		/>
+		<svelte:boundary>
+			{#snippet pending()}
+				<PlannerGrid
+					sections={plan?.sections ?? []}
+					conflicts={plannerStore.conflicts}
+					alternatives={[]}
+					resolvedAlternativeCourses={[]}
+					onremove={plannerStore.removeOffering}
+					onopenroom={openRoom}
+					onswap={swapSection}
+				/>
+			{/snippet}
+			{@const classes = await courseClasses}
+			<PlannerGrid
+				sections={plan?.sections ?? []}
+				conflicts={plannerStore.conflicts}
+				alternatives={classes.rows}
+				resolvedAlternativeCourses={classes.resolvedCourses}
+				onremove={plannerStore.removeOffering}
+				onopenroom={openRoom}
+				onswap={swapSection}
+			/>
+		</svelte:boundary>
 
 		{#if plan && plan.sections.length > 0}
 			<section class="planner-side" aria-label="Plan details">
@@ -542,11 +535,14 @@
 					</ul>
 				{/if}
 
-				{#if planFinals.length > 0}
-					<h2 class="planner-side__heading">Final exams</h2>
-					<FinalExamsList exams={planFinals} showRoom={true} />
-					<p class="planner-finals-note">{FINALS_SCOPE_NOTE}</p>
-				{/if}
+				<svelte:boundary>
+					{@const exams = planFinals(await finals)}
+					{#if exams.length > 0}
+						<h2 class="planner-side__heading">Final exams</h2>
+						<FinalExamsList {exams} showRoom={true} />
+						<p class="planner-finals-note">{FINALS_SCOPE_NOTE}</p>
+					{/if}
+				</svelte:boundary>
 			</section>
 		{/if}
 	</div>

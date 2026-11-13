@@ -1,8 +1,24 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import PlannerCourseSearch from '#lib/components/planner/PlannerCourseSearch.svelte';
-import { plannerStore, termStore } from '#lib/stores.svelte.js';
+import PlannerCourseSearch from './PlannerCourseSearch.svelte';
+import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
+import TermStore from '#lib/stores/new/data/TermStore.svelte.js';
+import ToastStore from '#lib/stores/new/ui/ToastStore.svelte.js';
 import type { ClassMapValue } from '#lib/utils/types';
+
+vi.mock('#lib/functions/terms.remote.js', () => ({ getTerms: vi.fn() }));
+vi.mock('#lib/functions/classes.remote.js', () => ({
+	getClassesByCourseCode: vi.fn(async () => rows)
+}));
+vi.mock('#lib/utils/context.js', () => ({
+	getPlannerStore: () => plannerStore,
+	getTermStore: () => termStore,
+	getToast: () => toastStore
+}));
+
+const termStore = new TermStore();
+const plannerStore = new PlannerStore(() => termStore.activeTermId);
+const toastStore = new ToastStore();
 
 const rows: ClassMapValue[] = [
 	{
@@ -43,18 +59,6 @@ const rows: ClassMapValue[] = [
 	}
 ];
 
-vi.stubGlobal(
-	'fetch',
-	vi.fn(() =>
-		Promise.resolve(
-			new Response(JSON.stringify({ rows, total: rows.length }), {
-				status: 200,
-				headers: { 'content-type': 'application/json' }
-			})
-		)
-	)
-);
-
 describe('PlannerCourseSearch', () => {
 	beforeEach(() => {
 		localStorage.clear();
@@ -63,8 +67,11 @@ describe('PlannerCourseSearch', () => {
 		plannerStore.activePlanIdByTerm = {};
 	});
 
-	test('lists courses on mount and adds an offering to the plan', async () => {
+	test('finds a course by code and adds an offering to the plan', async () => {
 		render(PlannerCourseSearch);
+		await fireEvent.input(screen.getByPlaceholderText(/Search courses/), {
+			target: { value: 'CMSC 12' }
+		});
 		const courseButton = await screen.findByRole('button', {
 			name: /CMSC 12/
 		});
