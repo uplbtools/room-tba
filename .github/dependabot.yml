@@ -9,6 +9,8 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: chore
       include: scope
@@ -26,8 +28,13 @@ updates:
           - "drizzle-*"
       dev-tooling:
         dependency-type: development
+        update-types:
+          - minor
+          - patch
         patterns:
           - "*"
+        exclude-patterns:
+          - "@biomejs/biome"
 
   - package-ecosystem: github-actions
     directory: /
@@ -35,6 +42,8 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: chore
       include: scope
