@@ -1,22 +1,29 @@
 import { render, screen } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-
-// The screen's open-effect refreshes sections and finals over the network;
-// answer with empty results so tests stay offline.
-vi.stubGlobal(
-	'fetch',
-	vi.fn((input: RequestInfo | URL) =>
-		Promise.resolve(
-			new Response(
-				String(input).includes('/api/classes') ? JSON.stringify({ rows: [], total: 0 }) : '[]',
-				{ status: 200, headers: { 'content-type': 'application/json' } }
-			)
-		)
-	)
-);
 import PlannerScreen from './PlannerScreen.svelte';
-import { plannerStore, termStore } from '#lib/stores.svelte.js';
+import { getClassesByCourseCode } from '#lib/functions/classes.remote.js';
+import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
+import TermStore from '#lib/stores/new/data/TermStore.svelte.js';
+import ToastStore from '#lib/stores/new/ui/ToastStore.svelte.js';
 import type { ClassMapValue } from '#lib/utils/types';
+
+vi.mock('#lib/functions/terms.remote.js', () => ({ getTerms: vi.fn() }));
+vi.mock('#lib/functions/classes.remote.js', () => ({
+	getClassesByCourseCode: vi.fn(async () => [])
+}));
+vi.mock('#lib/functions/final-exams.remote.js', () => ({ getFinalExams: vi.fn(async () => []) }));
+vi.mock('#lib/utils/context.js', () => ({
+	getPlannerStore: () => plannerStore,
+	getTermStore: () => termStore,
+	getToast: () => toastStore,
+	getSearchInfo: () => ({}),
+	getEscapeActions: () => ({})
+}));
+
+const termStore = new TermStore();
+termStore.init = async () => {};
+const plannerStore = new PlannerStore(() => termStore.activeTermId);
+const toastStore = new ToastStore();
 
 const row = (overrides: Partial<ClassMapValue>): ClassMapValue => ({
 	id: 1,
@@ -38,7 +45,7 @@ describe('PlannerScreen', () => {
 		termStore.activeTermId = 1252;
 		plannerStore.plans = [];
 		plannerStore.activePlanIdByTerm = {};
-		vi.mocked(fetch).mockClear();
+		vi.mocked(getClassesByCourseCode).mockClear();
 	});
 
 	test('renders as a dialog with course search and an empty grid', () => {
@@ -49,16 +56,17 @@ describe('PlannerScreen', () => {
 		expect(document.querySelectorAll('.planner-block')).toHaveLength(0);
 	});
 
-	test('renders grid blocks and section list for a seeded plan', () => {
-		plannerStore.addOffering([
-			row({}),
-			row({ id: 2, type: 'LAB', schedule: ['F 01:00PM-04:00PM'] })
-		]);
+	test('renders grid blocks and section list for a seeded plan', async () => {
+		const rows = [row({}), row({ id: 2, type: 'LAB', schedule: ['F 01:00PM-04:00PM'] })];
+		vi.mocked(getClassesByCourseCode).mockImplementationOnce((async () => rows) as never);
+		plannerStore.addOffering(rows);
 		render(PlannerScreen);
 		// MW LEC = 2 blocks + F LAB = 1 block
-		expect(document.querySelectorAll('.planner-block')).toHaveLength(3);
+		await vi.waitFor(() => expect(document.querySelectorAll('.planner-block')).toHaveLength(3));
 		// Sections list groups by course: a "CMSC 128" header + its parts.
-		expect(document.querySelector('.planner-offering__course')?.textContent).toContain('CMSC 128');
+		await vi.waitFor(() =>
+			expect(document.querySelector('.planner-offering__course')?.textContent).toContain('CMSC 128')
+		);
 		expect(
 			[...document.querySelectorAll('.planner-offering__part-section')].map((el) =>
 				el.textContent?.trim()
@@ -67,7 +75,7 @@ describe('PlannerScreen', () => {
 		expect(screen.getByText('All clear')).toBeVisible();
 	});
 
-	test('shows conflict badge and outlines for overlapping sections', () => {
+	test('shows conflict badge and outlines for overlapping sections', async () => {
 		plannerStore.addOffering([row({})]);
 		plannerStore.addOffering([
 			row({
@@ -78,27 +86,25 @@ describe('PlannerScreen', () => {
 			})
 		]);
 		render(PlannerScreen);
-		expect(screen.getByText('1 conflict')).toBeVisible();
+		expect(await screen.findByText('1 conflict')).toBeVisible();
 		expect(document.querySelectorAll('.planner-block--conflict').length).toBeGreaterThan(0);
 	});
 
-	test('lists TBA sections under Unscheduled', () => {
+	test('lists TBA sections under Unscheduled', async () => {
 		plannerStore.addOffering([row({ courseCode: 'PE 2', section: 'C-1', schedule: ['TBA'] })]);
 		render(PlannerScreen);
-		expect(screen.getByText('Unscheduled (TBA)')).toBeVisible();
+		expect(await screen.findByText('Unscheduled (TBA)')).toBeVisible();
 		expect(document.querySelectorAll('.planner-block')).toHaveLength(0);
 	});
 
-	// Regression (#506 drag-to-switch-section): the store's `open` flag was
-	// removed, but the refresh effect still gated on it, so section
-	// alternatives were never fetched and dragging a block had no targets.
-	test('fetches section alternatives on mount so drag-to-switch has targets', async () => {
+	// Regression (#506 drag-to-switch-section): drag targets come from the
+	// section alternatives loaded on mount.
+	test('loads section alternatives on mount so drag-to-switch has targets', async () => {
 		plannerStore.addOffering([row({})]);
 		render(PlannerScreen);
 		await vi.waitFor(() => {
-			const urls = vi.mocked(fetch).mock.calls.map((c) => String(c[0]));
-			expect(urls.some((u) => u.includes('/api/classes') && u.includes('course_code=CMSC'))).toBe(
-				true
+			expect(getClassesByCourseCode).toHaveBeenCalledWith(
+				expect.objectContaining({ courseCode: 'CMSC 128' })
 			);
 		});
 	});
