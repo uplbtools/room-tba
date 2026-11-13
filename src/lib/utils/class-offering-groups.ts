@@ -44,6 +44,21 @@ export function offeringGroupKey(
 	return `${courseCode}::${section}`;
 }
 
+export function parentLectureCandidates(row: ClassMapValue): string[] {
+	const first = parentLectureSection(row);
+	if (!first) return [];
+	const stripped = first.replace(/\d+$/, '');
+	return stripped && stripped !== first ? [first, stripped] : [first];
+}
+
+export function resolveParentLecture(row: ClassMapValue, known: Iterable<string>): string | null {
+	const have = new Set([...known].map((s) => s.trim().toUpperCase()));
+	for (const candidate of parentLectureCandidates(row)) {
+		if (have.has(candidate)) return candidate;
+	}
+	return null;
+}
+
 /** Group LEC/LAB/SEM rows that share course code + section (#301). */
 export function groupClassesByOffering(classes: ClassMapValue[]): ClassOfferingGroup[] {
 	const groups = new Map<string, ClassOfferingGroup>();
@@ -82,10 +97,16 @@ export function groupClassesByOffering(classes: ClassMapValue[]): ClassOfferingG
 	for (const group of groups.values()) {
 		const linkedLectures = new Map<number, ClassMapValue>();
 		for (const row of group.sections) {
-			const parentSection = parentLectureSection(row);
-			const parentKey = offeringGroupKey(row.courseCode, parentSection);
-			const parent = parentKey ? groups.get(parentKey) : null;
-			if (!parent || parent === group) continue;
+			let parent: ClassOfferingGroup | null = null;
+			for (const candidate of parentLectureCandidates(row)) {
+				const key = offeringGroupKey(row.courseCode, candidate);
+				const found = key ? groups.get(key) : null;
+				if (found && found !== group) {
+					parent = found;
+					break;
+				}
+			}
+			if (!parent) continue;
 			for (const parentRow of parent.sections) {
 				if (classType(parentRow) === 'LEC') {
 					linkedLectures.set(parentRow.id, parentRow);

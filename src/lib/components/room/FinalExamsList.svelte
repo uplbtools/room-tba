@@ -18,14 +18,14 @@
 				<div class="final-exam-row__course">
 					{exam.courseCode}
 					{#if exam.section}
-						<span class="final-exam-row__section">· {exam.section}</span>
+						<span class="final-exam-row__section">{exam.section}</span>
 					{/if}
 				</div>
 				{#if exam.courseTitle}
 					<div class="final-exam-row__title">{exam.courseTitle}</div>
 				{/if}
 				<div class="final-exam-row__when">
-					{formatExamDate(exam.examDate)} · {formatExamTimeRange(exam.startsAt, exam.endsAt)}
+					{formatExamDate(exam.examDate)}, {formatExamTimeRange(exam.startsAt, exam.endsAt)}
 				</div>
 				{#if showRoom}
 					{#if exam.roomId && exam.roomCode}
@@ -52,10 +52,10 @@
 	}
 
 	.final-exam-row {
-		border: 1px solid hsl(0, 0%, 90%);
+		border: 1px solid var(--theme-border, hsl(0, 0%, 90%));
 		border-radius: 0.5rem;
 		padding: 0.625rem 0.75rem;
-		background: hsl(0, 0%, 99%);
+		background: var(--theme-surface, hsl(0, 0%, 99%));
 	}
 
 	.final-exam-row__main {
@@ -68,7 +68,7 @@
 	.final-exam-row__course {
 		font-size: 0.875rem;
 		font-weight: 700;
-		color: hsl(0, 0%, 12%);
+		color: var(--theme-text, hsl(0, 0%, 12%));
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -76,12 +76,12 @@
 
 	.final-exam-row__section {
 		font-weight: 600;
-		color: hsl(0, 0%, 35%);
+		color: var(--theme-text-2, hsl(0, 0%, 35%));
 	}
 
 	.final-exam-row__title {
 		font-size: 0.8125rem;
-		color: hsl(0, 0%, 30%);
+		color: var(--theme-text, hsl(0, 0%, 30%));
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -89,7 +89,7 @@
 
 	.final-exam-row__when {
 		font-size: 0.8125rem;
-		color: hsl(0, 0%, 35%);
+		color: var(--theme-text-2, hsl(0, 0%, 35%));
 	}
 
 	.final-exam-row__room {
@@ -98,20 +98,20 @@
 		margin-top: 0.125rem;
 		font-size: 0.8125rem;
 		font-weight: 700;
-		color: hsl(5, 53%, 32%);
+		color: var(--theme-accent-text, hsl(5, 53%, 32%));
 		cursor: pointer;
 		text-decoration: underline;
 		text-underline-offset: 0.125rem;
 	}
 
 	a.final-exam-row__room:hover {
-		color: #7b1113;
+		color: var(--theme-accent-text, #7b1113);
 	}
 
 	.final-exam-row__room--tba {
 		cursor: default;
 		text-decoration: none;
-		color: hsl(0, 0%, 45%);
+		color: var(--theme-text-2, hsl(0, 0%, 45%));
 		font-weight: 500;
 	}
 </style>
