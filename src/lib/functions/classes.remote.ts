@@ -32,7 +32,8 @@ export const getClassesByCourseCode = query(
 					ilike(classesTable.courseCode, `${escapeLikePattern(courseCode)}%`)
 				)
 			)
-			.orderBy(classesTable.courseCode, classesTable.section);
+			.orderBy(classesTable.courseCode, classesTable.section)
+			.limit(100);
 		return rows;
 	}
 );

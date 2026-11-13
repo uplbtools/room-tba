@@ -11,7 +11,7 @@
 		initPlannerStore,
 		getEscapeActions
 	} from '#lib/utils/context.js';
-	import type { Snippet } from 'svelte';
+	import { onMount, type Snippet } from 'svelte';
 	import UIMap from './Map.svelte';
 	import SearchInfo from '#lib/stores/SearchInfo.svelte.js';
 	import UILayer from './UILayer.svelte';
@@ -519,7 +519,11 @@
 	initSearchInfo(new SearchInfo());
 	initModalStore(new ModalStore());
 	const termStore = initTermStore(new TermStore());
-	initPlannerStore(new PlannerStore(() => termStore.activeTermId));
+	const plannerStore = initPlannerStore(new PlannerStore(() => termStore.activeTermId));
+	onMount(() => {
+		void termStore.init();
+		plannerStore.init();
+	});
 
 	const escapeActionStack = getEscapeActions();
 
