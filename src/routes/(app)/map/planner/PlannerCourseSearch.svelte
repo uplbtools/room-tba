@@ -8,6 +8,7 @@
 		offeringGroupKey,
 		type ClassOfferingGroup
 	} from '#lib/utils/class-offering-groups.js';
+	import { formatScheduleShort, formatSectionType } from '#lib/utils/planner/format.js';
 	import { getPlannerStore, getTermStore, getToast } from '#lib/utils/context.js';
 	import type { ClassMapValue } from '#lib/utils/types.js';
 
@@ -17,11 +18,20 @@
 
 	const termId = $derived(plannerStore.activePlan?.termId ?? termStore.activeTermId);
 
+	let query = $state('');
 	let courseCode = $state('');
 	const setCourseCode = debounce((value: string) => {
 		courseCode = value.trim();
 	}, 250);
 	const expanded = new SvelteSet<string>();
+	const planCourses = $derived([
+		...new Set((plannerStore.activePlan?.sections ?? []).map((s) => s.courseCode))
+	]);
+
+	function searchCourse(code: string) {
+		query = code;
+		courseCode = code;
+	}
 
 	type CourseGroup = {
 		/** Stable list/expand key: courseCode + title. */
@@ -83,19 +93,17 @@
 			// One section per course: picking a different section of a course you've
 			// already added swaps it in rather than stacking multiple labs (#13).
 			plannerStore.replaceCourse(offering.courseCode, offering.sections);
-			toastStore.show(
-				`${offering.courseCode} ${offering.section} added to ${plannerStore.activePlan?.label ?? 'plan'}`,
-				'success'
-			);
+			toastStore.show(`Added ${offering.courseCode} ${offering.section}`, 'success');
 		}
 	}
 
-	function offeringSchedule(offering: ClassOfferingGroup): string {
-		const parts = offering.sections.map((s) => {
-			const sched = s.schedule?.length ? s.schedule.join(', ') : 'TBA';
-			return `${s.type ?? 'Class'} ${sched}`;
+	/** One line per component: "Lec WF 4–5 PM · EAA LH". */
+	function offeringParts(offering: ClassOfferingGroup): string[] {
+		return offering.sections.map((s) => {
+			const sched = s.schedule?.length ? s.schedule.map(formatScheduleShort).join(', ') : 'TBA';
+			const room = s.roomCode ? ` · ${s.roomCode}` : '';
+			return `${formatSectionType(s.type)} ${sched}${room}`;
 		});
-		return parts.join(' · ');
 	}
 
 	/** Drop shared HK 12 base name + parens; leave the activity (e.g. Badminton). */
@@ -116,12 +124,27 @@
 			id="planner-course-search"
 			type="search"
 			placeholder="Search courses (e.g. CMSC 12)"
-			oninput={(event) => setCourseCode(event.currentTarget.value)}
+			bind:value={query}
+			oninput={() => setCourseCode(query)}
 		/>
 	</label>
 
 	{#if !courseCode || termId == null}
-		<p class="course-search__note">Search a course code to see its sections.</p>
+		<div class="course-search__empty">
+			<p class="course-search__hint">
+				Type a course code to see its sections, e.g. <strong>CMSC 12</strong> or
+				<strong>MATH 27</strong>.
+			</p>
+			{#if planCourses.length > 0}
+				<div class="course-search__chips" aria-label="Courses in this plan">
+					{#each planCourses as code (code)}
+						<button type="button" class="course-search__chip" onclick={() => searchCourse(code)}>
+							{code}
+						</button>
+					{/each}
+				</div>
+			{/if}
+		</div>
 	{:else}
 		<svelte:boundary>
 			{#snippet pending()}
@@ -172,17 +195,21 @@
 										<li class="section-row">
 											<div class="section-row__main">
 												<span class="section-row__name">{offering.section}</span>
-												<span class="section-row__schedule">
-													{offeringSchedule(offering)}
-												</span>
+												{#each offeringParts(offering) as part, i (i)}
+													<span class="section-row__schedule">{part}</span>
+												{/each}
 											</div>
 											<button
 												type="button"
 												class="section-row__toggle"
 												class:section-row__toggle--added={added}
+												aria-pressed={added}
+												aria-label={added
+													? `Remove ${offering.courseCode} ${offering.section} from plan`
+													: undefined}
 												onclick={() => togglePlan(offering)}
 											>
-												{added ? '✓' : 'Add'}
+												{added ? '✓ Added' : 'Add'}
 											</button>
 										</li>
 									{/each}
@@ -229,6 +256,44 @@
 		min-width: 0;
 		font-size: 0.8125rem;
 		color: hsl(0, 0%, 15%);
+	}
+
+	.course-search__empty {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.5rem;
+		padding: 0.25rem 0.125rem;
+	}
+
+	.course-search__hint {
+		margin: 0;
+		font-size: 0.8125rem;
+		line-height: 1.4;
+		color: hsl(0, 0%, 35%);
+	}
+
+	.course-search__chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.375rem;
+	}
+
+	.course-search__chip {
+		all: unset;
+		box-sizing: border-box;
+		padding: 0.25rem 0.625rem;
+		border-radius: 999px;
+		background: hsl(5, 53%, 95%);
+		color: hsl(5, 53%, 28%);
+		font-size: 0.75rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.course-search__chip:hover,
+	.course-search__chip:focus-visible {
+		background: hsl(5, 53%, 90%);
 	}
 
 	.course-search__note {
@@ -347,6 +412,7 @@
 
 	.section-row__toggle {
 		all: unset;
+		box-sizing: border-box;
 		flex-shrink: 0;
 		min-width: 2rem;
 		padding: 0.1875rem 0.5rem;
@@ -364,9 +430,11 @@
 		background: hsl(5, 53%, 96%);
 	}
 
-	.section-row__toggle--added {
-		background: hsl(5, 53%, 32%);
-		border-color: hsl(5, 53%, 32%);
+	.section-row__toggle--added,
+	.section-row__toggle--added:hover,
+	.section-row__toggle--added:focus-visible {
+		background: hsl(140, 45%, 30%);
+		border-color: hsl(140, 45%, 30%);
 		color: white;
 	}
 
@@ -425,8 +493,19 @@
 			align-items: center;
 			justify-content: center;
 			min-width: 3.5rem;
-			min-height: 2.75rem;
-			padding: 0.5rem 0.875rem;
+			min-height: 2.5rem;
+			padding: 0 0.875rem;
+			font-size: 0.8125rem;
+		}
+
+		.course-search__hint {
+			font-size: 0.875rem;
+		}
+
+		.course-search__chip {
+			min-height: 2.25rem;
+			display: inline-flex;
+			align-items: center;
 			font-size: 0.875rem;
 		}
 	}
