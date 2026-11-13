@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { Building3DStore, MapToolsStore, TerrainStore } from '../new/map/map-stores.svelte';
-import { mapEditStore, mapToolsStore, terrainStore } from '#lib/stores.svelte.js';
+import { registerMapMode } from './map-modes.js';
 
 describe('MapToolsStore', () => {
 	let store: MapToolsStore;
@@ -27,19 +27,23 @@ describe('MapToolsStore', () => {
 
 describe('TerrainStore', () => {
 	let store: TerrainStore;
+	let editDisabled: boolean;
 
 	beforeEach(() => {
 		store = new TerrainStore();
-		mapEditStore.close();
-		mapToolsStore.close();
+		editDisabled = false;
+		registerMapMode('edit', {
+			disable: () => {
+				editDisabled = true;
+			}
+		});
 	});
 
 	test('enable sets loading and disables map edit', () => {
-		mapEditStore.enable();
 		store.enable();
 		expect(store.enabled).toBe(true);
 		expect(store.status).toBe('loading');
-		expect(mapEditStore.enabled).toBe(false);
+		expect(editDisabled).toBe(true);
 	});
 
 	test('markUnavailable disables terrain and stores message', () => {
@@ -105,19 +109,5 @@ describe('Building3DStore', () => {
 		expect(store.buildingName).toBe('Test Hall');
 		store.close();
 		expect(store.buildingName).toBeNull();
-	});
-});
-
-describe('terrain singleton exclusivity', () => {
-	beforeEach(() => {
-		terrainStore.disable();
-		mapEditStore.close();
-	});
-
-	test('terrain enable closes map edit on shared singletons', () => {
-		mapEditStore.enable();
-		terrainStore.enable();
-		expect(mapEditStore.enabled).toBe(false);
-		expect(terrainStore.enabled).toBe(true);
 	});
 });
