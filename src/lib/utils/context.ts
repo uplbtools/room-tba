@@ -16,6 +16,8 @@ import type ModalStore from '#lib/stores/new/ui/ModalStore.svelte.ts';
 import type EscapeActions from '#lib/stores/new/ui/EscapeActionStack.svelte.ts';
 import type TermStore from '#lib/stores/new/data/TermStore.svelte.ts';
 import type PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.ts';
+import type AdminAuthStore from '#lib/stores/new/data/AdminAuthStore.svelte.ts';
+import type ProposalsStore from '#lib/stores/new/data/ProposalsStore.svelte.ts';
 export type AppContextData =
 	| {
 			buildings: Building[];
@@ -64,3 +66,5 @@ export const [getModalStore, initModalStore] = createContext<ModalStore>();
 export const [getEscapeActions, initEscapeActions] = createContext<EscapeActions>();
 export const [getTermStore, initTermStore] = createContext<TermStore>();
 export const [getPlannerStore, initPlannerStore] = createContext<PlannerStore>();
+export const [getAdminAuthStore, initAdminAuthStore] = createContext<AdminAuthStore>();
+export const [getProposalsStore, initProposalsStore] = createContext<ProposalsStore>();

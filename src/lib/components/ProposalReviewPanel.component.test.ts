@@ -1,7 +1,27 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import ProposalReviewPanelHost from '@test/components/ProposalReviewPanelHost.svelte';
-import { adminAuthStore, proposalsStore } from '#lib/stores.svelte.js';
+import AdminAuthStore from '#lib/stores/new/data/AdminAuthStore.svelte.js';
+import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
+import ProposalsStore from '#lib/stores/new/data/ProposalsStore.svelte.js';
+import type ModalStore from '#lib/stores/new/ui/ModalStore.svelte.js';
+import ToastStore from '#lib/stores/new/ui/ToastStore.svelte.js';
+
+vi.mock('#lib/supabase/env.js', () => ({ isSupabaseConfigured: () => false }));
+vi.mock('#lib/utils/context.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/utils/context.js')>()),
+	getAdminAuthStore: () => adminAuthStore,
+	getProposalsStore: () => proposalsStore,
+	getToast: () => toastStore
+}));
+
+const proposalsStore = new ProposalsStore(() => adminAuthStore.canReview);
+const adminAuthStore = new AdminAuthStore({
+	modalStore: { closeModal: () => {} } as unknown as ModalStore,
+	plannerStore: new PlannerStore(() => null),
+	proposalsStore
+});
+const toastStore = new ToastStore();
 import { mountAtWidth } from '@test/layout-assertions';
 
 function baseProposal() {

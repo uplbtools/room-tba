@@ -1,20 +1,15 @@
 <script lang="ts">
-	import { adminAuthStore, sidebarStore } from '#lib/stores.svelte.js';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+	import { getAdminAuthStore } from '#lib/utils/context.js';
 	import AppMenu from '../status-bar/AppMenu.svelte';
 
-	type NavId = 'map' | 'planner' | 'finals';
+	const adminAuthStore = getAdminAuthStore();
 
-	const links: { id: NavId; label: string }[] = [
-		{ id: 'map', label: 'Map' },
-		{ id: 'planner', label: 'Planner' },
-		{ id: 'finals', label: 'Final Exams' }
+	const links = [
+		{ href: resolve('map'), label: 'Map', routeId: '/(app)/map' },
+		{ href: resolve('map/planner'), label: 'Planner', routeId: '/(app)/map/planner' }
 	];
-
-	const active = $derived(sidebarStore.panelOpen);
-
-	function go(id: NavId) {
-		sidebarStore.changeOpened(id);
-	}
 
 	function handleSignIn() {
 		if (adminAuthStore.username) {
@@ -28,12 +23,7 @@
 </script>
 
 <header class="desktop-top-bar" aria-label="App navigation">
-	<button
-		type="button"
-		class="desktop-top-bar__brand"
-		aria-label="Room TBA home"
-		onclick={() => go('map')}
-	>
+	<a href={resolve('map')} class="desktop-top-bar__brand" aria-label="Room TBA home">
 		<img
 			src="/logo-inverted.png"
 			alt=""
@@ -43,21 +33,20 @@
 			decoding="async"
 		/>
 		<span class="desktop-top-bar__title">Room TBA</span>
-	</button>
+	</a>
 
 	<nav class="desktop-top-bar__nav" aria-label="Primary">
-		{#each links as link (link.id)}
-			<button
-				type="button"
+		{#each links as link (link.href)}
+			{@const active = page.route.id === link.routeId}
+			<a
+				href={link.href}
 				class="desktop-top-bar__link"
-				class:desktop-top-bar__link--active={active === link.id}
-				aria-current={active === link.id ? 'page' : undefined}
-				onclick={() => go(link.id)}
+				class:desktop-top-bar__link--active={active}
+				aria-current={active ? 'page' : undefined}
 			>
 				{link.label}
-			</button>
+			</a>
 		{/each}
-		<!-- <a href="/wiki" class="desktop-top-bar__link">Wiki</a> -->
 		<AppMenu />
 		<button type="button" class="desktop-top-bar__signin" onclick={handleSignIn}>
 			{signInLabel}
@@ -90,6 +79,7 @@
 		padding: 0;
 		border: none;
 		background: transparent;
+		text-decoration: none;
 		cursor: pointer;
 		text-align: left;
 	}

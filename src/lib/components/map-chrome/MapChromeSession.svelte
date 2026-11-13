@@ -2,9 +2,9 @@
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import Settings from '@lucide/svelte/icons/settings';
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
-	import { adminAuthStore } from '#lib/stores.svelte.js';
 	import MapChromeGhostButton from './MapChromeGhostButton.svelte';
 	import './map-chrome.css';
+	import { getAdminAuthStore } from '#lib/utils/context.js';
 
 	type Props = {
 		roleLabel: string;
@@ -28,6 +28,7 @@
 		expanded = false,
 		onSignOut
 	}: Props = $props();
+	const adminAuthStore = getAdminAuthStore();
 
 	const signedInTitle = $derived(title ?? `Signed in as ${roleLabel.toLowerCase()}`);
 	const expandedLabel = $derived.by(() => {
