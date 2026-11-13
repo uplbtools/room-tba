@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/svelte';
+import { fireEvent, render, screen } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import PlannerScreen from './PlannerScreen.svelte';
 import { getClassesByCourseCode } from '#lib/functions/classes.remote.js';
@@ -24,6 +24,7 @@ const termStore = new TermStore();
 termStore.init = async () => {};
 const plannerStore = new PlannerStore(() => termStore.activeTermId);
 const toastStore = new ToastStore();
+const originalConfirm = window.confirm;
 
 const row = (overrides: Partial<ClassMapValue>): ClassMapValue => ({
 	id: 1,
@@ -115,5 +116,34 @@ describe('PlannerScreen', () => {
 		render(PlannerScreen);
 		const tabs = screen.getAllByRole('tab');
 		expect(tabs.map((t) => t.textContent?.trim())).toEqual(['Untitled Plan 1', 'Untitled Plan 2']);
+	});
+
+	test('asks before deleting a plan that has classes', async () => {
+		plannerStore.addOffering([row({})]);
+		const label = plannerStore.activePlan?.label ?? '';
+		const confirm = vi.fn(() => false);
+		window.confirm = confirm;
+		render(PlannerScreen);
+
+		await fireEvent.click(await screen.findByRole('button', { name: `Delete ${label}` }));
+		expect(confirm).toHaveBeenCalledWith(expect.stringContaining('1 class'));
+		expect(plannerStore.activePlan?.sections).toHaveLength(1);
+
+		confirm.mockReturnValue(true as never);
+		await fireEvent.click(await screen.findByRole('button', { name: `Delete ${label}` }));
+		expect(plannerStore.activePlan?.sections ?? []).toHaveLength(0);
+		window.confirm = originalConfirm;
+	});
+
+	test('deletes an empty plan without asking', async () => {
+		plannerStore.ensurePlanForActiveTerm();
+		const label = plannerStore.activePlan?.label ?? '';
+		const confirm = vi.fn(() => true);
+		window.confirm = confirm;
+		render(PlannerScreen);
+
+		await fireEvent.click(await screen.findByRole('button', { name: `Delete ${label}` }));
+		expect(confirm).not.toHaveBeenCalled();
+		window.confirm = originalConfirm;
 	});
 });

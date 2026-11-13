@@ -227,6 +227,19 @@
 	let renaming = $state(false);
 	let renameDraft = $state('');
 
+	function deletePlan(tabPlan: { id: string; label: string; sections: unknown[] }) {
+		const count = tabPlan.sections.length;
+		if (
+			count > 0 &&
+			!window.confirm(
+				`Delete ${tabPlan.label}? Its ${count} ${count === 1 ? 'class' : 'classes'} will be removed from this device.`
+			)
+		) {
+			return;
+		}
+		plannerStore.deletePlan(tabPlan.id);
+	}
+
 	async function startRename(tabPlan?: { id: string; label: string }) {
 		const target = tabPlan ?? plan;
 		if (!target) return;
@@ -390,7 +403,7 @@
 						<button
 							type="button"
 							class="planner-tab__action planner-tab__action--danger"
-							onclick={() => plannerStore.deletePlan(tabPlan.id)}
+							onclick={() => deletePlan(tabPlan)}
 							aria-label="Delete {tabPlan.label}"
 							title="Delete"
 						>
@@ -1119,6 +1132,30 @@
 
 		.planner-tabs {
 			min-height: 2.75rem;
+		}
+
+		.planner-tab__action,
+		.planner-tab__tool--new {
+			width: 2.75rem;
+			height: 2.75rem;
+		}
+
+		.planner-tab-item:not(.planner-tab-item--active) .planner-tab__actions {
+			display: none;
+		}
+
+		.planner-tab-item--active {
+			flex: 0 0 auto;
+		}
+
+		.planner-tab-item--active .planner-tab__name {
+			min-width: 5.5rem;
+		}
+
+		.planner-back {
+			min-width: 2.75rem;
+			min-height: 2.75rem;
+			justify-content: center;
 		}
 
 		.planner-conflict-badge {
