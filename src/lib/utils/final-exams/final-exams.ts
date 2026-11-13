@@ -1,7 +1,7 @@
 import type { FinalExamRow } from '#lib/utils/types';
 
 export const FINALS_SCOPE_NOTE =
-	'Final exam times come from OUR/registrar releases, not AMIS class schedules. Regular lecture and lab timetables stay on the room panel above. If nothing appears here, OUR may not have published finals for this term yet.';
+	"Final exam times come from OUR/registrar releases, not AMIS class schedules. Regular lecture and lab timetables stay on each room's schedule panel. If nothing appears here, OUR may not have published finals for this term yet.";
 
 const COURSE_CODE_PATTERN = /^[A-Za-z]{2,8}\s*\d{1,4}[A-Za-z]?$/;
 
