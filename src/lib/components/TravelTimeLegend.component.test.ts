@@ -1,12 +1,16 @@
 import { render, screen } from '@testing-library/svelte';
-import { beforeEach, describe, expect, test } from 'vitest';
-import { travelTimeStore } from '#lib/stores.svelte.js';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { TravelTimeStore } from '#lib/stores/new/map/map-stores.svelte.js';
 import { expectNoHorizontalOverflow, mountAtWidth } from '@test/layout-assertions';
 import TravelTimeLegend from './TravelTimeLegend.svelte';
 
+vi.mock('#lib/utils/context.js', () => ({ getTravelTimeStore: () => travelTimeStore }));
+
+let travelTimeStore: TravelTimeStore;
+
 describe('TravelTimeLegend', () => {
 	beforeEach(() => {
-		travelTimeStore.disable();
+		travelTimeStore = new TravelTimeStore();
 		travelTimeStore.enable();
 	});
 

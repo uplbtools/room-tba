@@ -1,8 +1,12 @@
 import { render, screen } from '@testing-library/svelte';
-import { beforeEach, describe, expect, test } from 'vitest';
-import { measureRouteStore } from '#lib/stores.svelte.js';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { MeasureRouteStore } from '#lib/stores/new/map/map-stores.svelte.js';
 import { expectNoHorizontalOverflow, mountAtWidth } from '@test/layout-assertions';
 import MeasureRoutePanel from './MeasureRoutePanel.svelte';
+
+vi.mock('#lib/utils/context.js', () => ({ getMeasureRouteStore: () => measureRouteStore }));
+
+let measureRouteStore: MeasureRouteStore;
 
 function seedTwoLegRoute() {
 	measureRouteStore.addWaypoint(14.16, 121.24);
@@ -23,7 +27,7 @@ function seedTwoLegRoute() {
 
 describe('MeasureRoutePanel', () => {
 	beforeEach(() => {
-		measureRouteStore.disable();
+		measureRouteStore = new MeasureRouteStore();
 		measureRouteStore.enable();
 	});
 

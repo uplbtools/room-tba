@@ -1,13 +1,15 @@
 <script lang="ts">
-	import { modalStore } from '#lib/stores.svelte.js';
+	import { getModalStore } from '#lib/utils/context.js';
 	import EditorShelf from '#lib/components/EditorShelf.svelte';
 	import '../map-chrome/map-chrome.css';
+
+	const modalStore = getModalStore();
 </script>
 
 <div class="editor-tools-modal">
 	<h2 class="editor-tools-modal__title">Editor tools</h2>
 	<div class="editor-tools-modal__scroll map-chrome-scroll">
-		<EditorShelf onclose={modalStore.closeModal} />
+		<EditorShelf onclose={() => modalStore.closeModal()} />
 	</div>
 </div>
 
