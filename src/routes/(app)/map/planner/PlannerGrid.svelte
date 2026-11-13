@@ -2,6 +2,7 @@
 	import { getPlannerBlockColor } from '#lib/utils/schedule-renderer.js';
 	import { sectionBlocks } from '#lib/utils/planner/conflicts.js';
 	import { alternativeOfferings } from '#lib/utils/planner/alternatives.js';
+	import { formatMinutesRange, formatSectionType } from '#lib/utils/planner/format.js';
 	import type { Conflict, ScheduleBlock } from '#lib/utils/planner/conflicts.js';
 	import type { PlannedSection } from '#lib/utils/planner/types.js';
 	import type { ClassMapValue } from '#lib/utils/types.js';
@@ -29,18 +30,75 @@
 		onswap
 	}: Props = $props();
 
-	// Same window as the room-schedule canvas (ScheduleRenderer.config).
-	const START_HOUR = 7;
-	const END_HOUR = 20;
-	const TOTAL_MIN = (END_HOUR - START_HOUR) * 60;
 	const DAYS = ['M', 'T', 'W', 'Th', 'F', 'S'];
-	const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
+	const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+	const allBlocks = $derived([
+		...sections.flatMap((s) => sectionBlocks(s)),
+		...alternatives.flatMap((row) =>
+			sectionBlocks({
+				courseCode: row.courseCode ?? '',
+				section: row.section ?? '',
+				type: row.type ?? '',
+				schedule: row.schedule ?? [],
+				roomCode: null,
+				courseTitle: null
+			})
+		)
+	]);
+
+	const START_HOUR = $derived(
+		Math.max(6, Math.min(8, ...allBlocks.map((b) => Math.floor(b.startMin / 60))))
+	);
+	const END_HOUR = $derived(
+		Math.min(22, Math.max(17, ...allBlocks.map((b) => Math.ceil(b.endMin / 60))))
+	);
+	const TOTAL_MIN = $derived((END_HOUR - START_HOUR) * 60);
+	const HOURS = $derived(Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i));
+	const dayCount = $derived.by(() =>
+		sections.some((s) => sectionBlocks(s).some((b) => b.dayIndex === 5)) ||
+		(ghostBlocksByDay[5]?.length ?? 0) > 0
+			? 6
+			: 5
+	);
+
+	let scrollWidth = $state(0);
+	let gridWidth = $state(0);
+	const overflows = $derived(gridWidth > scrollWidth + 1);
 
 	type GridBlock = ScheduleBlock & {
 		key: string;
 		roomCode: string | null;
 		conflicted: boolean;
+		col: number;
+		colCount: number;
 	};
+
+	function layoutLanes(items: GridBlock[]) {
+		const sorted = [...items].sort((a, b) => a.startMin - b.startMin || a.endMin - b.endMin);
+		let cluster: GridBlock[] = [];
+		let laneEnds: number[] = [];
+		let clusterEnd = -1;
+		const flush = () => {
+			for (const item of cluster) item.colCount = laneEnds.length;
+			cluster = [];
+			laneEnds = [];
+		};
+		for (const item of sorted) {
+			if (item.startMin >= clusterEnd) flush();
+			let lane = laneEnds.findIndex((end) => end <= item.startMin);
+			if (lane === -1) {
+				lane = laneEnds.length;
+				laneEnds.push(item.endMin);
+			} else {
+				laneEnds[lane] = item.endMin;
+			}
+			item.col = lane;
+			cluster.push(item);
+			clusterEnd = Math.max(clusterEnd, item.endMin);
+		}
+		flush();
+	}
 
 	const blockKey = (b: ScheduleBlock) =>
 		`${b.courseCode}::${b.section}::${b.type}::${b.dayIndex}::${b.startMin}`;
@@ -58,10 +116,13 @@
 					...block,
 					key: blockKey(block),
 					roomCode: section.roomCode,
-					conflicted: conflictedKeys.has(blockKey(block))
+					conflicted: conflictedKeys.has(blockKey(block)),
+					col: 0,
+					colCount: 1
 				});
 			}
 		}
+		for (const day of byDay) layoutLanes(day);
 		return byDay;
 	});
 
@@ -297,18 +358,30 @@
 		</span>
 	</div>
 
-	<p class="planner-grid__scroll-hint" aria-hidden="true">Swipe to see all days →</p>
+	{#if overflows}
+		<p class="planner-grid__scroll-hint" aria-hidden="true">Swipe for more days →</p>
+	{/if}
 	<p class="planner-grid__drag-hint" role="note">
-		Drag a class onto a dashed section to switch it. On touch, hold first.
+		Tap a class for details. Hold and drag it onto a dashed section to switch.
 	</p>
-	<div class="planner-grid-scroll">
-		<div class="planner-grid" class:planner-grid--dragging={drag}>
+	<div
+		class="planner-grid-scroll"
+		class:planner-grid-scroll--overflow={overflows}
+		bind:clientWidth={scrollWidth}
+	>
+		<div
+			class="planner-grid"
+			class:planner-grid--dragging={drag}
+			style:--days={dayCount}
+			style:--hours={END_HOUR - START_HOUR}
+			bind:offsetWidth={gridWidth}
+		>
 			<div class="planner-grid__time" aria-hidden="true">
 				{#each HOURS as hour (hour)}
 					<div class="planner-grid__hour">{hourLabel(hour)}</div>
 				{/each}
 			</div>
-			{#each DAYS as day, dayIndex (day)}
+			{#each DAYS.slice(0, dayCount) as day, dayIndex (day)}
 				<div class="planner-grid__day">
 					<div class="planner-grid__day-label">{day}</div>
 					<div class="planner-grid__day-body">
@@ -316,17 +389,21 @@
 							<div
 								class="planner-block"
 								class:planner-block--conflict={block.conflicted}
+								class:planner-block--lane={block.colCount > 1}
 								class:planner-block--selected={selectedKey === block.key}
 								class:planner-block--dragging={drag?.fromKey === block.key}
 								style:top="{topPct(block.startMin)}%"
 								style:height="{heightPct(block.startMin, block.endMin)}%"
+								style:left="calc({(block.col / block.colCount) * 100}% + 1px)"
+								style:width="calc({100 / block.colCount}% - 2px)"
 								style:background-color={getPlannerBlockColor(block.type)}
 							>
 								<button
 									type="button"
 									class="planner-block__label"
+									aria-label="{block.courseCode} {formatSectionType(block.type)} {block.section}"
 									title="{block.courseCode} {block.type} {block.section}{block.roomCode
-										? ` · ${block.roomCode}`
+										? ` in ${block.roomCode}`
 										: ''} — drag to switch section"
 									onclick={() => onBlockClick(block)}
 									onpointerdown={(e) => onBlockPointerDown(e, block)}
@@ -336,19 +413,41 @@
 								>
 									<span class="planner-block__course">{block.courseCode}</span>
 									<span class="planner-block__section">
-										{block.type} · {block.section}
+										{formatSectionType(block.type)}
+										{block.section}
 									</span>
 								</button>
 								{#if selectedKey === block.key}
-									<div class="planner-block__actions">
-										<button type="button" onclick={() => onremove(block.courseCode, block.section)}>
-											Remove
-										</button>
-										{#if block.roomCode}
-											<button type="button" onclick={() => onopenroom(block.roomCode ?? '')}>
-												Room
+									<div
+										class="planner-block__actions"
+										class:planner-block__actions--end={dayIndex >= 3}
+									>
+										<p class="planner-block__detail">
+											<strong>{block.courseCode}</strong>
+											{formatSectionType(block.type)}
+											{block.section}
+											{#if block.conflicted}
+												<span class="planner-block__conflict">Conflict</span>
+											{/if}
+											<br />
+											{DAY_NAMES[block.dayIndex]}
+											{formatMinutesRange(block.startMin, block.endMin)}{block.roomCode
+												? ` in ${block.roomCode}`
+												: ''}
+										</p>
+										<div class="planner-block__buttons">
+											<button
+												type="button"
+												onclick={() => onremove(block.courseCode, block.section)}
+											>
+												Remove
 											</button>
-										{/if}
+											{#if block.roomCode}
+												<button type="button" onclick={() => onopenroom(block.roomCode ?? '')}>
+													Open room
+												</button>
+											{/if}
+										</div>
 									</div>
 								{/if}
 							</div>
@@ -387,11 +486,11 @@
 		{#if hoverGhost}
 			→ {hoverGhost}
 		{:else if alternativesLoading}
-			· loading other sections…
+			(loading other sections…)
 		{:else if !hasGhostTargets}
-			· no scheduled alternate section
+			(no scheduled alternate section)
 		{:else}
-			· drop on a section
+			(drop on a section)
 		{/if}
 	</div>
 {/if}
@@ -403,7 +502,7 @@
 		gap: 0.25rem 1rem;
 		padding: 0.375rem 0.125rem;
 		font-size: 0.75rem;
-		color: hsl(0, 0%, 35%);
+		color: var(--theme-text-2, hsl(0, 0%, 35%));
 	}
 
 	/* Mobile-only affordance that the week grid scrolls sideways (hidden on
@@ -414,7 +513,7 @@
 		justify-content: flex-end;
 		margin: 0;
 		padding: 0 0.125rem 0.375rem;
-		color: hsl(0, 0%, 45%);
+		color: var(--theme-text-2, hsl(0, 0%, 45%));
 		font-size: 0.75rem;
 		font-weight: 600;
 	}
@@ -422,7 +521,7 @@
 	.planner-grid__drag-hint {
 		margin: 0;
 		padding: 0 0.125rem 0.375rem;
-		color: hsl(0, 0%, 35%);
+		color: var(--theme-text-2, hsl(0, 0%, 35%));
 		font-size: 0.75rem;
 	}
 
@@ -440,26 +539,28 @@
 		flex: 0 0 auto;
 	}
 
-	.planner-grid-scroll {
+	.planner-grid-scroll--overflow {
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
 	}
 
 	.planner-grid {
 		display: grid;
-		grid-template-columns: 3rem repeat(6, minmax(4.5rem, 1fr));
-		min-width: 30rem;
-		border: 1px solid hsl(0, 0%, 88%);
+		grid-template-columns: 3rem repeat(var(--days, 6), minmax(4.5rem, 1fr));
+		border: 1px solid var(--theme-border, hsl(0, 0%, 88%));
 		border-radius: 0.5rem;
-		background: white;
-		overflow: hidden;
+		background: var(--theme-surface, white);
+		overflow: clip;
 	}
 
 	.planner-grid__time {
+		position: sticky;
+		left: 0;
+		z-index: 7;
 		display: flex;
 		flex-direction: column;
 		padding-top: 1.5rem;
-		background: hsl(5, 53%, 28%);
+		background: var(--theme-accent-fill, hsl(5, 53%, 28%));
 	}
 
 	.planner-grid__hour {
@@ -475,16 +576,19 @@
 	.planner-grid__day {
 		display: flex;
 		flex-direction: column;
-		border-left: 1px solid hsl(0, 0%, 90%);
+		border-left: 1px solid var(--theme-border, hsl(0, 0%, 90%));
 		min-width: 0;
 	}
 
 	.planner-grid__day-label {
+		position: sticky;
+		top: -0.625rem;
+		z-index: 6;
 		height: 1.5rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: hsl(5, 53%, 32%);
+		background: var(--theme-accent-fill, hsl(5, 53%, 32%));
 		color: white;
 		font-size: 0.75rem;
 		font-weight: 700;
@@ -492,20 +596,19 @@
 
 	.planner-grid__day-body {
 		position: relative;
-		height: 32.5rem; /* 13 hours × 2.5rem */
+		height: calc(var(--hours, 13) * 2.5rem);
 		background-image: repeating-linear-gradient(
 			to bottom,
 			transparent,
 			transparent calc(2.5rem - 1px),
-			hsl(0, 0%, 93%) calc(2.5rem - 1px),
-			hsl(0, 0%, 93%) 2.5rem
+			var(--theme-border, hsl(0, 0%, 93%)) calc(2.5rem - 1px),
+			var(--theme-border, hsl(0, 0%, 93%)) 2.5rem
 		);
 	}
 
 	.planner-block {
 		position: absolute;
-		left: 1px;
-		right: 1px;
+		box-sizing: border-box;
 		border-radius: 0.25rem;
 		overflow: hidden;
 		display: flex;
@@ -527,13 +630,25 @@
 	}
 
 	.planner-block--conflict {
-		outline: 2px solid hsl(0, 85%, 45%);
+		outline: 2px solid var(--theme-accent-text, hsl(0, 85%, 45%));
 		outline-offset: -2px;
 	}
 
 	.planner-block--selected {
 		z-index: 2;
 		overflow: visible;
+	}
+
+	.planner-block--lane .planner-block__label {
+		padding-inline: 0.125rem;
+	}
+
+	.planner-block--lane .planner-block__section {
+		display: none;
+	}
+
+	.planner-block--lane .planner-block__course {
+		overflow-wrap: anywhere;
 	}
 
 	.planner-block__label {
@@ -562,19 +677,16 @@
 		display: block;
 		font-size: 0.6875rem;
 		font-weight: 700;
-		line-height: 1.2;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		line-height: 1.15;
+		overflow-wrap: break-word;
 	}
 
 	.planner-block__section {
 		display: block;
-		font-size: 0.625rem;
-		line-height: 1.2;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		margin-top: 0.0625rem;
+		font-size: 0.5625rem;
+		line-height: 1.15;
+		overflow-wrap: anywhere;
 		opacity: 0.9;
 	}
 
@@ -584,27 +696,58 @@
 		left: 0;
 		z-index: 3;
 		display: flex;
+		flex-direction: column;
 		gap: 0.25rem;
-		padding: 0.25rem;
-		background: white;
-		border: 1px solid hsl(0, 0%, 85%);
+		width: max-content;
+		max-width: 14rem;
+		padding: 0.375rem;
+		background: var(--theme-surface, white);
+		border: 1px solid var(--theme-border, hsl(0, 0%, 85%));
 		border-radius: 0.375rem;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 	}
 
+	.planner-block__actions--end {
+		left: auto;
+		right: 0;
+	}
+
+	.planner-block__detail {
+		margin: 0;
+		padding: 0 0.25rem;
+		font-size: 0.75rem;
+		line-height: 1.4;
+		color: var(--theme-text, hsl(0, 0%, 25%));
+	}
+
+	.planner-block__conflict {
+		margin-left: 0.25rem;
+		padding: 0 0.375rem;
+		border-radius: 999px;
+		background: var(--theme-accent-soft, hsl(0, 85%, 95%));
+		color: var(--theme-accent-text, hsl(0, 85%, 35%));
+		font-weight: 700;
+	}
+
+	.planner-block__buttons {
+		display: flex;
+		gap: 0.25rem;
+	}
+
 	.planner-block__actions button {
 		all: unset;
+		box-sizing: border-box;
 		padding: 0.25rem 0.5rem;
 		border-radius: 0.25rem;
 		font-size: 0.6875rem;
 		font-weight: 600;
-		color: hsl(5, 53%, 32%);
+		color: var(--theme-accent-text, hsl(5, 53%, 32%));
 		cursor: pointer;
 	}
 
 	.planner-block__actions button:hover,
 	.planner-block__actions button:focus-visible {
-		background: hsl(5, 53%, 96%);
+		background: var(--theme-accent-soft, hsl(5, 53%, 96%));
 	}
 
 	.planner-ghost {
@@ -615,15 +758,15 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		border: 2px dashed hsl(0, 0%, 55%);
+		border: 2px dashed var(--theme-border-strong, hsl(0, 0%, 55%));
 		border-radius: 0.25rem;
-		background: hsl(0, 0%, 100%, 0.55);
-		color: hsl(0, 0%, 25%);
+		background: var(--theme-surface-translucent, hsl(0, 0%, 100%, 0.55));
+		color: var(--theme-text, hsl(0, 0%, 25%));
 		cursor: copy;
 	}
 
 	.planner-ghost--hover {
-		background: hsl(140, 60%, 92%, 0.9);
+		background: var(--theme-surface-translucent, hsl(140, 60%, 92%, 0.9));
 		border-style: solid;
 		box-shadow: 0 0 0 2px hsl(140, 60%, 35%);
 	}
@@ -646,6 +789,12 @@
 		font-weight: 600;
 		white-space: nowrap;
 		pointer-events: none;
+	}
+
+	@media (max-height: 30rem) {
+		.planner-grid__day-label {
+			top: 0;
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
@@ -671,23 +820,20 @@
 			display: flex;
 		}
 
-		/* Wider day columns so blocks are readable and tappable; the grid overflows
-       its scroll container and scrolls sideways on a narrow phone. */
 		.planner-grid {
-			grid-template-columns: 3.25rem repeat(6, minmax(5.25rem, 1fr));
-			min-width: 34.75rem;
+			grid-template-columns: 2.75rem repeat(var(--days, 6), minmax(3.75rem, 1fr));
 		}
 
 		/* Taller rows use the phone's vertical space and give a 1-hour block a
        3rem (48px) height — above the 44px tap-target minimum. */
 		.planner-grid__day-body {
-			height: 39rem; /* 13 hours × 3rem */
+			height: calc(var(--hours, 13) * 3rem);
 			background-image: repeating-linear-gradient(
 				to bottom,
 				transparent,
 				transparent calc(3rem - 1px),
-				hsl(0, 0%, 93%) calc(3rem - 1px),
-				hsl(0, 0%, 93%) 3rem
+				var(--theme-border, hsl(0, 0%, 93%)) calc(3rem - 1px),
+				var(--theme-border, hsl(0, 0%, 93%)) 3rem
 			);
 		}
 
@@ -716,11 +862,15 @@
 			padding: 0.375rem;
 		}
 
+		.planner-block__detail {
+			font-size: 0.8125rem;
+		}
+
 		.planner-block__actions button {
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
-			min-height: 2.75rem;
+			min-height: 2.5rem;
 			padding: 0.5rem 0.875rem;
 			font-size: 0.875rem;
 		}
