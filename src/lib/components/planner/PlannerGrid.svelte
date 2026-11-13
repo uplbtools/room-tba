@@ -4,7 +4,8 @@
 	import { alternativeOfferings } from '#lib/utils/planner/alternatives.js';
 	import type { Conflict, ScheduleBlock } from '#lib/utils/planner/conflicts.js';
 	import type { PlannedSection } from '#lib/utils/planner/types.js';
-	import type { ClassMapValue } from '#lib/utils/types';
+	import type { ClassMapValue } from '#lib/utils/types.js';
+	import { getEscapeActions } from '#lib/utils/context.js';
 
 	interface Props {
 		sections: PlannedSection[];
@@ -69,6 +70,7 @@
 	// --- Drag to switch section (#506) -------------------------------------
 	type Drag = { courseCode: string; fromSection: string; fromKey: string };
 	let drag = $state<Drag | null>(null);
+	const escapeActions = getEscapeActions();
 	let hoverGhost = $state<string | null>(null);
 	let pointerPos = $state<{ x: number; y: number } | null>(null);
 
@@ -161,6 +163,7 @@
 	}
 
 	function beginDrag(block: GridBlock, el: HTMLElement, e: PointerEvent) {
+		escapeActions.pushAction(() => cleanup(true));
 		drag = {
 			courseCode: block.courseCode,
 			fromSection: block.section,
@@ -185,7 +188,8 @@
 		e.preventDefault();
 	}
 
-	function cleanup() {
+	function cleanup(fromEscape = false) {
+		if (drag && !fromEscape) escapeActions.trigger(true);
 		if (longPress) clearTimeout(longPress);
 		longPress = null;
 		if (pending && pointerId !== null) {
@@ -271,15 +275,6 @@
 		selectedKey = selectedKey === block.key ? null : block.key;
 	}
 
-	$effect(() => {
-		if (!drag) return;
-		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') cleanup();
-		};
-		window.addEventListener('keydown', onKey);
-		return () => window.removeEventListener('keydown', onKey);
-	});
-
 	const hourLabel = (hour: number) => `${hour > 12 ? hour - 12 : hour}${hour >= 12 ? 'PM' : 'AM'}`;
 
 	const topPct = (min: number) => ((min - START_HOUR * 60) / TOTAL_MIN) * 100;
@@ -337,7 +332,7 @@
 									onpointerdown={(e) => onBlockPointerDown(e, block)}
 									onpointermove={onBlockPointerMove}
 									onpointerup={onBlockPointerUp}
-									onpointercancel={cleanup}
+									onpointercancel={() => cleanup()}
 								>
 									<span class="planner-block__course">{block.courseCode}</span>
 									<span class="planner-block__section">
