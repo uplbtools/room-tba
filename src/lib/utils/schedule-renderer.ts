@@ -9,6 +9,40 @@ type Course = {
 	groupKey?: string | null;
 };
 
+export function wrapLabel(
+	text: string,
+	maxWidth: number,
+	maxLines: number,
+	measure: (value: string) => number
+): string[] {
+	if (!text || maxLines < 1 || maxWidth <= 0) return [];
+	const clip = (value: string) => {
+		if (measure(value) <= maxWidth) return value;
+		let cut = value;
+		while (cut.length > 0 && measure(`${cut}..`) > maxWidth) {
+			cut = cut.slice(0, -1);
+		}
+		cut = cut.trimEnd();
+		return cut.length > 0 ? `${cut}..` : '';
+	};
+	const lines: string[] = [];
+	let current = '';
+	for (const word of text.split(/\s+/).filter(Boolean)) {
+		const candidate = current ? `${current} ${word}` : word;
+		if (measure(candidate) <= maxWidth) {
+			current = candidate;
+			continue;
+		}
+		if (current) lines.push(current);
+		current = word;
+	}
+	if (current) lines.push(current);
+	if (lines.length <= maxLines) return lines.map(clip);
+	const kept = lines.slice(0, maxLines - 1);
+	kept.push(lines.slice(maxLines - 1).join(' '));
+	return kept.map(clip);
+}
+
 export class ScheduleRenderer {
 	canvas: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
@@ -58,10 +92,9 @@ export class ScheduleRenderer {
 	}
 
 	init() {
-		// Responsive canvas for mobile schedule UX (#241)
 		const dpr = window.devicePixelRatio || 1;
 		const cssWidth = Math.min(this.config.width, this.canvas.clientWidth || this.config.width);
-		const cssHeight = Math.min(this.config.height, this.canvas.clientHeight || this.config.height);
+		const cssHeight = this.config.height;
 		this.canvas.width = cssWidth * dpr;
 		this.canvas.height = cssHeight * dpr;
 		this.canvas.style.width = `${cssWidth}px`;
@@ -122,8 +155,8 @@ export class ScheduleRenderer {
 		for (let hour = cfg.startHour; hour < cfg.endHour; hour++) {
 			const y = cfg.headerHeight + (hour - cfg.startHour) * this.cellHeight + this.cellHeight / 2;
 			const displayHour = hour > 12 ? hour - 12 : hour;
-			const _period = hour >= 12 ? 'PM' : 'AM';
-			const label = `${displayHour}:00`;
+			const period = hour >= 12 ? 'PM' : 'AM';
+			const label = `${displayHour} ${period}`;
 			ctx.fillText(label, cfg.timeColumnWidth / 2, y);
 		}
 
@@ -192,14 +225,23 @@ export class ScheduleRenderer {
 
 			const centerX = x + width / 2;
 			const padding = 3;
+			const lineHeight = 13;
 			let textY = y + padding;
-
+			const linesThatFit = Math.max(1, Math.floor((height - padding * 2) / lineHeight));
 			ctx.font = cfg.fonts.course;
-			const courseCode = this.truncateText(course.courseCode, width - 6);
-			ctx.fillText(courseCode, centerX, textY);
-			textY += 11;
+			const labelLines = wrapLabel(
+				course.courseCode,
+				width - 6,
+				linesThatFit,
+				(value) => ctx.measureText(value).width
+			);
+			const sectionLine = course.section && labelLines.length < linesThatFit ? 1 : 0;
+			for (const line of labelLines) {
+				ctx.fillText(line, centerX, textY);
+				textY += lineHeight;
+			}
 
-			if (height > 28 && course.section) {
+			if (sectionLine) {
 				ctx.font = cfg.fonts.section;
 				const section = this.truncateText(course.section, width - 6);
 				ctx.fillText(section, centerX, textY);
@@ -332,12 +374,6 @@ export function getColorForCourse(courseCode: string) {
 	return courseColors[Math.abs(hash) % courseColors.length];
 }
 
-/**
- * Planner grid block color keyed on component type, not course: lectures,
- * labs, and recitations each read as one consistent kind at a glance (a hashed
- * per-course palette collided — different courses shared a color). Room-view
- * coloring still uses getColorForCourse.
- */
 export function getPlannerBlockColor(type: string | null | undefined): string {
 	switch ((type ?? '').trim().toUpperCase()) {
 		case 'LEC':
