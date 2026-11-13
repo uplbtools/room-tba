@@ -28,8 +28,13 @@ updates:
           - "drizzle-*"
       dev-tooling:
         dependency-type: development
+        update-types:
+          - minor
+          - patch
         patterns:
           - "*"
+        exclude-patterns:
+          - "@biomejs/biome"
 
   - package-ecosystem: github-actions
     directory: /
