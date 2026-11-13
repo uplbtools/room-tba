@@ -1,4 +1,5 @@
 import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
+import { clientIp } from '#lib/api/rate-limit.js';
 import {
 	uploadConfigurationResponse,
 	uploadImageRequest,
@@ -18,7 +19,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	return uploadImageRequest({
 		request,
 		prefix: (formData) => scopedUploadPrefix(formData, ['buildings', 'events', 'dorms', 'rooms']),
-		rateLimitKey: `${auth.session.id}:${request.headers.get('x-forwarded-for') ?? 'unknown'}`,
+		rateLimitKey: `${auth.session.id}:${clientIp(request)}`,
 		uploadedBy: auth.session.displayName || auth.session.username
 	});
 };
