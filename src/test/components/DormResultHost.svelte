@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DormResult from '#lib/components/entity/DormResult.svelte';
+	import DormResult from '../../routes/(app)/map/dorms/[id]/DormResult.svelte';
 	import type { DormData } from '#lib/utils/types';
 	import AppContextTestShell from '@test/AppContextTestShell.svelte';
 	import { loadedAppContext } from '@test/fixtures/app-context';
@@ -12,5 +12,5 @@
 </script>
 
 <AppContextTestShell data={loadedAppContext({ dorms: [dorm] })}>
-	<DormResult />
+	<DormResult {dorm} />
 </AppContextTestShell>

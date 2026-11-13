@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import DormResultHost from '@test/components/DormResultHost.svelte';
 import type { DormData } from '#lib/utils/types';
-import { searchInfo } from '#lib/stores.svelte.js';
 import { kuboDormDirectory } from '#lib/utils/integrations/kubo/kubo-dorms.js';
 import { expectNoHorizontalOverflow, mountAtWidth } from '@test/layout-assertions';
 
@@ -31,12 +30,12 @@ function dorm(overrides: Partial<DormData> = {}): DormData {
 	};
 }
 
+vi.mock('#lib/utils/context.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/utils/context.js')>()),
+	getToast: () => ({ show: vi.fn() })
+}));
+
 function renderDormResult(testDorm: DormData) {
-	searchInfo.hydrateQuery({
-		category: 'dorm',
-		type: 'result',
-		value: testDorm.dormName
-	});
 	return render(DormResultHost, { props: { dorm: testDorm } });
 }
 
