@@ -62,6 +62,9 @@ test.describe("place full-screen view @mobile", () => {
     await page.goBack();
     await expect(fullScreen(page)).toBeHidden();
     await expect(title(page)).toHaveText(name);
+
+    await page.goBack();
+    await expect(title(page)).toBeHidden();
   });
 
   test("Back from a room reopens the building full screen at the same scroll", async ({
