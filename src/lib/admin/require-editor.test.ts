@@ -25,18 +25,12 @@ function mockCookies(value?: string): Cookies {
 
 describe('editorSessionOrUnauthorized', () => {
 	test('returns 401 when no session cookie is present', async () => {
-		const result = await editorSessionOrUnauthorized(mockCookies());
-		expect(result).toBeInstanceOf(Response);
-		if (result instanceof Response) {
-			expect(result.status).toBe(401);
-		}
+		await expect(editorSessionOrUnauthorized(mockCookies())).rejects.toMatchObject({ status: 401 });
 	});
 
 	test('returns 401 for malformed session tokens', async () => {
-		const result = await editorSessionOrUnauthorized(mockCookies('not-a-valid-token'));
-		expect(result).toBeInstanceOf(Response);
-		if (result instanceof Response) {
-			expect(result.status).toBe(401);
-		}
+		await expect(
+			editorSessionOrUnauthorized(mockCookies('not-a-valid-token'))
+		).rejects.toMatchObject({ status: 401 });
 	});
 });
