@@ -8,7 +8,7 @@
 		TERRAIN_EXAGGERATION_OPTIONS,
 		TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE
 	} from '#lib/constants/map/terrain.js';
-	import { floatingControlPanelStore, terrainStore } from '#lib/stores.svelte.js';
+	import { getFloatingControlPanelStore, getTerrainStore } from '#lib/utils/context.js';
 	import './map-chrome/map-chrome.css';
 
 	type Props = {
@@ -16,6 +16,9 @@
 	};
 
 	let { embedded = false }: Props = $props();
+
+	const floatingControlPanelStore = getFloatingControlPanelStore();
+	const terrainStore = getTerrainStore();
 
 	type NetworkInformation = EventTarget & {
 		effectiveType?: string;

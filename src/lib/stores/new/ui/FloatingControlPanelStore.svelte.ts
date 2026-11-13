@@ -1,4 +1,4 @@
-import type { FloatingControlPanel } from '../store-types';
+import type { FloatingControlPanel } from '../../store-types';
 
 export default class FloatingControlPanelStore {
 	openPanel: FloatingControlPanel | null = $state(null);

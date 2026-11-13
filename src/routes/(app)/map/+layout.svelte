@@ -4,9 +4,11 @@
 		MapStore,
 		MapToolsStore,
 		MeasureRouteStore,
+		TerrainStore,
 		TrailStore,
 		TravelTimeStore
 	} from '#lib/stores/new/map/map-stores.svelte.js';
+	import FloatingControlPanelStore from '#lib/stores/new/ui/FloatingControlPanelStore.svelte.js';
 	import UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
 	import {
 		initMapStore,
@@ -14,6 +16,8 @@
 		initMapToolsStore,
 		initMeasureRouteStore,
 		initTrailStore,
+		initTerrainStore,
+		initFloatingControlPanelStore,
 		initSearchInfo,
 		initModalStore,
 		initUserLocation,
@@ -525,6 +529,8 @@
 	initMapToolsStore(new MapToolsStore());
 	initMeasureRouteStore(new MeasureRouteStore());
 	initTrailStore(new TrailStore());
+	initTerrainStore(new TerrainStore());
+	initFloatingControlPanelStore(new FloatingControlPanelStore());
 	initUserLocation(new UserLocation());
 	initSearchInfo(new SearchInfo());
 	initModalStore(new ModalStore());
