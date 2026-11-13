@@ -9,6 +9,7 @@
     type BottomSheetSnap,
   } from "@lib/bottom-sheet-snap";
   import { sidePanelStore } from "@lib/store.svelte";
+  import { trapFocus } from "@lib/focus-trap";
 
   let {
     open = false,
@@ -66,6 +67,7 @@
   let rootEl = $state<HTMLElement | null>(null);
   let sheetEl = $state<HTMLElement | null>(null);
   let contentEl = $state<HTMLElement | null>(null);
+  let backEl = $state<HTMLElement | null>(null);
 
   let availableH = $state(0);
   let dragStartY: number | null = null;
@@ -300,6 +302,18 @@
 
   const transitionMs = $derived(reducedMotion.current ? 0 : 320);
 
+  // Full screen is a modal: Tab stays inside and Escape returns to the peek.
+  $effect(() => {
+    if (!full || !sheetEl) return;
+    return trapFocus(sheetEl, {
+      onEscape: () => {
+        // An open photo viewer inside the sheet closes first.
+        if (!sheetEl?.querySelector("dialog[open]")) snap = "peek";
+      },
+      initialFocus: backEl,
+    });
+  });
+
   // Publish where the sheet's top edge rests so map controls can sit just
   // above it (Entry's locate button at peek). The resting snap, not the live
   // drag: controls should not chase the finger.
@@ -336,6 +350,9 @@
       class="bottom-sheet"
       class:bottom-sheet--dragging={isDragging}
       bind:this={sheetEl}
+      role={full ? "dialog" : undefined}
+      aria-modal={full ? "true" : undefined}
+      aria-label={full ? "Place details" : undefined}
       style:transform={sidePanel.current
         ? undefined
         : `translate3d(0, ${liveTranslate}px, 0)`}
@@ -351,6 +368,7 @@
           <button
             type="button"
             class="bottom-sheet__back"
+            bind:this={backEl}
             aria-label="Back to map"
             onclick={() => (snap = "peek")}
           >

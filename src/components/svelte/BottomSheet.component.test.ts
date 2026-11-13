@@ -308,4 +308,42 @@ describe("bottom sheet that opens full screen", () => {
     await vi.waitFor(() => expect(translateOf(container)).toBe(800 - 384));
     expect(container.querySelector(".bottom-sheet__handle")).not.toBeNull();
   });
+
+  test("full screen is a modal dialog that Escape closes back to the peek", async () => {
+    const onWindowKey = vi.fn();
+    window.addEventListener("keydown", onWindowKey);
+    const { container } = mount();
+    (container.querySelector(".bottom-sheet__handle") as HTMLElement).click();
+
+    const dialog = await screen.findByRole("dialog", { name: "Place details" });
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    await vi.waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Back to map" }),
+      ),
+    );
+
+    document.activeElement?.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    await vi.waitFor(() => expect(translateOf(container)).toBe(800 - 384));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(onWindowKey).not.toHaveBeenCalled();
+    window.removeEventListener("keydown", onWindowKey);
+  });
+
+  test("Escape leaves an open dialog inside the sheet to close first", async () => {
+    const { container } = mount();
+    (container.querySelector(".bottom-sheet__handle") as HTMLElement).click();
+    await screen.findByRole("dialog", { name: "Place details" });
+
+    const viewer = document.createElement("dialog");
+    viewer.setAttribute("open", "");
+    container.querySelector(".bottom-sheet__body")?.append(viewer);
+    document.body.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(translateOf(container)).toBe(0);
+  });
 });
