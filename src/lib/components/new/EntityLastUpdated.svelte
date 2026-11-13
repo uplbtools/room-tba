@@ -6,7 +6,7 @@
 	}: {
 		updatedAt: string | null | undefined;
 		label?: string;
-		lastEditedBy: string | null;
+		lastEditedBy?: string | null;
 	} = $props();
 
 	const formatted = $derived.by(() => {
