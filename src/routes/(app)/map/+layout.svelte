@@ -1,10 +1,17 @@
 <script lang="ts">
 	import Search from '#lib/components/new/Search.svelte';
-	import { MapStore, TravelTimeStore } from '#lib/stores/new/map/map-stores.svelte.js';
+	import {
+		MapStore,
+		MapToolsStore,
+		MeasureRouteStore,
+		TravelTimeStore
+	} from '#lib/stores/new/map/map-stores.svelte.js';
 	import UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
 	import {
 		initMapStore,
 		initTravelTimeStore,
+		initMapToolsStore,
+		initMeasureRouteStore,
 		initSearchInfo,
 		initModalStore,
 		initUserLocation,
@@ -513,6 +520,8 @@
 
 	initMapStore(new MapStore());
 	initTravelTimeStore(new TravelTimeStore());
+	initMapToolsStore(new MapToolsStore());
+	initMeasureRouteStore(new MeasureRouteStore());
 	initUserLocation(new UserLocation());
 	initSearchInfo(new SearchInfo());
 	initModalStore(new ModalStore());

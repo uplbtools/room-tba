@@ -1,13 +1,27 @@
 import { render, screen } from '@testing-library/svelte';
-import { beforeEach, describe, expect, test } from 'vitest';
-import { mapToolsStore, travelTimeStore } from '#lib/stores.svelte.js';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+import {
+	MapToolsStore,
+	MeasureRouteStore,
+	TravelTimeStore
+} from '#lib/stores/new/map/map-stores.svelte.js';
 import { mountAtWidth } from '@test/layout-assertions';
 import MapToolsFlyout from './MapToolsFlyout.svelte';
 
+vi.mock('#lib/utils/context.js', async (importOriginal) => ({
+	...(await importOriginal<object>()),
+	getMapToolsStore: () => mapToolsStore,
+	getMeasureRouteStore: () => new MeasureRouteStore(),
+	getTravelTimeStore: () => travelTimeStore
+}));
+
+let mapToolsStore: MapToolsStore;
+let travelTimeStore: TravelTimeStore;
+
 describe('MapToolsFlyout', () => {
 	beforeEach(() => {
-		mapToolsStore.close();
-		travelTimeStore.disable();
+		mapToolsStore = new MapToolsStore();
+		travelTimeStore = new TravelTimeStore();
 	});
 
 	test('chip opens the tools panel', async () => {

@@ -8,7 +8,12 @@ import type {
 	OrgData,
 	PlaceData
 } from '#lib/utils/types.d.ts';
-import type { MapStore, TravelTimeStore } from '#lib/stores/new/map/map-stores.svelte.js';
+import type {
+	MapStore,
+	MapToolsStore,
+	MeasureRouteStore,
+	TravelTimeStore
+} from '#lib/stores/new/map/map-stores.svelte.js';
 import type UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
 import type SearchInfo from '#lib/stores/SearchInfo.svelte.js';
 import type ToastStore from '#lib/stores/new/ui/ToastStore.svelte.ts';
@@ -56,6 +61,8 @@ export const [getAppData, setAppData] = createContext<() => AppContextData>();
 export const [getAppActions, setAppActions] = createContext<AppActions>();
 export const [getMapStore, initMapStore] = createContext<MapStore>();
 export const [getTravelTimeStore, initTravelTimeStore] = createContext<TravelTimeStore>();
+export const [getMapToolsStore, initMapToolsStore] = createContext<MapToolsStore>();
+export const [getMeasureRouteStore, initMeasureRouteStore] = createContext<MeasureRouteStore>();
 export const [getUserLocation, initUserLocation] = createContext<UserLocation>();
 export const [getSearchInfo, initSearchInfo] = createContext<SearchInfo>();
 export const [getToast, initToast] = createContext<ToastStore>();
