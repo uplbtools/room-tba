@@ -10,6 +10,7 @@
 	} from '#lib/stores/new/map/map-stores.svelte.js';
 	import FloatingControlPanelStore from '#lib/stores/new/ui/FloatingControlPanelStore.svelte.js';
 	import UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
+	import OfflineStore from '#lib/stores/new/data/OfflineStore.svelte.js';
 	import {
 		initMapStore,
 		initTravelTimeStore,
@@ -25,6 +26,7 @@
 		initPlannerStore,
 		initAdminAuthStore,
 		initProposalsStore,
+		initOfflineStore,
 		getEscapeActions
 	} from '#lib/utils/context.js';
 	import { onMount, type Snippet } from 'svelte';
@@ -541,6 +543,7 @@
 	initFloatingControlPanelStore(new FloatingControlPanelStore());
 	initUserLocation(new UserLocation());
 	initSearchInfo(new SearchInfo());
+	initOfflineStore(new OfflineStore());
 	const modalStore = initModalStore(new ModalStore());
 	const termStore = initTermStore(new TermStore());
 	const plannerStore = initPlannerStore(new PlannerStore(() => termStore.activeTermId));
