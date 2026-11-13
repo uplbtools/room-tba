@@ -33,7 +33,7 @@ export const getClassesByCourseCode = query(
 				)
 			)
 			.orderBy(classesTable.courseCode, classesTable.section)
-			.limit(100);
+			.limit(2000);
 		return rows;
 	}
 );
