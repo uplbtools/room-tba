@@ -64,6 +64,20 @@ test.describe("place full-screen view @mobile", () => {
     await expect(title(page)).toHaveText(name);
   });
 
+  test("a place link opened cold shows the full-screen view", async ({
+    page,
+  }) => {
+    await expect(page).toHaveURL(/\/building\//);
+    await page.goto(page.url());
+    await waitForAppBoot(page);
+    await expect(fullScreen(page)).toBeVisible();
+    await expect(title(page)).toHaveText(name);
+
+    await page.getByRole("button", { name: "Back to map" }).click();
+    await expect(fullScreen(page)).toBeHidden();
+    await expect(page).toHaveURL(/\/building\//);
+  });
+
   test("rotating to landscape and back keeps the place full screen", async ({
     page,
   }) => {

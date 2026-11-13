@@ -17,6 +17,7 @@
   import type { BottomSheetSnap } from "@lib/bottom-sheet-snap";
   import TransitRouteLifecycle from "./TransitRouteLifecycle.svelte";
   import { trackOverlay } from "@lib/track-overlay.svelte";
+  import { parseEntityPathname } from "@lib/entity-urls";
 
   const mobile = new MediaQuery("max-width:48rem");
   // Entity detail views only, never list/browse panels (docs/ad-policy.md).
@@ -41,6 +42,7 @@
   let detailsEl = $state<HTMLElement | null>(null);
   /** Mobile sheet snap, independent of sidePanelStore.collapsed (Map.expand race). */
   let mobileSnap = $state<BottomSheetSnap>("peek");
+  let openedFromPlaceUrl = parseEntityPathname(location.pathname) !== null;
 
   /** Navigation is a map-first view: the bar takes a strip, the map the rest. */
   const navPeek = $derived(directionsStore.navigating);
@@ -150,8 +152,9 @@
       sidePanelStore.state = null;
       // A new entity starts at its own header, not the previous scroll offset.
       if (detailsEl) detailsEl.scrollTop = 0;
-      // Always open at peek on mobile, ignoring Map.expand() full-screen.
-      mobileSnap = "peek";
+      // Peek on mobile, except a place link opened cold, which opens full screen.
+      mobileSnap = openedFromPlaceUrl && entitySheet ? "expanded" : "peek";
+      openedFromPlaceUrl = false;
       if (mobile.current) sidePanelStore.collapse();
       else sidePanelStore.expand();
     }
