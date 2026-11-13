@@ -2,10 +2,13 @@
 	import { loadOpenPendingProposals, withdrawEntityProposal } from '#lib/utils/proposals/client.js';
 	import type { PendingProposalRow } from '#lib/utils/proposals/pending-proposals.js';
 	import { formatProposalStatusLabel } from '#lib/utils/proposals/pending-proposals.js';
-	import { adminAuthStore, toastStore } from '#lib/stores.svelte.js';
 	import EntityEditorMessage from '#lib/components/editor/EntityEditorMessage.svelte';
 	import EntityEditorSubmitButton from '#lib/components/editor/EntityEditorSubmitButton.svelte';
 	import { onMount } from 'svelte';
+	import { getAdminAuthStore, getToast } from '#lib/utils/context.js';
+
+	const adminAuthStore = getAdminAuthStore();
+	const toastStore = getToast();
 
 	let {
 		submitterName = '',

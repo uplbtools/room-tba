@@ -1,12 +1,17 @@
 <script lang="ts">
 	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { adminAuthStore, proposalsStore, toastStore } from '#lib/stores.svelte.js';
 	import { buildFieldDiffs } from '#lib/utils/proposals/diff.js';
 	import { appEntityNameResolver } from '#lib/utils/proposals/entity-names.js';
 	import { afterProposalPublished } from '#lib/utils/proposals/apply-published-entity.js';
 	import { syncOpenEntityQueryAfterPublish } from '#lib/utils/proposals/sync-open-entity-query.js';
-	import { getAppActions, getAppData } from '#lib/utils/context.js';
+	import {
+		getAdminAuthStore,
+		getAppActions,
+		getAppData,
+		getProposalsStore,
+		getToast
+	} from '#lib/utils/context.js';
 	import type { ProposalEntityType } from '#lib/services/contribution/proposal-action.js';
 	import { parseBundledRooms } from '#lib/utils/proposals/create-proposal-validation.js';
 	import EntityEditorFormField from '#lib/components/editor/EntityEditorFormField.svelte';
@@ -18,6 +23,10 @@
 		stepIndex,
 		REVIEW_SHORTCUT_HINTS
 	} from '#lib/utils/proposals/review-shortcuts.js';
+
+	const adminAuthStore = getAdminAuthStore();
+	const proposalsStore = getProposalsStore();
+	const toastStore = getToast();
 
 	const appActions = getAppActions();
 	const appData = getAppData();

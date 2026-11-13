@@ -1,7 +1,27 @@
 import { fireEvent, render, screen } from '@testing-library/svelte';
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import AdminLoginModal from '#lib/components/AdminLoginModal.svelte';
-import { adminAuthStore } from '#lib/stores.svelte.js';
+import AdminAuthStore from '#lib/stores/new/data/AdminAuthStore.svelte.js';
+import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
+import ProposalsStore from '#lib/stores/new/data/ProposalsStore.svelte.js';
+import type ModalStore from '#lib/stores/new/ui/ModalStore.svelte.js';
+import ToastStore from '#lib/stores/new/ui/ToastStore.svelte.js';
+
+vi.mock('$env/dynamic/public', () => ({ env: {} }));
+vi.mock('#lib/utils/context.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/utils/context.js')>()),
+	getAdminAuthStore: () => adminAuthStore,
+	getProposalsStore: () => proposalsStore,
+	getToast: () => toastStore
+}));
+
+const proposalsStore = new ProposalsStore(() => adminAuthStore.canReview);
+const adminAuthStore = new AdminAuthStore({
+	modalStore: { closeModal: () => {} } as unknown as ModalStore,
+	plannerStore: new PlannerStore(() => null),
+	proposalsStore
+});
+const toastStore = new ToastStore();
 import { expectNoHorizontalOverflow, mountAtWidth } from '@test/layout-assertions';
 
 describe('AdminLoginModal', () => {
