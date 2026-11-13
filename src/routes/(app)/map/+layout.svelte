@@ -8,6 +8,7 @@
 		initModalStore,
 		initUserLocation,
 		initTermStore,
+		initPlannerStore,
 		getEscapeActions
 	} from '#lib/utils/context.js';
 	import type { Snippet } from 'svelte';
@@ -18,6 +19,7 @@
 	import Toast from '#lib/components/Toast.svelte';
 	import ModalStore from '#lib/stores/new/ui/ModalStore.svelte.js';
 	import TermStore from '#lib/stores/new/data/TermStore.svelte.js';
+	import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
 	import Modal from '#lib/components/new/Modal.svelte';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
@@ -516,7 +518,8 @@
 	initUserLocation(new UserLocation());
 	initSearchInfo(new SearchInfo());
 	initModalStore(new ModalStore());
-	initTermStore(new TermStore());
+	const termStore = initTermStore(new TermStore());
+	initPlannerStore(new PlannerStore(() => termStore.activeTermId));
 
 	const escapeActionStack = getEscapeActions();
 
