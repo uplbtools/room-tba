@@ -1,7 +1,9 @@
 <script lang="ts">
 	import X from '@lucide/svelte/icons/x';
-	import { travelTimeStore } from '#lib/stores.svelte.js';
 	import { ISOCHRONE_CAP_MINUTES, VIRIDIS_STOPS } from '#lib/constants/travel-modes.js';
+	import { getTravelTimeStore } from '#lib/utils/context.js';
+
+	const travelTimeStore = getTravelTimeStore();
 
 	const gradient = `linear-gradient(90deg, ${VIRIDIS_STOPS.join(', ')})`;
 	const ticks = ['0', '10', '20', `${ISOCHRONE_CAP_MINUTES}+ min`];

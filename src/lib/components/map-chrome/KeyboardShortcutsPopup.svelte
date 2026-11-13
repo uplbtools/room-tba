@@ -10,12 +10,14 @@
 		formatShortcutsPanelStyle,
 		measureOpenSidePanelBounds
 	} from '#lib/utils/shortcuts-panel-position.js';
-	import { mapToolsStore } from '#lib/stores.svelte.js';
+	import { getMapToolsStore } from '#lib/utils/context.js';
 	import {
 		registerEphemeralOverlayDismisser,
 		openEphemeralOverlay
 	} from '#lib/utils/overlay-stack.js';
 	import './map-chrome.css';
+
+	const mapToolsStore = getMapToolsStore();
 
 	type Props = {
 		compact?: boolean;
