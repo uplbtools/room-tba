@@ -267,8 +267,8 @@
       delta,
       velocity,
       snap,
-      followThreshold: FOLLOW_THRESHOLD,
-      dismissThreshold: DISMISS_THRESHOLD,
+      followThreshold: Math.max(FOLLOW_THRESHOLD, visibleH * 0.12),
+      dismissThreshold: Math.max(DISMISS_THRESHOLD, peekH * 0.25),
       flickVelocity: FLICK_VELOCITY,
     });
 
