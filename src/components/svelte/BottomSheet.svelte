@@ -1,28 +1,27 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
+  import ArrowLeft from "@lucide/svelte/icons/arrow-left";
   import {
     LANDSCAPE_COMPACT_MEDIA,
-    neighbourSnap,
     resolveBottomSheetRelease,
-    resolveSnapRelease,
     sheetTranslateY,
-    snapHeight,
     type BottomSheetSnap,
-    type SnapHeights,
   } from "@lib/bottom-sheet-snap";
   import { sidePanelStore } from "@lib/store.svelte";
+  import { trapFocus } from "@lib/focus-trap";
 
   let {
     open = false,
     snap = $bindable<BottomSheetSnap>("peek"),
     peekRatio = 0.48,
-    halfRatio,
     peekFitTo,
     expandedRatio = 0.92,
+    fullScreen = false,
     topInset = "0px",
     bottomInset = "0px",
     scrollResetKey,
+    contentEl = $bindable(null),
     onDismiss,
     children,
   }: {
@@ -30,13 +29,6 @@
     snap?: BottomSheetSnap;
     /** Fraction of the available height used for peek (0–1). */
     peekRatio?: number;
-    /**
-     * Fraction for a middle stop between peek and expanded (GMaps' half
-     * sheet). Left out, the sheet has two stops. The stop is dropped when it
-     * would sit within a thumb of peek or expanded (a tall peek on a short
-     * screen).
-     */
-    halfRatio?: number;
     /**
      * Selector inside the content (e.g. ".entity-actions"). When present,
      * peek ends just below it instead of at peekRatio, never taller than
@@ -47,6 +39,11 @@
     peekFitTo?: string;
     /** Fraction used when expanded — leave a map strip for tap-to-collapse. */
     expandedRatio?: number;
+    /**
+     * Expanded covers the whole screen behind a back bar and never drags
+     * (entity detail). A tap on the peek opens it.
+     */
+    fullScreen?: boolean;
     topInset?: string;
     bottomInset?: string;
     /**
@@ -55,6 +52,7 @@
      * own name, not at the parent's scroll offset.
      */
     scrollResetKey?: unknown;
+    contentEl?: HTMLElement | null;
     onDismiss?: () => void;
     children: Snippet;
   } = $props();
@@ -70,7 +68,7 @@
 
   let rootEl = $state<HTMLElement | null>(null);
   let sheetEl = $state<HTMLElement | null>(null);
-  let contentEl = $state<HTMLElement | null>(null);
+  let backEl = $state<HTMLElement | null>(null);
 
   let availableH = $state(0);
   let dragStartY: number | null = null;
@@ -93,26 +91,13 @@
           ),
     ),
   );
-  const expandedH = $derived(Math.round(availableH * expandedRatio));
-  const HALF_MIN_GAP_PX = 64;
-  const halfH = $derived.by(() => {
-    if (halfRatio === undefined || sidePanel.current) return undefined;
-    const h = Math.round(availableH * halfRatio);
-    return h - peekH >= HALF_MIN_GAP_PX && expandedH - h >= HALF_MIN_GAP_PX
-      ? h
-      : undefined;
-  });
-  const heights = $derived<SnapHeights>({
-    peek: peekH,
-    half: halfH,
-    expanded: expandedH,
-  });
-  const visibleH = $derived(snapHeight(snap, heights));
-
-  // The middle stop can vanish (rotation, keyboard): fall back to peek.
-  $effect(() => {
-    if (snap === "half" && halfH === undefined) snap = "peek";
-  });
+  const full = $derived(
+    fullScreen && snap === "expanded" && !sidePanel.current,
+  );
+  const expandedH = $derived(
+    Math.round(availableH * (fullScreen ? 1 : expandedRatio)),
+  );
+  const visibleH = $derived(snap === "expanded" ? expandedH : peekH);
   const baseTranslate = $derived(sheetTranslateY(visibleH, availableH));
   const liveTranslate = $derived(
     Math.min(
@@ -214,7 +199,7 @@
   }
 
   function beginDrag(event: PointerEvent, fromHandle: boolean) {
-    if (!open || sidePanel.current) return;
+    if (!open || sidePanel.current || full) return;
     dragStartY = event.clientY;
     dragStartTime = performance.now();
     dragMoved = false;
@@ -273,22 +258,9 @@
       if (fromHandle) {
         cycleSnap();
         pointerToggledAt = performance.now();
+      } else if (fullScreen && snap === "peek") {
+        snap = "expanded";
       }
-      return;
-    }
-
-    if (halfH !== undefined) {
-      const next = resolveSnapRelease({
-        delta,
-        velocity,
-        snap,
-        heights,
-        followThreshold: FOLLOW_THRESHOLD,
-        dismissThreshold: DISMISS_THRESHOLD,
-        flickVelocity: FLICK_VELOCITY,
-      });
-      if (next === "dismiss") onDismiss?.();
-      else if (next !== "none") snap = next;
       return;
     }
 
@@ -296,8 +268,8 @@
       delta,
       velocity,
       snap,
-      followThreshold: FOLLOW_THRESHOLD,
-      dismissThreshold: DISMISS_THRESHOLD,
+      followThreshold: Math.max(FOLLOW_THRESHOLD, visibleH * 0.12),
+      dismissThreshold: Math.max(DISMISS_THRESHOLD, peekH * 0.25),
       flickVelocity: FLICK_VELOCITY,
     });
 
@@ -325,18 +297,29 @@
     cycleSnap();
   }
 
-  /** Handle tap: up one stop, and from the top back down to peek. */
   function cycleSnap() {
-    snap = neighbourSnap(snap, 1, heights) ?? "peek";
+    snap = snap === "peek" ? "expanded" : "peek";
   }
 
   const transitionMs = $derived(reducedMotion.current ? 0 : 320);
+
+  // Full screen is a modal: Tab stays inside and Escape returns to the peek.
+  $effect(() => {
+    if (!full || !sheetEl) return;
+    return trapFocus(sheetEl, {
+      onEscape: () => {
+        // An open photo viewer inside the sheet closes first.
+        if (!sheetEl?.querySelector("dialog[open]")) snap = "peek";
+      },
+      initialFocus: backEl,
+    });
+  });
 
   // Publish where the sheet's top edge rests so map controls can sit just
   // above it (Entry's locate button at peek). The resting snap, not the live
   // drag: controls should not chase the finger.
   $effect(() => {
-    if (!open || !rootEl || availableH === 0) return;
+    if (!open || !rootEl || availableH === 0 || full) return;
     const top = rootEl.getBoundingClientRect().top + baseTranslate;
     const root = document.documentElement;
     root.style.setProperty("--bottom-sheet-top", `${Math.round(top)}px`);
@@ -352,6 +335,10 @@
   <div
     class="bottom-sheet-root"
     class:bottom-sheet-root--side={sidePanel.current}
+    class:bottom-sheet-root--full={full}
+    class:bottom-sheet-root--preview={fullScreen &&
+      snap === "peek" &&
+      !sidePanel.current}
     bind:this={rootEl}
     style:--bs-top={topInset}
     style:--bs-bottom={bottomInset}
@@ -367,6 +354,9 @@
       class="bottom-sheet"
       class:bottom-sheet--dragging={isDragging}
       bind:this={sheetEl}
+      role={full ? "dialog" : undefined}
+      aria-modal={full ? "true" : undefined}
+      aria-label={full ? "Place details" : undefined}
       style:transform={sidePanel.current
         ? undefined
         : `translate3d(0, ${liveTranslate}px, 0)`}
@@ -377,7 +367,19 @@
       onpointercancel={onSheetPointerCancel}
       onlostpointercapture={onSheetPointerCancel}
     >
-      {#if !sidePanel.current}
+      {#if full}
+        <div class="bottom-sheet__bar">
+          <button
+            type="button"
+            class="bottom-sheet__back"
+            bind:this={backEl}
+            aria-label="Back to map"
+            onclick={() => (snap = "peek")}
+          >
+            <ArrowLeft size={22} aria-hidden="true" />
+          </button>
+        </div>
+      {:else if !sidePanel.current}
       <button
         type="button"
         class="bottom-sheet__handle"
@@ -454,7 +456,7 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 1.75rem;
+    min-height: 3rem;
     margin: 0;
     padding: 0.5rem 0 0.25rem;
     border: none;
@@ -486,6 +488,46 @@
     outline: 2px solid var(--theme-accent-text, #7b1113);
     outline-offset: -2px;
     border-radius: 1rem 1rem 0 0;
+  }
+
+  /* Full screen: a page over the search bar and the bottom nav. */
+  .bottom-sheet-root--full {
+    top: var(--staging-banner-height, 0px);
+    bottom: 0;
+    z-index: calc(var(--z-search-elevated, 18) + 1);
+    clip-path: none;
+  }
+
+  .bottom-sheet-root--full .bottom-sheet {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    touch-action: auto;
+  }
+
+  .bottom-sheet__bar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    min-height: 3.5rem;
+    padding: env(safe-area-inset-top, 0px) 0.25rem 0;
+  }
+
+  .bottom-sheet__back {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--theme-text, #18181b);
+    cursor: pointer;
+  }
+
+  .bottom-sheet__back:focus-visible {
+    outline: 2px solid var(--theme-accent-text, #7b1113);
+    outline-offset: -2px;
   }
 
   .bottom-sheet__body {
