@@ -4,7 +4,7 @@
 	import { alternativeOfferings } from '#lib/utils/planner/alternatives.js';
 	import type { Conflict, ScheduleBlock } from '#lib/utils/planner/conflicts.js';
 	import type { PlannedSection } from '#lib/utils/planner/types.js';
-	import type { ClassMapValue } from '#lib/utils/types';
+	import type { ClassMapValue } from '#lib/utils/types.js';
 
 	interface Props {
 		sections: PlannedSection[];

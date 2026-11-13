@@ -7,7 +7,7 @@
 	import { modalContentDismiss, modalContentReveal, overlayFade } from '#lib/utils/motion.js';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { getAppData } from '#lib/utils/context.js';
-	import type { Room } from '#lib/utils/types';
+	import type { Room } from '#lib/utils/types.js';
 	import { getBuildingRooms } from '#lib/utils/local/data/utils.js';
 	import { checkLocalBuildingRoom, syncBuildingRooms } from '#lib/utils/local/data/sync.js';
 	import { fetchBuildingFootprint } from '#lib/utils/overpass.js';

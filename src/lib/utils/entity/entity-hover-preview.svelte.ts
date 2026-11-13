@@ -1,6 +1,6 @@
 import { orgCategoryLabel } from '#lib/constants/content/categories/org.js';
 import { placeDirectoryLabel } from '#lib/constants/content/categories/place.js';
-import type { Building, DormData, EventData, OrgData, PlaceData } from '#lib/utils/types';
+import type { Building, DormData, EventData, OrgData, PlaceData } from '#lib/utils/types.js';
 
 export type EntityHoverPreview =
 	| {

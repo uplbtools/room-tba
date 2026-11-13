@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import PlannerCourseSearch from '#lib/components/planner/PlannerCourseSearch.svelte';
 import { plannerStore, termStore } from '#lib/stores.svelte.js';
-import type { ClassMapValue } from '#lib/utils/types';
+import type { ClassMapValue } from '#lib/utils/types.js';
 
 const rows: ClassMapValue[] = [
 	{

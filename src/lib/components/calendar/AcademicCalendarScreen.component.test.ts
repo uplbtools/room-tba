@@ -4,7 +4,7 @@
 // import { expectNoHorizontalOverflow, mountAtWidth } from '@test/layout-assertions';
 // import { EVENT_MARKER_STEP_PCT } from '#lib/utils/calendar/academic-calendar.js';
 // // import { termStore } from '#lib/stores.svelte.js';
-// import type { TermWithCount } from '#lib/utils/types';
+// import type { TermWithCount } from '#lib/utils/types.js';
 
 // // Windows are placed around the real clock so the screen's "today" snapshot
 // // lands inside term B without mocking Date.

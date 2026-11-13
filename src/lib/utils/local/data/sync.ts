@@ -12,7 +12,7 @@ import type {
 	PlaceData,
 	Room,
 	TableSyncInfo
-} from '#lib/utils/types';
+} from '#lib/utils/types.js';
 import { normalizeEntityPhotos } from '#lib/utils/entity/entity-photos.js';
 import { getDB } from './pgliteDB';
 import { getSyncKey, getSyncKeysFromLs } from './sync-keys';
@@ -1130,7 +1130,7 @@ export async function syncAliasCache() {
 /** Sync classes into PGlite cache (#231). */
 export async function syncClasses(
 	checker: TableSyncInfo,
-	remoteClasses: import('#lib/utils/types').ClassMapValue[],
+	remoteClasses: import('#lib/utils/types.js').ClassMapValue[],
 	trustedRemote = false
 ) {
 	// syncToastStore.markWritingPhase('classes');

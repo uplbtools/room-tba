@@ -18,7 +18,7 @@
 		eventPreviewFromRow
 	} from '#lib/utils/entity/entity-hover-preview.svelte.js';
 	// import { map, searchInfo } from '#lib/stores.svelte.js';
-	import type { Building, EntityType, EventData } from '#lib/utils/types';
+	import type { Building, EntityType, EventData } from '#lib/utils/types.js';
 	import type { SearchInfoState } from '#lib/stores/store-types.js';
 	import { getEntityCanonicalPath } from '#lib/utils/entity/entity-urls.js';
 	import { resolve } from '$app/paths';

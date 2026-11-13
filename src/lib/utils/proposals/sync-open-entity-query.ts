@@ -1,6 +1,6 @@
 import type { AppContextData } from '#lib/utils/context.js';
 import type { ProposalEntityType } from '#lib/services/contribution/proposal-action.js';
-import type { Building, College, Division, DormData, EventData } from '#lib/utils/types';
+import type { Building, College, Division, DormData, EventData } from '#lib/utils/types.js';
 import type SearchInfo from '#lib/stores/SearchInfo.svelte.js';
 
 type PublishedRow = { id: number };

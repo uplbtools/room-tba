@@ -56,7 +56,7 @@
 	// import { isRecentSearch } from '#lib/utils/locStorage.js';
 	// import { dismissEphemeralOverlays } from '#lib/utils/overlay-stack.js';
 	// import { getTransitRoutePath, getTransitStopPath } from '#lib/utils/transit-urls.js';
-	// import type { RecentSearch } from '#lib/utils/types';
+	// import type { RecentSearch } from '#lib/utils/types.js';
 	// import AnnouncementBar from '../../../lib/components/AnnouncementBar.svelte';
 	// import DesktopTopBar from '../../../lib/components/map-chrome/DesktopTopBar.svelte';
 	// import KeyboardShortcutsPopup from '../../../lib/components/map-chrome/KeyboardShortcutsPopup.svelte';

@@ -11,7 +11,7 @@ import {
 } from '#lib/server/db/schema.js';
 import { normalizeEntityName } from '#lib/utils/entity/entity-names.js';
 import { db } from '#lib/utils/db.js';
-import type { Room } from '#lib/utils/types';
+import type { Room } from '#lib/utils/types.js';
 import {
 	EditConflictError,
 	DuplicateNameError,

@@ -6,7 +6,7 @@ import {
 	divisionsTable,
 	roomsTable
 } from '#lib/server/db/schema.js';
-import type { Room } from '#lib/utils/types';
+import type { Room } from '#lib/utils/types.js';
 
 /** Escape LIKE wildcards so user input matches literally. */
 function escapeLikePattern(value: string): string {
