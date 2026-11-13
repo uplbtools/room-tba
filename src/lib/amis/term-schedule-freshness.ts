@@ -1,3 +1,9 @@
+import {
+	formatDateRange,
+	toManilaDateKey,
+	type ChangeOfMatriculationPeriod
+} from '#lib/utils/term/term-calendar.js';
+
 /** Days after import before class schedules are treated as stale (#318). */
 export const CLASSES_SCHEDULE_STALE_DAYS = 14;
 
@@ -28,14 +34,31 @@ export function isClassesScheduleStale(
 
 export function classesScheduleFreshnessMessage(
 	importedAt: string | null | undefined,
-	now = Date.now()
+	now = Date.now(),
+	com: ChangeOfMatriculationPeriod | null = null
 ): string | null {
 	const label = formatClassesImportedAt(importedAt);
+	const today = toManilaDateKey(new Date(now));
+	const range = com ? formatDateRange(com.startsOn, com.endsOn) : '';
+	const importedOn = importedAt && label ? toManilaDateKey(new Date(importedAt)) : null;
+
+	if (com && today <= com.endsOn) {
+		const comNote =
+			today >= com.startsOn
+				? `Change of matriculation (COM) is under way this semester (${range}); classes and rooms can still change.`
+				: `Classes and rooms can still change during this semester's change of matriculation (COM), ${range}.`;
+		return label
+			? `${isClassesScheduleStale(importedAt, now) ? 'Schedules last imported' : 'Schedules updated'} ${label}. ${comNote}`
+			: `Class schedule import date is unknown. ${comNote}`;
+	}
+	if (com && importedOn && importedOn <= com.endsOn) {
+		return `Schedules last imported ${label}, before this semester's change of matriculation (COM, ${range}) ended, so some classes or rooms may have changed.`;
+	}
 	if (!label) {
 		return 'Class schedule import date is unknown. Data may be outdated.';
 	}
 	if (isClassesScheduleStale(importedAt, now)) {
-		return `Schedules last imported ${label}. Data may be outdated during COM.`;
+		return `Schedules last imported ${label}. Data may be outdated.`;
 	}
 	return `Schedules updated ${label}.`;
 }
