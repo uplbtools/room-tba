@@ -1,7 +1,7 @@
-<!-- <script lang="ts">
-	import { searchInfo, sidebarStore } from '#lib/stores.svelte.js';
+<script lang="ts">
+	import { getRoomCanonicalPath } from '#lib/utils/entity/entity-urls.js';
 	import { formatExamDate, formatExamTimeRange } from '#lib/utils/final-exams/final-exams.js';
-	import type { FinalExamRow } from '#lib/utils/types';
+	import type { FinalExamRow } from '#lib/utils/types.js';
 
 	interface Props {
 		exams: FinalExamRow[];
@@ -9,19 +9,6 @@
 	}
 
 	const { exams, showRoom = false }: Props = $props();
-
-	function openRoom(roomCode: string | null | undefined) {
-		if (!roomCode) return;
-		searchInfo.updateQuery({
-			type: 'result',
-			category: 'room',
-			value: roomCode
-		});
-		searchInfo.inputValue = roomCode;
-		// The room panel lives on the map view; leave any full screen (planner,
-		// finals) that hosted this list.
-		sidebarStore.changeOpened('map');
-	}
 </script>
 
 <div class="final-exam-list">
@@ -41,14 +28,13 @@
 					{formatExamDate(exam.examDate)} · {formatExamTimeRange(exam.startsAt, exam.endsAt)}
 				</div>
 				{#if showRoom}
-					{#if exam.roomCode}
-						<button
-							type="button"
+					{#if exam.roomId && exam.roomCode}
+						<a
 							class="final-exam-row__room"
-							onclick={() => openRoom(exam.roomCode)}
+							href={getRoomCanonicalPath({ id: exam.roomId, code: exam.roomCode })}
 						>
 							{exam.roomCode}
-						</button>
+						</a>
 					{:else}
 						<div class="final-exam-row__room final-exam-row__room--tba">Room TBA</div>
 					{/if}
@@ -118,7 +104,7 @@
 		text-underline-offset: 0.125rem;
 	}
 
-	button.final-exam-row__room:hover {
+	a.final-exam-row__room:hover {
 		color: #7b1113;
 	}
 
@@ -128,4 +114,4 @@
 		color: hsl(0, 0%, 45%);
 		font-weight: 500;
 	}
-</style> -->
+</style>
