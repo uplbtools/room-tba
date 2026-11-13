@@ -1,4 +1,4 @@
-import { getEscapeActions } from '#lib/utils/context.ts';
+import { getEscapeActions } from '#lib/utils/context.js';
 import { dismissEphemeralOverlays } from '#lib/utils/overlay-stack.js';
 import type { LandingModalTab, ModalStoreState } from '../../store-types';
 import type EscapeActions from './EscapeActionStack.svelte';
