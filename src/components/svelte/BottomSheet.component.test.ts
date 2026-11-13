@@ -146,7 +146,7 @@ describe("bottom sheet peek fits its content", () => {
   });
 });
 
-describe("bottom sheet with a half stop (peek, half, full)", () => {
+describe("bottom sheet handle", () => {
   const rect = (height: number) =>
     ({
       top: 0,
@@ -168,31 +168,16 @@ describe("bottom sheet with a half stop (peek, half, full)", () => {
       )?.[1],
     );
 
-  function mount(halfRatio: number | undefined) {
-    const view = render(BottomSheetHost, { open: true, halfRatio });
-    const root = view.container.querySelector(
-      ".bottom-sheet-root",
-    ) as HTMLElement;
+  test("a tap expands the sheet and the next one returns it to peek", async () => {
+    const { container } = render(BottomSheetHost, { open: true });
+    const root = container.querySelector(".bottom-sheet-root") as HTMLElement;
     root.getBoundingClientRect = () => rect(800);
     window.dispatchEvent(new Event("resize"));
-    return view;
-  }
-
-  test("the handle walks peek, half, full and back to peek", async () => {
-    const { container } = mount(0.62);
     await vi.waitFor(() => expect(translateOf(container)).toBe(800 - 384));
 
     const handle = container.querySelector(
       ".bottom-sheet__handle",
     ) as HTMLElement;
-    handle.click();
-    await vi.waitFor(() =>
-      expect(translateOf(container)).toBe(800 - Math.round(800 * 0.62)),
-    );
-    // Half still offers to expand further.
-    expect(handle.getAttribute("aria-label")).toBe("Expand details");
-    expect(handle.getAttribute("aria-expanded")).toBe("true");
-
     handle.click();
     await vi.waitFor(() =>
       expect(translateOf(container)).toBe(800 - Math.round(800 * 0.92)),
@@ -202,28 +187,6 @@ describe("bottom sheet with a half stop (peek, half, full)", () => {
     handle.click();
     await vi.waitFor(() => expect(translateOf(container)).toBe(800 - 384));
     expect(handle.getAttribute("aria-expanded")).toBe("false");
-  });
-
-  test("without a halfRatio there are two stops", async () => {
-    const { container } = mount(undefined);
-    await vi.waitFor(() => expect(translateOf(container)).toBe(800 - 384));
-    const handle = container.querySelector(
-      ".bottom-sheet__handle",
-    ) as HTMLElement;
-    handle.click();
-    await vi.waitFor(() =>
-      expect(translateOf(container)).toBe(800 - Math.round(800 * 0.92)),
-    );
-  });
-
-  test("a half stop that would sit on peek is dropped", async () => {
-    // 0.5 of 800 is 400, only 16px above the 384px peek.
-    const { container } = mount(0.5);
-    await vi.waitFor(() => expect(translateOf(container)).toBe(800 - 384));
-    (container.querySelector(".bottom-sheet__handle") as HTMLElement).click();
-    await vi.waitFor(() =>
-      expect(translateOf(container)).toBe(800 - Math.round(800 * 0.92)),
-    );
   });
 });
 

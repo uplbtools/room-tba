@@ -4,13 +4,9 @@
   import ArrowLeft from "@lucide/svelte/icons/arrow-left";
   import {
     LANDSCAPE_COMPACT_MEDIA,
-    neighbourSnap,
     resolveBottomSheetRelease,
-    resolveSnapRelease,
     sheetTranslateY,
-    snapHeight,
     type BottomSheetSnap,
-    type SnapHeights,
   } from "@lib/bottom-sheet-snap";
   import { sidePanelStore } from "@lib/store.svelte";
 
@@ -18,7 +14,6 @@
     open = false,
     snap = $bindable<BottomSheetSnap>("peek"),
     peekRatio = 0.48,
-    halfRatio,
     peekFitTo,
     expandedRatio = 0.92,
     fullScreen = false,
@@ -32,13 +27,6 @@
     snap?: BottomSheetSnap;
     /** Fraction of the available height used for peek (0–1). */
     peekRatio?: number;
-    /**
-     * Fraction for a middle stop between peek and expanded (GMaps' half
-     * sheet). Left out, the sheet has two stops. The stop is dropped when it
-     * would sit within a thumb of peek or expanded (a tall peek on a short
-     * screen).
-     */
-    halfRatio?: number;
     /**
      * Selector inside the content (e.g. ".entity-actions"). When present,
      * peek ends just below it instead of at peekRatio, never taller than
@@ -106,25 +94,7 @@
   const expandedH = $derived(
     Math.round(availableH * (fullScreen ? 1 : expandedRatio)),
   );
-  const HALF_MIN_GAP_PX = 64;
-  const halfH = $derived.by(() => {
-    if (halfRatio === undefined || sidePanel.current) return undefined;
-    const h = Math.round(availableH * halfRatio);
-    return h - peekH >= HALF_MIN_GAP_PX && expandedH - h >= HALF_MIN_GAP_PX
-      ? h
-      : undefined;
-  });
-  const heights = $derived<SnapHeights>({
-    peek: peekH,
-    half: halfH,
-    expanded: expandedH,
-  });
-  const visibleH = $derived(snapHeight(snap, heights));
-
-  // The middle stop can vanish (rotation, keyboard): fall back to peek.
-  $effect(() => {
-    if (snap === "half" && halfH === undefined) snap = "peek";
-  });
+  const visibleH = $derived(snap === "expanded" ? expandedH : peekH);
   const baseTranslate = $derived(sheetTranslateY(visibleH, availableH));
   const liveTranslate = $derived(
     Math.min(
@@ -291,21 +261,6 @@
       return;
     }
 
-    if (halfH !== undefined) {
-      const next = resolveSnapRelease({
-        delta,
-        velocity,
-        snap,
-        heights,
-        followThreshold: FOLLOW_THRESHOLD,
-        dismissThreshold: DISMISS_THRESHOLD,
-        flickVelocity: FLICK_VELOCITY,
-      });
-      if (next === "dismiss") onDismiss?.();
-      else if (next !== "none") snap = next;
-      return;
-    }
-
     const intent = resolveBottomSheetRelease({
       delta,
       velocity,
@@ -339,9 +294,8 @@
     cycleSnap();
   }
 
-  /** Handle tap: up one stop, and from the top back down to peek. */
   function cycleSnap() {
-    snap = neighbourSnap(snap, 1, heights) ?? "peek";
+    snap = snap === "peek" ? "expanded" : "peek";
   }
 
   const transitionMs = $derived(reducedMotion.current ? 0 : 320);

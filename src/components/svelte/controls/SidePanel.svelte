@@ -164,7 +164,7 @@
     if (!request) return;
     sidePanelStore.sheetSnapRequest = null;
     if (!mobile.current || !panelOpen) return;
-    if (request === "expanded" || mobileSnap === "peek") mobileSnap = request;
+    mobileSnap = request;
   });
 
   // Drive map-control visibility in Entry (hide locate/3D/zoom while sheet open).
@@ -173,11 +173,7 @@
       sidePanelStore.setMobileSheetSnap("closed");
       return;
     }
-    // Map controls only care whether the sheet leaves room for them, and the
-    // half stop does not.
-    sidePanelStore.setMobileSheetSnap(
-      mobileSnap === "peek" ? "peek" : "expanded",
-    );
+    sidePanelStore.setMobileSheetSnap(mobileSnap);
   });
 
   function togglePanel() {
