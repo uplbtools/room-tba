@@ -7,9 +7,9 @@ const componentSources = [
 	'src/lib/components/editor/ImageUpload.svelte',
 	'src/lib/components/editor/EntityPhotoUpload.svelte',
 	'src/lib/components/editor/PhotoCollectionUpload.svelte',
-	'src/lib/components/controls/BuildingResult.svelte',
-	'src/lib/components/controls/DormEditorPanel.svelte',
-	'src/lib/components/controls/EventResult.svelte',
+	'src/routes/(app)/map/buildings/[id]/BuildingResult.svelte',
+	'src/lib/components/entity/DormEditorPanel.svelte',
+	'src/lib/components/entity/EventResult.svelte',
 	'src/lib/components/room/RoomResult.svelte',
 	'src/lib/components/map-chrome/EventPlacementImageField.svelte'
 ];
