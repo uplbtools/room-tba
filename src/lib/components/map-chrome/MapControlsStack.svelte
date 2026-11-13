@@ -62,7 +62,7 @@
 			class="map-ctrl map-ctrl--compass"
 			aria-label="Reset map north"
 			title="Reset north"
-			onclick={map.resetNorth}
+			onclick={() => map.resetNorth()}
 		>
 			<img
 				src={compassIcon}
