@@ -9,6 +9,8 @@
 		initUserLocation,
 		initTermStore,
 		initPlannerStore,
+		initAdminAuthStore,
+		initProposalsStore,
 		getEscapeActions
 	} from '#lib/utils/context.js';
 	import { onMount, type Snippet } from 'svelte';
@@ -20,6 +22,8 @@
 	import ModalStore from '#lib/stores/new/ui/ModalStore.svelte.js';
 	import TermStore from '#lib/stores/new/data/TermStore.svelte.js';
 	import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
+	import AdminAuthStore from '#lib/stores/new/data/AdminAuthStore.svelte.js';
+	import ProposalsStore from '#lib/stores/new/data/ProposalsStore.svelte.js';
 	import Modal from '#lib/components/new/Modal.svelte';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
@@ -517,12 +521,17 @@
 	initMapStore(new MapStore());
 	initUserLocation(new UserLocation());
 	initSearchInfo(new SearchInfo());
-	initModalStore(new ModalStore());
+	const modalStore = initModalStore(new ModalStore());
 	const termStore = initTermStore(new TermStore());
 	const plannerStore = initPlannerStore(new PlannerStore(() => termStore.activeTermId));
+	const proposalsStore = initProposalsStore(new ProposalsStore(() => adminAuthStore.canReview));
+	const adminAuthStore = initAdminAuthStore(
+		new AdminAuthStore({ modalStore, plannerStore, proposalsStore })
+	);
 	onMount(() => {
 		void termStore.init();
 		plannerStore.init();
+		void adminAuthStore.hydrate();
 	});
 
 	const escapeActionStack = getEscapeActions();
