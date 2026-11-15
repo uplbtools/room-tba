@@ -78,7 +78,11 @@
 				<span class="w-5 shrink-0 text-right text-neutral-600"
 					>{loop && i === route.stops.length - 1 ? 1 : i + 1}</span
 				>
-				<span>{stop.name}{loop && i === route.stops.length - 1 ? ' (back to the start)' : ''}</span>
+				<a
+					class="underline-offset-2 hover:underline"
+					href={`/map/transit/${encodeURIComponent(route.id)}/${i + 1}`}
+					>{stop.name}{loop && i === route.stops.length - 1 ? ' (back to the start)' : ''}</a
+				>
 			</li>
 		{/each}
 	</ol>

@@ -4,7 +4,7 @@
 	import { getTransitRoute } from '#lib/functions/transit.remote.js';
 </script>
 
-{#if page.route.id === '/(app)/map/transit/[route]' && page.params.route}
+{#if page.route.id?.startsWith('/(app)/map/transit/[route]') && page.params.route}
 	<svelte:boundary>
 		{#snippet failed()}{/snippet}
 		{@const route = await getTransitRoute(page.params.route)}
@@ -24,16 +24,16 @@
 			id="transit-route-stops"
 			data={{
 				type: 'FeatureCollection',
-				features: route.stops.map((stop) => ({
+				features: route.stops.map((stop, index) => ({
 					type: 'Feature',
-					properties: { name: stop.name },
+					properties: { name: stop.name, open: index === Number(page.params.stop) - 1 },
 					geometry: { type: 'Point', coordinates: [stop.lon, stop.lat] }
 				}))
 			}}
 		>
 			<CircleLayer
 				paint={{
-					'circle-radius': 5,
+					'circle-radius': ['case', ['get', 'open'], 9, 5],
 					'circle-color': '#ffffff',
 					'circle-stroke-color': route.color,
 					'circle-stroke-width': 3
