@@ -8,7 +8,7 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async () => {
 	const events = await getSeoEvents();
 	const items: EntityIndexItem[] = events.map((event) => {
-		const href = getEventCanonicalPath(event.slug);
+		const href = getEventCanonicalPath(event);
 		return {
 			href,
 			label: event.title,

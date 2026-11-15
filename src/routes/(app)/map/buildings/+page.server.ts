@@ -19,7 +19,7 @@ export const load: PageServerLoad = async () => {
 		.sort((a, b) => a.buildingName.localeCompare(b.buildingName))
 		.map((building) => {
 			const roomCount = roomCounts.get(building.id) ?? 0;
-			const href = getBuildingCanonicalPath(building.buildingName);
+			const href = getBuildingCanonicalPath(building);
 
 			return {
 				href,

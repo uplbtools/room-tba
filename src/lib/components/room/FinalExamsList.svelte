@@ -29,10 +29,7 @@
 				</div>
 				{#if showRoom}
 					{#if exam.roomId && exam.roomCode}
-						<a
-							class="final-exam-row__room"
-							href={getRoomCanonicalPath({ id: exam.roomId, code: exam.roomCode })}
-						>
+						<a class="final-exam-row__room" href={getRoomCanonicalPath({ id: exam.roomId })}>
 							{exam.roomCode}
 						</a>
 					{:else}

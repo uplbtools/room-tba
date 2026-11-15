@@ -43,40 +43,6 @@ export async function getAllBuildingsCached(): Promise<Building[]> {
 	return data;
 }
 
-export async function getAllRoomsCached(): Promise<Room[]> {
-	const cache = getBuildCache();
-	if (cache.rooms) return cache.rooms;
-	const data = await db
-		.select({
-			id: roomsTable.id,
-			code: roomsTable.code,
-			fullName: roomsTable.fullName,
-			directions: roomsTable.directions,
-			building: {
-				name: buildingsTable.buildingName,
-				lat: buildingsTable.lat,
-				lon: buildingsTable.lon,
-				directions: buildingsTable.directions
-			},
-			collegeName: collegesTable.collegeName,
-			divisionName: divisionsTable.divisionName,
-			buildingId: roomsTable.buildingId,
-			collegeId: roomsTable.collegeId,
-			divisionId: roomsTable.divisionId,
-			imageUrl: roomsTable.imageUrl,
-			photos: roomsTable.photos,
-			category: roomsTable.category,
-			version: roomsTable.version,
-			updatedAt: roomsTable.updatedAt
-		})
-		.from(roomsTable)
-		.leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
-		.leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
-		.leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId));
-	cache.rooms = data;
-	return data;
-}
-
 export async function getAllCollegesCached(): Promise<College[]> {
 	const cache = getBuildCache();
 	if (cache.colleges) return cache.colleges;
@@ -112,35 +78,16 @@ export async function getAllBuildings(): Promise<Building[]> {
 	}
 }
 
-export async function getAllRooms(): Promise<Room[]> {
+export async function getAllRooms() {
 	try {
 		const data = await db
 			.select({
 				id: roomsTable.id,
 				code: roomsTable.code,
-				fullName: roomsTable.fullName,
-				directions: roomsTable.directions,
-				building: {
-					name: buildingsTable.buildingName,
-					lat: buildingsTable.lat,
-					lon: buildingsTable.lon,
-					directions: buildingsTable.directions
-				},
-				collegeName: collegesTable.collegeName,
-				divisionName: divisionsTable.divisionName,
-				buildingId: roomsTable.buildingId,
-				collegeId: roomsTable.collegeId,
-				divisionId: roomsTable.divisionId,
-				imageUrl: roomsTable.imageUrl,
-				photos: roomsTable.photos,
-				category: roomsTable.category,
-				version: roomsTable.version,
-				updatedAt: roomsTable.updatedAt
+				building: { name: buildingsTable.buildingName }
 			})
 			.from(roomsTable)
-			.leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
-			.leftJoin(collegesTable, eq(collegesTable.id, roomsTable.collegeId))
-			.leftJoin(divisionsTable, eq(divisionsTable.id, roomsTable.divisionId));
+			.leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId));
 		return data;
 	} catch (e) {
 		console.error('Error: ', e);

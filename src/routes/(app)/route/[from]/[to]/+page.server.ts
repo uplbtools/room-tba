@@ -6,7 +6,7 @@ import {
 	formatDuration
 } from '#lib/utils/campus/campus-route.js';
 import type { SeoData } from '#lib/components/seo/seo-data.js';
-import { getBuildingCanonicalPath } from '#lib/utils/entity/entity-urls.js';
+import { entityPath } from '#lib/utils/entity/entity-urls.js';
 import { describeRoute, generateRouteDescription } from '#lib/utils/route/route-description.js';
 import { getRoutePath } from '#lib/utils/route/route-links.js';
 import { findBySlug, getRoutablePlaces } from '#lib/services/route.js';
@@ -60,13 +60,9 @@ export const load: PageServerLoad = async ({ params }) => {
 		aiDescription,
 		steps: factual?.split('\n').slice(1) ?? [],
 		mapUrl: `/?route=${encodeURIComponent(from.slug)},${encodeURIComponent(to.slug)}`,
-		// Only buildings have a name-addressable page; dorms and places need ids
-		// we did not fetch, so they simply get no context link.
-		contextLinks: [from, to]
-			.filter((place) => place.kind === 'building')
-			.map((place) => ({
-				label: `About ${place.name}`,
-				href: getBuildingCanonicalPath(place.name)
-			}))
+		contextLinks: [from, to].map((place) => ({
+			label: `About ${place.name}`,
+			href: entityPath(`${place.kind}s`, place.id)
+		}))
 	};
 };

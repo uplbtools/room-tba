@@ -19,7 +19,7 @@ export const load: PageServerLoad = async () => {
 			const roomCount = roomCounts.get(division.id) ?? 0;
 
 			return {
-				href: getDivisionCanonicalPath(division.divisionName),
+				href: getDivisionCanonicalPath(division),
 				label: division.divisionName,
 				description: `${roomCount} room${roomCount === 1 ? '' : 's'} connected to this division`
 			};

@@ -6,6 +6,7 @@ import type { RoutePlace } from '#lib/utils/campus/campus-route.js';
 export type RoutableKind = 'building' | 'dorm' | 'place';
 
 export type RoutablePlace = RoutePlace & {
+	id: number;
 	kind: RoutableKind;
 	slug: string;
 };
@@ -20,6 +21,7 @@ export async function getRoutablePlaces(): Promise<RoutablePlace[]> {
 	const [buildings, dorms, places] = await Promise.all([
 		db
 			.select({
+				id: buildingsTable.id,
 				name: buildingsTable.buildingName,
 				lat: buildingsTable.lat,
 				lon: buildingsTable.lon
@@ -27,6 +29,7 @@ export async function getRoutablePlaces(): Promise<RoutablePlace[]> {
 			.from(buildingsTable),
 		db
 			.select({
+				id: dormsTable.id,
 				name: dormsTable.dormName,
 				lat: dormsTable.lat,
 				lon: dormsTable.lon
@@ -34,6 +37,7 @@ export async function getRoutablePlaces(): Promise<RoutablePlace[]> {
 			.from(dormsTable),
 		db
 			.select({
+				id: placesTable.id,
 				name: placesTable.name,
 				lat: placesTable.lat,
 				lon: placesTable.lon
@@ -42,6 +46,7 @@ export async function getRoutablePlaces(): Promise<RoutablePlace[]> {
 	]);
 
 	const rows: {
+		id: number;
 		name: string;
 		lat: number | null;
 		lon: number | null;
@@ -62,6 +67,7 @@ export async function getRoutablePlaces(): Promise<RoutablePlace[]> {
 		if (!slug || seen.has(slug)) continue;
 		seen.add(slug);
 		routable.push({
+			id: row.id,
 			name: row.name,
 			lat: row.lat,
 			lon: row.lon,
