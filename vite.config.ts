@@ -24,6 +24,7 @@ export default defineConfig({
 			// existing registrations update to it and self-destruct. Only the client
 			// registration is suppressed, so new visitors never pick one up.
 			serviceWorker: { register: !SW_KILL_SWITCH },
+			prerender: { crawl: false },
 			inspector: true
 		}),
 		tailwindcss(),
