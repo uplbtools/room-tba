@@ -117,7 +117,7 @@ describe("JeepneyRouteModal", () => {
 
         expect(
           screen.getByRole("link", { name: "DLTB website" }),
-        ).toHaveAttribute("href", "https://dltbbus.com.ph/");
+        ).toHaveAttribute("href", "https://dltb.ph/");
         expect(screen.queryByText("₱165")).toBeNull();
         expect(screen.queryByText(/Fare not verified yet/)).toBeNull();
       },

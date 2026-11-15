@@ -2010,10 +2010,10 @@ export async function renderTransitMapPdf(input: {
     "PHP 30 ang pa-Calamba Crossing, 25 discounted.",
   ].flatMap((text) => wrapText(text, font, BODY, PANEL_W));
   const busLines = [
-    "5 AM umaalis ang DLTB sa main gate pa-Buendia.",
-    "6 PM naman ito bumabalik galing Buendia, daily.",
+    "May DLTB bus papuntang UP Diliman.",
+    "5 AM, 9 AM at 6 PM ang alis nito galing UP Diliman.",
     "May ibang bus pa-Buendia sa Olivarez Plaza Mall.",
-    "Mag-book sa dltbbus.com.ph kung pa-UP Diliman ka.",
+    "Mag-book sa dltb.ph.",
   ].flatMap((text) => wrapText(text, font, BODY, PANEL_W));
   const TOWN_BOARD_H = 15;
   const townH =
