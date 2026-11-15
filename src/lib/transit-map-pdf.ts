@@ -1004,6 +1004,268 @@ function mergeStops(routes: TransitMapRoute[]): MapStop[] {
   return out;
 }
 
+/** The codes on the stop signs around campus, forward direction first. */
+const LINE_CODES: Record<string, string[]> = {
+  "kaliwa-kanan": ["KN", "KL"],
+  forestry: ["FR"],
+  snodlob: ["ELB"],
+  "up-rural": ["RURAL"],
+};
+
+type StripLine = {
+  route: TransitMapRoute;
+  color: RGB;
+  /** Set on a two-way loop: the colour of its reverse direction. */
+  reverse: RGB | null;
+};
+
+/** Page 2: every campus line as a strip of its stops, in travel order. */
+function drawStopStrips(
+  page: PDFPage,
+  o: {
+    pageW: number;
+    pageH: number;
+    font: PDFFont;
+    bold: PDFFont;
+    lines: StripLine[];
+    stops: MapStop[];
+    nearest: MapStop | null;
+    footer: string;
+  },
+) {
+  const { pageW, pageH, font, bold, lines } = o;
+  const anchor = { x: 0, y: pageH };
+  const BAND_H = 52;
+  const NAME = 9.5;
+  const pillW = (text: string, size: number) =>
+    bold.widthOfTextAtSize(text, size) + size * 0.8;
+  const pill = (text: string, x: number, y: number, size: number, c: RGB) => {
+    const h = size * 1.5;
+    page.drawSvgPath(roundRectPath(x, y, pillW(text, size), h, h / 2, pageH), {
+      ...anchor,
+      color: c,
+    });
+    page.drawText(text, {
+      x: x + size * 0.4,
+      y: y + h / 2 - size * 0.36,
+      size,
+      font: bold,
+      color: WHITE,
+    });
+  };
+  const codesOf = (line: StripLine) =>
+    (LINE_CODES[line.route.id] ?? []).map((code, i) => ({
+      code,
+      color: i === 1 && line.reverse ? line.reverse : line.color,
+    }));
+
+  page.drawRectangle({
+    x: 0,
+    y: pageH - BAND_H,
+    width: pageW,
+    height: BAND_H,
+    color: BRAND,
+  });
+  const titleW = drawSignboard(
+    page,
+    pageH,
+    ["UPLB", "JEEPNEY STOPS"],
+    MARGIN,
+    pageH - SAFE,
+    24,
+    pageW,
+    [SIGN_YELLOW, SIGN_GREEN],
+  );
+  const introX = MARGIN + titleW + 20;
+  wrapText(
+    "Pababa ang basa ng bawat linya. Ang code sa tabi ng stop ay ibang jeep na pwedeng sakyan doon.",
+    font,
+    11,
+    pageW - MARGIN - introX,
+  )
+    .slice(0, 2)
+    .forEach((text, i, all) =>
+      page.drawText(text, {
+        x: introX,
+        y: pageH - SAFE - (all.length === 1 ? 16 : 9) - i * 13.5,
+        size: 11,
+        font,
+        color: SOFT_ON_BRAND,
+      }),
+    );
+
+  const GAP = 14;
+  const HEAD_H = 62;
+  const colW = (pageW - 2 * MARGIN - (lines.length - 1) * GAP) / lines.length;
+  const top = pageH - BAND_H - 14;
+  const rowH = Math.min(
+    22,
+    (top - HEAD_H - FOOTER_H - 6) /
+      Math.max(...lines.map((l) => l.route.stops.length)),
+  );
+  lines.forEach((line, ci) => {
+    const { route, color, reverse } = line;
+    const x = MARGIN + ci * (colW + GAP);
+    const codes = codesOf(line);
+    // "Kaliwa / Kanan" lists its stops in Kanan order.
+    const names = reverse
+      ? route.name.split(/\s*\/\s*/).reverse()
+      : [route.name];
+    let hx = x;
+    names.forEach((name, i) => {
+      const code = codes[i];
+      if (code) {
+        pill(code.code, hx, top - 16, 10, code.color);
+        hx += pillW(code.code, 10) + 5;
+      }
+      const text = reverse ? [name] : wrapText(name, bold, 11.5, x + colW - hx);
+      text.slice(0, 2).forEach((l, k) =>
+        page.drawText(l, {
+          x: hx,
+          y: top - 12.5 - k * 13,
+          size: 11.5,
+          font: bold,
+          color: INK,
+        }),
+      );
+      hx += bold.widthOfTextAtSize(name, 11.5) + 10;
+    });
+    const oneWay = isOneWayLoop(route);
+    [
+      Number.isFinite(route.fareRegular)
+        ? `PHP ${route.fareRegular}, PHP ${route.fareDiscounted} pag discounted`
+        : "Tanong muna ang pamasahe sa driver",
+      reverse
+        ? `${names[0]} pababa, ${names[1]} pataas.`
+        : oneWay
+          ? "Paikot, isang direksyon lang."
+          : "Pabalik, ganito rin ang stops pataas.",
+    ].forEach((text, i) =>
+      page.drawText(text, {
+        x,
+        y: top - 41 - i * 12,
+        size: NAME,
+        font,
+        color: INK,
+      }),
+    );
+
+    const last = route.stops.length - 1;
+    const cy = (i: number) => top - HEAD_H - rowH * (i + 0.5);
+    const lx = x + (reverse ? 10 : 6);
+    const arrow = (ax: number, y: number, dir: 1 | -1, half: number, c: RGB) =>
+      page.drawSvgPath(
+        `M ${ax - half} ${pageH - (y + dir * half * 0.7)} L ${ax + half} ${pageH - (y + dir * half * 0.7)} L ${ax} ${pageH - (y - dir * half * 0.7)} Z`,
+        { ...anchor, color: c },
+      );
+    if (reverse) {
+      for (const [thickness, c] of [
+        [3.4, reverse],
+        [1.2, WHITE],
+      ] as const)
+        page.drawLine({
+          start: { x: x + 3, y: cy(0) },
+          end: { x: x + 3, y: cy(last) },
+          thickness,
+          color: c,
+        });
+    }
+    page.drawLine({
+      start: { x: lx, y: cy(0) },
+      end: { x: lx, y: cy(last) },
+      thickness: 6,
+      color,
+    });
+    for (let i = 0; i < last; i++) {
+      const mid = (cy(i) + cy(i + 1)) / 2;
+      if (oneWay || (reverse && i % 2 === 0)) arrow(lx, mid, 1, 2.4, WHITE);
+      if (reverse && i % 2 === 1) arrow(x + 3, mid, -1, 3.2, reverse);
+    }
+
+    route.stops.forEach((stop, i) => {
+      const y = cy(i);
+      const merged = o.stops.find((m) => haversineMeters(m, stop) < 30);
+      const isHere = !!merged && merged === o.nearest;
+      const terminal = i === 0 || i === last;
+      if (reverse)
+        page.drawSvgPath(roundRectPath(x + 0.5, y - 3.5, 13, 7, 3.5, pageH), {
+          ...anchor,
+          color: WHITE,
+          borderColor: INK,
+          borderWidth: terminal ? 1.8 : 1.1,
+        });
+      else
+        page.drawCircle({
+          x: lx,
+          y,
+          size: terminal ? 4.6 : 3.8,
+          color: WHITE,
+          borderColor: color,
+          borderWidth: terminal ? 2.2 : 1.6,
+        });
+
+      const pills = lines
+        .filter((l) => l !== line && merged?.routeIds.includes(l.route.id))
+        .flatMap(codesOf);
+      const pillsW = pills.reduce((w, p) => w + pillW(p.code, 8) + 2, 0);
+      let px = x + colW - pillsW + 2;
+      for (const p of pills) {
+        pill(p.code, px, y - 6, 8, p.color);
+        px += pillW(p.code, 8) + 2;
+      }
+
+      const nx = x + 20;
+      const f = terminal || isHere ? bold : font;
+      const nameW = colW - 20 - (pillsW ? pillsW + 4 : 0);
+      let text = wrapText(stop.name, f, NAME, nameW);
+      // A wrapped name is set a little smaller so two in a row stay apart.
+      const size = text.length > 1 ? 8.8 : NAME;
+      if (text.length > 1) text = wrapText(stop.name, f, size, nameW);
+      if (text.length > 2)
+        text = wrapText(shortStopLabel(stop.name), f, size, nameW).slice(0, 2);
+      const lead = size + 0.5;
+      if (isHere) {
+        const w = Math.max(...text.map((l) => f.widthOfTextAtSize(l, size)));
+        const h = text.length * lead + 4;
+        page.drawSvgPath(roundRectPath(nx - 3, y - h / 2, w + 6, h, 2, pageH), {
+          ...anchor,
+          color,
+        });
+      }
+      text.forEach((l, k) =>
+        page.drawText(l, {
+          x: nx,
+          y:
+            y +
+            (text.length === 2 ? lead / 2 - size * 0.36 + 0.5 : -size * 0.36) -
+            k * lead,
+          size,
+          font: f,
+          color: isHere ? WHITE : INK,
+        }),
+      );
+    });
+  });
+
+  page.drawText(o.footer, {
+    x: MARGIN,
+    y: SAFE + 2,
+    size: 9,
+    font,
+    color: INK,
+  });
+  if (o.nearest) {
+    const text = "Nasa box ang stop na pinakamalapit sa'yo.";
+    page.drawText(text, {
+      x: pageW - MARGIN - font.widthOfTextAtSize(text, 9),
+      y: SAFE + 2,
+      size: 9,
+      font,
+      color: INK,
+    });
+  }
+}
+
 export async function renderTransitMapPdf(input: {
   routes: TransitMapRoute[];
   here?: TransitMapHere | null;
@@ -2180,10 +2442,14 @@ export async function renderTransitMapPdf(input: {
 
   // ── Footer ────────────────────────────────────────────────────────────
   const FOOT = 9;
-  page.drawText(
-    `Na-print noong ${dateLabel}. Na-verify ang presyo noong Oct 7, 2026.`,
-    { x: MARGIN, y: SAFE + 2, size: FOOT, font, color: INK },
-  );
+  const footLeft = `Na-print noong ${dateLabel}. Na-verify ang presyo noong Oct 7, 2026.`;
+  page.drawText(footLeft, {
+    x: MARGIN,
+    y: SAFE + 2,
+    size: FOOT,
+    font,
+    color: INK,
+  });
   const footRight = input.basemap
     ? "Map data from OpenStreetMap contributors, ODbL. Approximate lang ang mga linya at layo."
     : "Approximate lang ang mga linya at layo.";
@@ -2194,6 +2460,22 @@ export async function renderTransitMapPdf(input: {
     font,
     color: INK,
   });
+
+  if (drawnRoutes.length > 0)
+    drawStopStrips(pdf.addPage([pageW, pageH]), {
+      pageW,
+      pageH,
+      font,
+      bold,
+      lines: drawnRoutes.map((route) => ({
+        route,
+        color: hexToRgb(route.color),
+        reverse: isLoopRoute(route) ? reverseColorOf(route) : null,
+      })),
+      stops,
+      nearest: nearest?.stop ?? null,
+      footer: footLeft,
+    });
 
   return pdf.save();
 }

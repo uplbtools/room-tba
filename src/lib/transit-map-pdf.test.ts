@@ -511,7 +511,7 @@ describe("any point as You are here", () => {
       routes: [route()],
       here: { name: "\u6559\u5ba4", lat: 14.1644, lon: 121.2412 },
     });
-    expect((await PDFDocument.load(bytes)).getPageCount()).toBe(1);
+    expect((await PDFDocument.load(bytes)).getPageCount()).toBe(2);
   });
 
   test("renders a nameless point near campus", async () => {
@@ -521,7 +521,7 @@ describe("any point as You are here", () => {
       basemap: basemap as TransitBasemap,
     });
     const pdf = await PDFDocument.load(bytes);
-    expect(pdf.getPageCount()).toBe(1);
+    expect(pdf.getPageCount()).toBe(2);
   });
 });
 
