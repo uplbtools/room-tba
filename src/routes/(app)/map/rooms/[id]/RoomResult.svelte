@@ -43,7 +43,7 @@
 				Loading classes...
 			{/snippet}
 			{@const classes = await getClassesByRoomId({ termId, roomId: room.id })}
-			<h3 class="entity-section-heading">Classes</h3>
+			<h3 class="font-semibold">Classes</h3>
 			{#if classes.length > 0}
 				<Classes {classes} currentRoomCode={room.code} />
 			{:else}
@@ -56,7 +56,7 @@
 			{/snippet}
 			{#await getFinalExams({ termId, roomCode: room.code }) then exams}
 				{#if exams.length > 0}
-					<h3 class="entity-section-heading">Final exams</h3>
+					<h3 class="font-semibold">Final exams</h3>
 					<FinalExamsList {exams} />
 				{/if}
 			{/await}
