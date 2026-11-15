@@ -58,22 +58,17 @@ describe('AppMenu review entry', () => {
 		proposalsStore.pendingCount = 0;
 	});
 
-	test('reviewers get a review entry that opens the review modal with the pending count', async () => {
+	test('reviewers get a link to the review queue with the pending count', async () => {
 		adminAuthStore.canReview = true;
 		proposalsStore.pendingCount = 3;
 		render(AppMenu, { props: { onSignOut: () => {} } });
 
 		await fireEvent.click(screen.getByRole('button', { name: /app menu/i }));
 
-		const reviewBtn = screen.getByRole('button', {
-			name: /review suggested edits/i
-		});
-		expect(reviewBtn).toBeVisible();
-		expect(reviewBtn.textContent).toContain('3');
-
-		await fireEvent.click(reviewBtn);
-		expect(modalStore.open).toBe(true);
-		expect(modalStore.type).toBe('review');
+		const reviewLink = screen.getByRole('link', { name: /review suggested edits/i });
+		expect(reviewLink).toBeVisible();
+		expect(reviewLink.textContent).toContain('3');
+		expect(reviewLink.getAttribute('href')).toBe('/map/admin/suggestions');
 	});
 
 	test('non-reviewers do not see the review entry', async () => {
@@ -82,7 +77,7 @@ describe('AppMenu review entry', () => {
 
 		await fireEvent.click(screen.getByRole('button', { name: /app menu/i }));
 
-		expect(screen.queryByRole('button', { name: /review suggested edits/i })).toBeNull();
+		expect(screen.queryByRole('link', { name: /review suggested edits/i })).toBeNull();
 	});
 });
 
