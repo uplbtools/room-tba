@@ -7,7 +7,11 @@
 	// route, legend), and `layers` is the legend chip sitting right beside it.
 	import Wrench from '@lucide/svelte/icons/wrench';
 	import { fade } from 'svelte/transition';
-	import { mapToolsStore, measureRouteStore, travelTimeStore } from '#lib/stores.svelte.js';
+	import {
+		getMapToolsStore,
+		getMeasureRouteStore,
+		getTravelTimeStore
+	} from '#lib/utils/context.js';
 	import { panelFadeIn, panelFadeOut } from '#lib/utils/motion.js';
 	import MapViewControls from '#lib/components/MapViewControls.svelte';
 	import MapLegend from '#lib/components/MapLegend.svelte';
@@ -22,6 +26,10 @@
 	import './map-chrome/map-chrome.css';
 	import { MediaQuery } from 'svelte/reactivity';
 	import type { MapToolsSection } from '#lib/stores/store-types.js';
+
+	const mapToolsStore = getMapToolsStore();
+	const measureRouteStore = getMeasureRouteStore();
+	const travelTimeStore = getTravelTimeStore();
 
 	let panelEl = $state<HTMLDivElement | null>(null);
 	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');

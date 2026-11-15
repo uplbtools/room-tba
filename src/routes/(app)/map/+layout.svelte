@@ -1,9 +1,23 @@
 <script lang="ts">
 	import Search from '#lib/components/new/Search.svelte';
-	import { MapStore } from '#lib/stores/new/map/map-stores.svelte.js';
+	import {
+		MapStore,
+		MapToolsStore,
+		MeasureRouteStore,
+		TerrainStore,
+		TrailStore,
+		TravelTimeStore
+	} from '#lib/stores/new/map/map-stores.svelte.js';
+	import FloatingControlPanelStore from '#lib/stores/new/ui/FloatingControlPanelStore.svelte.js';
 	import UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
 	import {
 		initMapStore,
+		initTravelTimeStore,
+		initMapToolsStore,
+		initMeasureRouteStore,
+		initTrailStore,
+		initTerrainStore,
+		initFloatingControlPanelStore,
 		initSearchInfo,
 		initModalStore,
 		initUserLocation,
@@ -511,6 +525,12 @@
 	const { children }: { children: Snippet } = $props();
 
 	initMapStore(new MapStore());
+	initTravelTimeStore(new TravelTimeStore());
+	initMapToolsStore(new MapToolsStore());
+	initMeasureRouteStore(new MeasureRouteStore());
+	initTrailStore(new TrailStore());
+	initTerrainStore(new TerrainStore());
+	initFloatingControlPanelStore(new FloatingControlPanelStore());
 	initUserLocation(new UserLocation());
 	initSearchInfo(new SearchInfo());
 	initModalStore(new ModalStore());

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Route from '@lucide/svelte/icons/route';
 	import MapPin from '@lucide/svelte/icons/map-pin';
-	import { trailStore, map } from '#lib/stores.svelte.js';
+	import { getMapStore, getTrailStore } from '#lib/utils/context.js';
 	import {
 		MAKILING_TRAIL_STATIONS,
 		MAKILING_TRAIL_CAMERA
@@ -12,6 +12,9 @@
 	};
 
 	let { embedded = false }: Props = $props();
+
+	const map = getMapStore();
+	const trailStore = getTrailStore();
 
 	function flyToTrail() {
 		map.flyTo({
