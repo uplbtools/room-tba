@@ -258,6 +258,43 @@
     height: 1rem;
   }
 
+  /* Phones show only the icon. The text stays as the accessible name. */
+  @media (max-width: 30rem) {
+    .place-sheet-header__actions,
+    .place-sheet-header__actions :global(.entity-actions__scroll) {
+      gap: 0.25rem;
+    }
+
+    .place-sheet-header__actions > :global(.map-chrome-action-chip--primary) {
+      min-height: 2.75rem;
+      padding-inline: 0.75rem;
+    }
+
+    .place-sheet-header__actions
+      :global(.entity-actions__scroll .map-chrome-action-chip:has(svg)),
+    .place-sheet-header__actions
+      :global(.entity-actions__scroll .editor-toggle--toolbar:has(svg)) {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
+      padding: 0;
+      font-size: 0;
+      gap: 0;
+    }
+
+    .place-sheet-header__actions
+      :global(.entity-actions__scroll .map-chrome-action-chip__inner) {
+      gap: 0;
+    }
+
+    .place-sheet-header__actions
+      :global(.entity-actions__scroll .map-chrome-action-chip:has(svg) svg),
+    .place-sheet-header__actions
+      :global(.entity-actions__scroll .editor-toggle--toolbar:has(svg) svg) {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+
   /* AA on both themes: secondary pills use the full-strength text colour and
      a border that clears 3:1 against the sheet (the old accent border faded
      to ~1.6:1 in dark mode). */
