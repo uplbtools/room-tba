@@ -1,6 +1,6 @@
-import { adminAuthStore } from './index.svelte.js';
-
 export default class ProposalsStore {
+	constructor(private canReview: () => boolean) {}
+
 	pendingCount = $state(0);
 	open = $state(false);
 	loading = $state(false);
@@ -24,7 +24,7 @@ export default class ProposalsStore {
 	>([]);
 
 	refresh = async () => {
-		if (!adminAuthStore.canReview) {
+		if (!this.canReview()) {
 			this.pendingCount = 0;
 			this.proposals = [];
 			return;

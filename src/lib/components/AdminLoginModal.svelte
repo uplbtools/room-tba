@@ -2,7 +2,6 @@
 	import { fade, fly } from 'svelte/transition';
 	import { X, Lock } from '@lucide/svelte';
 	import IconButton from '#lib/components/IconButton.svelte';
-	import { adminAuthStore, toastStore } from '#lib/stores.svelte.js';
 	import { modalContentDismiss, modalContentReveal, overlayFade } from '#lib/utils/motion.js';
 	import { trapFocus } from '#lib/utils/focus-trap.js';
 	import EntityEditorFormField from '#lib/components/editor/EntityEditorFormField.svelte';
@@ -20,6 +19,10 @@
 		isTurnstileWidgetConfigured
 	} from '#lib/utils/turnstile/turnstile-client.js';
 	import { MIN_CONTRIBUTOR_PASSWORD_LENGTH } from '#lib/auth/contributor-signup.js';
+	import { getAdminAuthStore, getToast } from '#lib/utils/context.js';
+
+	const adminAuthStore = getAdminAuthStore();
+	const toastStore = getToast();
 
 	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 	const loginErrorId = 'admin-login-error';

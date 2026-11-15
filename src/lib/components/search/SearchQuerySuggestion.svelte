@@ -1,18 +1,20 @@
 <script lang="ts">
-	import { searchInfo } from '#lib/stores.svelte.js';
+	import { getSearchInfo } from '#lib/utils/context.js';
+
+	const searchInfo = getSearchInfo();
 
 	function handleRoomSearchSuggestion() {
 		searchInfo.updateQuery({
 			category: 'class',
 			type: 'result',
-			value: searchInfo.inputValue
+			value: searchInfo.queryValue
 		});
 	}
 </script>
 
 <button onclick={handleRoomSearchSuggestion}>
 	<div>
-		Search for classes of <strong>{searchInfo.inputValue}</strong> in rooms
+		Search for classes of <strong>{searchInfo.queryValue}</strong> in rooms
 	</div>
 	<svg
 		xmlns="http://www.w3.org/2000/svg"

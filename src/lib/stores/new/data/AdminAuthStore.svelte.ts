@@ -1,5 +1,7 @@
 import { dismissEphemeralOverlays } from '#lib/utils/overlay-stack.js';
-import { modalStore, plannerStore, proposalsStore } from './index.svelte.js';
+import type ModalStore from '../ui/ModalStore.svelte.js';
+import type PlannerStore from './PlannerStore.svelte.js';
+import type ProposalsStore from './ProposalsStore.svelte.js';
 
 export default class AdminAuthStore {
 	isLoggedIn: boolean = $state(false);
@@ -19,6 +21,14 @@ export default class AdminAuthStore {
 	manageUsersOpen: boolean = $state(false);
 	private _hydrated = false;
 
+	constructor(
+		private stores: {
+			modalStore: ModalStore;
+			plannerStore: PlannerStore;
+			proposalsStore: ProposalsStore;
+		}
+	) {}
+
 	private applySession(data: {
 		loggedIn?: boolean;
 		admin?: boolean;
@@ -34,9 +44,9 @@ export default class AdminAuthStore {
 		this.role = data.role ?? null;
 		this.canPublish = data.canPublish ?? false;
 		this.canReview = data.canReview ?? false;
-		if (data.canReview) void proposalsStore.refresh();
-		if (this.isLoggedIn) void plannerStore.enableAccountSync();
-		else plannerStore.disableAccountSync();
+		if (data.canReview) void this.stores.proposalsStore.refresh();
+		if (this.isLoggedIn) void this.stores.plannerStore.enableAccountSync();
+		else this.stores.plannerStore.disableAccountSync();
 	}
 
 	hydrate = async () => {
@@ -256,14 +266,14 @@ export default class AdminAuthStore {
 		this.role = null;
 		this.canPublish = false;
 		this.canReview = false;
-		proposalsStore.pendingCount = 0;
-		proposalsStore.proposals = [];
-		plannerStore.disableAccountSync();
+		this.stores.proposalsStore.pendingCount = 0;
+		this.stores.proposalsStore.proposals = [];
+		this.stores.plannerStore.disableAccountSync();
 	};
 
 	openLogin = (mode: 'signin' | 'signup' = 'signin') => {
 		dismissEphemeralOverlays();
-		modalStore.closeModal();
+		this.stores.modalStore.closeModal();
 		this.loginInitialMode = mode;
 		this.loginOpen = true;
 	};
@@ -275,7 +285,7 @@ export default class AdminAuthStore {
 
 	openAccountSettings = () => {
 		dismissEphemeralOverlays();
-		modalStore.closeModal();
+		this.stores.modalStore.closeModal();
 		this.accountSettingsOpen = true;
 	};
 
@@ -285,7 +295,7 @@ export default class AdminAuthStore {
 
 	openManageUsers = () => {
 		dismissEphemeralOverlays();
-		modalStore.closeModal();
+		this.stores.modalStore.closeModal();
 		this.manageUsersOpen = true;
 	};
 

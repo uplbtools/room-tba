@@ -1,7 +1,7 @@
 <script lang="ts">
 	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	import { onMount } from 'svelte';
-	import { getAppData } from '#lib/utils/context.js';
+	import { getAdminAuthStore, getAppData } from '#lib/utils/context.js';
 	import {
 		ROOM_FIELD_CATEGORIES,
 		ROOM_FIELD_LABELS,
@@ -13,7 +13,6 @@
 		type MineContributorProgress,
 		type RoomFieldCategory
 	} from '#lib/utils/contributor-progress.js';
-	import { adminAuthStore } from '#lib/stores.svelte.js';
 	import MapChromeGhostButton from '#lib/components/map-chrome/MapChromeGhostButton.svelte';
 
 	type ScopeTab = 'campus' | 'building' | 'mine';
@@ -25,6 +24,7 @@
 	const { defaultBuildingId = null }: Props = $props();
 
 	const appData = getAppData();
+	const adminAuthStore = getAdminAuthStore();
 	const buildings = $derived(appData().buildings ?? []);
 
 	let activeScope = $state<ScopeTab>('campus');
