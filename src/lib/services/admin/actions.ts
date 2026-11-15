@@ -226,7 +226,6 @@ export async function getRoomById(id: number): Promise<Room | null> {
 			collegeId: roomsTable.collegeId,
 			divisionId: roomsTable.divisionId,
 			imageUrl: roomsTable.imageUrl,
-			photos: roomsTable.photos,
 			version: roomsTable.version,
 			updatedAt: roomsTable.updatedAt
 		})
@@ -257,7 +256,6 @@ export async function getAllRoomsAdmin(): Promise<RoomWithRelations[]> {
 			collegeId: roomsTable.collegeId,
 			divisionId: roomsTable.divisionId,
 			imageUrl: roomsTable.imageUrl,
-			photos: roomsTable.photos,
 			version: roomsTable.version,
 			updatedAt: roomsTable.updatedAt
 		})

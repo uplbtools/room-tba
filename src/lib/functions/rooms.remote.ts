@@ -4,9 +4,11 @@ import {
 	RoomProposalSchema,
 	TableIdSchema
 } from '#lib/schema/functions.js';
-import { buildingsTable, editProposalsTable, roomsTable } from '#lib/server/db/schema.js';
+import { buildingsTable, roomsTable } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
 import { error } from '@sveltejs/kit';
+import { updateRoom } from '#lib/services/admin/actions.js';
+import { saveEntityEdit } from '#lib/services/contribution/entity-edit.js';
 import { eq } from 'drizzle-orm';
 
 export const getRoomsByBuildingId = query(RoomQueryPaginationSchema, async ({ id, offset = 0 }) => {
@@ -26,6 +28,7 @@ export const getRoomById = query(TableIdSchema, async (id) => {
 			id: roomsTable.id,
 			code: roomsTable.code,
 			directions: roomsTable.directions,
+			version: roomsTable.version,
 			buildingId: roomsTable.buildingId,
 			buildingName: buildingsTable.buildingName,
 			lat: buildingsTable.lat,
@@ -40,18 +43,16 @@ export const getRoomById = query(TableIdSchema, async (id) => {
 	return entry;
 });
 
-export const addRoomSuggestion = form(RoomProposalSchema, async ({ meta, body: proposedPatch }) => {
-	try {
-		await db.insert(editProposalsTable).values({
-			entityType: 'create_room',
-			entityId: meta.entityId,
-			baseVersion: meta.baseVersion,
-			submitterName: meta.submitterName,
-			proposedPatch
-		});
-	} catch {
-		error(500, {
-			message: 'SERVER ERROR: Cannot add room suggestion'
-		});
-	}
+export const addRoomSuggestion = form(RoomProposalSchema, async ({ meta, body }) => {
+	const [current] = await db.select().from(roomsTable).where(eq(roomsTable.id, meta.entityId));
+	if (!current) error(404, 'Not found');
+	const result = await saveEntityEdit({
+		entityType: 'room',
+		meta,
+		body,
+		current,
+		publish: (patch, editedBy) => updateRoom(meta.entityId, patch, meta.baseVersion, editedBy)
+	});
+	if (result.published) await getRoomById(String(meta.entityId)).refresh();
+	return result;
 });

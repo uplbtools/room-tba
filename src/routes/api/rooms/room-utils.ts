@@ -102,7 +102,6 @@ export async function getBuildingRooms(buildingId: number): Promise<Room[]> {
 				category: roomsTable.category,
 				version: roomsTable.version,
 				updatedAt: roomsTable.updatedAt,
-				photos: roomsTable.photos
 			})
 			.from(roomsTable)
 			.leftJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
