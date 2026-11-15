@@ -1387,13 +1387,13 @@ export async function renderTransitMapPdf(input: {
     }
     for (const g of gateMarks) {
       page.drawRectangle({
-        x: g.p.x - 2.2,
-        y: g.p.y - 2.2,
-        width: 4.4,
-        height: 4.4,
-        color: MUTED,
+        x: g.p.x - 3.5,
+        y: g.p.y - 3.5,
+        width: 7,
+        height: 7,
+        color: INK,
         borderColor: WHITE,
-        borderWidth: 0.6,
+        borderWidth: 1,
       });
     }
     if (nearestP) {
@@ -1747,7 +1747,7 @@ export async function renderTransitMapPdf(input: {
           5,
           9,
           italic,
-          MUTED,
+          INK,
           10 - i * 0.01,
           false,
           true,
@@ -1989,7 +1989,7 @@ export async function renderTransitMapPdf(input: {
     }
     if (stops.some((st) => st.routeIds.length > 1))
       keys.push([
-        "Transfer stop",
+        "Pwede lumipat ng jeep",
         (x, y) =>
           page.drawCircle({
             x: x + 12,
@@ -2005,11 +2005,11 @@ export async function renderTransitMapPdf(input: {
         "Campus gate",
         (x, y) =>
           page.drawRectangle({
-            x: x + 9.8,
-            y: y + 0.8,
-            width: 4.4,
-            height: 4.4,
-            color: MUTED,
+            x: x + 8.5,
+            y: y - 0.5,
+            width: 7,
+            height: 7,
+            color: INK,
           }),
       ]);
     let kx = frame.x;
@@ -2028,11 +2028,11 @@ export async function renderTransitMapPdf(input: {
   }
 
   // Town jeeps and buses are not drawn on the map, so they are listed.
-  const townJeeps = [
-    { to: "Calamba", fare: "PHP 30", note: "25 discounted" },
-    { to: "San Pablo", fare: "Mula PHP 14", note: "depende sa layo" },
-    { to: "Sta. Cruz", fare: "Mula PHP 14", note: "depende sa layo" },
-  ];
+  const townJeeps = ["Calamba", "San Pablo", "Sta. Cruz"];
+  const townLines = [
+    "Mula PHP 14 ang pamasahe, depende sa layo.",
+    "PHP 30 ang pa-Calamba Crossing, 25 discounted.",
+  ].flatMap((text) => wrapText(text, font, BODY, PANEL_W));
   const busLines = [
     "5 AM umaalis ang DLTB sa main gate pa-Buendia.",
     "6 PM naman ito bumabalik galing Buendia, daily.",
@@ -2041,20 +2041,27 @@ export async function renderTransitMapPdf(input: {
   ].flatMap((text) => wrapText(text, font, BODY, PANEL_W));
   const TOWN_BOARD_H = 15;
   const townH =
-    9 + 21 + TOWN_BOARD_H + 4 + 3 * LEAD + 8 + 20 + busLines.length * LEAD;
+    9 +
+    21 +
+    TOWN_BOARD_H +
+    4 +
+    (1 + townLines.length) * LEAD +
+    8 +
+    20 +
+    busLines.length * LEAD;
   if (py - townH >= panelFloor) {
     rule();
     heading("Jeeps sa Olivarez Plaza Mall");
     py -= 3;
     const col = PANEL_W / townJeeps.length;
     const top = py;
-    townJeeps.forEach((j, i) => {
+    townJeeps.forEach((to, i) => {
       const x = px + i * col;
       py = top;
       drawSignboard(
         page,
         pageH,
-        signboardWords(j.to),
+        signboardWords(to),
         x,
         py,
         TOWN_BOARD_H,
@@ -2062,10 +2069,9 @@ export async function renderTransitMapPdf(input: {
         [SIGN_RED, SIGN_RED],
       );
       py -= TOWN_BOARD_H + 4;
-      line(j.to, x, bold);
-      line(j.fare, x);
-      line(j.note, x);
+      line(to, x, bold);
     });
+    for (const l of townLines) line(l);
     py -= 8;
     heading("Bus pa-Manila");
     py -= 2;

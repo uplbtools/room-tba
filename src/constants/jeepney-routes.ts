@@ -94,7 +94,7 @@ export const ROUTE_BOARDING_NOTES: Readonly<Record<string, string>> = {
 /** The same advice, short enough for a route card on the printable map. */
 export const ROUTE_PRINT_NOTES: Readonly<Record<string, string>> = {
   forestry:
-    "Sumakay sa Forestry Jeep Terminal pag paakyat, at sa Upper Forestry Jeep Terminal pag pababa.",
+    "Sumakay sa Forestry Jeep Terminal malapit sa Big Belly's pag paakyat, at sa Upper Forestry Jeep Terminal pag pababa.",
   "kaliwa-kanan": "Kumakaliwa sa gate ang Kaliwa at kumakanan ang Kanan.",
 };
 
