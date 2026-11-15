@@ -1,6 +1,7 @@
 import { query } from '$app/server';
 import { lower } from '#lib/server/db/index.js';
 import {
+	aliasesTable,
 	buildingsTable,
 	collegesTable,
 	divisionsTable,
@@ -12,6 +13,7 @@ import {
 } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
 import { escapeLikePattern } from '#lib/utils/like-escape.js';
+import { normalizeAlias } from '#lib/utils/site.js';
 import type { EntityType } from '#lib/utils/types.js';
 import { like, sql } from 'drizzle-orm';
 import { unionAll } from 'drizzle-orm/pg-core';
@@ -20,6 +22,7 @@ import * as v from 'valibot';
 export const getUnionSuggestions = query(
 	v.pipe(v.string(), v.toLowerCase(), v.trim()),
 	async (query) => {
+		const alias = normalizeAlias(query);
 		// buildings
 		query = escapeLikePattern(query);
 		const buildings = db
@@ -95,6 +98,16 @@ export const getUnionSuggestions = query(
 			.where(like(lower(roomsTable.code), `%${query}%`))
 			.limit(3);
 
+		const aliases = db
+			.select({
+				name: aliasesTable.alias,
+				id: aliasesTable.targetId,
+				type: sql<EntityType>`${aliasesTable.targetType}`
+			})
+			.from(aliasesTable)
+			.where(like(aliasesTable.normalizedAlias, `${alias || '\0'}%`))
+			.limit(3);
+
 		const results = await unionAll(
 			buildings,
 			colleges,
@@ -103,9 +116,13 @@ export const getUnionSuggestions = query(
 			events,
 			orgs,
 			places,
-			rooms
+			rooms,
+			aliases
 		);
 
-		return results;
+		const seen = new Set<string>();
+		return results.filter(
+			({ type, id }) => !seen.has(`${type}:${id}`) && seen.add(`${type}:${id}`)
+		);
 	}
 );
