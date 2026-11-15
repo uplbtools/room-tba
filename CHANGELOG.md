@@ -1,3 +1,10 @@
+## [2.40.7](https://github.com/uplbtools/room-tba/compare/v2.40.6...v2.40.7) (2026-11-15)
+
+
+### Bug Fixes
+
+* **copy:** plain sentences in the app shell components ([#1426](https://github.com/uplbtools/room-tba/issues/1426)) ([6ec514b](https://github.com/uplbtools/room-tba/commit/6ec514b63c7d471eece8fc4290acc34b17fd5ffd))
+
 ## [2.38.4](https://github.com/uplbtools/room-tba/compare/v2.38.3...v2.38.4) (2026-11-12)
 
 
