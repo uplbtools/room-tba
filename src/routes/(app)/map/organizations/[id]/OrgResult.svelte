@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ResultActions from '#lib/components/new/ResultActions.svelte';
 	// import {
 	// 	adminAuthStore,
 	// 	additionProposalStore,
@@ -12,12 +13,9 @@
 	import Mail from '@lucide/svelte/icons/mail';
 	import Info from '@lucide/svelte/icons/info';
 	import Building2 from '@lucide/svelte/icons/building-2';
-	import EntityGoogleMapsLink from '#lib/components/entity/EntityGoogleMapsLink.svelte';
 	import EntityStreetAddress from '#lib/components/entity/EntityStreetAddress.svelte';
-	import EntityDirectionsChip from '#lib/components/entity/EntityDirectionsChip.svelte';
 	import EntityExternalLink from '#lib/components/entity/EntityExternalLink.svelte';
 	import EntityLastUpdated from '#lib/components/new/EntityLastUpdated.svelte';
-	import EntityShareCopyLink from '#lib/components/entity/EntityShareCopyLink.svelte';
 	import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
 	import EntityEditorPinRow from '#lib/components/editor/EntityEditorPinRow.svelte';
 	import type { OrgData } from '#lib/utils/types.js';
@@ -30,7 +28,6 @@
 	import { handlePersistEntityResult } from '#lib/utils/editor/handle-persist-result.js';
 	import { goto } from '$app/navigation';
 	import { getBuildingById } from '#lib/functions/buildings.remote.js';
-	import { page } from '$app/state';
 
 	interface Props {
 		organization: OrgData;
@@ -188,16 +185,18 @@
 	}
 </script>
 
-<div class="entity-detail">
+<div class="flex flex-col gap-3 p-6">
 	{#if org}
-		<header class="entity-header">
+		<header class="flex flex-col gap-2">
 			<div class="entity-header__title-row">
-				<h2 class="entity-header__title">{org.name}</h2>
+				<h2 class="text-2xl font-semibold">{org.name}</h2>
 			</div>
 
-			<div class="entity-meta-row">
+			<div class="flex flex-wrap gap-2">
 				{#if categoryLabel}
-					<span class="entity-meta-chip org-badge">
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
+					>
 						{#if isStudentOrg}
 							<Users size={12} />
 						{:else}
@@ -207,16 +206,29 @@
 					</span>
 				{/if}
 				{#if org.orgType && org.orgType !== categoryLabel}
-					<span class="entity-meta-chip org-badge">{org.orgType}</span>
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
+						>{org.orgType}</span
+					>
 				{/if}
 				{#if org.establishedYear}
-					<span class="entity-meta-chip org-badge">Est. {org.establishedYear}</span>
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
+						>Est. {org.establishedYear}</span
+					>
 				{/if}
 				{#if org.memberCount}
-					<span class="entity-meta-chip org-badge">{org.memberCount} members</span>
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
+						>{org.memberCount} members</span
+					>
 				{/if}
 				{#if hostBuilding}
-					<button type="button" class="entity-meta-chip building-badge" onclick={openHostBuilding}>
+					<button
+						type="button"
+						class="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-200"
+						onclick={openHostBuilding}
+					>
 						<Building2 size={12} />
 						{hostBuilding.buildingName}
 					</button>
@@ -233,17 +245,9 @@
 					</button>
 				{/if}
 			</div>
-
-			<div class="entity-actions">
-				{#if resolvedLat != null && resolvedLon != null}
-					<EntityDirectionsChip lat={resolvedLat} lon={resolvedLon} destinationLabel={org.name} />
-					<EntityGoogleMapsLink
-						lat={resolvedLat}
-						lon={resolvedLon}
-						ariaLabel={`Open ${org.name} in Google Maps`}
-					/>
-				{/if}
-				<!-- <EntityEditorToggle
+		</header>
+		<ResultActions data={{ lat: resolvedLat ?? null, lon: resolvedLon ?? null }} name={org.name} />
+		<!-- <EntityEditorToggle
 					expanded={editing}
 					{canPublish}
 					publishOpenLabel="Edit"
@@ -254,23 +258,21 @@
 						if (!editing) additionProposalStore.clearDraftPin();
 					}}
 				/> -->
-			</div>
-		</header>
 
-		<div class="entity-body entity-body--compact">
+		<div class="flex flex-col gap-2 text-sm text-neutral-700">
 			{#if resolvedLat != null && resolvedLon != null}
 				<EntityStreetAddress lat={resolvedLat} lon={resolvedLon} />
 			{/if}
 			{#if org.bio}
 				<section class="org-about">
 					<h3 class="org-about__title">About the org</h3>
-					<p class="entity-directions__text">{org.bio}</p>
+					<p class="text-sm text-neutral-800">{org.bio}</p>
 				</section>
 			{:else if org.description}
-				<p class="entity-directions__text">{org.description}</p>
+				<p class="text-sm text-neutral-800">{org.description}</p>
 			{/if}
 			{#if org.bio && org.description && org.description !== org.bio && !org.description.startsWith('Recognized UPLB student organization')}
-				<p class="entity-directions__text">{org.description}</p>
+				<p class="text-sm text-neutral-800">{org.description}</p>
 			{/if}
 
 			{#if org.email || org.websiteLink || org.facebookLink}
@@ -310,17 +312,17 @@
 			<EntityLastUpdated updatedAt={org.updatedAt} />
 		</div>
 
-		<img
-			class="entity-image"
-			src={org.imageUrl}
-			alt={org.name}
-			width="800"
-			height="450"
-			loading="lazy"
-			decoding="async"
-		/>
-		<!-- {#if !editing && org.imageUrl} -->
-		<!-- {/if} -->
+		{#if org.imageUrl}
+			<img
+				class="entity-image"
+				src={org.imageUrl}
+				alt={org.name}
+				width="800"
+				height="450"
+				loading="lazy"
+				decoding="async"
+			/>
+		{/if}
 
 		<!-- {#if editing}
 			<section
@@ -417,21 +419,6 @@
 	.org-info-btn:hover,
 	.org-info-btn:focus-visible {
 		background-color: hsl(265, 45%, 94%);
-	}
-
-	/* Tone only; .entity-meta-chip derives the border + wash. */
-	.org-badge {
-		color: hsl(265, 45%, 36%);
-	}
-
-	.building-badge {
-		color: hsl(5, 45%, 34%);
-		cursor: pointer;
-	}
-
-	.building-badge:hover,
-	.building-badge:focus-visible {
-		background-color: color-mix(in srgb, currentColor 14%, white);
 	}
 
 	.org-about {
