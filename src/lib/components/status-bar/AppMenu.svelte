@@ -9,6 +9,7 @@
 	import LifeBuoy from '@lucide/svelte/icons/life-buoy';
 	import CircleHelp from '@lucide/svelte/icons/circle-help';
 	import Inbox from '@lucide/svelte/icons/inbox';
+	import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
 	import ScrollText from '@lucide/svelte/icons/scroll-text';
 	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
@@ -296,6 +297,10 @@
 
 			{#if adminAuthStore.canReview}
 				<section class="app-menu__section" aria-label="Review">
+					<a class="app-menu__action map-chrome-chip" href="/map/admin" onclick={closePanel}>
+						<LayoutDashboard size={14} aria-hidden="true" />
+						<span>Staff home</span>
+					</a>
 					<a
 						class="app-menu__action map-chrome-chip"
 						href="/map/admin/suggestions"
