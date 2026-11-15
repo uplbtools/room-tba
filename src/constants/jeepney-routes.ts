@@ -65,7 +65,7 @@ export type RouteTicketing = { operator: string; url: string };
 
 const DLTB_TICKETING: RouteTicketing = {
   operator: "DLTB",
-  url: "https://dltbbus.com.ph/",
+  url: "https://dltb.ph/",
 };
 
 /**

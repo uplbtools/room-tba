@@ -1154,11 +1154,12 @@ export async function renderTransitMapPdf(input: {
   });
 
   // ── Map frame ─────────────────────────────────────────────────────────
+  const keyH = here && hereOnMap ? KEY_H : 0;
   const frame: Box = {
     x: MARGIN,
-    y: FOOTER_H + 8 + KEY_H,
+    y: FOOTER_H + 8 + keyH,
     w: pageW - MARGIN * 2 - PANEL_W - PANEL_GAP,
-    h: pageH - HEADER_H - 10 - FOOTER_H - 8 - KEY_H,
+    h: pageH - HEADER_H - 10 - FOOTER_H - 8 - keyH,
   };
   page.drawRectangle({
     x: frame.x,
@@ -1987,31 +1988,6 @@ export async function renderTransitMapPdf(input: {
           }),
       ]);
     }
-    if (stops.some((st) => st.routeIds.length > 1))
-      keys.push([
-        "Pwede lumipat ng jeep",
-        (x, y) =>
-          page.drawCircle({
-            x: x + 12,
-            y: y + 3,
-            size: 3.6,
-            color: WHITE,
-            borderColor: INK,
-            borderWidth: 1.9,
-          }),
-      ]);
-    if (input.basemap)
-      keys.push([
-        "Campus gate",
-        (x, y) =>
-          page.drawRectangle({
-            x: x + 8.5,
-            y: y - 0.5,
-            width: 7,
-            height: 7,
-            color: INK,
-          }),
-      ]);
     let kx = frame.x;
     const ky = frame.y - KEY_H + 5;
     for (const [label, icon] of keys) {
@@ -2034,10 +2010,10 @@ export async function renderTransitMapPdf(input: {
     "PHP 30 ang pa-Calamba Crossing, 25 discounted.",
   ].flatMap((text) => wrapText(text, font, BODY, PANEL_W));
   const busLines = [
-    "5 AM umaalis ang DLTB sa main gate pa-Buendia.",
-    "6 PM naman ito bumabalik galing Buendia, daily.",
+    "May DLTB bus papuntang UP Diliman.",
+    "5 AM, 9 AM at 6 PM ang alis nito galing UP Diliman.",
     "May ibang bus pa-Buendia sa Olivarez Plaza Mall.",
-    "Mag-book sa dltbbus.com.ph kung pa-UP Diliman ka.",
+    "Mag-book sa dltb.ph.",
   ].flatMap((text) => wrapText(text, font, BODY, PANEL_W));
   const TOWN_BOARD_H = 15;
   const townH =
