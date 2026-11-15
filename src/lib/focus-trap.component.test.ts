@@ -39,6 +39,23 @@ describe("trapFocus", () => {
     release();
   });
 
+  it("leaves Escape to another open dialog that has focus", () => {
+    const container = dialogWithButtons();
+    const other = document.createElement("div");
+    other.setAttribute("role", "dialog");
+    const inside = document.createElement("button");
+    other.append(inside);
+    document.body.append(other);
+    let escaped = 0;
+    const release = trapFocus(container, { onEscape: () => escaped++ });
+
+    inside.focus();
+    pressEscape(inside);
+
+    expect(escaped).toBe(0);
+    release();
+  });
+
   it("routes Escape to the innermost trap only, and back after release", () => {
     const outerEl = dialogWithButtons();
     const innerEl = dialogWithButtons();
