@@ -1,4 +1,4 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, gt } from 'drizzle-orm';
 import { editorHistoryTable } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
 import {
@@ -14,6 +14,10 @@ import {
 	type EventWriteInput,
 	type RoomUpdateInput
 } from '../admin/actions';
+import {
+	latestContributionId,
+	markContributionsReverted
+} from '../contribution/contributor-action';
 
 export type HistoryEntry = typeof editorHistoryTable.$inferSelect;
 
@@ -144,6 +148,43 @@ export async function revertToHistoryEntry({
 		throw new HistoryRevertError('Nothing restorable in this snapshot.');
 	}
 
+	// Restoring entry N undoes every edit after it. Those edits stop earning
+	// leaderboard points once the restore lands.
+	const [firstUndone] = await db
+		.select({ createdAt: editorHistoryTable.createdAt })
+		.from(editorHistoryTable)
+		.where(
+			and(
+				eq(editorHistoryTable.entityType, entry.entityType),
+				eq(editorHistoryTable.entityId, entry.entityId),
+				gt(editorHistoryTable.id, entry.id)
+			)
+		)
+		.orderBy(asc(editorHistoryTable.id))
+		.limit(1);
+	const throughId = firstUndone ? await latestContributionId() : 0;
+
+	const restored = await restoreSnapshot(entry, input, { expectedVersion, editedBy, history });
+	if (firstUndone) {
+		await markContributionsReverted({
+			entityType: entry.entityType,
+			entityId: entry.entityId,
+			since: firstUndone.createdAt,
+			throughId
+		});
+	}
+	return restored;
+}
+
+function restoreSnapshot(
+	entry: HistoryEntry,
+	input: Record<string, unknown>,
+	{
+		expectedVersion,
+		editedBy,
+		history
+	}: { expectedVersion: number; editedBy: string; history: { action: string; summary: string } }
+): Promise<unknown> {
 	switch (entry.entityType) {
 		case 'building':
 			return updateBuilding(
