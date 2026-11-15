@@ -1,6 +1,21 @@
 import { db } from '#lib/utils/db.js';
-import { contributionsTable, adminUsersTable } from '#lib/server/db/schema.js';
-import { and, count, desc, eq, gte, sql } from 'drizzle-orm';
+import { adminUsersTable, contributionsTable, editProposalsTable } from '#lib/server/db/schema.js';
+import {
+	buildCreditKeyResolver,
+	classifyContribution,
+	daysLeft,
+	emptyBreakdown,
+	hallOfFame,
+	isContributionKind,
+	periodAt,
+	pointsToPass,
+	rankContributors,
+	type LeaderboardWindow,
+	type LedgerRow,
+	type Standing
+} from '#lib/utils/contributors/scoring.js';
+import { createHash } from 'node:crypto';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import type { EditProposalSummary } from './proposal-action';
 
 export type ContributionSource = 'proposal_approved' | 'editor_published';
@@ -75,28 +90,76 @@ export async function getMyContributions(userId: number, limit = 50): Promise<My
 		);
 }
 
-export type LeaderboardWindow = 'month' | 'semester' | 'all';
+const patchKeys = sql<string[] | null>`case
+	when ${contributionsTable.kind} is null
+		and jsonb_typeof(${editProposalsTable.proposedPatch}) = 'object'
+	then (select array_agg(k) from jsonb_object_keys(${editProposalsTable.proposedPatch}) as k)
+end`;
 
-function windowStart(window: LeaderboardWindow): Date | null {
-	const now = new Date();
-	if (window === 'all') return null;
-	if (window === 'month') {
-		return new Date(now.getFullYear(), now.getMonth(), 1);
-	}
-	const month = now.getMonth();
-	const year = now.getFullYear();
-	// Academic semester rough cut: Jan–May = 2nd sem; Aug–Dec = 1st sem; else midyear slice
-	if (month >= 7) return new Date(year, 7, 1);
-	if (month <= 4) return new Date(year, 0, 1);
-	return new Date(year, 5, 1);
+async function loadLedger(source: ContributionSource): Promise<LedgerRow[]> {
+	const rows = await db
+		.select({
+			id: contributionsTable.id,
+			userId: contributionsTable.userId,
+			contributorId: contributionsTable.contributorId,
+			submitterName: contributionsTable.submitterName,
+			entityType: contributionsTable.entityType,
+			entityId: contributionsTable.entityId,
+			entityLabel: contributionsTable.entityLabel,
+			kind: contributionsTable.kind,
+			createdAt: contributionsTable.createdAt,
+			patchKeys,
+			username: adminUsersTable.username,
+			displayName: adminUsersTable.displayName,
+			isActive: adminUsersTable.isActive,
+			showInCredits: adminUsersTable.showInCredits,
+			deletedAt: adminUsersTable.deletedAt
+		})
+		.from(contributionsTable)
+		.leftJoin(adminUsersTable, eq(contributionsTable.userId, adminUsersTable.id))
+		.leftJoin(editProposalsTable, eq(contributionsTable.proposalId, editProposalsTable.id))
+		.where(and(eq(contributionsTable.source, source), isNull(contributionsTable.revertedAt)));
+
+	return rows.map((row) => ({
+		id: row.id,
+		userId: row.userId,
+		contributorId: row.contributorId,
+		submitterName: row.submitterName,
+		accountName: row.userId != null ? row.displayName?.trim() || row.username || null : null,
+		accountVisible:
+			row.userId == null || Boolean(row.isActive && row.showInCredits && !row.deletedAt),
+		kind: isContributionKind(row.kind)
+			? row.kind
+			: classifyContribution({ entityType: row.entityType, keys: row.patchKeys }),
+		entityType: row.entityType,
+		entityId: row.entityId,
+		entityLabel: row.entityLabel,
+		createdAtMs: Date.parse(`${row.createdAt.replace(' ', 'T')}Z`)
+	}));
 }
 
-export type LeaderboardRow = {
-	rank: number;
-	displayName: string;
-	contributionCount: number;
-	lastContributionAt: string;
-};
+function publicKey(key: string): string {
+	if (key.startsWith('u:')) return `u${key.slice(2)}`;
+	if (key.startsWith('c:')) {
+		return `c${createHash('sha256').update(key.slice(2)).digest('hex').slice(0, 16)}`;
+	}
+	return `n${key.slice(2)}`;
+}
+
+function toRow(standing: Standing) {
+	return {
+		rank: standing.place,
+		key: publicKey(standing.key),
+		displayName: standing.displayName,
+		points: standing.points,
+		breakdown: standing.breakdown,
+		medal: standing.medal,
+		gettingStarted: standing.gettingStarted
+	};
+}
+
+const windowBounds = (window: LeaderboardWindow, nowMs: number) =>
+	window === 'all' ? null : periodAt(window, nowMs);
 
 /**
  * Community submissions and editor publishes are separate boards. Ranking an
@@ -105,50 +168,55 @@ export type LeaderboardRow = {
  * than surveying.
  */
 export async function getContributorLeaderboard(
-	window: LeaderboardWindow = 'month',
-	source: ContributionSource = 'proposal_approved',
+	window: LeaderboardWindow,
+	source: ContributionSource,
 	limit = 25
-): Promise<LeaderboardRow[]> {
-	const start = windowStart(window);
+) {
+	const nowMs = Date.now();
+	const rows = await loadLedger(source);
+	const period = windowBounds(window, nowMs);
+	const standings = rankContributors(rows, { fromMs: period?.startMs, toMs: period?.endMs });
+	return {
+		period: period && { label: period.label, daysLeft: daysLeft(period, nowMs) },
+		rows: standings.slice(0, limit).map(toRow),
+		hallOfFame: hallOfFame(rows, window, nowMs).map((entry) => ({
+			label: entry.label,
+			winners: entry.winners.map((winner) => ({ ...winner, key: publicKey(winner.key) }))
+		}))
+	};
+}
 
-	// Credit key: registered contributors collapse under their username, public
-	// ones under the name they submitted with. Not display_name, which is free
-	// text a user can change and would split their own history across rows.
-	const creditKey = sql`coalesce(${adminUsersTable.username}, ${contributionsTable.submitterName})`;
+/** Works outside the top 25. An account hidden from credits gets no rank and still sees its points. */
+export async function getContributorStanding(
+	window: LeaderboardWindow,
+	source: ContributionSource,
+	userId: number
+) {
+	const rows = await loadLedger(source);
+	const resolver = buildCreditKeyResolver(rows);
+	const key = resolver.keyForIdentity({ userId });
+	if (!key) return null;
+	const mine = rows.filter((row) => resolver.keyFor(row) === key);
+	if (mine.length === 0) return null;
 
-	const conditions = [
-		eq(contributionsTable.source, source),
-		// Rows with neither a user nor a submitted name cannot be credited to
-		// anyone. Grouping them would merge unrelated people into one entry that
-		// could outrank every real contributor.
-		sql`${creditKey} IS NOT NULL`,
-		// Left join, so registered users keep their opt-out while contributors with
-		// no admin_users row (the public ones) are not filtered away by it.
-		sql`(${contributionsTable.userId} IS NULL OR (${adminUsersTable.isActive} AND ${adminUsersTable.showInCredits}))`
-	];
-	if (start) {
-		conditions.push(gte(contributionsTable.createdAt, start.toISOString()));
-	}
+	const period = windowBounds(window, Date.now());
+	const standings = rankContributors(rows, {
+		fromMs: period?.startMs,
+		toMs: period?.endMs,
+		includeKey: key,
+		resolver
+	});
+	const self = standings.find((standing) => standing.key === key);
+	const [allTime] = rankContributors(mine, { includeKey: key, resolver });
+	const visible = allTime?.visible ?? true;
+	const pass = self && visible ? pointsToPass(standings, self) : null;
 
-	const rows = await db
-		.select({
-			displayName: sql<
-				string | null
-			>`coalesce(max(${adminUsersTable.displayName}), max(${adminUsersTable.username}), max(${contributionsTable.submitterName}))`,
-			contributionCount: count(),
-			lastContributionAt: sql<string>`max(${contributionsTable.createdAt})`
-		})
-		.from(contributionsTable)
-		.leftJoin(adminUsersTable, eq(contributionsTable.userId, adminUsersTable.id))
-		.where(and(...conditions))
-		.groupBy(creditKey)
-		.orderBy(desc(count()), desc(sql`max(${contributionsTable.createdAt})`))
-		.limit(limit);
-
-	return rows.map((row, index) => ({
-		rank: index + 1,
-		displayName: row.displayName || 'Contributor',
-		contributionCount: Number(row.contributionCount),
-		lastContributionAt: row.lastContributionAt
-	}));
+	return {
+		key: publicKey(key),
+		rank: visible && self ? self.place : null,
+		points: self?.points ?? 0,
+		breakdown: self?.breakdown ?? emptyBreakdown(),
+		toPass: pass && { points: pass.points, rank: pass.place },
+		optedOut: !visible
+	};
 }

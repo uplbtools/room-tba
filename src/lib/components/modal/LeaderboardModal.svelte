@@ -4,9 +4,9 @@
 
 <div class="leaderboard-modal">
 	<div class="leaderboard-modal-header">
-		<h2 id="leaderboard-modal-title">Campus contributor leaderboard</h2>
+		<h2 id="leaderboard-modal-title">Contributor leaderboard</h2>
 		<p class="leaderboard-modal-note">
-			Top volunteers helping map the campus and verify room schedules.
+			Suggest edits to rooms, schedules and places. Each approved edit earns points.
 		</p>
 	</div>
 	<div class="leaderboard-modal-body map-chrome-scroll">
@@ -20,7 +20,7 @@
 		flex-direction: column;
 		padding: 1.5rem;
 		height: 100%;
-		max-height: calc(100vh - 4rem);
+		max-height: calc(90dvh - 1rem);
 	}
 
 	.leaderboard-modal-header {
