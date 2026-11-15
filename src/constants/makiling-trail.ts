@@ -1,6 +1,7 @@
 /**
- * Mt. Makiling UPLB trail (#716): the stations and landmarks hikers name,
- * from Station 1 (trailhead) beside MCME to Peak 2.
+ * Mt. Makiling trails (#716): the stations and landmarks hikers name on the
+ * UPLB trail, from Station 1 (trailhead) beside MCME to Peak 2, and on the
+ * Sipit Trail, from the Sto. Tomas, Batangas side to Peak 2.
  *
  * Positions are the OpenStreetMap route-marker nodes for each station
  * ((c) OpenStreetMap contributors, ODbL 1.0); each sits on the traced line in
@@ -9,12 +10,16 @@
  * from the geometry. Stations without an OSM marker (12, 14, 15, 20, 23, 24,
  * 26, 28) are left out rather than guessed.
  *
- * Rules (cut-off, gate, permits) come from MCME guidance as published for
- * the trail; they change, so the panel tells hikers to confirm with MCME.
+ * The UPLB trail's rules come from MCME's access protocol (updated
+ * 2026-09-22). The Sipit Trail's status comes from MCME's joint trail
+ * assessment (2026-01-24) and its hiking notes from older guides. Rules
+ * change, so the panel tells hikers to confirm with MCME.
  */
 
+import { MAKILING_TRAIL_PATH, SIPIT_TRAIL_PATH } from "./makiling-trail-path";
+
 export type TrailStop = {
-  /** Stable id for URLs (?trail=agila-base) and list keys. */
+  /** Stable id for URLs (?trail=agila-base) and list keys, unique across trails. */
   id: string;
   /** Station number on the trail markers; null for named spots between them. */
   station: number | null;
@@ -33,13 +38,12 @@ export type TrailStop = {
   aliases?: readonly string[];
 };
 
-export const MAKILING_TRAIL_NAME = "Makiling Trail";
-export const MAKILING_TRAIL_SUBTITLE = "UPLB trail to Peak 2";
-
 /** Directory pins the trail starts and ends at. */
 export const MAKILING_TRAILHEAD_PLACE =
   "Maria Makiling Trail Station 1 (trailhead)";
 export const MAKILING_PEAK_2_PLACE = "Mount Makiling Peak 2";
+
+const PEAK_2 = { lon: 121.193905, lat: 14.135847, osmNode: 332020189 };
 
 export const MAKILING_TRAIL_STOPS: readonly TrailStop[] = [
   {
@@ -47,7 +51,7 @@ export const MAKILING_TRAIL_STOPS: readonly TrailStop[] = [
     station: 1,
     name: "Station 1 (trailhead)",
     description:
-      "This is the jump-off, beside the Makiling Center for Mountain Ecosystems (MCME) on Makiling Road. Register at the MCME registration area here and meet your guide before you start. The gate opens at 06:00.",
+      "This is the jump-off, beside the Makiling Center for Mountain Ecosystems (MCME) on Makiling Road. Register here, leave one valid ID and attend the briefing before you start. The trail opens at 6 AM.",
     lon: 121.233701,
     lat: 14.15132,
     osmNode: 606531743,
@@ -139,7 +143,7 @@ export const MAKILING_TRAIL_STOPS: readonly TrailStop[] = [
     station: 11,
     name: "Agila Base",
     description:
-      "The paved trail ends here, and this is the last reliable water. Day hikers must reach Agila Base by 09:00 (cut-off) or turn back. Habal-habal (motorcycle taxis) drop off here.",
+      "The paved trail ends here, and this is the last reliable water. Habal-habal (motorcycle taxis) drop off here.",
     lon: 121.2099966,
     lat: 14.1290501,
     osmNode: 638552300,
@@ -265,35 +269,169 @@ export const MAKILING_TRAIL_STOPS: readonly TrailStop[] = [
     station: null,
     name: "Peak 2 (summit)",
     description:
-      "This is the end of the UPLB trail, a small summit clearing. Laguna de Bay and Mt. Banahaw show when the clouds lift. Head down early enough to reach Station 1 before dark.",
-    lon: 121.193905,
-    lat: 14.135847,
-    osmNode: 332020189,
+      "This is the end of the UPLB trail, a small summit clearing. Laguna de Bay and Mt. Banahaw show when the clouds lift. Head down early enough to log out at Station 1 by 4 PM.",
+    ...PEAK_2,
     placeName: MAKILING_PEAK_2_PLACE,
     aliases: ["Peak 2", "Summit", "Makiling summit"],
   },
 ];
 
-/** Hiker briefing shown once in the trail panel ("Before you go"). */
-export const MAKILING_TRAIL_BEFORE_YOU_GO: readonly {
-  title: string;
-  body: string;
-}[] = [
+const UPLB_BEFORE_YOU_GO = [
   {
-    title: "Register at Station 1",
-    body: "Sign in at the MCME registration area at Station 1 (trailhead), beside MCME on Makiling Road, before you start.",
+    title: "Register and briefing",
+    body: "Register online or at Monitoring Station 1 (College of Forestry) and attend the briefing. Leave one valid ID at Station 1. It's returned when your whole group logs out.",
   },
   {
-    title: "Permit and guide",
-    body: "Hikes to Peak 2 need an MCME permit and an accredited guide. Arrange both with MCME before your hike day.",
+    title: "Hours",
+    body: "The trail is open from 6 AM to 2 PM. The cut-off to start for Peak 2 is 9 AM, and everyone logs out at Station 1 by 4 PM.",
   },
   {
-    title: "Gate and cut-off",
-    body: "The gate at Station 1 opens at 06:00. Day hikers must reach Agila Base (Station 11) by 09:00 or turn back.",
+    title: "Fees and permits",
+    body: "The entrance fee is PHP 10 per person. Camping is PHP 500 per group per night, and campers need a permit. Groups and organizers need a written MCME permit.",
+  },
+  {
+    title: "Not allowed",
+    body: "Liquor, drugs, weapons, portable speakers and pets aren't allowed, and bags are checked. Peak 3 isn't open from Station 1. Stormy weather suspends all activity.",
+  },
+  {
+    title: "Contact",
+    body: "Call Station 1 at 0908 988 1778 or email mcme.uplb@up.edu.ph.",
   },
   {
     title: "Water and leeches",
     body: "Agila Base is the last reliable water. Leeches (limatik) are common in the wilderness zone, from Malaboo to the summit.",
+  },
+] as const;
+
+const SIPIT_BEFORE_YOU_GO = [
+  {
+    title: "Guide",
+    body: "Older guides (Pinoy Mountaineer, 2015) say a guide is mandatory. Ask MCME what applies once the trail opens.",
+  },
+  {
+    title: "Time and route",
+    body: "The same guides give 5 to 8 hours from the trailhead to Peak 2. They describe the traverse going down to UPLB along the UPLB trail.",
+  },
+  {
+    title: "Hazards",
+    body: "Older guides mention leeches, steep sections with ropes and landslides. Conditions may have changed since then.",
+  },
+] as const;
+
+export type MakilingTrail = {
+  /** Also the ?trail= value for the trail's overview (the UPLB trail uses "overview"). */
+  id: string;
+  name: string;
+  /** Short name for the trail picker. */
+  label: string;
+  subtitle: string;
+  /** Where distances are measured from ("Station 1"). */
+  startLabel: string;
+  path: readonly (readonly [number, number, number])[];
+  stops: readonly TrailStop[];
+  /** Extra words search should match for the whole trail. */
+  aliases: readonly string[];
+  beforeYouGo: readonly { title: string; body: string }[];
+  /** Where the "Before you go" facts come from. */
+  source: { text: string; label: string; href: string };
+  /** Hiked to Peak 2 once, not out and back. */
+  oneWay?: boolean;
+  /** Time from the guides, when Naismith's rule would mislead. */
+  estTime?: string;
+  /** Shown above the details while the trail is closed to visitors. */
+  closed?: { text: string; label: string; href: string };
+};
+
+export const MAKILING_TRAIL_ID = "uplb";
+export const SIPIT_TRAIL_ID = "sipit";
+
+export const SIPIT_TRAIL_STOPS: readonly TrailStop[] = [
+  {
+    id: "sipit-trailhead",
+    station: null,
+    name: "Sipit trailhead",
+    description:
+      "This is the jump-off on the Sto. Tomas, Batangas side, in Brgy. San Miguel.",
+    lon: 121.1882616,
+    lat: 14.106425,
+    osmNode: 2921523376,
+    aliases: ["Sipit trailhead", "Sto. Tomas", "San Miguel", "Batangas"],
+  },
+  {
+    id: "sipit-junction",
+    station: null,
+    name: "Junction with the old Makiling Trail",
+    description:
+      "The Sipit Trail meets a trail that OpenStreetMap names Makiling Trail here, and it carries on to Peak 2.",
+    lon: 121.1827717,
+    lat: 14.1210274,
+    osmNode: 2921524188,
+    aliases: ["Junction"],
+  },
+  {
+    id: "sipit-peak-2",
+    station: null,
+    name: "Peak 2 (Sipit Trail)",
+    description:
+      "This is the end of the Sipit Trail at Peak 2. Older guides say the traverse goes on down to UPLB along the UPLB trail.",
+    ...PEAK_2,
+  },
+];
+
+const MCME_FACEBOOK = "https://www.facebook.com/makilingcenter";
+
+export const MAKILING_TRAILS: readonly MakilingTrail[] = [
+  {
+    id: MAKILING_TRAIL_ID,
+    name: "Makiling Trail",
+    label: "UPLB trail",
+    subtitle: "UPLB trail to Peak 2",
+    startLabel: "Station 1",
+    path: MAKILING_TRAIL_PATH,
+    stops: MAKILING_TRAIL_STOPS,
+    aliases: [
+      "Makiling Trail",
+      "Trail",
+      "Mt. Makiling trail",
+      "Mount Makiling trail",
+      "UPLB trail",
+      "Peak 2 trail",
+      "Hiking trail",
+    ],
+    beforeYouGo: UPLB_BEFORE_YOU_GO,
+    source: {
+      text: "Rules and hours are from",
+      label: "MCME's access protocol (updated September 22, 2026)",
+      href: "https://makiling.center/please-be-guided-access-protocol-along-the-mariang-makiling-trail-mmt/",
+    },
+  },
+  {
+    id: SIPIT_TRAIL_ID,
+    name: "Sipit Trail",
+    label: "Sipit trail",
+    subtitle: "Sto. Tomas, Batangas side to Peak 2",
+    startLabel: "the trailhead",
+    path: SIPIT_TRAIL_PATH,
+    stops: SIPIT_TRAIL_STOPS,
+    aliases: [
+      "Sipit Trail",
+      "Mount Makiling Sipit Trail",
+      "Makiling traverse",
+      "Sto. Tomas trail",
+    ],
+    beforeYouGo: SIPIT_BEFORE_YOU_GO,
+    source: {
+      text: "The status is from",
+      label: "MCME's joint trail assessment (January 24, 2026)",
+      href: "https://makiling.center/joint-trail-assessment-at-mount-makiling-forest-reserve-in-preparation-for-the-make-it-makiling-2026/",
+    },
+    oneWay: true,
+    estTime: "5 to 8 h",
+    closed: {
+      text: "The Sipit Trail isn't open to visitors yet. MCME assessed the traverse with partners on January 24, 2026 and said it isn't ready for hikers.",
+      label: "facebook.com/makilingcenter",
+      href: MCME_FACEBOOK,
+    },
   },
 ];
 

@@ -14,7 +14,6 @@
     formatMapHash,
     parseMapHash,
     readAppState,
-    TRAIL_OVERVIEW_PARAM,
     withAppState,
     withHash,
     type DirectionsToken,
@@ -22,7 +21,7 @@
   import { replaceAppUrl } from "@lib/overlay-history";
   import { trackOverlay } from "@lib/track-overlay.svelte";
   import { droppedPinStore } from "@lib/dropped-pin.svelte";
-  import { findTrailStop } from "@lib/makiling-trail";
+  import { trailUrlValue } from "@lib/makiling-trail";
   import { closeTrailSheet, openTrailSheet } from "@lib/trail-sheet";
   import { slugifySegment } from "@lib/site";
   import {
@@ -84,7 +83,8 @@
   // The sheet takes one entry and a stop another on top, so Back steps from
   // a stop to the overview, then closes the sheet.
   trackOverlay("trail", () => trailStore.sheetOpen, closeTrailSheet, () => ({
-    url: (url) => withAppState(url, { trail: TRAIL_OVERVIEW_PARAM }),
+    url: (url) =>
+      withAppState(url, { trail: trailUrlValue(trailStore.trailId, null) }),
   }));
   trackOverlay(
     "trail-stop",
@@ -93,15 +93,15 @@
     () => ({
       url: (url) =>
         withAppState(url, {
-          trail: trailStore.selectedStopId ?? TRAIL_OVERVIEW_PARAM,
+          trail: trailUrlValue(trailStore.trailId, trailStore.selectedStopId),
         }),
     }),
   );
-  // Prev / Next swap the stop in place on the stop's own entry.
+  // Prev / Next swap the stop, and the picker the trail, in place.
   $effect(() => {
-    const stopId = trailStore.selectedStopId;
-    if (!trailStore.sheetOpen || stopId === null) return;
-    replaceAppUrl((url) => withAppState(url, { trail: stopId }));
+    const value = trailUrlValue(trailStore.trailId, trailStore.selectedStopId);
+    if (!trailStore.sheetOpen) return;
+    replaceAppUrl((url) => withAppState(url, { trail: value }));
   });
   // The layer is shareable state: on the URL while it is drawn.
   $effect(() => {
@@ -305,9 +305,7 @@
     // ?trail= reopens the trail sheet over a bare entry, like ?dir= above.
     if (state.trail) {
       replaceAppUrl((url) => withAppState(url, { trail: null }));
-      openTrailSheet(findTrailStop(state.trail)?.id ?? null, {
-        overPlace: true,
-      });
+      openTrailSheet(state.trail, { overPlace: true });
     }
 
     if (state.browse === "events") {

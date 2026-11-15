@@ -1,15 +1,15 @@
 /**
- * Measurements for the Makiling trail (#716): length, climb, the elevation
+ * Measurements for the Makiling trails (#716): length, climb, the elevation
  * profile, Naismith time, a difficulty rating, where each stop sits along
  * the line, and search over stop names. Pure, so the panel, the map layer
  * and search share one set of numbers.
  */
-import { MAKILING_TRAIL_PATH } from "@constants/makiling-trail-path";
 import {
-  MAKILING_TRAIL_NAME,
-  MAKILING_TRAIL_STOPS,
+  MAKILING_TRAILS,
+  type MakilingTrail,
   type TrailStop,
 } from "@constants/makiling-trail";
+import { TRAIL_OVERVIEW_PARAM } from "./app-url-state";
 import { MATCH, nameMatchScore } from "./search-suggestions";
 
 /** [lng, lat, elevation m] */
@@ -186,7 +186,8 @@ export function projectOntoPath(
 }
 
 export type MeasuredTrailStop = TrailStop & {
-  /** Meters from Station 1 along the trail. */
+  trailId: string;
+  /** Meters from the trailhead along the trail. */
   distanceMeters: number;
   /** DEM elevation at the stop, meters above sea level. */
   elevationMeters: number;
@@ -194,8 +195,8 @@ export type MeasuredTrailStop = TrailStop & {
 
 export type TrailSummary = {
   lengthMeters: number;
-  /** Out and back: up to Peak 2 and down the same way. */
-  roundTripMeters: number;
+  /** What a hiker walks: out and back, or one way for a one-way trail. */
+  hikeMeters: number;
   gainMeters: number;
   startElevation: number;
   summitElevation: number;
@@ -205,71 +206,117 @@ export type TrailSummary = {
 };
 
 export function measureTrail(
-  path: readonly TrailVertex[] = MAKILING_TRAIL_PATH,
+  trail: MakilingTrail = defaultTrail(),
 ): TrailSummary {
+  const { path } = trail;
   const profile = sampleProfile(path, 50);
   const lengthMeters = profile.at(-1)?.distance ?? 0;
   const gainMeters = elevationGain(profile);
-  const roundTripMeters = lengthMeters * 2;
+  const hikeMeters = trail.oneWay ? lengthMeters : lengthMeters * 2;
   return {
     lengthMeters,
-    roundTripMeters,
+    hikeMeters,
     gainMeters,
     startElevation: path[0]?.[2] ?? 0,
-    summitElevation: Math.max(...path.map((vertex) => vertex[2])),
-    naismithHours: naismithHours(roundTripMeters, gainMeters),
-    difficulty: hikeDifficulty(roundTripMeters, gainMeters).label,
+    summitElevation: path.at(-1)?.[2] ?? 0,
+    naismithHours: naismithHours(hikeMeters, gainMeters),
+    difficulty: hikeDifficulty(hikeMeters, gainMeters).label,
     profile,
   };
 }
 
 export function measureStops(
-  stops: readonly TrailStop[] = MAKILING_TRAIL_STOPS,
-  path: readonly TrailVertex[] = MAKILING_TRAIL_PATH,
+  trail: MakilingTrail = defaultTrail(),
 ): MeasuredTrailStop[] {
-  return stops.map((stop) => {
-    const at = projectOntoPath(path, [stop.lon, stop.lat]);
+  return trail.stops.map((stop) => {
+    const at = projectOntoPath(trail.path, [stop.lon, stop.lat]);
     return {
       ...stop,
+      trailId: trail.id,
       distanceMeters: at.distance,
       elevationMeters: at.elevation,
     };
   });
 }
 
-let summaryCache: TrailSummary | null = null;
-let stopsCache: MeasuredTrailStop[] | null = null;
-
-/** The Makiling trail's numbers, computed once. */
-export function getTrailSummary(): TrailSummary {
-  summaryCache ??= measureTrail();
-  return summaryCache;
+function defaultTrail(): MakilingTrail {
+  return MAKILING_TRAILS[0] as MakilingTrail;
 }
 
-/** The Makiling trail's stops with distance and elevation, computed once. */
-export function getTrailStops(): MeasuredTrailStop[] {
-  stopsCache ??= measureStops();
-  return stopsCache;
+/** The trail with this id, else the UPLB trail. */
+export function getTrail(id?: string | null): MakilingTrail {
+  return MAKILING_TRAILS.find((trail) => trail.id === id) ?? defaultTrail();
 }
 
+const summaryCache = new Map<string, TrailSummary>();
+const stopsCache = new Map<string, MeasuredTrailStop[]>();
+
+/** A trail's numbers, computed once. */
+export function getTrailSummary(id?: string | null): TrailSummary {
+  const trail = getTrail(id);
+  let summary = summaryCache.get(trail.id);
+  if (!summary) {
+    summary = measureTrail(trail);
+    summaryCache.set(trail.id, summary);
+  }
+  return summary;
+}
+
+/** A trail's stops with distance and elevation, computed once. */
+export function getTrailStops(id?: string | null): MeasuredTrailStop[] {
+  const trail = getTrail(id);
+  let stops = stopsCache.get(trail.id);
+  if (!stops) {
+    stops = measureStops(trail);
+    stopsCache.set(trail.id, stops);
+  }
+  return stops;
+}
+
+/** Any trail's stop by id. */
 export function findTrailStop(
   id: string | null | undefined,
 ): MeasuredTrailStop | null {
   if (!id) return null;
-  return getTrailStops().find((stop) => stop.id === id) ?? null;
+  for (const trail of MAKILING_TRAILS) {
+    const stop = getTrailStops(trail.id).find((item) => item.id === id);
+    if (stop) return stop;
+  }
+  return null;
 }
 
-/** The stop for a directory place (trailhead, Peak 2), if the trail has one. */
+/**
+ * What a ?trail= value or a search row names: a stop, a trail's overview by
+ * its id, or (for any other value, "overview" included) the UPLB trail.
+ */
+export function resolveTrailTarget(value: string | null | undefined): {
+  trailId: string;
+  stopId: string | null;
+} {
+  const stop = findTrailStop(value);
+  if (stop) return { trailId: stop.trailId, stopId: stop.id };
+  return { trailId: getTrail(value).id, stopId: null };
+}
+
+/** The ?trail= value for a stop, else for the trail's overview. */
+export function trailUrlValue(trailId: string, stopId: string | null): string {
+  if (stopId) return stopId;
+  return trailId === defaultTrail().id ? TRAIL_OVERVIEW_PARAM : trailId;
+}
+
+/** The stop for a directory place (trailhead, Peak 2), if a trail has one. */
 export function trailStopForPlace(
   placeName: string | null | undefined,
 ): MeasuredTrailStop | null {
   if (!placeName) return null;
-  return (
-    getTrailStops().find(
-      (stop) =>
-        stop.placeName === placeName || stop.sideTripPlaceName === placeName,
-    ) ?? null
-  );
+  for (const trail of MAKILING_TRAILS) {
+    const stop = getTrailStops(trail.id).find(
+      (item) =>
+        item.placeName === placeName || item.sideTripPlaceName === placeName,
+    );
+    if (stop) return stop;
+  }
+  return null;
 }
 
 /** "Station 11" for numbered stops, else null. */
@@ -295,6 +342,7 @@ export function formatHours(hours: number): string {
 }
 
 export type TrailSearchHit = {
+  trailId: string;
   /** null = the whole trail. */
   stopId: string | null;
   label: string;
@@ -304,16 +352,6 @@ export type TrailSearchHit = {
   lat: number;
   lon: number;
 };
-
-const TRAIL_ALIASES = [
-  MAKILING_TRAIL_NAME,
-  "Trail",
-  "Mt. Makiling trail",
-  "Mount Makiling trail",
-  "UPLB trail",
-  "Peak 2 trail",
-  "Hiking trail",
-];
 
 /**
  * Best score, word starts only: short stop names would otherwise answer
@@ -334,46 +372,51 @@ export function searchTrail(query: string): TrailSearchHit[] {
   const needle = query.trim().toLowerCase();
   if (needle === "") return [];
   const hits: TrailSearchHit[] = [];
-  const trailScore = bestOf(
-    TRAIL_ALIASES.map((alias) => nameMatchScore(alias, needle)),
-  );
-  const trailhead = getTrailStops()[0];
-  if (trailScore !== null && trailhead) {
-    hits.push({
-      lat: trailhead.lat,
-      lon: trailhead.lon,
-      stopId: null,
-      label: MAKILING_TRAIL_NAME,
-      secondary: "Hiking trail to Peak 2",
-      score: trailScore,
-    });
-  }
   const stationQuery = /^(?:station\s*|st\.?\s*)?(\d{1,2})$/.exec(needle);
-  for (const stop of getTrailStops()) {
-    const numbered = stationLabel(stop);
-    const score = bestOf([
-      nameMatchScore(stop.name, needle),
-      ...(stop.aliases ?? []).map((alias) => nameMatchScore(alias, needle)),
-      numbered ? nameMatchScore(numbered, needle) : null,
-      stationQuery && stop.station === Number(stationQuery[1])
-        ? MATCH.exact
-        : null,
-    ]);
-    if (score === null) continue;
-    hits.push({
-      lat: stop.lat,
-      lon: stop.lon,
-      stopId: stop.id,
-      label: stop.name,
-      secondary: [
-        MAKILING_TRAIL_NAME,
-        numbered && !stop.name.includes(numbered) ? numbered : null,
-        formatKm(stop.distanceMeters),
-      ]
-        .filter(Boolean)
-        .join(", "),
-      score,
-    });
+  for (const trail of MAKILING_TRAILS) {
+    const stops = getTrailStops(trail.id);
+    const trailScore = bestOf(
+      trail.aliases.map((alias) => nameMatchScore(alias, needle)),
+    );
+    const trailhead = stops[0];
+    if (trailScore !== null && trailhead) {
+      hits.push({
+        lat: trailhead.lat,
+        lon: trailhead.lon,
+        trailId: trail.id,
+        stopId: null,
+        label: trail.name,
+        secondary: trail.subtitle,
+        score: trailScore,
+      });
+    }
+    for (const stop of stops) {
+      const numbered = stationLabel(stop);
+      const score = bestOf([
+        nameMatchScore(stop.name, needle),
+        ...(stop.aliases ?? []).map((alias) => nameMatchScore(alias, needle)),
+        numbered ? nameMatchScore(numbered, needle) : null,
+        stationQuery && stop.station === Number(stationQuery[1])
+          ? MATCH.exact
+          : null,
+      ]);
+      if (score === null) continue;
+      hits.push({
+        lat: stop.lat,
+        lon: stop.lon,
+        trailId: trail.id,
+        stopId: stop.id,
+        label: stop.name,
+        secondary: [
+          trail.name,
+          numbered && !stop.name.includes(numbered) ? numbered : null,
+          formatKm(stop.distanceMeters),
+        ]
+          .filter(Boolean)
+          .join(", "),
+        score,
+      });
+    }
   }
   return hits;
 }

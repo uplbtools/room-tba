@@ -4,6 +4,7 @@
  * sheet, the layer and the camera stay in step.
  */
 import TrailPanel from "@ui/trail/TrailPanel.svelte";
+import { resolveTrailTarget } from "./makiling-trail";
 import { dismissEphemeralOverlays } from "./overlay-stack";
 import {
   mapToolsStore,
@@ -28,16 +29,22 @@ export function isTrailPanelShown(): boolean {
   );
 }
 
-/** Show the trail and open its sheet, at the overview or at `stopId`. */
+/**
+ * Show a trail and open its sheet. `target` is a stop id, a trail id (its
+ * overview) or null for the trail already chosen.
+ */
 export function openTrailSheet(
-  stopId: string | null = null,
+  target: string | null = null,
   { overPlace = false, frame = true, fly = true }: OpenTrailOptions = {},
 ) {
   // The phone search layer, legend popovers and the Layers sheet give way.
   dismissEphemeralOverlays();
   mapToolsStore.close();
   if (!overPlace && !isTrailPanelShown()) queryStore.clearQuery();
-  trailStore.openSheet(stopId);
+  const { trailId, stopId } = target
+    ? resolveTrailTarget(target)
+    : { trailId: trailStore.trailId, stopId: null };
+  trailStore.openSheet(stopId, trailId);
   if (!isTrailPanelShown()) {
     sidePanelStore.openPanel({ type: "search-result", component: TrailPanel });
   }

@@ -11,9 +11,16 @@
     profile: readonly ProfilePoint[];
     stops?: readonly MeasuredTrailStop[];
     selectedStopId?: string | null;
+    /** Where distances start ("Station 1"). */
+    startLabel?: string;
   };
 
-  let { profile, stops = [], selectedStopId = null }: Props = $props();
+  let {
+    profile,
+    stops = [],
+    selectedStopId = null,
+    startLabel = "Station 1",
+  }: Props = $props();
 
   const W = 320;
   const H = 140;
@@ -58,7 +65,7 @@
   const markedStops = $derived(stops.filter((s) => s.description !== undefined));
 
   const summary = $derived(
-    `Elevation profile from Station 1 at ${formatMeters(profile[0]?.elevation ?? 0)} to Peak 2 at ${formatMeters(profile.at(-1)?.elevation ?? 0)} over ${formatKm(maxDistance)}. ` +
+    `Elevation profile from ${startLabel} at ${formatMeters(profile[0]?.elevation ?? 0)} to Peak 2 at ${formatMeters(profile.at(-1)?.elevation ?? 0)} over ${formatKm(maxDistance)}. ` +
       markedStops
         .map((s) => `${s.name}: ${formatKm(s.distanceMeters)}, ${formatMeters(s.elevationMeters)}`)
         .join(". "),
@@ -100,7 +107,7 @@
       <text class="tick" x={x(km * 1000)} y={M.top + plotH + 14} text-anchor="middle">{km}</text>
     {/each}
     <text class="axis-label" x={M.left + plotW / 2} y={H - 2} text-anchor="middle"
-      >Distance from Station 1 (km)</text
+      >Distance from {startLabel} (km)</text
     >
     <text
       class="axis-label"
@@ -133,7 +140,7 @@
   </svg>
   <figcaption class="trail-profile__readout" aria-live="polite">
     {#if hover}
-      {formatKm(hover.distance)} from Station 1, {formatMeters(hover.elevation)}
+      {formatKm(hover.distance)} from {startLabel}, {formatMeters(hover.elevation)}
     {:else}
       Touch or hover the chart for elevation along the way.
     {/if}

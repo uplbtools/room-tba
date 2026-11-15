@@ -29,7 +29,7 @@ export type Suggestion = {
   roomCode?: string | null;
   /** Relevance, lower is better (see MATCH). */
   score?: number;
-  /** Trail rows: the stop it opens (null = the trail overview). */
+  /** Trail rows: the stop it opens, or the trail whose overview it opens. */
   trailStopId?: string | null;
 };
 
