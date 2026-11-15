@@ -90,3 +90,29 @@ export function formatHotlineNumber(number: string) {
 	}
 	return number;
 }
+
+export function emergencyHotlinesVCard(
+	categories: readonly {
+		name: string;
+		entries: readonly EmergencyHotline[];
+	}[] = EMERGENCY_HOTLINE_CATEGORIES
+) {
+	const vcardEscape = (value: string) => value.replace(/([\\,;])/g, '\\$1');
+	return categories
+		.flatMap((category) =>
+			category.entries.map((entry) =>
+				[
+					'BEGIN:VCARD',
+					'VERSION:3.0',
+					`FN:${vcardEscape(entry.name)}`,
+					`N:${vcardEscape(entry.name)};;;;`,
+					`ORG:${vcardEscape(`Emergency (${category.name})`)}`,
+					...entry.numbers.map(
+						(number) => `TEL;TYPE=VOICE:${emergencyHotlineTel(number).slice('tel:'.length)}`
+					),
+					'END:VCARD'
+				].join('\r\n')
+			)
+		)
+		.join('\r\n');
+}

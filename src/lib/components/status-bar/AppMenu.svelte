@@ -10,6 +10,8 @@
 	import CircleHelp from '@lucide/svelte/icons/circle-help';
 	import Inbox from '@lucide/svelte/icons/inbox';
 	import Megaphone from '@lucide/svelte/icons/megaphone';
+	import Siren from '@lucide/svelte/icons/siren';
+	import BookOpen from '@lucide/svelte/icons/book-open';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import BusFront from '@lucide/svelte/icons/bus-front';
 	import Printer from '@lucide/svelte/icons/printer';
@@ -195,6 +197,11 @@
 		modalStore.openModal('announcements');
 	}
 
+	function handleHotlines() {
+		closePanel();
+		modalStore.openModal('hotlines');
+	}
+
 	function handleFeedback() {
 		closePanel();
 		modalStore.openModal('feedback');
@@ -338,9 +345,17 @@
 
 			<section class="app-menu__section" aria-labelledby="app-menu-help-heading">
 				<h3 id="app-menu-help-heading" class="app-menu__heading">Help</h3>
+				<button type="button" class="app-menu__action map-chrome-chip" onclick={handleHotlines}>
+					<Siren size={14} aria-hidden="true" />
+					<span>Emergency hotlines</span>
+				</button>
 				<a class="app-menu__action map-chrome-chip" href="/faq" onclick={closePanel}>
 					<CircleHelp size={14} aria-hidden="true" />
 					<span>Help &amp; FAQ</span>
+				</a>
+				<a class="app-menu__action map-chrome-chip" href="/wiki" onclick={closePanel}>
+					<BookOpen size={14} aria-hidden="true" />
+					<span>Campus wiki</span>
 				</a>
 				<button type="button" class="app-menu__action map-chrome-chip" onclick={handleHowItWorks}>
 					<LifeBuoy size={14} aria-hidden="true" />

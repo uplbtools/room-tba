@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
 	EMERGENCY_HOTLINE_CATEGORIES,
+	emergencyHotlinesVCard,
 	emergencyHotlineTel,
 	formatHotlineNumber
 } from './emergency-hotlines';
@@ -35,5 +36,18 @@ describe('emergency hotlines', () => {
 		expect(formatHotlineNumber('(049) 536 7965')).toBe('(049) 536 7965');
 		expect(formatHotlineNumber('0961 396 3441')).toBe('0961 396 3441');
 		expect(formatHotlineNumber('911')).toBe('911');
+	});
+
+	test('exports one vCard per contact with dialable numbers', () => {
+		const vcf = emergencyHotlinesVCard();
+		const cards = vcf.split('BEGIN:VCARD').length - 1;
+		const contacts = EMERGENCY_HOTLINE_CATEGORIES.reduce(
+			(sum, category) => sum + category.entries.length,
+			0
+		);
+		expect(cards).toBe(contacts);
+		expect(vcf).toContain('FN:UPLB Security and Safety Office');
+		expect(vcf).toContain('TEL;TYPE=VOICE:+639060433288');
+		expect(vcf).toContain('TEL;TYPE=VOICE:+63495363247');
 	});
 });
