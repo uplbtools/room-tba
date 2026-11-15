@@ -8,6 +8,7 @@
 	import EntityEditorFormField from '#lib/components/editor/EntityEditorFormField.svelte';
 	import EntityEditorSubmitButton from '#lib/components/editor/EntityEditorSubmitButton.svelte';
 	import EntityEditorMessage from '#lib/components/editor/EntityEditorMessage.svelte';
+	import AccessRequestForm from '#lib/components/AccessRequestForm.svelte';
 	import ImageUpload from '#lib/components/editor/ImageUpload.svelte';
 	import './editor/entity-editor.css';
 	import { MediaQuery } from 'svelte/reactivity';
@@ -601,6 +602,13 @@
 						/>
 					{/if}
 				</section>
+
+				{#if profile.role === 'contributor'}
+					<section class="settings-section entity-editor-form">
+						<h3>Editor access</h3>
+						<AccessRequestForm />
+					</section>
+				{/if}
 
 				<section class="settings-section entity-editor-form">
 					<h3>Signed-in devices</h3>

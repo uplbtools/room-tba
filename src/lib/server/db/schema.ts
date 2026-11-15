@@ -577,6 +577,21 @@ export const staffInvitesTable = pgTable('staff_invites', {
 	createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull()
 });
 
+/** In-app editor access requests (0065). Status is `pending`, `approved` or `declined`. */
+export const editorAccessRequestsTable = pgTable('editor_access_requests', {
+	id: bigserial({ mode: 'number' }).primaryKey(),
+	userId: integer('user_id')
+		.notNull()
+		.references(() => adminUsersTable.id, { onDelete: 'cascade' }),
+	message: text().notNull(),
+	status: varchar({ length: 16 }).default('pending').notNull(),
+	decidedBy: integer('decided_by').references(() => adminUsersTable.id, {
+		onDelete: 'set null'
+	}),
+	decidedAt: timestamp('decided_at', { mode: 'string' }),
+	createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull()
+});
+
 /** SHA-256 of each proposal's owner token (0057). Server-only. */
 export const proposalOwnerTokensTable = pgTable('proposal_owner_tokens', {
 	proposalId: integer('proposal_id')

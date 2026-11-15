@@ -34,6 +34,9 @@
 	type PendingInvite = { id: number; email: string; role: ManagedUser['role']; expiresAt: string };
 	let invites = $state<PendingInvite[]>([]);
 
+	type AccessRequest = { id: number; displayName: string; username: string; message: string };
+	let accessRequests = $state<AccessRequest[]>([]);
+
 	let showCreateForm = $state(false);
 	let newDisplayName = $state('');
 	let newEmail = $state('');
@@ -50,9 +53,14 @@
 				loadError = 'Could not load users.';
 				return;
 			}
-			const data = (await res.json()) as { users: ManagedUser[]; invites?: PendingInvite[] };
+			const data = (await res.json()) as {
+				users: ManagedUser[];
+				invites?: PendingInvite[];
+				accessRequests?: AccessRequest[];
+			};
 			users = data.users;
 			invites = data.invites ?? [];
+			accessRequests = data.accessRequests ?? [];
 		} catch {
 			loadError = 'Network error loading users.';
 		}
@@ -115,6 +123,28 @@
 				return;
 			}
 			users = (users ?? []).map((u) => (u.id === user.id ? { ...u, isActive: !user.isActive } : u));
+		} catch {
+			rowError = 'Network error. Try again.';
+		} finally {
+			savingUserId = null;
+		}
+	}
+
+	async function decideRequest(id: number, decision: 'approved' | 'declined') {
+		savingUserId = id;
+		rowError = null;
+		try {
+			const res = await fetch(`/api/admin/access-requests/${id}`, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ decision })
+			});
+			if (!res.ok) {
+				const data = (await res.json().catch(() => ({}))) as { error?: string };
+				rowError = data.error ?? "Couldn't update the request.";
+			}
+			await loadUsers();
 		} catch {
 			rowError = 'Network error. Try again.';
 		} finally {
@@ -243,6 +273,39 @@
 						</li>
 					{/each}
 				</ul>
+
+				{#if accessRequests.length > 0}
+					<section class="settings-section">
+						<h3>Editor access requests</h3>
+						<ul class="user-list">
+							{#each accessRequests as request (request.id)}
+								<li class="user-row">
+									<div class="user-row-info">
+										<strong>{request.displayName}</strong>
+										<small>{request.username}</small>
+										<p class="request-message">{request.message}</p>
+									</div>
+									<button
+										type="button"
+										class="settings-link-btn"
+										disabled={savingUserId === request.id}
+										onclick={() => decideRequest(request.id, 'declined')}
+									>
+										Decline
+									</button>
+									<button
+										type="button"
+										class="settings-link-btn"
+										disabled={savingUserId === request.id}
+										onclick={() => decideRequest(request.id, 'approved')}
+									>
+										Make editor
+									</button>
+								</li>
+							{/each}
+						</ul>
+					</section>
+				{/if}
 
 				{#if invites.length > 0}
 					<section class="settings-section">
@@ -439,6 +502,12 @@
 	}
 	.user-row-info strong {
 		font-size: 0.8125rem;
+	}
+	.request-message {
+		margin: 0.25rem 0 0;
+		font-size: 0.75rem;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
 	}
 	.user-row-info small {
 		font-size: 0.6875rem;
