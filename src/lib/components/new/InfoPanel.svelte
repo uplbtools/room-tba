@@ -106,7 +106,7 @@
 </script>
 
 <div
-	class="pointer-events-auto mr-auto flex basis-96 flex-col gap-5 self-stretch overflow-hidden rounded-2xl bg-white"
+	class="pointer-events-auto flex basis-96 flex-col gap-5 self-stretch overflow-hidden rounded-2xl bg-white sm:mr-auto"
 >
 	{@render children?.()}
 </div>
