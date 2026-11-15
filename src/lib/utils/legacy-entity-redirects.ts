@@ -29,7 +29,8 @@ const LEGACY_SEGMENTS: Record<string, string> = {
 	planner: 'planner',
 	calendar: 'calendar',
 	'final-exams': 'final-exams',
-	today: 'today'
+	today: 'today',
+	admin: 'admin'
 };
 
 const LEGACY_PATH_PATTERN = new RegExp(
