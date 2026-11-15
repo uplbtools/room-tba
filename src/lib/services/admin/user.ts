@@ -8,7 +8,19 @@ import type { SessionUser } from '#lib/admin/auth.js';
 import { createSignedToken, verifySignedToken } from '#lib/admin/signed-token.js';
 import { db } from '#lib/utils/db.js';
 import { bumpSessionVersion } from './session-version.js';
-import { sendEmail } from '#lib/utils/email/resend.js';
+import {
+	emailIsVerifiedSql,
+	isCurrentEmailVerified,
+	markEmailVerified,
+	releaseUnverifiedEmail
+} from './email-verification.js';
+import {
+	EMAIL_VERIFY_TOKEN_TTL_SECONDS,
+	type EmailVerifyTokenPayload,
+	buildVerificationEmail,
+	parseEmailVerifyToken
+} from '#lib/auth/email-verification.js';
+import { isResendConfigured, sendEmail } from '#lib/utils/email/resend.js';
 import {
 	adminUsersTable,
 	contributionsTable,
@@ -123,7 +135,7 @@ export async function linkOrCreateContributorFromSupabase(
 				isActive: adminUsersTable.isActive
 			})
 			.from(adminUsersTable)
-			.where(sql`lower(email) = ${email}`)
+			.where(and(sql`lower(email) = ${email}`, emailIsVerifiedSql))
 			.limit(1);
 		if (byEmail) {
 			if (!byEmail.isActive) return null;
@@ -134,6 +146,8 @@ export async function linkOrCreateContributorFromSupabase(
 			return toSessionUser(byEmail);
 		}
 	}
+
+	if (email) await releaseUnverifiedEmail(email);
 
 	const base = (email?.split('@')[0] ?? `google-${identity.id.slice(0, 8)}`)
 		.toLowerCase()
@@ -162,7 +176,10 @@ export async function linkOrCreateContributorFromSupabase(
 					displayName: adminUsersTable.displayName,
 					role: adminUsersTable.role
 				});
-			if (created) return toSessionUser(created);
+			if (created) {
+				if (email) await markEmailVerified(created.id, email);
+				return toSessionUser(created);
+			}
 		} catch (error) {
 			// Unique violation on username → retry with a suffix.
 			const code = (error as { code?: string })?.code;
@@ -245,6 +262,7 @@ export type AccountProfile = {
 	username: string;
 	displayName: string;
 	email: string | null;
+	emailVerified: boolean;
 	role: SessionUser['role'];
 	hasPassword: boolean;
 	linkedGoogle: boolean;
@@ -278,6 +296,7 @@ export async function getAccountProfile(userId: number): Promise<AccountProfile 
 		username: row.username,
 		displayName: row.displayName ?? row.username,
 		email: row.email,
+		emailVerified: row.email !== null && (await isCurrentEmailVerified(row.id)),
 		role: row.role ?? 'editor',
 		hasPassword: hasPassword(row.passwordHash),
 		linkedGoogle: row.supabaseUserId !== null,
@@ -410,7 +429,9 @@ export async function requestEmailChange(userId: number, newEmail: string): Prom
 	const [existing] = await db
 		.select({ id: adminUsersTable.id })
 		.from(adminUsersTable)
-		.where(and(sql`lower(email) = ${normalized}`, ne(adminUsersTable.id, userId)))
+		.where(
+			and(sql`lower(email) = ${normalized}`, ne(adminUsersTable.id, userId), emailIsVerifiedSql)
+		)
 		.limit(1);
 	if (existing) {
 		throw new AccountActionError('That email is already in use.', 409);
@@ -487,6 +508,7 @@ export async function requestPasswordReset(login: string): Promise<void> {
 		.limit(1);
 
 	if (!user?.isActive || !user.email) return;
+	if (!(await isCurrentEmailVerified(user.id))) return;
 
 	const token = createSignedToken<PasswordResetTokenPayload>(
 		{
@@ -552,6 +574,7 @@ export async function confirmEmailChange(token: string): Promise<void> {
 	) {
 		throw new AccountActionError('This link is invalid or has expired.', 400);
 	}
+	await releaseUnverifiedEmail(payload.newEmail, payload.userId);
 	// Guarding on the issued-against email makes the token single-use and
 	// drops stale tokens if the email changed some other way meanwhile.
 	const updated = await db
@@ -567,6 +590,45 @@ export async function confirmEmailChange(token: string): Promise<void> {
 		)
 		.returning({ id: adminUsersTable.id });
 	if (updated.length === 0) {
+		throw new AccountActionError('This link is invalid or has expired.', 400);
+	}
+	await markEmailVerified(payload.userId, payload.newEmail);
+}
+
+/** Mails a confirmation link to the account's unconfirmed address. */
+export async function sendEmailVerification(userId: number): Promise<boolean> {
+	const [row] = await db
+		.select({
+			username: adminUsersTable.username,
+			email: adminUsersTable.email,
+			isActive: adminUsersTable.isActive
+		})
+		.from(adminUsersTable)
+		.where(eq(adminUsersTable.id, userId))
+		.limit(1);
+	if (!row?.isActive || !row.email) return false;
+	if (await isCurrentEmailVerified(userId)) return false;
+	if (!isResendConfigured()) return false;
+	const email = row.email.trim().toLowerCase();
+	const token = createSignedToken<EmailVerifyTokenPayload>(
+		{ purpose: 'email-verify', userId, email },
+		EMAIL_VERIFY_TOKEN_TTL_SECONDS
+	);
+	try {
+		await sendEmail({
+			to: [email],
+			...buildVerificationEmail({ siteUrl: SITE_URL, token, username: row.username })
+		});
+		return true;
+	} catch (error) {
+		console.error('Email verification send failed:', error);
+		return false;
+	}
+}
+
+export async function verifyEmailToken(token: string): Promise<void> {
+	const payload = parseEmailVerifyToken(verifySignedToken<unknown>(token));
+	if (!payload || !(await markEmailVerified(payload.userId, payload.email))) {
 		throw new AccountActionError('This link is invalid or has expired.', 400);
 	}
 }
