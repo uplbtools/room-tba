@@ -278,6 +278,27 @@
           <span class="lb-period__ends">{endsInLabel(period.daysLeft)}</span>
         </p>
       {/if}
+
+      <details class="lb-how">
+        <summary>How points work</summary>
+        {#if board === "community"}
+          <p>You get points when an editor approves an edit you suggested.</p>
+        {:else}
+          <p>This board counts edits that editors publish themselves.</p>
+        {/if}
+        <ul class="lb-how__points">
+          {#each CONTRIBUTION_KINDS as kind (kind)}
+            <li>
+              <span>{KIND_LABELS[kind]}</span>
+              <span>{pointsLabel(KIND_POINTS[kind])}</span>
+            </li>
+          {/each}
+        </ul>
+        <p>
+          The board starts over on the 1st of every month. Each month's top contributor
+          goes to the hall of fame.
+        </p>
+      </details>
     </div>
 
     {#if loading && !data}
@@ -521,6 +542,54 @@
   }
 
 
+
+  .lb-how {
+    padding: 0 0.25rem;
+    font-size: 0.875rem;
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
+  }
+
+  .lb-how summary {
+    width: fit-content;
+    min-height: 2.25rem;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: var(--theme-accent-text, hsl(358, 76%, 27%));
+    cursor: pointer;
+  }
+
+  .lb-how summary:focus-visible {
+    outline: 2px solid var(--theme-accent-text, hsl(358, 76%, 27%));
+    outline-offset: 2px;
+  }
+
+  .lb-how p {
+    margin: 0.25rem 0 0.5rem;
+  }
+
+  .lb-how__points {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0 0 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--theme-surface-2, hsl(0, 0%, 96%));
+    list-style: none;
+    color: var(--theme-text, hsl(0, 0%, 15%));
+  }
+
+  .lb-how__points li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .lb-how__points li > :last-child {
+    font-variant-numeric: tabular-nums;
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
+  }
 
   .lb-status,
   .lb-hint {
