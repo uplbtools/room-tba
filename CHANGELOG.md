@@ -1,3 +1,11 @@
+## [2.40.8](https://github.com/uplbtools/room-tba/compare/v2.40.7...v2.40.8) (2026-11-15)
+
+
+### Bug Fixes
+
+* **focus-trap:** leave keys to another open dialog that has focus ([#1446](https://github.com/uplbtools/room-tba/issues/1446)) ([3b2154c](https://github.com/uplbtools/room-tba/commit/3b2154c7ba7c1dc79c9ca40fd4bd293f4fdd7339))
+* **mobile:** no Back entry for the full-screen view in phone landscape ([#1447](https://github.com/uplbtools/room-tba/issues/1447)) ([43886a8](https://github.com/uplbtools/room-tba/commit/43886a8b0d54fbe7b432e6b13d48482f9f8904f4))
+
 ## [2.40.7](https://github.com/uplbtools/room-tba/compare/v2.40.6...v2.40.7) (2026-11-15)
 
 
