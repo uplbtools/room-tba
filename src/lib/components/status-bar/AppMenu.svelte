@@ -9,6 +9,7 @@
 	import LifeBuoy from '@lucide/svelte/icons/life-buoy';
 	import CircleHelp from '@lucide/svelte/icons/circle-help';
 	import Inbox from '@lucide/svelte/icons/inbox';
+	import ScrollText from '@lucide/svelte/icons/scroll-text';
 	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
 	import Siren from '@lucide/svelte/icons/siren';
@@ -308,6 +309,16 @@
 							{/if}
 						</span>
 					</a>
+					{#if adminAuthStore.role === 'admin'}
+						<a
+							class="app-menu__action map-chrome-chip"
+							href="/map/admin/audit-log"
+							onclick={closePanel}
+						>
+							<ScrollText size={14} aria-hidden="true" />
+							<span>Audit log</span>
+						</a>
+					{/if}
 				</section>
 			{/if}
 
