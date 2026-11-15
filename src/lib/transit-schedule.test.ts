@@ -16,7 +16,7 @@ describe("summarizeSchedule", () => {
   test("lists fixed departures and counts trips", () => {
     expect(routeScheduleSummary("uplb-to-buendia")).toMatchObject({
       published: true,
-      hours: "Daily, 5:00 AM",
+      hours: "Monday to Saturday, 5:30 AM",
       frequency: "1 trip a day",
     });
     expect(routeScheduleSummary("buendia-to-uplb").hours).toBe(
