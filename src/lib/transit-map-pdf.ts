@@ -80,11 +80,12 @@ const HAIRLINE = rgb(0.8, 0.8, 0.8);
 const WHITE = rgb(1, 1, 1);
 // On the maroon band SOFT_ON_BRAND (#F6E3E0) is 7.4:1 and white is 9.2:1.
 const SOFT_ON_BRAND = rgb(0.965, 0.89, 0.878);
-// Jeepney signboard paint: a black board with fluorescent lettering.
+// A jeepney signboard: black acrylic with a pale cut edge and painted capitals.
 const BOARD = rgb(0.071, 0.067, 0.059);
-const NEON_GREEN = rgb(0.439, 0.898, 0);
-const NEON_ORANGE = rgb(1, 0.651, 0.004);
-const NEON_YELLOW = rgb(0.898, 0.898, 0);
+const BOARD_EDGE = rgb(0.95, 0.8, 0.65);
+const SIGN_GREEN = rgb(0.33, 0.76, 0.17);
+const SIGN_YELLOW = rgb(0.94, 0.84, 0.12);
+const SIGN_RED = rgb(0.94, 0.31, 0.18);
 /**
  * Print palettes. The sheet is taped to walls and photocopied, so the base
  * map stays pale and the routes carry the colour. `routes` overrides a
@@ -756,19 +757,22 @@ export function signboardWords(name: string): [string, string] {
 }
 
 /**
- * A jeepney signboard: a black board with the name in fluorescent capitals,
- * `h` tall with its top-left corner at (x, top). Returns the board's width.
+ * A jeepney signboard, `h` tall with its top-left corner at (x, top): shadowed
+ * capitals on a black board. With `cup` it hangs from a windshield suction
+ * cup. Returns the board's width.
  */
 function drawSignboard(
   page: PDFPage,
+  pageH: number,
   words: [string, string],
   x: number,
   top: number,
   h: number,
   maxW: number,
-  paint: [RGB, RGB] = [NEON_GREEN, NEON_ORANGE],
+  paint: [RGB, RGB] = [SIGN_GREEN, SIGN_YELLOW],
+  cup = false,
 ): number {
-  const pad = h * 0.3;
+  const pad = h * 0.32;
   const runs = words
     .map((text, i) => ({ text, color: paint[i] }))
     .filter((run) => run.text);
@@ -783,24 +787,62 @@ function drawSignboard(
     runs.reduce((sum, run) => sum + units(run.text), 0) +
     gap * (runs.length - 1);
   const size = Math.min(
-    (h * 0.6) / SIGNBOARD_CAP,
+    (h * 0.58) / SIGNBOARD_CAP,
     ((maxW - pad * 2) * 1000) / total,
   );
   const w = (total * size) / 1000 + pad * 2;
-  page.drawRectangle({ x, y: top - h, width: w, height: h, color: BOARD });
-  const baseline = top - h / 2 - (size * SIGNBOARD_CAP) / 2;
+  const edge = Math.max(0.7, h * 0.045);
+  page.drawSvgPath(roundRectPath(x, top - h, w, h, h * 0.09, pageH), {
+    x: 0,
+    y: pageH,
+    color: BOARD,
+    borderColor: BOARD_EDGE,
+    borderWidth: edge,
+  });
+  const hole = { x: x + w / 2, y: top - h * 0.13 };
+  if (cup) {
+    const r = h * 0.3;
+    const cy = top + r * 0.75;
+    page.drawCircle({
+      x: hole.x,
+      y: cy,
+      size: r,
+      color: rgb(0.93, 0.95, 0.93),
+      opacity: 0.55,
+      borderColor: WHITE,
+      borderWidth: 0.6,
+      borderOpacity: 0.9,
+    });
+    page.drawCircle({ x: hole.x, y: cy, size: r * 0.3, color: INK });
+    page.drawLine({
+      start: { x: hole.x, y: cy },
+      end: hole,
+      thickness: 0.8,
+      color: INK,
+    });
+    page.drawCircle({ ...hole, size: h * 0.045, color: BOARD_EDGE });
+  }
+  const baseline = top - h / 2 - (size * SIGNBOARD_CAP) / 2 - h * 0.03;
+  const depth = size * 0.055;
   let cx = x + pad;
   for (const run of runs) {
     for (const ch of run.text) {
       const glyph = SIGNBOARD_GLYPHS[ch];
       if (!glyph) continue;
-      if (glyph.d)
+      if (glyph.d) {
+        page.drawSvgPath(glyph.d, {
+          x: cx + depth,
+          y: baseline - depth,
+          scale: size / 1000,
+          color: darken(run.color, 0.38),
+        });
         page.drawSvgPath(glyph.d, {
           x: cx,
           y: baseline,
           scale: size / 1000,
           color: run.color,
         });
+      }
       cx += ((glyph.width + SIGNBOARD_TRACKING) * size) / 1000;
     }
     cx += (gap * size) / 1000;
@@ -953,11 +995,14 @@ export async function renderTransitMapPdf(input: {
 
   drawSignboard(
     page,
+    pageH,
     ["UPLB", "JEEPNEY ROUTES"],
     MARGIN,
-    pageH - 11,
-    30,
+    pageH - 15,
+    26,
     pageW,
+    [SIGN_YELLOW, SIGN_GREEN],
+    true,
   );
 
   // The QR is about 3 cm wide so it scans from a step back on a wall. Its
@@ -1074,7 +1119,7 @@ export async function renderTransitMapPdf(input: {
     intro = [{ text: "Campus jeepney routes and their stops." }];
   }
   const INTRO_SIZE = 11;
-  drawRuns(page, intro, MARGIN, pageH - 56, introW, INTRO_SIZE, 14, 2, {
+  drawRuns(page, intro, MARGIN, pageH - 57, introW, INTRO_SIZE, 14, 2, {
     regular: font,
     bold,
     color: SOFT_ON_BRAND,
@@ -1868,6 +1913,7 @@ export async function renderTransitMapPdf(input: {
       );
       drawSignboard(
         page,
+        pageH,
         signboardWords(fwdName ?? route.name),
         textX,
         py,
@@ -1887,6 +1933,7 @@ export async function renderTransitMapPdf(input: {
         );
         drawSignboard(
           page,
+          pageH,
           signboardWords(revName ?? `${route.name} reverse`),
           textX,
           cy,
@@ -2002,12 +2049,13 @@ export async function renderTransitMapPdf(input: {
       const x = px + i * col;
       drawSignboard(
         page,
+        pageH,
         signboardWords(j.to),
         x,
         py + 6,
         TOWN_BOARD_H,
         col - 6,
-        [NEON_YELLOW, NEON_YELLOW],
+        [SIGN_RED, SIGN_RED],
       );
       page.drawText(j.fare, {
         x,
