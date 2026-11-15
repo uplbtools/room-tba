@@ -16,7 +16,7 @@ vi.stubGlobal(
 );
 import PlannerScreen from '#lib/components/planner/PlannerScreen.svelte';
 import { plannerStore, termStore } from '#lib/stores.svelte.js';
-import type { ClassMapValue } from '#lib/utils/types';
+import type { ClassMapValue } from '#lib/utils/types.js';
 
 const row = (overrides: Partial<ClassMapValue>): ClassMapValue => ({
 	id: 1,

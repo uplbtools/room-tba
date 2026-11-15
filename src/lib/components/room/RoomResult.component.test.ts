@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import RoomResultHost from '@test/components/RoomResultHost.svelte';
-import type { Room } from '#lib/utils/types';
+import type { Room } from '#lib/utils/types.js';
 import { currentRoom, searchInfo } from '#lib/stores.svelte.js';
 import { expectNoHorizontalOverflow, mountAtWidth } from '@test/layout-assertions';
 

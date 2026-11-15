@@ -5,8 +5,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import IconButton from '#lib/components/IconButton.svelte';
 	import './map-chrome/map-chrome.css';
-	import { getAppData } from '#lib/utils/context.js';
-	import { floatingControlPanelStore, map, searchInfo } from '#lib/stores.svelte.js';
+	import { getAppData, getFloatingControlPanelStore, getSearchInfo } from '#lib/utils/context.js';
 	import {
 		openEphemeralOverlay,
 		registerEphemeralOverlayDismisser
@@ -18,15 +17,8 @@
 	};
 
 	let { embedded = false, trigger = 'icon' }: Props = $props();
-
-	/** Org/place pins answer to the toggle AND a zoom gate, so "Shown" alone
-	 * would lie when the user is zoomed out past it. */
-	function legendState(on: boolean): string {
-		if (!on) return 'Hidden — tap to toggle.';
-		return map.poiPinsZoomVisible
-			? 'Shown — tap to toggle.'
-			: 'Shown when you zoom in — tap to toggle.';
-	}
+	const floatingControlPanelStore = getFloatingControlPanelStore();
+	const searchInfo = getSearchInfo();
 
 	const panelId = 'legend';
 	const open = $derived(floatingControlPanelStore.openPanel === panelId);
@@ -36,11 +28,7 @@
 	const { events, loaded } = $derived(appData());
 
 	const showEventSection = $derived(
-		loaded &&
-			(events.length > 0 ||
-				map.eventsOnly ||
-				searchInfo.category === 'event' ||
-				searchInfo.category === 'events')
+		loaded && (events.length > 0 || searchInfo.category === 'event')
 	);
 
 	const eventsEmpty = $derived(loaded && events.length === 0);
@@ -201,42 +189,6 @@
 						{/each}
 					</div>
 				</section>
-
-				<!-- <section class="legend-section" aria-labelledby="legend-layers">
-					<h3 id="legend-layers" class="legend-section-title">Layers</h3>
-					<div class="legend-list">
-						<button
-							type="button"
-							class="legend-item legend-toggle"
-							class:legend-toggle--off={!map.showOrgs}
-							aria-pressed={map.showOrgs}
-							onclick={() => map.toggleOrgs()}
-						>
-							<span class="legend-swatch organization" aria-hidden="true"></span>
-							<span class="legend-copy">
-								<span class="legend-label">Orgs, units &amp; offices</span>
-								<span class="legend-description">
-									{legendState(map.showOrgs)}
-								</span>
-							</span>
-						</button>
-						<button
-							type="button"
-							class="legend-item legend-toggle"
-							class:legend-toggle--off={!map.showPlaces}
-							aria-pressed={map.showPlaces}
-							onclick={() => map.togglePlaces()}
-						>
-							<span class="legend-swatch establishment" aria-hidden="true"></span>
-							<span class="legend-copy">
-								<span class="legend-label">Landmarks &amp; establishments</span>
-								<span class="legend-description">
-									{legendState(map.showPlaces)}
-								</span>
-							</span>
-						</button>
-					</div>
-				</section> -->
 			</div>
 		</div>
 	{/if}
@@ -492,33 +444,6 @@
 
 	.legend-swatch.establishment {
 		background-color: hsl(334, 54%, 43%);
-	}
-
-	.legend-toggle {
-		all: unset;
-		box-sizing: border-box;
-		display: flex;
-		align-items: center;
-		gap: 0.625rem;
-		min-width: 0;
-		max-width: 100%;
-		border-radius: 0.625rem;
-		background-color: hsl(0, 0%, 98%);
-		padding: 0.45rem 0.625rem;
-		cursor: pointer;
-	}
-
-	.legend-toggle:hover,
-	.legend-toggle:focus-visible {
-		background-color: hsl(5, 30%, 95%);
-	}
-
-	.legend-toggle--off {
-		opacity: 0.55;
-	}
-
-	.legend-toggle--off .legend-swatch {
-		filter: grayscale(1);
 	}
 
 	.legend-swatch.jeepney-stop {

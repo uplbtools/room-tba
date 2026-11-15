@@ -9,7 +9,7 @@ import type {
 	ScheduleMatchResult,
 	Weekday
 } from '#lib/utils/schedule-import/types.js';
-import type { ClassMapValue, Room } from '#lib/utils/types';
+import type { ClassMapValue, Room } from '#lib/utils/types.js';
 import { userLocation, plannerStore, termStore, toastStore } from '../index.svelte.js';
 import { SCHEDULE_IMPORT_SS_KEY, type ScheduleImportPersisted } from '../store-types';
 

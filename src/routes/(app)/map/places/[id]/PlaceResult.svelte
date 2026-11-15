@@ -14,7 +14,7 @@
 		isPlaceLandmark,
 		placeDirectoryLabel
 	} from '#lib/constants/content/categories/place.js';
-	import type { PlaceData } from '#lib/utils/types';
+	import type { PlaceData } from '#lib/utils/types.js';
 	import EntityEditorPinRow from '#lib/components/editor/EntityEditorPinRow.svelte';
 	import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
 	import EntityDirectionsChip from '#lib/components/entity/EntityDirectionsChip.svelte';

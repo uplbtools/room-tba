@@ -4,7 +4,7 @@
 	import RoomResult from '#lib/components/room/RoomResult.svelte';
 	import { slugifySegment } from '#lib/utils/site.js';
 	import { searchInfo, sidePanelStore } from '#lib/stores.svelte.js';
-	import type { Room } from '#lib/utils/types';
+	import type { Room } from '#lib/utils/types.js';
 
 	type Props = {
 		room: Room;
