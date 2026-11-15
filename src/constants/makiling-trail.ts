@@ -47,7 +47,7 @@ export const MAKILING_TRAIL_STOPS: readonly TrailStop[] = [
     station: 1,
     name: "Station 1 (trailhead)",
     description:
-      "Jump-off beside the Makiling Center for Mountain Ecosystems (MCME) on Makiling Road. Register at the MCME registration area here and meet your guide before you start. The gate opens at 06:00.",
+      "This is the jump-off, beside the Makiling Center for Mountain Ecosystems (MCME) on Makiling Road. Register at the MCME registration area here and meet your guide before you start. The gate opens at 06:00.",
     lon: 121.233701,
     lat: 14.15132,
     osmNode: 606531743,
@@ -111,7 +111,7 @@ export const MAKILING_TRAIL_STOPS: readonly TrailStop[] = [
     station: 8,
     name: "Mud Springs turn-off",
     description:
-      "Side trail to Mud Springs, a bubbling geothermal mud pool. The ground near the pool is hot and soft; stay on the path.",
+      "This side trail goes to Mud Springs, a bubbling geothermal mud pool. The ground near the pool is hot and soft, so stay on the path.",
     lon: 121.2255395,
     lat: 14.1357831,
     osmNode: 945030755,
@@ -139,7 +139,7 @@ export const MAKILING_TRAIL_STOPS: readonly TrailStop[] = [
     station: 11,
     name: "Agila Base",
     description:
-      "End of the paved trail and the last reliable water. Day hikers must reach Agila Base by 09:00 (cut-off) or turn back. Habal-habal (motorcycle taxis) drop off here.",
+      "The paved trail ends here, and this is the last reliable water. Day hikers must reach Agila Base by 09:00 (cut-off) or turn back. Habal-habal (motorcycle taxis) drop off here.",
     lon: 121.2099966,
     lat: 14.1290501,
     osmNode: 638552300,
@@ -166,7 +166,7 @@ export const MAKILING_TRAIL_STOPS: readonly TrailStop[] = [
     station: null,
     name: "Malaboo",
     description:
-      "Campsite. The wilderness zone starts here: leeches (limatik) are common from Malaboo to the summit.",
+      "This is a campsite. The wilderness zone starts here, and leeches (limatik) are common from Malaboo to the summit.",
     lon: 121.2058029,
     lat: 14.1367451,
     osmNode: 2764005749,
@@ -177,7 +177,7 @@ export const MAKILING_TRAIL_STOPS: readonly TrailStop[] = [
     station: 16,
     name: "Station 16",
     description:
-      "Dense rainforest from here on; the trail narrows and steepens.",
+      "The rainforest is dense from here on, and the trail narrows and steepens.",
     lon: 121.2045384,
     lat: 14.1387947,
     osmNode: 2764005756,
@@ -211,7 +211,7 @@ export const MAKILING_TRAIL_STOPS: readonly TrailStop[] = [
     station: null,
     name: "Start of the final ascent",
     description:
-      "The steep last climb to Peak 2 begins: roots, mud and rope sections. Allow extra time when wet.",
+      "The steep last climb to Peak 2 begins, with roots, mud and rope sections. Allow extra time when wet.",
     lon: 121.1990433,
     lat: 14.1393563,
     osmNode: 643329024,
@@ -221,7 +221,7 @@ export const MAKILING_TRAIL_STOPS: readonly TrailStop[] = [
     id: "station-21",
     station: 21,
     name: "Viewpoint (Station 21)",
-    description: "Partial views of Laguna de Bay when clear; often fogged in.",
+    description: "You get partial views of Laguna de Bay when it's clear, but it's often fogged in.",
     lon: 121.1988728,
     lat: 14.1388782,
     osmNode: 2764005767,
@@ -264,7 +264,7 @@ export const MAKILING_TRAIL_STOPS: readonly TrailStop[] = [
     station: null,
     name: "Peak 2 (summit)",
     description:
-      "End of the UPLB trail. A small summit clearing; Laguna de Bay and Mt. Banahaw show when the clouds lift. Head down early enough to reach Station 1 before dark.",
+      "This is the end of the UPLB trail, a small summit clearing. Laguna de Bay and Mt. Banahaw show when the clouds lift. Head down early enough to reach Station 1 before dark.",
     lon: 121.193905,
     lat: 14.135847,
     osmNode: 332020189,
