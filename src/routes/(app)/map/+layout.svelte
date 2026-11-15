@@ -27,7 +27,8 @@
 		initAdminAuthStore,
 		initProposalsStore,
 		initOfflineStore,
-		getEscapeActions
+		getEscapeActions,
+		getToast
 	} from '#lib/utils/context.js';
 	import { onMount, type Snippet } from 'svelte';
 	import UIMap from './Map.svelte';
@@ -47,7 +48,7 @@
 	import AccountSettingsModal from '#lib/components/AccountSettingsModal.svelte';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { goto } from '$app/navigation';
+	import { goto, replaceState } from '$app/navigation';
 
 	/* import { onMount, type Snippet } from 'svelte';
 	import { page } from '$app/state';
@@ -555,10 +556,44 @@
 	const adminAuthStore = initAdminAuthStore(
 		new AdminAuthStore({ modalStore, plannerStore, proposalsStore })
 	);
+	const toastStore = getToast();
+
+	const ACCOUNT_ERRORS: Record<string, string> = {
+		missing_token: 'That confirmation link is missing its token.',
+		invalid_or_expired_token:
+			'That confirmation link is invalid or has expired. Request a new one.',
+		not_logged_in: 'Sign in first, then connect Google from account settings.',
+		missing_code: 'Google sign-in was cancelled or incomplete. Try again.',
+		oauth_failed: 'Connecting Google failed. Try again.',
+		already_linked: 'That Google account is already connected to a different Room TBA account.'
+	};
+
+	function openFromUrl(params: URLSearchParams) {
+		const authError = params.get('auth_error');
+		if (authError) adminAuthStore.oauthError = authError;
+		if (authError || params.get('editor') === 'login') adminAuthStore.openLogin();
+
+		const account = params.get('account');
+		const accountError = params.get('account_error');
+		if (account === 'email-changed') toastStore.show('Email address updated.', 'success');
+		if (account === 'google-linked') toastStore.show('Google account connected.', 'success');
+		if (accountError) {
+			toastStore.show(ACCOUNT_ERRORS[accountError] ?? 'Something went wrong. Try again.', 'error');
+		}
+		if (account || accountError) adminAuthStore.openAccountSettings();
+	}
+
 	onMount(() => {
 		void termStore.init();
 		plannerStore.init();
 		void adminAuthStore.hydrate();
+
+		const keys = ['editor', 'auth_error', 'account', 'account_error'];
+		const url = new URL(page.url);
+		if (!keys.some((key) => url.searchParams.has(key))) return;
+		openFromUrl(url.searchParams);
+		for (const key of keys) url.searchParams.delete(key);
+		replaceState(url, page.state);
 	});
 
 	const escapeActionStack = getEscapeActions();
