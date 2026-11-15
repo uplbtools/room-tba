@@ -2818,6 +2818,11 @@ export async function renderTransitMapPdf(input: {
             }
             y -= 18;
           };
+          y -= LEAD - 3;
+          text("PHP 197, Lunes hanggang Sabado.", x, BODY, font);
+          y -= LEAD;
+          text("Mag-book sa dltb.ph.", x, BODY, font);
+          y -= 8;
           board("UP Diliman", SIGN_YELLOW, "DLTB");
           chips(["5 AM", "1 PM", "6 PM"]);
           for (const l of wrapText(
@@ -2832,10 +2837,6 @@ export async function renderTransitMapPdf(input: {
           y -= 10;
           board("Buendia", SIGN_YELLOW, "DLTB sa CPark");
           chips(["5:30 AM"]);
-          y -= LEAD;
-          text("PHP 197, Lunes hanggang Sabado.", x, BODY, font);
-          y -= LEAD;
-          text("Mag-book sa dltb.ph.", x, BODY, font);
           y -= 4;
           for (const l of wrapText(
             "Sa Olivarez, abangan lang sa bus stop ang bus pa-Buendia.",
