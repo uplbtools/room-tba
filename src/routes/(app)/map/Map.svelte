@@ -8,12 +8,15 @@
 	import DormMarkers from './DormMarkers.svelte';
 	// import { getAllBuildings } from '#lib/functions/buildings.remote.js';
 	import * as maplibre from 'maplibre-gl';
+	import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
 	import { onMount } from 'svelte';
 	import UserLocationMarker from './UserLocationMarker.svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+
+	maplibre.setWorkerUrl(workerUrl);
 
 	const map = getMapStore();
 	const searchInfo = getSearchInfo();
