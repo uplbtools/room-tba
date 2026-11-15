@@ -1,4 +1,5 @@
 <script lang="ts">
+	import EntityLastUpdated from '#lib/components/new/EntityLastUpdated.svelte';
 	import ResultActions from '#lib/components/new/ResultActions.svelte';
 	import SuggestEditButton from '#lib/components/new/SuggestEditButton.svelte';
 	// import {
@@ -177,6 +178,7 @@
 					</li>
 				{/if}
 			</ul>
+			<EntityLastUpdated entityType="place" entityId={place.id} entityName={place.name} />
 		{:else}
 			<!-- <div class="place-form">
 				<label>Name<input bind:value={nameDraft} /></label>

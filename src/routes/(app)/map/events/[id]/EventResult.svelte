@@ -1,4 +1,5 @@
 <script lang="ts">
+	import EntityLastUpdated from '#lib/components/new/EntityLastUpdated.svelte';
 	import EntityExternalLink from '#lib/components/entity/EntityExternalLink.svelte';
 	import ResultActions from '#lib/components/new/ResultActions.svelte';
 	import SuggestEditButton from '#lib/components/new/SuggestEditButton.svelte';
@@ -33,6 +34,8 @@
 			description: event.description ?? ''
 		}}
 	/>
+
+	<EntityLastUpdated entityType="event" entityId={event.id} entityName={event.title} />
 
 	{#if location}
 		<p class="text-sm text-neutral-800">{location.resolvedLabel}</p>
