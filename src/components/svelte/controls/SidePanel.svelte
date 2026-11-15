@@ -169,8 +169,10 @@
   $effect(() => {
     const identity = panelIdentity;
     if (identity === lastPanelIdentity) return;
-    if (lastPanelIdentity !== null && mobileSnap === "expanded") {
-      fullScreenScroll.set(lastPanelIdentity, sheetScroll);
+    if (lastPanelIdentity !== null) {
+      if (mobileSnap === "expanded") {
+        fullScreenScroll.set(lastPanelIdentity, sheetScroll);
+      } else fullScreenScroll.delete(lastPanelIdentity);
     }
     sheetScroll = 0;
     const idx = (history.state as { rtbaIdx?: number } | null)?.rtbaIdx ?? 0;
