@@ -35,7 +35,8 @@ function json(data: unknown, status = 200) {
 
 /**
  * Printable transit map. GET /api/transit-map with optional `lat`, `lon` and
- * `name` (any point), or `here` (a place id or name), plus `format=a4|letter`
+ * `name` (any point), or `here` (a place id or name), plus
+ * `format=a4|letter|a3`, `layout=poster` (one portrait page, map over stops)
  * and `palette=high-contrast|app|colorblind` (default high-contrast).
  * The point is marked "You are here" with the nearest stop and the walk to it.
  */
@@ -47,7 +48,10 @@ export const GET: APIRoute = async ({ url }) => {
     paletteParam in TRANSIT_MAP_PALETTES
       ? (paletteParam as TransitMapPalette)
       : undefined;
-  const format: TransitMapFormat = formatParam === "letter" ? "letter" : "a4";
+  const format: TransitMapFormat =
+    formatParam === "letter" || formatParam === "a3" ? formatParam : "a4";
+  const layout =
+    url.searchParams.get("layout") === "poster" ? "poster" : "sheet";
 
   const point = parseHerePoint(url.searchParams);
   if (point === "invalid") {
@@ -119,6 +123,7 @@ export const GET: APIRoute = async ({ url }) => {
       here,
       basemap: transitBasemap as TransitBasemap,
       format,
+      layout,
       palette,
     });
     const nameSlug = (here?.name ?? "")

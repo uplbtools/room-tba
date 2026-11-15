@@ -525,6 +525,22 @@ describe("any point as You are here", () => {
   });
 });
 
+describe("poster layout", () => {
+  test("the poster is one portrait page, on A4 and A3", async () => {
+    for (const format of ["a4", "a3"] as const) {
+      const bytes = await renderTransitMapPdf({
+        routes: [route()],
+        format,
+        layout: "poster",
+      });
+      const pdf = await PDFDocument.load(bytes);
+      expect(pdf.getPageCount()).toBe(1);
+      const { width, height } = pdf.getPage(0).getSize();
+      expect(height).toBeGreaterThan(width);
+    }
+  });
+});
+
 describe("print branding", () => {
   test("the QR grid is square and the headings were baked", () => {
     expect(PRINT_MAP_QR.length).toBeGreaterThanOrEqual(21);

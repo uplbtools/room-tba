@@ -66,11 +66,14 @@ export type TransitBasemap = {
   gates: { name: string; lat: number; lon: number }[];
 };
 
-export type TransitMapFormat = "a4" | "letter";
+export type TransitMapFormat = "a4" | "letter" | "a3";
+/** The sheet is two landscape pages; the poster is one portrait page. */
+export type TransitMapLayout = "sheet" | "poster";
 
 const PAGE_SIZES: Record<TransitMapFormat, { w: number; h: number }> = {
   a4: { w: 841.89, h: 595.28 },
   letter: { w: 792, h: 612 },
+  a3: { w: 1190.55, h: 841.89 },
 };
 
 const BRAND = rgb(0.49, 0.179, 0.15); // hsl(5, 53%, 32%), the Room TBA maroon
@@ -148,12 +151,18 @@ const PANEL_GAP = 14;
 // Most printers cannot ink the outer 6 mm, so no text or art sits there.
 const SAFE = 18;
 const KEY_H = 18;
+/** Height of the stop strips under the poster's map. */
+const POSTER_STRIPS_H: Record<TransitMapFormat, number> = {
+  a4: 310,
+  letter: 300,
+  a3: 512,
+};
 
 /** Straight-line distance times this is the printed walking estimate. */
 export const WALK_DETOUR_FACTOR = 1.3;
 /** The frame fits stops this close to the campus center; farther ones (the
  *  malls, the upper Forestry campus, Pili Drive and beyond) become edge arrows. */
-const CORE_RADIUS_M = 800;
+const CORE_RADIUS_M = 1400;
 /** A place farther than this from campus is not pulled into the frame. */
 const HERE_MAX_M = 3000;
 
@@ -1019,24 +1028,40 @@ type StripLine = {
   reverse: RGB | null;
 };
 
-/** Page 2: every campus line as a strip of its stops, in travel order. */
+/** Cut text with "..." so it fits a width. */
+function fitText(text: string, font: PDFFont, size: number, maxW: number) {
+  if (font.widthOfTextAtSize(text, size) <= maxW) return text;
+  let cut = text;
+  while (cut.length > 1 && font.widthOfTextAtSize(`${cut}...`, size) > maxW)
+    cut = cut.slice(0, -1);
+  return `${cut.trimEnd()}...`;
+}
+
+/** Every campus line as a strip of its stops, in travel order. */
 function drawStopStrips(
   page: PDFPage,
   o: {
-    pageW: number;
     pageH: number;
     font: PDFFont;
     bold: PDFFont;
     lines: StripLine[];
+    box: { x: number; top: number; w: number; bottom: number };
     stops: MapStop[];
     nearest: MapStop | null;
-    footer: string;
   },
 ) {
-  const { pageW, pageH, font, bold, lines } = o;
+  const { pageH, font, bold, lines, box } = o;
   const anchor = { x: 0, y: pageH };
-  const BAND_H = 52;
-  const NAME = 9.5;
+  const GAP = 14;
+  const INDENT = 20;
+  const maxStops = Math.max(...lines.map((l) => l.route.stops.length));
+  // Tight rows set each name on one line; roomy rows let a name wrap.
+  const roomy = (box.top - box.bottom - 50) / maxStops >= 19;
+  const HEAD_H = roomy ? 50 : 34;
+  const NAME = roomy ? 9.5 : 9;
+  const HEAD = roomy ? 11.5 : 10;
+  const k = roomy ? 1 : 0.8;
+  const rowH = Math.min(22, (box.top - box.bottom - HEAD_H) / maxStops);
   const pillW = (text: string, size: number) =>
     bold.widthOfTextAtSize(text, size) + size * 0.8;
   const pill = (text: string, x: number, y: number, size: number, c: RGB) => {
@@ -1053,106 +1078,82 @@ function drawStopStrips(
       color: WHITE,
     });
   };
-  const codesOf = (line: StripLine) =>
-    (LINE_CODES[line.route.id] ?? []).map((code, i) => ({
-      code,
-      color: i === 1 && line.reverse ? line.reverse : line.color,
-    }));
 
-  page.drawRectangle({
-    x: 0,
-    y: pageH - BAND_H,
-    width: pageW,
-    height: BAND_H,
-    color: BRAND,
-  });
-  const titleW = drawSignboard(
-    page,
-    pageH,
-    ["UPLB", "JEEPNEY STOPS"],
-    MARGIN,
-    pageH - SAFE,
-    24,
-    pageW,
-    [SIGN_YELLOW, SIGN_GREEN],
+  // Columns share the width by their longest stop name.
+  const want = lines.map(
+    (l) =>
+      INDENT +
+      Math.min(
+        170,
+        Math.max(
+          l.reverse ? 110 : 90,
+          ...l.route.stops.map((s) =>
+            font.widthOfTextAtSize(shortStopLabel(s.name, 2), NAME),
+          ),
+        ),
+      ),
   );
-  const introX = MARGIN + titleW + 20;
-  wrapText(
-    "Top to bottom ang order ng stops. Yung code sa tabi ng stop, ibang jeep na pwede mong sakyan dun.",
-    font,
-    11,
-    pageW - MARGIN - introX,
-  )
-    .slice(0, 2)
-    .forEach((text, i, all) =>
-      page.drawText(text, {
-        x: introX,
-        y: pageH - SAFE - (all.length === 1 ? 16 : 9) - i * 13.5,
-        size: 11,
-        font,
-        color: SOFT_ON_BRAND,
-      }),
-    );
-
-  const GAP = 14;
-  const HEAD_H = 62;
-  const colW = (pageW - 2 * MARGIN - (lines.length - 1) * GAP) / lines.length;
-  const top = pageH - BAND_H - 14;
-  const rowH = Math.min(
-    22,
-    (top - HEAD_H - FOOTER_H - 6) /
-      Math.max(...lines.map((l) => l.route.stops.length)),
-  );
+  const free = box.w - (lines.length - 1) * GAP;
+  const total = want.reduce((sum, w) => sum + w, 0);
+  let x = box.x;
   lines.forEach((line, ci) => {
     const { route, color, reverse } = line;
-    const x = MARGIN + ci * (colW + GAP);
-    const codes = codesOf(line);
+    const colW = (want[ci]! / total) * free;
+    const { top } = box;
+    const codes = LINE_CODES[route.id] ?? [];
     // "Kaliwa / Kanan" lists its stops in Kanan order.
     const names = reverse
       ? route.name.split(/\s*\/\s*/).reverse()
-      : [route.name];
+      : [route.name.replace(/\s*(\/|\().*$/, "")];
     let hx = x;
     names.forEach((name, i) => {
       const code = codes[i];
       if (code) {
-        pill(code.code, hx, top - 16, 10, code.color);
-        hx += pillW(code.code, 10) + 5;
+        pill(
+          code,
+          hx,
+          top - HEAD * 1.4,
+          HEAD * 0.85,
+          i === 1 && reverse ? reverse : color,
+        );
+        hx += pillW(code, HEAD * 0.85) + 4;
       }
-      const text = reverse ? [name] : wrapText(name, bold, 11.5, x + colW - hx);
-      text.slice(0, 2).forEach((l, k) =>
-        page.drawText(l, {
-          x: hx,
-          y: top - 12.5 - k * 13,
-          size: 11.5,
-          font: bold,
-          color: INK,
-        }),
-      );
-      hx += bold.widthOfTextAtSize(name, 11.5) + 10;
+      const text = fitText(name, bold, HEAD, x + colW - hx);
+      page.drawText(text, {
+        x: hx,
+        y: top - HEAD * 1.1,
+        size: HEAD,
+        font: bold,
+        color: INK,
+      });
+      hx += bold.widthOfTextAtSize(text, HEAD) + 7;
     });
     const oneWay = isOneWayLoop(route);
     [
       Number.isFinite(route.fareRegular)
-        ? `PHP ${route.fareRegular}, PHP ${route.fareDiscounted} pag discounted`
+        ? `PHP ${route.fareRegular}, ${route.fareDiscounted} discounted`
         : "Itanong sa driver ang pamasahe",
       reverse
-        ? `${names[0]} top to bottom, ${names[1]} bottom to top.`
+        ? `${names[0]} down, ${names[1]} up.`
         : oneWay
           ? "One way lang, paikot."
           : "Same stops pabalik.",
-    ].forEach((text, i) =>
-      page.drawText(text, {
-        x,
-        y: top - 41 - i * 12,
-        size: NAME,
-        font,
-        color: INK,
-      }),
-    );
+    ]
+      .slice(0, roomy ? 2 : 1)
+      .forEach((text, i) =>
+        page.drawText(fitText(text, font, NAME, colW), {
+          x,
+          y: top - HEAD * 1.1 - 14 - i * 12,
+          size: NAME,
+          font,
+          color: INK,
+        }),
+      );
 
     const last = route.stops.length - 1;
     const cy = (i: number) => top - HEAD_H - rowH * (i + 0.5);
-    const lx = x + (reverse ? 10 : 6);
+    const lx = x + (reverse ? 10 : 6) * k;
+    const rx = x + 3 * k;
     const arrow = (ax: number, y: number, dir: 1 | -1, half: number, c: RGB) =>
       page.drawSvgPath(
         `M ${ax - half} ${pageH - (y + dir * half * 0.7)} L ${ax + half} ${pageH - (y + dir * half * 0.7)} L ${ax} ${pageH - (y - dir * half * 0.7)} Z`,
@@ -1160,12 +1161,12 @@ function drawStopStrips(
       );
     if (reverse) {
       for (const [thickness, c] of [
-        [3.4, reverse],
-        [1.2, WHITE],
+        [3.4 * k, reverse],
+        [1.2 * k, WHITE],
       ] as const)
         page.drawLine({
-          start: { x: x + 3, y: cy(0) },
-          end: { x: x + 3, y: cy(last) },
+          start: { x: rx, y: cy(0) },
+          end: { x: rx, y: cy(last) },
           thickness,
           color: c,
         });
@@ -1173,13 +1174,13 @@ function drawStopStrips(
     page.drawLine({
       start: { x: lx, y: cy(0) },
       end: { x: lx, y: cy(last) },
-      thickness: 6,
+      thickness: 6 * k,
       color,
     });
     for (let i = 0; i < last; i++) {
       const mid = (cy(i) + cy(i + 1)) / 2;
-      if (oneWay || (reverse && i % 2 === 0)) arrow(lx, mid, 1, 2.4, WHITE);
-      if (reverse && i % 2 === 1) arrow(x + 3, mid, -1, 3.2, reverse);
+      if (oneWay || (reverse && i % 2 === 0)) arrow(lx, mid, 1, 2.4 * k, WHITE);
+      if (reverse && i % 2 === 1) arrow(rx, mid, -1, 3.2 * k, reverse);
     }
 
     route.stops.forEach((stop, i) => {
@@ -1188,36 +1189,38 @@ function drawStopStrips(
       const isHere = !!merged && merged === o.nearest;
       const terminal = i === 0 || i === last;
       if (reverse)
-        page.drawSvgPath(roundRectPath(x + 0.5, y - 3.5, 13, 7, 3.5, pageH), {
-          ...anchor,
-          color: WHITE,
-          borderColor: INK,
-          borderWidth: terminal ? 1.8 : 1.1,
-        });
+        page.drawSvgPath(
+          roundRectPath(
+            x + 0.5 * k,
+            y - 3.5 * k,
+            13 * k,
+            7 * k,
+            3.5 * k,
+            pageH,
+          ),
+          {
+            ...anchor,
+            color: WHITE,
+            borderColor: INK,
+            borderWidth: (terminal ? 1.8 : 1.1) * k,
+          },
+        );
       else
         page.drawCircle({
           x: lx,
           y,
-          size: terminal ? 4.6 : 3.8,
+          size: (terminal ? 4.6 : 3.8) * k,
           color: WHITE,
           borderColor: color,
-          borderWidth: terminal ? 2.2 : 1.6,
+          borderWidth: (terminal ? 2.2 : 1.6) * k,
         });
 
-      const pills = lines
-        .filter((l) => l !== line && merged?.routeIds.includes(l.route.id))
-        .flatMap(codesOf);
-      const pillsW = pills.reduce((w, p) => w + pillW(p.code, 8) + 2, 0);
-      let px = x + colW - pillsW + 2;
-      for (const p of pills) {
-        pill(p.code, px, y - 6, 8, p.color);
-        px += pillW(p.code, 8) + 2;
-      }
-
-      const nx = x + 20;
+      const nx = x + INDENT * k;
       const f = terminal || isHere ? bold : font;
-      const nameW = colW - 20 - (pillsW ? pillsW + 4 : 0);
-      let text = wrapText(stop.name, f, NAME, nameW);
+      const nameW = x + colW - nx;
+      let text = roomy
+        ? wrapText(stop.name, f, NAME, nameW)
+        : [fitText(shortStopLabel(stop.name, 2), f, NAME, nameW)];
       // A wrapped name is set a little smaller so two in a row stay apart.
       const size = text.length > 1 ? 8.8 : NAME;
       if (text.length > 1) text = wrapText(stop.name, f, size, nameW);
@@ -1226,44 +1229,27 @@ function drawStopStrips(
       const lead = size + 0.5;
       if (isHere) {
         const w = Math.max(...text.map((l) => f.widthOfTextAtSize(l, size)));
-        const h = text.length * lead + 4;
+        const h = text.length * lead + 3;
         page.drawSvgPath(roundRectPath(nx - 3, y - h / 2, w + 6, h, 2, pageH), {
           ...anchor,
           color,
         });
       }
-      text.forEach((l, k) =>
+      text.forEach((l, j) =>
         page.drawText(l, {
           x: nx,
           y:
             y +
             (text.length === 2 ? lead / 2 - size * 0.36 + 0.5 : -size * 0.36) -
-            k * lead,
+            j * lead,
           size,
           font: f,
           color: isHere ? WHITE : INK,
         }),
       );
     });
+    x += colW + GAP;
   });
-
-  page.drawText(o.footer, {
-    x: MARGIN,
-    y: SAFE + 2,
-    size: 9,
-    font,
-    color: INK,
-  });
-  if (o.nearest) {
-    const text = "Naka-box yung stop na pinakamalapit sa'yo.";
-    page.drawText(text, {
-      x: pageW - MARGIN - font.widthOfTextAtSize(text, 9),
-      y: SAFE + 2,
-      size: 9,
-      font,
-      color: INK,
-    });
-  }
 }
 
 export async function renderTransitMapPdf(input: {
@@ -1271,11 +1257,15 @@ export async function renderTransitMapPdf(input: {
   here?: TransitMapHere | null;
   basemap?: TransitBasemap | null;
   format?: TransitMapFormat;
+  layout?: TransitMapLayout;
   generatedAt?: Date;
   palette?: TransitMapPalette;
 }): Promise<Uint8Array> {
   const format = input.format ?? "a4";
-  const { w: pageW, h: pageH } = PAGE_SIZES[format];
+  const poster = input.layout === "poster";
+  const size = PAGE_SIZES[format];
+  const pageW = poster ? size.h : size.w;
+  const pageH = poster ? size.w : size.h;
   const generatedAt = input.generatedAt ?? new Date();
   const palette = TRANSIT_MAP_PALETTES[input.palette ?? "high-contrast"];
 
@@ -1497,21 +1487,44 @@ export async function renderTransitMapPdf(input: {
   // Centred on the title board, which hangs below its suction cup.
   const introY =
     pageH - SAFE - 26 + ((introLines - 1) * INTRO_LEAD) / 2 - INTRO_SIZE * 0.36;
-  drawRuns(page, intro, introX, introY, introW, INTRO_SIZE, INTRO_LEAD, 4, {
-    regular: font,
-    bold,
-    color: SOFT_ON_BRAND,
-    boldColor: WHITE,
-  });
+  if (poster)
+    // Beside the QR tag, in the gap between the header and the map.
+    drawRuns(
+      page,
+      intro,
+      MARGIN,
+      pageH - HEADER_H - 5,
+      qrX - 24 - MARGIN,
+      INTRO_SIZE,
+      INTRO_LEAD,
+      3,
+      { regular: font, bold, color: INK, boldColor: BRAND },
+    );
+  else
+    drawRuns(page, intro, introX, introY, introW, INTRO_SIZE, INTRO_LEAD, 4, {
+      regular: font,
+      bold,
+      color: SOFT_ON_BRAND,
+      boldColor: WHITE,
+    });
 
   // ── Map frame ─────────────────────────────────────────────────────────
   const keyH = here && hereOnMap ? KEY_H : 0;
-  const frame: Box = {
-    x: MARGIN,
-    y: FOOTER_H + 8 + keyH,
-    w: pageW - MARGIN * 2 - PANEL_W - PANEL_GAP,
-    h: pageH - HEADER_H - 10 - FOOTER_H - 8 - keyH,
-  };
+  // The poster has no side panel: the stop strips sit under the map.
+  const stripsTop = FOOTER_H + 20 + POSTER_STRIPS_H[format];
+  const frame: Box = poster
+    ? {
+        x: MARGIN,
+        y: stripsTop + 14 + keyH,
+        w: pageW - MARGIN * 2,
+        h: tagBottom - 6 - stripsTop - 14 - keyH,
+      }
+    : {
+        x: MARGIN,
+        y: FOOTER_H + 8 + keyH,
+        w: pageW - MARGIN * 2 - PANEL_W - PANEL_GAP,
+        h: pageH - HEADER_H - 10 - FOOTER_H - 8 - keyH,
+      };
   page.drawRectangle({
     x: frame.x,
     y: frame.y,
@@ -2275,80 +2288,82 @@ export async function renderTransitMapPdf(input: {
   const BOARD_H = 19;
 
   if (drawnRoutes.length > 0) {
-    heading("Jeeps sa campus");
-    // The QR tag hangs into the top of the panel.
-    py = Math.min(py, tagBottom - 5);
-    const fares = new Set(drawnRoutes.map((r) => fareText(r)));
-    const sharedFare =
-      fares.size === 1 &&
-      drawnRoutes.every((r) => Number.isFinite(r.fareRegular))
-        ? [...fares][0]
-        : null;
-    if (sharedFare) {
-      line(`${sharedFare}.`);
-      line("Sa yellow stops lang pwedeng sumakay at bumaba.");
-      py -= 6;
-    }
-    for (const route of drawnRoutes) {
-      const color = hexToRgb(route.color);
-      const style = styles.get(route.id);
-      const loop = isLoopRoute(route);
-      // "Kaliwa / Kanan" lists its stops in Kanan order.
-      const names = loop
-        ? route.name.split(/\s*\/\s*/).reverse()
-        : [route.name];
-      if (loop && names.length < 2) names.push(`${route.name} reverse`);
-      // Each board has its name in plain type too, beside it when it fits.
-      const boards = names.slice(0, 2).map((name) => {
-        const words = signboardWords(name);
-        const w = signboardLayout(words, BOARD_H, textW).w;
-        const beside = w + 8 + bold.widthOfTextAtSize(name, BODY) <= textW;
-        return { name, words, w, beside };
-      });
-      const fare = sharedFare ? "" : `${fareText(route)}.`;
-      const note = [
-        loop ? "Iisa ang loop nila." : "",
-        fare,
-        route.boardingNote ?? "",
-      ]
-        .filter(Boolean)
-        .join(" ");
-      const lines = wrapText(note, font, BODY, textW);
-      const h =
-        boards.reduce(
-          (sum, b) => sum + BOARD_H + 3 + (b.beside ? 0 : LEAD),
-          0,
-        ) +
-        lines.length * LEAD;
-      if (py - h < panelFloor) break;
-      boards.forEach((b, i) => {
-        const reverse = i === 1;
-        sample(
-          reverse ? reverseColorOf(route) : color,
-          reverse
-            ? (style?.reverseDash ?? LOOP_REVERSE_DASH)
-            : loop
-              ? null
-              : (style?.dash ?? null),
-          loop,
-          px,
-          py - BOARD_H / 2 - 3,
-          reverse,
-        );
-        drawSignboard(page, pageH, b.words, textX, py, BOARD_H, textW);
-        if (b.beside)
-          page.drawText(b.name, {
-            x: textX + b.w + 8,
-            y: py - BOARD_H / 2 - 3.6,
-            size: BODY,
-            font: bold,
-            color: INK,
-          });
-        py -= BOARD_H + 3;
-        if (!b.beside) line(b.name, textX, bold);
-      });
-      for (const l of lines) line(l, textX);
-      py -= 7;
+    if (!poster) {
+      heading("Jeeps sa campus");
+      // The QR tag hangs into the top of the panel.
+      py = Math.min(py, tagBottom - 5);
+      const fares = new Set(drawnRoutes.map((r) => fareText(r)));
+      const sharedFare =
+        fares.size === 1 &&
+        drawnRoutes.every((r) => Number.isFinite(r.fareRegular))
+          ? [...fares][0]
+          : null;
+      if (sharedFare) {
+        line(`${sharedFare}.`);
+        line("Sa yellow stops lang pwedeng sumakay at bumaba.");
+        py -= 6;
+      }
+      for (const route of drawnRoutes) {
+        const color = hexToRgb(route.color);
+        const style = styles.get(route.id);
+        const loop = isLoopRoute(route);
+        // "Kaliwa / Kanan" lists its stops in Kanan order.
+        const names = loop
+          ? route.name.split(/\s*\/\s*/).reverse()
+          : [route.name];
+        if (loop && names.length < 2) names.push(`${route.name} reverse`);
+        // Each board has its name in plain type too, beside it when it fits.
+        const boards = names.slice(0, 2).map((name) => {
+          const words = signboardWords(name);
+          const w = signboardLayout(words, BOARD_H, textW).w;
+          const beside = w + 8 + bold.widthOfTextAtSize(name, BODY) <= textW;
+          return { name, words, w, beside };
+        });
+        const fare = sharedFare ? "" : `${fareText(route)}.`;
+        const note = [
+          loop ? "Iisa ang loop nila." : "",
+          fare,
+          route.boardingNote ?? "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+        const lines = wrapText(note, font, BODY, textW);
+        const h =
+          boards.reduce(
+            (sum, b) => sum + BOARD_H + 3 + (b.beside ? 0 : LEAD),
+            0,
+          ) +
+          lines.length * LEAD;
+        if (py - h < panelFloor) break;
+        boards.forEach((b, i) => {
+          const reverse = i === 1;
+          sample(
+            reverse ? reverseColorOf(route) : color,
+            reverse
+              ? (style?.reverseDash ?? LOOP_REVERSE_DASH)
+              : loop
+                ? null
+                : (style?.dash ?? null),
+            loop,
+            px,
+            py - BOARD_H / 2 - 3,
+            reverse,
+          );
+          drawSignboard(page, pageH, b.words, textX, py, BOARD_H, textW);
+          if (b.beside)
+            page.drawText(b.name, {
+              x: textX + b.w + 8,
+              y: py - BOARD_H / 2 - 3.6,
+              size: BODY,
+              font: bold,
+              color: INK,
+            });
+          py -= BOARD_H + 3;
+          if (!b.beside) line(b.name, textX, bold);
+        });
+        for (const l of lines) line(l, textX);
+        py -= 7;
+      }
     }
 
     // Map key, in one row under the map.
@@ -2411,7 +2426,7 @@ export async function renderTransitMapPdf(input: {
     8 +
     20 +
     busLines.length * LEAD;
-  if (py - townH >= panelFloor) {
+  if (!poster && py - townH >= panelFloor) {
     rule();
     heading("Jeeps sa Olivarez Plaza Mall");
     py -= 3;
@@ -2453,29 +2468,92 @@ export async function renderTransitMapPdf(input: {
   const footRight = input.basemap
     ? "Map data from OpenStreetMap contributors, ODbL. Approximate lang ang mga linya at layo."
     : "Approximate lang ang mga linya at layo.";
+  // On the narrow poster the two footer lines stack.
+  const stacked =
+    font.widthOfTextAtSize(footLeft, FOOT) +
+      font.widthOfTextAtSize(footRight, FOOT) +
+      20 >
+    pageW - MARGIN * 2;
   page.drawText(footRight, {
-    x: pageW - MARGIN - font.widthOfTextAtSize(footRight, FOOT),
-    y: SAFE + 2,
+    x: stacked
+      ? MARGIN
+      : pageW - MARGIN - font.widthOfTextAtSize(footRight, FOOT),
+    y: SAFE + 2 + (stacked ? 11 : 0),
     size: FOOT,
     font,
     color: INK,
   });
 
-  if (drawnRoutes.length > 0)
-    drawStopStrips(pdf.addPage([pageW, pageH]), {
-      pageW,
-      pageH,
-      font,
-      bold,
-      lines: drawnRoutes.map((route) => ({
-        route,
-        color: hexToRgb(route.color),
-        reverse: isLoopRoute(route) ? reverseColorOf(route) : null,
-      })),
-      stops,
-      nearest: nearest?.stop ?? null,
-      footer: footLeft,
+  const strips = {
+    pageH,
+    font,
+    bold,
+    lines: drawnRoutes.map((route) => ({
+      route,
+      color: hexToRgb(route.color),
+      reverse: isLoopRoute(route) ? reverseColorOf(route) : null,
+    })),
+    stops,
+    nearest: nearest?.stop ?? null,
+  };
+  if (drawnRoutes.length > 0 && poster) {
+    drawStopStrips(page, {
+      ...strips,
+      box: {
+        x: MARGIN,
+        top: stripsTop,
+        w: pageW - MARGIN * 2,
+        bottom: FOOTER_H + 14,
+      },
     });
+  } else if (drawnRoutes.length > 0) {
+    // Page 2 of the sheet: the same strips at full size.
+    const BAND_H = 52;
+    const guide = pdf.addPage([pageW, pageH]);
+    guide.drawRectangle({
+      x: 0,
+      y: pageH - BAND_H,
+      width: pageW,
+      height: BAND_H,
+      color: BRAND,
+    });
+    const boardW = drawSignboard(
+      guide,
+      pageH,
+      ["UPLB", "JEEPNEY STOPS"],
+      MARGIN,
+      pageH - SAFE,
+      24,
+      pageW,
+      [SIGN_YELLOW, SIGN_GREEN],
+    );
+    guide.drawText(
+      `Top to bottom ang order ng stops.${nearest ? " Naka-box yung stop na pinakamalapit sa'yo." : ""}`,
+      {
+        x: MARGIN + boardW + 20,
+        y: pageH - SAFE - 16,
+        size: 11,
+        font,
+        color: SOFT_ON_BRAND,
+      },
+    );
+    drawStopStrips(guide, {
+      ...strips,
+      box: {
+        x: MARGIN,
+        top: pageH - BAND_H - 14,
+        w: pageW - MARGIN * 2,
+        bottom: FOOTER_H + 6,
+      },
+    });
+    guide.drawText(footLeft, {
+      x: MARGIN,
+      y: SAFE + 2,
+      size: FOOT,
+      font,
+      color: INK,
+    });
+  }
 
   return pdf.save();
 }
