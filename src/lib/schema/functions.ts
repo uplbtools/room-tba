@@ -116,15 +116,7 @@ export const RoomProposalSchema = v.object({
 export const EventProposalSchema = v.object({
 	meta: ProposalMetaSchema,
 	body: v.object({
-		title: v.pipe(v.string(), v.maxLength(160)),
-		category: v.union([
-			v.literal('tradition'),
-			v.literal('fair'),
-			v.literal('ceremony'),
-			v.literal('sports'),
-			v.literal('other')
-		]),
-		startsAt: v.pipe(v.string(), v.isoTimestamp()),
-		endsAt: v.pipe(v.string(), v.isoTimestamp())
+		title: v.pipe(v.string(), v.trim(), v.nonEmpty('Title is required'), v.maxLength(160)),
+		description: v.optional(v.pipe(v.string(), v.trim()))
 	})
 });

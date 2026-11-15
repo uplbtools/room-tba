@@ -1,6 +1,7 @@
 <script lang="ts">
 	import EntityExternalLink from '#lib/components/entity/EntityExternalLink.svelte';
 	import ResultActions from '#lib/components/new/ResultActions.svelte';
+	import SuggestEditButton from '#lib/components/new/SuggestEditButton.svelte';
 	import type { getEventById } from '#lib/functions/events.remote.js';
 	import { formatCampusRange } from '#lib/utils/event/event-time.js';
 
@@ -23,6 +24,14 @@
 		data={{ lat: location?.resolvedLat ?? null, lon: location?.resolvedLon ?? null }}
 		name={location?.resolvedLabel}
 		label={event.title}
+	/>
+	<SuggestEditButton
+		data={{
+			id: event.id,
+			version: event.version,
+			title: event.title,
+			description: event.description ?? ''
+		}}
 	/>
 
 	{#if location}

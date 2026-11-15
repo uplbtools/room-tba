@@ -3,6 +3,7 @@
 	import ModalContent from './ModalContent.svelte';
 	import BuildingModifyForm from './forms/BuildingModifyForm.svelte';
 	import DormModifyForm from './forms/DormModifyForm.svelte';
+	import EventModifyForm from './forms/EventModifyForm.svelte';
 	import OrgModifyForm from './forms/OrgModifyForm.svelte';
 	import PlaceModifyForm from './forms/PlaceModifyForm.svelte';
 	import RoomModifyForm from './forms/RoomModifyForm.svelte';
@@ -25,6 +26,8 @@
 			<PlaceModifyForm {...dataRecord} />
 		{:else if searchInfo.category === 'room'}
 			<RoomModifyForm {...dataRecord} />
+		{:else if searchInfo.category === 'event'}
+			<EventModifyForm {...dataRecord} />
 		{/if}
 	{/if}
 </ModalContent>
