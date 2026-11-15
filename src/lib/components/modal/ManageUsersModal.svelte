@@ -3,7 +3,7 @@
 	import IconButton from '#lib/components/IconButton.svelte';
 	import { fade, fly } from 'svelte/transition';
 	import { X, Users } from '@lucide/svelte';
-	// import { adminAuthStore, toastStore } from '#lib/stores.svelte.js';
+	import { getAdminAuthStore, getToast } from '#lib/utils/context.js';
 	import { modalContentDismiss, modalContentReveal, overlayFade } from '#lib/utils/motion.js';
 	import { trapFocus } from '#lib/utils/focus-trap.js';
 	import EntityEditorFormField from '#lib/components/editor/EntityEditorFormField.svelte';
@@ -12,6 +12,8 @@
 	import '../editor/entity-editor.css';
 	import { MediaQuery } from 'svelte/reactivity';
 
+	const adminAuthStore = getAdminAuthStore();
+	const toastStore = getToast();
 	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 
 	type ManagedUser = {

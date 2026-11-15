@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import DownloadCloud from '@lucide/svelte/icons/download-cloud';
 	import Download from '@lucide/svelte/icons/download';
-	import { mapToolsStore, offlineStore } from '#lib/stores.svelte.js';
+	import { getMapToolsStore, getOfflineStore } from '#lib/utils/context.js';
 	import { registerEphemeralOverlayDismisser } from '#lib/utils/overlay-stack.js';
 	import { rafThrottle } from '#lib/utils/layout-css-vars.js';
 	import { trapFocus } from '#lib/utils/focus-trap.js';
@@ -18,6 +18,8 @@
 	};
 
 	let { compact = false, inline = false }: Props = $props();
+	const mapToolsStore = getMapToolsStore();
+	const offlineStore = getOfflineStore();
 
 	let open = $state(inline);
 	let triggerEl = $state<HTMLButtonElement | null>(null);

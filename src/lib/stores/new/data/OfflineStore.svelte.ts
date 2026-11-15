@@ -6,18 +6,18 @@ import {
 	getTileTemplate,
 	MIN_ZOOM,
 	tileUrl
-} from '../../utils/local/offline-maps.js';
+} from '#lib/utils/local/offline-maps.js';
 import {
 	OFFLINE_DIRECTORY_SYNCED_AT_KEY,
 	syncCampusDirectoryForOffline
-} from '../../utils/local/data/campus-directory-sync.js';
+} from '#lib/utils/local/data/campus-directory-sync.js';
 import {
 	OFFLINE_CLASSES_SYNCED_AT_KEY,
 	syncClassSchedulesForOffline
-} from '../../utils/local/data/class-schedules-offline-sync.js';
-import type { OfflineStatus } from './../store-types.js';
+} from '#lib/utils/local/data/class-schedules-offline-sync.js';
+import type { OfflineStatus } from '#lib/stores/store-types.js';
 
-export class OfflineStore {
+export default class OfflineStore {
 	status = $state<OfflineStatus>('idle');
 	directoryStatus = $state<OfflineStatus>('idle');
 	directoryError = $state<string | null>(null);

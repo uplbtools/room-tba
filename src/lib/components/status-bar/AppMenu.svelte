@@ -6,8 +6,6 @@
 	import LifeBuoy from '@lucide/svelte/icons/life-buoy';
 	import CircleHelp from '@lucide/svelte/icons/circle-help';
 	import Inbox from '@lucide/svelte/icons/inbox';
-	import CalendarDays from '@lucide/svelte/icons/calendar-days';
-	import CalendarClock from '@lucide/svelte/icons/calendar-clock';
 	import UserRound from '@lucide/svelte/icons/user-round';
 	import { onMount } from 'svelte';
 	import { formatCatalogUpdatedDate } from '#lib/constants/versioning/data-catalog.js';
@@ -22,13 +20,12 @@
 	} from '#lib/utils/overlay-stack.js';
 	import { rafThrottle } from '#lib/utils/layout-css-vars.js';
 	import {
-		adminAuthStore,
-		mapToolsStore,
-		modalStore,
-		proposalsStore,
-		sidebarStore,
-		toastStore
-	} from '#lib/stores.svelte.js';
+		getAdminAuthStore,
+		getMapToolsStore,
+		getModalStore,
+		getProposalsStore,
+		getToast
+	} from '#lib/utils/context.js';
 	import OfflineMaps from '#lib/components/OfflineMaps.svelte';
 	import PWAInstallPrompt from '#lib/components/PWAInstallPrompt.svelte';
 	import MapChromeSession from '#lib/components/map-chrome/MapChromeSession.svelte';
@@ -43,15 +40,15 @@
 	};
 
 	const { onSignOut = defaultSignOut }: Props = $props();
+	const adminAuthStore = getAdminAuthStore();
+	const mapToolsStore = getMapToolsStore();
+	const modalStore = getModalStore();
+	const proposalsStore = getProposalsStore();
+	const toastStore = getToast();
 
 	async function defaultSignOut() {
 		await adminAuthStore.logout();
 		toastStore.show('Signed out.', 'info');
-	}
-
-	function handleScreen(id: 'today' | 'calendar') {
-		sidebarStore.changeOpened(id);
-		closePanel();
 	}
 
 	function handleSignIn() {
@@ -252,28 +249,6 @@
 					</button>
 				</section>
 			{/if}
-
-			<!-- Today and the academic calendar lost their only entry point when the
-           rail Sidebar stopped rendering (#930, #951). They are screens, not
-           map chrome, so they live here rather than in the primary nav. -->
-			<section class="app-menu__section" aria-label="Screens">
-				<button
-					type="button"
-					class="app-menu__action map-chrome-chip"
-					onclick={() => handleScreen('today')}
-				>
-					<CalendarClock size={14} aria-hidden="true" />
-					<span>Today</span>
-				</button>
-				<button
-					type="button"
-					class="app-menu__action map-chrome-chip"
-					onclick={() => handleScreen('calendar')}
-				>
-					<CalendarDays size={14} aria-hidden="true" />
-					<span>Academic calendar</span>
-				</button>
-			</section>
 
 			{#if adminAuthStore.canReview}
 				<section class="app-menu__section" aria-label="Review">

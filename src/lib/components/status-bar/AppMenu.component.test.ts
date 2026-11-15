@@ -1,7 +1,49 @@
 import { fireEvent, render, screen } from '@testing-library/svelte';
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import AppMenu from './AppMenu.svelte';
-import { adminAuthStore, modalStore, proposalsStore } from '#lib/stores.svelte.js';
+import AdminAuthStore from '#lib/stores/new/data/AdminAuthStore.svelte.js';
+import OfflineStore from '#lib/stores/new/data/OfflineStore.svelte.js';
+import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
+import ProposalsStore from '#lib/stores/new/data/ProposalsStore.svelte.js';
+import { MapToolsStore } from '#lib/stores/new/map/map-stores.svelte.js';
+import type ModalStore from '#lib/stores/new/ui/ModalStore.svelte.js';
+import ToastStore from '#lib/stores/new/ui/ToastStore.svelte.js';
+
+vi.mock('$env/dynamic/public', () => ({ env: {} }));
+vi.mock('#lib/utils/context.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/utils/context.js')>()),
+	getAdminAuthStore: () => adminAuthStore,
+	getMapToolsStore: () => mapToolsStore,
+	getModalStore: () => modalStore,
+	getOfflineStore: () => offlineStore,
+	getProposalsStore: () => proposalsStore,
+	getToast: () => toastStore
+}));
+
+const modalStore = {
+	open: false,
+	type: null as string | null,
+	landingTab: null as unknown,
+	openModal(type: string, data?: { landingTab?: unknown }) {
+		this.open = true;
+		this.type = type;
+		this.landingTab = data?.landingTab ?? null;
+	},
+	closeModal() {
+		this.open = false;
+		this.type = null;
+		this.landingTab = null;
+	}
+};
+const proposalsStore: ProposalsStore = new ProposalsStore(() => adminAuthStore.canReview);
+const adminAuthStore: AdminAuthStore = new AdminAuthStore({
+	modalStore: modalStore as unknown as ModalStore,
+	plannerStore: new PlannerStore(() => null),
+	proposalsStore
+});
+const mapToolsStore = new MapToolsStore();
+const offlineStore = new OfflineStore();
+const toastStore = new ToastStore();
 
 describe('AppMenu review entry', () => {
 	beforeEach(() => {
