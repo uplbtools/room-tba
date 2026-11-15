@@ -13,14 +13,20 @@
  */
 
 import {
+  LineJoinStyle,
   PDFDocument,
   StandardFonts,
+  TextRenderingMode,
   clip,
   endPath,
   popGraphicsState,
   pushGraphicsState,
   rectangle,
   rgb,
+  setLineJoin,
+  setLineWidth,
+  setStrokingColor,
+  setTextRenderingMode,
   type PDFFont,
   type PDFPage,
   type RGB,
@@ -29,6 +35,7 @@ import {
   LOGO_PNG_BASE64,
   PRINT_MAP_QR,
   RALEWAY_BOLD_HEADINGS,
+  SIGNBOARD_GLYPHS,
 } from "@constants/print-brand";
 
 export type TransitMapStop = { name: string; lat: number; lon: number };
@@ -73,6 +80,11 @@ const HAIRLINE = rgb(0.8, 0.8, 0.8);
 const WHITE = rgb(1, 1, 1);
 // On the maroon band SOFT_ON_BRAND (#F6E3E0) is 7.4:1 and white is 9.2:1.
 const SOFT_ON_BRAND = rgb(0.965, 0.89, 0.878);
+// Jeepney signboard paint: a black board with fluorescent lettering.
+const BOARD = rgb(0.071, 0.067, 0.059);
+const NEON_GREEN = rgb(0.439, 0.898, 0);
+const NEON_ORANGE = rgb(1, 0.651, 0.004);
+const NEON_YELLOW = rgb(0.898, 0.898, 0);
 /**
  * Print palettes. The sheet is taped to walls and photocopied, so the base
  * map stays pale and the routes carry the colour. `routes` overrides a
@@ -718,19 +730,82 @@ function haloText(
   font: PDFFont,
   color = INK,
 ) {
-  for (const [dx, dy] of [
-    [0.6, 0],
-    [-0.6, 0],
-    [0, 0.6],
-    [0, -0.6],
-    [0.45, 0.45],
-    [-0.45, -0.45],
-    [0.45, -0.45],
-    [-0.45, 0.45],
-  ]) {
-    page.drawText(text, { x: x + dx, y: y + dy, size, font, color: WHITE });
-  }
+  page.pushOperators(
+    pushGraphicsState(),
+    setTextRenderingMode(TextRenderingMode.Outline),
+    setStrokingColor(WHITE),
+    setLineWidth(2.6),
+    setLineJoin(LineJoinStyle.Round),
+  );
+  page.drawText(text, { x, y, size, font, color: WHITE });
+  page.pushOperators(popGraphicsState());
   page.drawText(text, { x, y, size, font, color });
+}
+
+const SIGNBOARD_CAP = 0.628;
+const SIGNBOARD_TRACKING = 30;
+
+/** Splits a route name into the board's two paint colours. */
+export function signboardWords(name: string): [string, string] {
+  const [first = "", ...rest] = name
+    .toUpperCase()
+    .split(/\s*[/(]\s*/)
+    .map((part) => part.replace(/[^A-Z0-9&.\-' ]/g, "").trim())
+    .filter(Boolean);
+  return [first, rest.join(" ")];
+}
+
+/**
+ * A jeepney signboard: a black board with the name in fluorescent capitals,
+ * `h` tall with its top-left corner at (x, top). Returns the board's width.
+ */
+function drawSignboard(
+  page: PDFPage,
+  words: [string, string],
+  x: number,
+  top: number,
+  h: number,
+  maxW: number,
+  paint: [RGB, RGB] = [NEON_GREEN, NEON_ORANGE],
+): number {
+  const pad = h * 0.3;
+  const runs = words
+    .map((text, i) => ({ text, color: paint[i] }))
+    .filter((run) => run.text);
+  const units = (text: string) =>
+    [...text].reduce(
+      (sum, ch) =>
+        sum + (SIGNBOARD_GLYPHS[ch]?.width ?? 0) + SIGNBOARD_TRACKING,
+      0,
+    );
+  const gap = SIGNBOARD_GLYPHS[" "].width * 1.4;
+  const total =
+    runs.reduce((sum, run) => sum + units(run.text), 0) +
+    gap * (runs.length - 1);
+  const size = Math.min(
+    (h * 0.6) / SIGNBOARD_CAP,
+    ((maxW - pad * 2) * 1000) / total,
+  );
+  const w = (total * size) / 1000 + pad * 2;
+  page.drawRectangle({ x, y: top - h, width: w, height: h, color: BOARD });
+  const baseline = top - h / 2 - (size * SIGNBOARD_CAP) / 2;
+  let cx = x + pad;
+  for (const run of runs) {
+    for (const ch of run.text) {
+      const glyph = SIGNBOARD_GLYPHS[ch];
+      if (!glyph) continue;
+      if (glyph.d)
+        page.drawSvgPath(glyph.d, {
+          x: cx,
+          y: baseline,
+          scale: size / 1000,
+          color: run.color,
+        });
+      cx += ((glyph.width + SIGNBOARD_TRACKING) * size) / 1000;
+    }
+    cx += (gap * size) / 1000;
+  }
+  return w;
 }
 
 /** Ordinal list "A", "A and B", "A, B and C". */
@@ -876,7 +951,14 @@ export async function renderTransitMapPdf(input: {
     color: BRAND,
   });
 
-  raleway("UPLB Jeepney Routes", MARGIN, pageH - 36, 23, WHITE);
+  drawSignboard(
+    page,
+    ["UPLB", "JEEPNEY ROUTES"],
+    MARGIN,
+    pageH - 11,
+    30,
+    pageW,
+  );
 
   // The QR is about 3 cm wide so it scans from a step back on a wall. Its
   // ref param lets prints be counted.
@@ -1563,13 +1645,13 @@ export async function renderTransitMapPdf(input: {
       if (isNearest)
         add(stop.key, label, p, 10, 10.5, bold, BRAND, 90, true, true);
       else if (stop.terminal)
-        add(stop.key, label, p, markerR(stop) + 2.5, 10, bold, INK, 80, true);
+        add(stop.key, label, p, markerR(stop) + 4, 10, bold, INK, 80, true);
       else
         add(
           stop.key,
           label,
           p,
-          markerR(stop) + 2.5,
+          markerR(stop) + 4,
           9.5,
           font,
           INK,
@@ -1659,8 +1741,6 @@ export async function renderTransitMapPdf(input: {
   });
 
   // ── Side panel ────────────────────────────────────────────────────────
-  // Body text is INK or BODY_TEXT (#4A4A4A, 8.9:1 on white).
-  const BODY_TEXT = rgb(0.29, 0.29, 0.29);
   const anchor = { x: 0, y: pageH };
   const px = pageW - MARGIN - PANEL_W;
   const panelFloor = FOOTER_H + 3;
@@ -1669,11 +1749,11 @@ export async function renderTransitMapPdf(input: {
     page.drawText(text, {
       x: px,
       y: py - 11,
-      size: 10.5,
+      size: 12,
       font: bold,
       color: INK,
     });
-    py -= 18;
+    py -= 19;
   };
   const rule = () => {
     page.drawLine({
@@ -1726,6 +1806,7 @@ export async function renderTransitMapPdf(input: {
       : "Fare not verified yet, ask the driver";
   const textX = px + 34;
   const textW = PANEL_W - 34;
+  const BOARD_H = 20;
   const BODY = 10;
   const LEAD = 11.5;
 
@@ -1740,12 +1821,20 @@ export async function renderTransitMapPdf(input: {
     if (sharedFare) {
       page.drawText(sharedFare, {
         x: px,
-        y: py - 4,
+        y: py - 5,
         size: BODY,
         font,
-        color: BODY_TEXT,
+        color: INK,
       });
-      py -= 20;
+      py -= LEAD;
+      page.drawText("Board and alight at yellow stops only.", {
+        x: px,
+        y: py - 5,
+        size: BODY,
+        font,
+        color: INK,
+      });
+      py -= 17;
     }
     for (const route of drawnRoutes) {
       const color = hexToRgb(route.color);
@@ -1763,47 +1852,61 @@ export async function renderTransitMapPdf(input: {
         .filter(Boolean)
         .join(" ");
       const lines = wrapText(fullNote, font, BODY, textW);
-      const h = 10 + (loop ? 14 : 0) + lines.length * LEAD + 6;
+      const rows = loop ? 2 : 1;
+      const h =
+        rows * BOARD_H +
+        (rows - 1) * 3 +
+        (lines.length ? 4 : 0) +
+        lines.length * LEAD;
       if (py - h < panelFloor) break;
-      let cy = py - 10;
-      sample(color, loop ? null : (style?.dash ?? null), loop, px, cy);
-      page.drawText(fwdName ?? route.name, {
-        x: textX,
-        y: cy,
-        size: 11,
-        font: bold,
-        color: INK,
-      });
+      sample(
+        color,
+        loop ? null : (style?.dash ?? null),
+        loop,
+        px,
+        py - BOARD_H / 2 - 3,
+      );
+      drawSignboard(
+        page,
+        signboardWords(fwdName ?? route.name),
+        textX,
+        py,
+        BOARD_H,
+        textW,
+      );
+      let cy = py - BOARD_H;
       if (loop) {
-        cy -= 14;
+        cy -= 3;
         sample(
           reverseColorOf(route),
           style?.reverseDash ?? LOOP_REVERSE_DASH,
           true,
           px,
-          cy,
+          cy - BOARD_H / 2 - 3,
           true,
         );
-        page.drawText(revName ?? `${route.name}, reverse`, {
-          x: textX,
-          y: cy,
-          size: 11,
-          font: bold,
-          color: INK,
-        });
+        drawSignboard(
+          page,
+          signboardWords(revName ?? `${route.name} reverse`),
+          textX,
+          cy,
+          BOARD_H,
+          textW,
+        );
+        cy -= BOARD_H;
       }
-      cy -= 13;
+      cy -= 4 + BODY;
       for (const line of lines) {
         page.drawText(line, {
           x: textX,
-          y: cy,
+          y: cy + 1.5,
           size: BODY,
           font,
-          color: BODY_TEXT,
+          color: INK,
         });
         cy -= LEAD;
       }
-      py -= h + 4;
+      py -= h + 6;
     }
 
     // Map key.
@@ -1877,40 +1980,45 @@ export async function renderTransitMapPdf(input: {
 
   // Town jeeps and buses are not drawn on the map, so they are listed.
   const townJeeps = [
-    { to: "Calamba", fare: "PHP 30, PHP 25 discounted" },
-    { to: "San Pablo", fare: "PHP 14 and up" },
-    { to: "Sta. Cruz", fare: "PHP 14 and up" },
+    { to: "Calamba", fare: "PHP 30", note: "25 discounted" },
+    { to: "San Pablo", fare: "PHP 14+", note: "by distance" },
+    { to: "Sta. Cruz", fare: "PHP 14+", note: "by distance" },
   ];
   const townBuses = [
     { to: "DLTB to Buendia", detail: "Main gate 5 AM, back 6 PM daily" },
     { to: "Other buses to Buendia", detail: "Flag down at the Junction" },
     { to: "DLTB to UP Diliman", detail: "Book at dltbbus.com.ph" },
   ];
-  const TOWN_ROW = 13;
-  const BUS_ROW = 24;
-  const townH =
-    10 + 21 + townJeeps.length * TOWN_ROW + 8 + 21 + townBuses.length * BUS_ROW;
+  const TOWN_BOARD_H = 15;
+  const TOWN_H = TOWN_BOARD_H + 26;
+  const BUS_ROW = 25;
+  const townH = 10 + 22 + TOWN_H + 8 + 22 + townBuses.length * BUS_ROW;
   if (py - townH >= panelFloor) {
     rule();
     heading("Jeeps from the Junction (Olivarez)");
     py -= 3;
-    for (const j of townJeeps) {
-      page.drawText(j.to, {
-        x: px,
-        y: py - 4,
+    const col = PANEL_W / townJeeps.length;
+    townJeeps.forEach((j, i) => {
+      const x = px + i * col;
+      drawSignboard(
+        page,
+        signboardWords(j.to),
+        x,
+        py + 6,
+        TOWN_BOARD_H,
+        col - 6,
+        [NEON_YELLOW, NEON_YELLOW],
+      );
+      page.drawText(j.fare, {
+        x,
+        y: py - 21,
         size: BODY,
         font: bold,
         color: INK,
       });
-      page.drawText(j.fare, {
-        x: px + PANEL_W - font.widthOfTextAtSize(j.fare, BODY),
-        y: py - 4,
-        size: BODY,
-        font,
-        color: BODY_TEXT,
-      });
-      py -= TOWN_ROW;
-    }
+      page.drawText(j.note, { x, y: py - 32, size: 9.5, font, color: INK });
+    });
+    py -= TOWN_H;
     py -= 8;
     heading("Buses to Manila");
     py -= 3;
@@ -1925,25 +2033,11 @@ export async function renderTransitMapPdf(input: {
       page.drawText(b.detail, {
         x: px,
         y: py - 15,
-        size: 9,
+        size: 9.5,
         font,
-        color: BODY_TEXT,
+        color: INK,
       });
       py -= BUS_ROW;
-    }
-  }
-
-  const tips = [
-    "Kaliwa turns left at the gate.",
-    "Kanan turns right at the gate.",
-    "Board and alight at yellow stops only.",
-  ];
-  const tipLines = tips.flatMap((tip) => wrapText(tip, font, BODY, PANEL_W));
-  if (py - 12 - tipLines.length * LEAD >= panelFloor) {
-    rule();
-    for (const line of tipLines) {
-      page.drawText(line, { x: px, y: py - 4, size: BODY, font, color: INK });
-      py -= LEAD;
     }
   }
 

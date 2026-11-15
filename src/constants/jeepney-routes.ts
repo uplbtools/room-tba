@@ -95,6 +95,7 @@ export const ROUTE_BOARDING_NOTES: Readonly<Record<string, string>> = {
 export const ROUTE_PRINT_NOTES: Readonly<Record<string, string>> = {
   forestry:
     "Board at a terminal: Forestry Jeep Terminal (up), Upper Forestry Jeep Terminal (down).",
+  "kaliwa-kanan": "Kaliwa turns left at the gate and Kanan turns right.",
 };
 
 /** Forestry's two trips; also written to the database by scripts/fix-transit-data.ts. */
