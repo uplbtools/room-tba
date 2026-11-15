@@ -1,7 +1,7 @@
 import { getJSONFetch } from '#lib/utils/local/data/utils.js';
 import { resolveDefaultTermFromList, resolveInitialTermId } from '#lib/utils/term/term-calendar.js';
 import { parseTermIdFromSearch, syncTermQueryParam } from '#lib/utils/term/term-url.js';
-import type { TermWithCount } from '#lib/utils/types';
+import type { TermWithCount } from '#lib/utils/types.js';
 import { ACTIVE_TERM_LS_KEY } from '../store-types';
 
 export default class TermStore {

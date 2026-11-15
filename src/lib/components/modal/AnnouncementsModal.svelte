@@ -14,7 +14,7 @@
 		formatCampusDateTime,
 		instantToCampusInput
 	} from '#lib/utils/event/event-time.js';
-	import type { AnnouncementData } from '#lib/utils/types';
+	import type { AnnouncementData } from '#lib/utils/types.js';
 
 	const canPublish = $derived(adminAuthStore.canPublish);
 

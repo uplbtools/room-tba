@@ -7,7 +7,7 @@
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import CircleDollarSign from '@lucide/svelte/icons/circle-dollar-sign';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
-	import type { DormData } from '#lib/utils/types';
+	import type { DormData } from '#lib/utils/types.js';
 	import { normalizeEntityPhotos, type EntityPhoto } from '#lib/utils/entity/entity-photos.js';
 	import {
 		getStoredProposalForEntity,

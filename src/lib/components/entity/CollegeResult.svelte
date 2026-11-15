@@ -19,7 +19,7 @@
 		fetchRoomClassCounts,
 		fetchEntityRoomsRemote
 	} from '#lib/utils/local/data/utils.js';
-	import type { College, Room } from '#lib/utils/types';
+	import type { College, Room } from '#lib/utils/types.js';
 	import ResultDisplay from './ResultDisplay.svelte';
 	import EntityShareCopyLink from './EntityShareCopyLink.svelte';
 	import EntityBackToList from './EntityBackToList.svelte';

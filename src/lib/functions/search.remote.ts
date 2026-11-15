@@ -12,7 +12,7 @@ import {
 } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
 import { escapeLikePattern } from '#lib/utils/like-escape.js';
-import type { EntityType } from '#lib/utils/types';
+import type { EntityType } from '#lib/utils/types.js';
 import { like, sql } from 'drizzle-orm';
 import { unionAll } from 'drizzle-orm/pg-core';
 import * as v from 'valibot';

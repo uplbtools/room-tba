@@ -26,7 +26,7 @@ import type {
 	OrgData,
 	PlaceData,
 	Room
-} from '#lib/utils/types';
+} from '#lib/utils/types.js';
 
 const SITEMAP_PATH = '/sitemap.xml';
 
