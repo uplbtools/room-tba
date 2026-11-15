@@ -2,6 +2,7 @@ import { createSessionToken, setSessionCookie } from '#lib/admin/auth.js';
 import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
 import { sharedRateLimit } from '#lib/api/rate-limit-db.js';
+import { recordAudit } from '#lib/services/admin/audit-log.js';
 import { AccountActionError, changePassword } from '#lib/services/admin/user.js';
 import type { RequestHandler } from './$types';
 
@@ -35,6 +36,13 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 			typeof body.currentPassword === 'string' ? body.currentPassword : null,
 			body.newPassword
 		);
+		await recordAudit({
+			action: 'password.changed',
+			actor: auth.session,
+			targetUserId: auth.session.id,
+			targetLabel: auth.session.username,
+			ip: clientIp(request)
+		});
 		return new Response(JSON.stringify({ success: true }), {
 			status: 200,
 			headers: {

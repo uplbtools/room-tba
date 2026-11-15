@@ -10,6 +10,7 @@ import { optionalEditorSession } from '#lib/admin/require-editor.js';
 import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
 import { accountBackoff, sharedRateLimit } from '#lib/api/rate-limit-db.js';
 import { accountKey } from '#lib/api/rate-limit-shared.js';
+import { recordAudit } from '#lib/services/admin/audit-log.js';
 import {
 	authenticateAdminUser,
 	authenticateLegacyAdminPassword,
@@ -142,9 +143,22 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
 		if (!user) {
 			if (!skipLoginRateLimit) await accountBackoff.fail(backoffKey);
+			await recordAudit({
+				action: 'login.failure',
+				actorLabel: username.toLowerCase().slice(0, 100) || null,
+				ip
+			});
 			return json({ error: 'Invalid username or password' }, 401);
 		}
 		if (!skipLoginRateLimit) await accountBackoff.succeed(backoffKey);
+		await recordAudit({
+			action: 'login.success',
+			actor: user,
+			targetUserId: user.id,
+			targetLabel: user.username,
+			detail: { method: username ? 'password' : 'break-glass' },
+			ip
+		});
 
 		const sessionVersion = await readSessionVersion(user.id);
 		let token: string;

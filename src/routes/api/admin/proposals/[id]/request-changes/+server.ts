@@ -1,3 +1,5 @@
+import { clientIp } from '#lib/api/rate-limit.js';
+import { recordAudit } from '#lib/services/admin/audit-log.js';
 import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import {
 	emitProposalReviewed,
@@ -26,6 +28,14 @@ export const POST: RequestHandler = async ({ cookies, params, request }) => {
 	try {
 		const proposal = await requestProposalChanges(id, auth.session, body.note);
 		if (proposal) {
+			await recordAudit({
+				action: 'proposal.changes_requested',
+				actor: auth.session,
+				targetUserId: proposal.submitterUserId ?? null,
+				targetLabel: proposal.submitterName,
+				detail: { proposalId: proposal.id, entityLabel: proposal.entityLabel },
+				ip: clientIp(request)
+			});
 			void emitProposalReviewed(proposal, 'needs_changes').catch((err) => {
 				logNotificationEmitFailure('Proposal reviewed notification failed', err);
 			});

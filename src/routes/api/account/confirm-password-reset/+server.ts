@@ -1,5 +1,6 @@
 import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
 import { sharedRateLimit } from '#lib/api/rate-limit-db.js';
+import { recordAudit } from '#lib/services/admin/audit-log.js';
 import { AccountActionError, confirmPasswordReset } from '#lib/services/admin/user.js';
 import type { RequestHandler } from './$types';
 
@@ -25,7 +26,12 @@ export const POST: RequestHandler = async ({ request }) => {
 	}
 
 	try {
-		await confirmPasswordReset(body.token, body.newPassword);
+		const userId = await confirmPasswordReset(body.token, body.newPassword);
+		await recordAudit({
+			action: 'password.reset_completed',
+			targetUserId: userId,
+			ip: clientIp(request)
+		});
 		return json({ success: true });
 	} catch (error) {
 		if (error instanceof AccountActionError) {
