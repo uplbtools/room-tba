@@ -2740,7 +2740,7 @@ export async function renderTransitMapPdf(input: {
       ),
       {
         prefer: -1,
-        band: "Palabas ng campus",
+        band: "Palabas ng Los Baños",
         sections: [],
         // Draws when given a page, and returns its height either way.
         custom: (pg, x, top, w) => {
