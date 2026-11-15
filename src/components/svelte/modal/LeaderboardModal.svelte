@@ -7,7 +7,7 @@
   <ModalHeader
     id="leaderboard-modal-title"
     title="Contributor leaderboard"
-    description="These are the top volunteers who help map the campus and verify room schedules."
+    description="Suggest edits to rooms, schedules and places. Each approved edit earns points."
   />
   <div class="leaderboard-modal-body map-chrome-scroll">
     <LeaderboardPanel />

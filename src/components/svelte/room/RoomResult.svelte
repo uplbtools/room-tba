@@ -244,7 +244,7 @@
     if (field === "roomCode") {
       const trimmedCode = codeDraft.trim();
       if (trimmedCode.length === 0) {
-        fieldError = `${room.code} room code cannot be empty.`;
+        fieldError = `${room.code} room code can't be empty.`;
         return;
       }
       body.roomCode = trimmedCode;
@@ -286,7 +286,7 @@
 
       const outcome = handlePersistEntityResult<RoomData>(result, {
         syncFromServer: syncRoomFromServer,
-        fallbackError: `${room.code} ${fieldLabel(field)} could not be saved.`,
+        fallbackError: `${room.code} ${fieldLabel(field)} couldn't be saved.`,
       });
 
       if (outcome.error) {
@@ -318,7 +318,7 @@
       }, 1800);
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${room.code} ${fieldLabel(field)} failed to save: ${reason}`;
+      fieldError = `${room.code} ${fieldLabel(field)} failed to save (${reason}).`;
     } finally {
       savingField = null;
     }
@@ -349,7 +349,7 @@
         if (result.latest) syncRoomFromServer(result.latest);
         fieldError =
           result.error ??
-          `${room.code} could not be merged into ${mergePrompt.candidate.code}.`;
+          `${room.code} couldn't be merged into ${mergePrompt.candidate.code}.`;
         return;
       }
 
@@ -364,7 +364,7 @@
       editing = false;
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${room.code} merge failed: ${reason}`;
+      fieldError = `${room.code} merge failed (${reason}).`;
     } finally {
       mergingRooms = false;
     }
@@ -431,7 +431,7 @@
     if (codeDraft.trim() !== room.code) {
       const trimmedCode = codeDraft.trim();
       if (trimmedCode.length === 0) {
-        fieldError = `${room.code} room code cannot be empty.`;
+        fieldError = `${room.code} room code can't be empty.`;
         return;
       }
       patch.roomCode = trimmedCode;
@@ -475,7 +475,7 @@
 
       const outcome = handlePersistEntityResult<RoomData>(result, {
         syncFromServer: syncRoomFromServer,
-        fallbackError: `${room.code} could not be saved.`,
+        fallbackError: `${room.code} couldn't be saved.`,
       });
 
       if (outcome.error) {
@@ -498,7 +498,7 @@
       }, 1800);
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${room.code} failed to save: ${reason}`;
+      fieldError = `${room.code} failed to save (${reason}).`;
     } finally {
       savingField = null;
     }
@@ -792,7 +792,7 @@
                 already exists{#if mergePrompt.candidate.building?.name}
                   in {mergePrompt.candidate.building.name}{/if}. Merge
                 <strong>{currentRoom.value.code}</strong> into it? Classes and map
-                pins move to the kept room; empty fields are filled from the merged
+                pins move to the kept room. Empty fields are filled from the merged
                 room.
               </p>
               <div class="merge-actions">

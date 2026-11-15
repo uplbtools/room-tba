@@ -218,7 +218,7 @@
     if (nameDraft.trim() !== current.divisionName) {
       const trimmedName = nameDraft.trim();
       if (trimmedName.length === 0) {
-        fieldError = `${current.divisionName} name cannot be empty.`;
+        fieldError = `${current.divisionName} name can't be empty.`;
         return;
       }
       patch.divisionName = trimmedName;
@@ -252,7 +252,7 @@
 
       const outcome = handlePersistEntityResult<DivisionData>(result, {
         syncFromServer: syncDivisionFromServer,
-        fallbackError: `${current.divisionName} could not be saved.`,
+        fallbackError: `${current.divisionName} couldn't be saved.`,
       });
 
       if (outcome.error) {
@@ -286,7 +286,7 @@
       }
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.divisionName} failed to save: ${reason}`;
+      fieldError = `${current.divisionName} failed to save (${reason}).`;
     } finally {
       savingField = null;
     }
@@ -319,7 +319,7 @@
           syncDivisionFromServer(result.latest as DivisionData);
         fieldError =
           result.error ??
-          `${current.divisionName} could not be merged into ${mergePrompt.candidate.divisionName}.`;
+          `${current.divisionName} couldn't be merged into ${mergePrompt.candidate.divisionName}.`;
         return;
       }
 
@@ -334,7 +334,7 @@
       editing = false;
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.divisionName} merge failed: ${reason}`;
+      fieldError = `${current.divisionName} merge failed (${reason}).`;
     } finally {
       mergingEntity = false;
     }
@@ -455,7 +455,7 @@
               entityKind="division"
               sourceLabel={division.divisionName}
               candidateLabel={mergePrompt.candidate.divisionName}
-              detail="Merge room links into the kept division;"
+              detail="Room links move to the kept division. Merge"
               merging={mergingEntity}
               disabled={savingField !== null}
               onconfirm={confirmDivisionMerge}

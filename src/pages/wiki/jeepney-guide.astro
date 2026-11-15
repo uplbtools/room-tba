@@ -21,7 +21,7 @@ import { campusTransit } from "../../campus.config";
 
 const title = "Jeepneys and buses around UPLB | Room TBA Wiki";
 const description =
-  "The UPLB campus jeepney routes, their stops, fares, and boarding tips, plus buses to Metro Manila, read from the same data the Room TBA map uses.";
+  "This page covers the UPLB campus jeepney routes, their stops, fares and boarding tips, plus buses to Metro Manila. It's read from the same data the Room TBA map uses.";
 
 const campusFare = JEEPNEY_ROUTES[0]?.fare ?? TOWN_JEEPNEY_MINIMUM_FARE;
 const kanan = ROUTE_DIRECTIONS["kaliwa-kanan"];
@@ -35,16 +35,15 @@ const kanan = ROUTE_DIRECTIONS["kaliwa-kanan"];
 >
   <article class="wiki-article">
     <header class="article-hero">
-      <p class="wiki-eyebrow">Getting around</p>
       <h1 class="wiki-title">Jeepneys and buses around UPLB</h1>
       <p class="wiki-lede">
-        Which jeep goes where inside the campus, what it costs, and where to
-        board. Everything below is read from the route data bundled with Room
-        TBA, so this page and the map cannot disagree.
+        This page shows which jeep goes where inside the campus, what it costs
+        and where to board. Everything below is read from the route data
+        bundled with Room TBA, so this page and the map can’t disagree.
       </p>
       <p class="article-meta">
-        Fares last confirmed by the maintainer on <strong>{FARES_VERIFIED_ON}</strong>.
-        Fares change; the driver and the operator are the authority.
+        The maintainer last confirmed fares on <strong>{FARES_VERIFIED_ON}</strong>.
+        Fares change, so the driver and the operator are the authority.
       </p>
       <WikiProvenance sourcePath="src/pages/wiki/jeepney-guide.astro" />
     </header>
@@ -53,9 +52,9 @@ const kanan = ROUTE_DIRECTIONS["kaliwa-kanan"];
       <h2 id="quick-answers">Quick answers</h2>
       <ul class="break-list">
         <li>
-          <strong>Campus fare:</strong> {campusFare.regular} pesos regular,
-          {campusFare.discounted} pesos for students, seniors, and PWDs, the same
-          on every campus route. Pay the driver as you ride.
+          The campus fare is {campusFare.regular} pesos regular and
+          {campusFare.discounted} pesos for students, seniors and PWDs. It’s the
+          same on every campus route. Pay the driver as you ride.
         </li>
         <li>
           <strong>Kaliwa and Kanan are one loop.</strong>
@@ -68,7 +67,7 @@ const kanan = ROUTE_DIRECTIONS["kaliwa-kanan"];
         </li>
         <li>
           <strong>Check the windshield signboard.</strong> UP GATE means the
-          jeep stops at Grove and does not enter campus.
+          jeep stops at Grove and doesn’t enter campus.
         </li>
       </ul>
     </section>
@@ -107,7 +106,7 @@ const kanan = ROUTE_DIRECTIONS["kaliwa-kanan"];
             <h3 id={`route-${route.id}`}>{route.name}</h3>
             <p>{route.directionNote}</p>
             {ROUTE_BOARDING_NOTES[route.id] && (
-              <p><strong>Where to board.</strong> {ROUTE_BOARDING_NOTES[route.id]}</p>
+              <p>{ROUTE_BOARDING_NOTES[route.id]}</p>
             )}
             <ol class="stop-list">
               {route.stops.map((stop) => (
@@ -176,7 +175,7 @@ const kanan = ROUTE_DIRECTIONS["kaliwa-kanan"];
         </table>
       </div>
       <p class="figure-note">
-        Bus fares are set by the operator and are not quoted here. Departure
+        Bus fares are set by the operator and aren’t quoted here. Departure
         times are what the operator has published to the maintainer and can
         change.
       </p>
