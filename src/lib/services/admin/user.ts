@@ -2,11 +2,12 @@ import { createHash, timingSafeEqual } from 'node:crypto';
 import bcrypt from 'bcrypt';
 import { and, desc, eq, ne, sql } from 'drizzle-orm';
 
-import { ADMIN_PASSWORD } from "$app/env/private";
+import { ADMIN_PASSWORD } from '$app/env/private';
 
 import type { SessionUser } from '#lib/admin/auth.js';
 import { createSignedToken, verifySignedToken } from '#lib/admin/signed-token.js';
 import { db } from '#lib/utils/db.js';
+import { bumpSessionVersion } from './session-version.js';
 import { sendEmail } from '#lib/utils/email/resend.js';
 import {
 	adminUsersTable,
@@ -359,7 +360,7 @@ export async function changePassword(
 	userId: number,
 	currentPassword: string | null,
 	newPassword: string
-): Promise<void> {
+): Promise<number> {
 	if (newPassword.length < MIN_PASSWORD_LENGTH) {
 		throw new AccountActionError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
 	}
@@ -386,6 +387,7 @@ export async function changePassword(
 		.update(adminUsersTable)
 		.set({ passwordHash, updatedAt: sql`now()` })
 		.where(eq(adminUsersTable.id, userId));
+	return bumpSessionVersion(userId);
 }
 
 // `purpose` stops cross-endpoint replay (an email-change token must never
@@ -538,6 +540,7 @@ export async function confirmPasswordReset(token: string, newPassword: string): 
 		.update(adminUsersTable)
 		.set({ passwordHash, updatedAt: sql`now()` })
 		.where(eq(adminUsersTable.id, payload.userId));
+	await bumpSessionVersion(payload.userId);
 }
 
 export async function confirmEmailChange(token: string): Promise<void> {
@@ -637,6 +640,7 @@ export async function softDeleteAccount(
 			updatedAt: sql`now()`
 		})
 		.where(eq(adminUsersTable.id, userId));
+	await bumpSessionVersion(userId);
 }
 
 export type AccountDataExport = {
@@ -791,7 +795,8 @@ export async function updateManagedUser(
 	// Transaction + advisory lock serializes admin role/active changes so two
 	// concurrent demotions can't both pass the last-admin check and leave
 	// zero active admins. Lock is xact-scoped: released on commit/rollback.
-	return db.transaction(async (tx) => {
+	let revoke = false;
+	const result = await db.transaction(async (tx) => {
 		await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext('admin_users:last-admin-guard'))`);
 
 		const [target] = await tx
@@ -820,6 +825,9 @@ export async function updateManagedUser(
 		const updates: Record<string, unknown> = { updatedAt: sql`now()` };
 		if (input.role !== undefined) updates.role = input.role;
 		if (input.isActive !== undefined) updates.isActive = input.isActive;
+		revoke =
+			(input.role !== undefined && input.role !== target.role) ||
+			(input.isActive === false && target.isActive);
 
 		const [updated] = await tx
 			.update(adminUsersTable)
@@ -841,4 +849,6 @@ export async function updateManagedUser(
 			role: updated.role ?? 'editor'
 		};
 	});
+	if (revoke) await bumpSessionVersion(targetUserId);
+	return result;
 }

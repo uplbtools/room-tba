@@ -1,5 +1,5 @@
 import { canReviewProposals } from '#lib/admin/auth.js';
-import { getEditorSession } from '#lib/admin/require-editor.js';
+import { optionalEditorSession } from '#lib/admin/require-editor.js';
 import {
 	canViewProposalSubmitterDetails,
 	getProposalById,
@@ -17,7 +17,7 @@ export const GET: RequestHandler = async ({ cookies, params }) => {
 	const proposal = await getProposalById(id);
 	if (!proposal) return json({ error: 'Proposal not found' }, 404);
 
-	const session = getEditorSession(cookies);
+	const session = await optionalEditorSession(cookies);
 
 	if (session && canReviewProposals(session.role)) {
 		return json({ proposal });

@@ -1,3 +1,4 @@
+import { readSessionVersion } from '#lib/services/admin/session-version.js';
 import {
 	canPublishDirectly,
 	canReviewProposals,
@@ -5,7 +6,7 @@ import {
 	createSessionToken,
 	setSessionCookie
 } from '#lib/admin/auth.js';
-import { getEditorSession } from '#lib/admin/require-editor.js';
+import { optionalEditorSession } from '#lib/admin/require-editor.js';
 import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
 import { accountBackoff, sharedRateLimit } from '#lib/api/rate-limit-db.js';
 import { accountKey } from '#lib/api/rate-limit-shared.js';
@@ -26,7 +27,7 @@ const LOGIN_BACKOFF_MESSAGE =
 	'Too many failed sign-ins for this account. Wait a few minutes, or reset your password.';
 
 export const GET: RequestHandler = async ({ cookies }) => {
-	const session = getEditorSession(cookies);
+	const session = await optionalEditorSession(cookies);
 	return new Response(
 		JSON.stringify({
 			admin: session !== null,
@@ -145,9 +146,10 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		}
 		if (!skipLoginRateLimit) await accountBackoff.succeed(backoffKey);
 
+		const sessionVersion = await readSessionVersion(user.id);
 		let token: string;
 		try {
-			token = createSessionToken(user);
+			token = createSessionToken({ ...user, sessionVersion });
 		} catch (error) {
 			console.error('Admin session signing misconfigured:', error);
 			return json(

@@ -1,3 +1,4 @@
+import { readSessionVersion } from '#lib/services/admin/session-version.js';
 import { createSessionToken, setSessionCookie } from '#lib/admin/auth.js';
 import { linkOrCreateContributorFromSupabase } from '#lib/services/admin/user.js';
 import { createServerSupabaseClient } from '#lib/supabase/server.js';
@@ -32,7 +33,10 @@ export const GET: RequestHandler = async ({ url, request, cookies }) => {
 		});
 		if (!user) return fail('account_unavailable');
 
-		const token = createSessionToken(user);
+		const token = createSessionToken({
+			...user,
+			sessionVersion: await readSessionVersion(user.id)
+		});
 		return new Response(null, {
 			status: 303,
 			headers: {
