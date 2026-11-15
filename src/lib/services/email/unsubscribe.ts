@@ -27,11 +27,22 @@ export function readUnsubscribeToken(token: string): UnsubscribeTokenPayload | n
 	}
 }
 
-export async function unsubscribeFromTopic(userId: number, topic: EmailTopic): Promise<void> {
+export async function setTopicEnabled(
+	userId: number,
+	topic: EmailTopic,
+	enabled: boolean
+): Promise<void> {
 	const column = topic === 'digest' ? sql`digest` : sql`review_notices`;
 	await db.execute(sql`
 		INSERT INTO notification_preferences (user_id, ${column})
-		SELECT id, false FROM admin_users WHERE id = ${userId}
-		ON CONFLICT (user_id) DO UPDATE SET ${column} = false, updated_at = now()
+		SELECT id, ${enabled} FROM admin_users WHERE id = ${userId}
+		ON CONFLICT (user_id) DO UPDATE SET ${column} = ${enabled}, updated_at = now()
 	`);
+}
+
+export async function isDigestEnabled(userId: number): Promise<boolean> {
+	const result = await db.execute<{ digest: boolean }>(
+		sql`SELECT digest FROM notification_preferences WHERE user_id = ${userId}`
+	);
+	return result.rows[0]?.digest ?? true;
 }
