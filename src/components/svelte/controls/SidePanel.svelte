@@ -15,13 +15,17 @@
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import { MediaQuery } from "svelte/reactivity";
   import { resolvePanelContent } from "@lib/side-panel-content";
-  import type { BottomSheetSnap } from "@lib/bottom-sheet-snap";
+  import {
+    LANDSCAPE_COMPACT_MEDIA,
+    type BottomSheetSnap,
+  } from "@lib/bottom-sheet-snap";
   import TransitRouteLifecycle from "./TransitRouteLifecycle.svelte";
   import { trackOverlay } from "@lib/track-overlay.svelte";
   import { parseEntityPathname } from "@lib/entity-urls";
   import { on } from "svelte/events";
 
   const mobile = new MediaQuery("max-width:48rem");
+  const landscape = new MediaQuery(LANDSCAPE_COMPACT_MEDIA);
   // Entity detail views only, never list/browse panels (docs/ad-policy.md).
   const SPONSOR_CATEGORIES = new Set([
     "building",
@@ -154,7 +158,11 @@
   trackOverlay(
     "place-detail",
     () =>
-      mobile.current && panelOpen && entitySheet && mobileSnap === "expanded",
+      mobile.current &&
+      !landscape.current &&
+      panelOpen &&
+      entitySheet &&
+      mobileSnap === "expanded",
     () => {
       mobileSnap = "peek";
     },

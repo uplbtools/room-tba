@@ -39,6 +39,13 @@ export function trapFocus(
 
   const handleKeydown = (event: KeyboardEvent) => {
     if (!isInnermost()) return;
+    // Keys inside another open dialog belong to that dialog.
+    const target = event.target;
+    const otherDialog =
+      target instanceof Element && !container.contains(target)
+        ? target.closest('dialog[open], [role="dialog"], [aria-modal="true"]')
+        : null;
+    if (otherDialog && !otherDialog.contains(container)) return;
     if (event.key === "Escape") {
       options?.onEscape?.();
       event.stopPropagation();
