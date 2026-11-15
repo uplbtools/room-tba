@@ -33,11 +33,14 @@ describe("transitRouteKind", () => {
 
   test("the bundled UPLB <-> Buendia DLTB buses are buses with no quoted fare", () => {
     const route = {
-      id: "uplb-to-buendia",
-      name: "UPLB → LRT Buendia (DLTB bus)",
+      id: "buendia-to-uplb",
+      name: "LRT Buendia → UPLB (DLTB bus)",
     };
     expect(transitRouteKind(route)).toBe("bus");
     expect(routeFareInfo(route).kind).toBe("unverified");
+    expect(routeFareInfo({ ...route, id: "uplb-to-buendia" }).kind).toBe(
+      "ticketed",
+    );
     expect(perBoardingFare(route)).toBeNull();
   });
 
