@@ -59,13 +59,13 @@
 	// import EntityShareCopyLink from '#lib/components/entity/EntityShareCopyLink.svelte';
 	import { getOrgsByBuildingId } from '#lib/functions/organizations.remote.js';
 	import { getGithubContributors } from '#lib/functions/analytics.remote.js';
-	import { getRoomsByBuildingId } from '#lib/functions/rooms.remote.js';
 	import EntityDirectionsChip from '#lib/components/entity/EntityDirectionsChip.svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import EntityLastUpdated from '#lib/components/new/EntityLastUpdated.svelte';
 	import type { getBuildingById } from '#lib/functions/buildings.remote.js';
 	import ResultActions from '#lib/components/new/ResultActions.svelte';
+	import BuildingRooms from './BuildingRooms.svelte';
 	// // import EntityDirectionsChip from './EntityDirectionsChip.svelte';
 	// import EntityGoogleMapsLink from './EntityGoogleMapsLink.svelte';
 	// import EntityShareCopyLink from './EntityShareCopyLink.svelte';
@@ -837,6 +837,9 @@
 				captured={building.streetViewCaptured}
 			/>
 		{/if} -->
+		<svelte:boundary>
+			<BuildingRooms buildingId={building.id} />
+		</svelte:boundary>
 		<svelte:boundary>
 			{#snippet pending()}
 				Loading

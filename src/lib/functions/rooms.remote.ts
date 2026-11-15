@@ -11,10 +11,10 @@ import { eq } from 'drizzle-orm';
 
 export const getRoomsByBuildingId = query(RoomQueryPaginationSchema, async ({ id, offset = 0 }) => {
 	const rows = await db
-		.select()
+		.select({ id: roomsTable.id, code: roomsTable.code })
 		.from(roomsTable)
 		.where(eq(roomsTable.buildingId, id))
-		.orderBy(roomsTable.id)
+		.orderBy(roomsTable.code)
 		.limit(10)
 		.offset(offset);
 	return rows;
