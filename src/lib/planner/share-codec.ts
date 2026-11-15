@@ -63,3 +63,13 @@ export function decodeSharePlan(raw: string | null): DecodedSharePlan | null {
     return null;
   }
 }
+
+/** GradeSim pins these courses to the term in the student's own plan. */
+export function gradesimTakeUrl(plan: PlannerPlan): string | null {
+  const codes = [
+    ...new Set(plan.sections.filter((s) => !s.stale).map((s) => s.courseCode)),
+  ];
+  if (codes.length === 0) return null;
+  const take = codes.map(encodeURIComponent).join(",");
+  return `https://gradesim.uplb.tools/?take=${take}&term=${plan.termId}#planner`;
+}
