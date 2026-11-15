@@ -29,6 +29,7 @@
 	import LeaderboardModal from '../modal/LeaderboardModal.svelte';
 	import ChangelogModal from '../modal/ChangelogModal.svelte';
 	import AnnouncementsModal from '../modal/AnnouncementsModal.svelte';
+	import FeedbackPanel from '../modal/FeedbackPanel.svelte';
 
 	// const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 
@@ -146,6 +147,11 @@
 			>
 		{:else if modalStore.type === 'leaderboard'}
 			<ModalContent className="max-w-2xl"><LeaderboardModal /></ModalContent>
+		{:else if modalStore.type === 'feedback'}
+			<ModalContent className="flex max-w-xl flex-col gap-3 overflow-y-auto p-6">
+				<h2 class="text-xl font-semibold">Send feedback</h2>
+				<FeedbackPanel />
+			</ModalContent>
 			<!-- <ModalContent>Lorem ipsums dolor</ModalContent> -->
 		{/if}
 	</div>

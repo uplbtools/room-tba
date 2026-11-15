@@ -22,6 +22,7 @@ import {
 } from '#lib/services/entity/map-data.js';
 import { getSeoEvents } from '#lib/services/entity/event.js';
 import { absoluteUrl } from '#lib/utils/site.js';
+import { WIKI_PATHS } from '#lib/utils/wiki-pages.js';
 import {
 	getTransitRoutePath,
 	getTransitStopPath,
@@ -51,6 +52,7 @@ export const GET: RequestHandler = async () => {
 		'/changelog',
 		'/privacy',
 		'/terms',
+		...WIKI_PATHS,
 		'/donate',
 		'/sponsors',
 		entityIndexPath('rooms'),

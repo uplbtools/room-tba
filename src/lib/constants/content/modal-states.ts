@@ -15,5 +15,6 @@ export const modalOptions = [
 	'privacy',
 	'offline-maps',
 	'add-suggestion',
-	'modify-suggestion'
+	'modify-suggestion',
+	'feedback'
 ] as const;
