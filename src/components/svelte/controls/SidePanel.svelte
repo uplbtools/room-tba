@@ -6,6 +6,7 @@
     sidePanelStore,
     jeepneyStore,
     directionsStore,
+    mapEditStore,
   } from "@lib/store.svelte";
   import JeepneyStopPanel from "./JeepneyStopPanel.svelte";
   import JeepneyRouteModal from "@ui/modal/JeepneyRouteModal.svelte";
@@ -93,10 +94,9 @@
     navPeek ? 0.22 : directionsPeek ? 0.44 : listPeek ? 0.68 : 0.48,
   );
 
-  // Entering follow mode from an expanded sheet would otherwise leave the map
-  // hidden behind the very panel that is meant to be guiding it.
+  // Follow mode and map edit both need the map, so the sheet drops to peek.
   $effect(() => {
-    if (directionsStore.navigating) mobileSnap = "peek";
+    if (directionsStore.navigating || mapEditStore.enabled) mobileSnap = "peek";
   });
 
   // Opening Get Directions starts at peek so the map + search stay usable;
