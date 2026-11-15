@@ -340,8 +340,12 @@ export function pointsAlong(
 function nearestOnPolyline(
   pts: ProjectedPoint[],
   p: ProjectedPoint,
-): { q: ProjectedPoint; d: number } {
-  let best = { q: pts[0] ?? p, d: Number.POSITIVE_INFINITY };
+): { q: ProjectedPoint; d: number; dir: ProjectedPoint } {
+  let best = {
+    q: pts[0] ?? p,
+    d: Number.POSITIVE_INFINITY,
+    dir: { x: 1, y: 0 },
+  };
   for (let i = 1; i < pts.length; i++) {
     const a = pts[i - 1];
     const b = pts[i];
@@ -354,7 +358,10 @@ function nearestOnPolyline(
     );
     const q = { x: a.x + dx * t, y: a.y + dy * t };
     const d = Math.hypot(q.x - p.x, q.y - p.y);
-    if (d < best.d) best = { q, d };
+    if (d < best.d) {
+      const len = Math.sqrt(len2);
+      best = { q, d, dir: { x: dx / len, y: dy / len } };
+    }
   }
   return best;
 }
@@ -442,9 +449,13 @@ export function placeLabels(
     b.x + b.w <= bounds.x + bounds.w &&
     b.y + b.h <= bounds.y + bounds.h;
   const free = (b: Box) => inside(b) && !taken.some((t) => overlaps(b, t));
-  const clear = (b: Box) => free(b) && !lines.some((t) => overlaps(b, t));
+  // Line samples are wider than the stroke, so a 1 pt graze is fine.
+  const clear = (b: Box) => {
+    const core = { x: b.x + 1, y: b.y + 1, w: b.w - 2, h: b.h - 2 };
+    return free(b) && !lines.some((t) => overlaps(core, t));
+  };
   // A leader for a line-clear label must not cross lines or labels either.
-  const leaderClear = (r: LabelRequest, b: Box) => {
+  const leaderClear = (r: LabelRequest, b: Box, overLines = false) => {
     const cx = Math.min(Math.max(r.ax, b.x), b.x + b.w);
     const cy = Math.min(Math.max(r.ay, b.y), b.y + b.h);
     const len = Math.hypot(cx - r.ax, cy - r.ay);
@@ -456,7 +467,7 @@ export function placeLabels(
         h: 0,
       };
       if (taken.some((o) => overlaps(dot, o))) return false;
-      if (lines.some((o) => overlaps(dot, o))) return false;
+      if (!overLines && lines.some((o) => overlaps(dot, o))) return false;
     }
     return true;
   };
@@ -477,8 +488,21 @@ export function placeLabels(
       r.clearOfLines
         ? slid(r, boxes).find((b) => clear(b) && (!ring || leaderClear(r, b)))
         : (boxes.find(clear) ?? boxes.find(free));
-    let spot: Box | undefined = pick(r.spots ?? labelCandidates(r));
+    let spot: Box | undefined = r.clearOfLines
+      ? pick(r.spots ?? labelCandidates(r))
+      : labelCandidates(r).find(clear);
     let leader = false;
+    // A stop label steps out on a leader before it settles on a line.
+    for (const ring of spot || r.clearOfLines ? [] : [2.2, 3.4, 4.6]) {
+      spot = labelCandidates(r, r.gap * ring + 6).find(
+        (b) => clear(b) && leaderClear(r, b, true),
+      );
+      if (spot) {
+        leader = true;
+        break;
+      }
+    }
+    if (!r.clearOfLines) spot ??= labelCandidates(r).find(free);
     if (!spot && r.keep) {
       // An edge-exit label stays by its arrow, over a line if it must.
       spot = r.spots?.find(free);
@@ -490,6 +514,8 @@ export function placeLabels(
           break;
         }
       }
+      // Over a line before over a marker or another label.
+      spot ??= slid(r, labelCandidates(r, r.gap * 2.2 + 6)).find(free);
       spot ??= labelCandidates(r).find(inside) ?? labelCandidates(r)[0];
     }
     if (!spot) continue;
@@ -577,6 +603,67 @@ export function isLoopRoute(route: TransitMapRoute): boolean {
     first.name === last.name &&
     haversineMeters(first, last) < 60
   );
+}
+
+/** A closed route driven one way only, such as the e-jeep loop. */
+function isOneWayLoop(route: TransitMapRoute): boolean {
+  const first = route.stops[0];
+  const last = route.stops[route.stops.length - 1];
+  return (
+    !isLoopRoute(route) &&
+    route.stops.length >= 3 &&
+    first.name === last.name &&
+    haversineMeters(first, last) < 60
+  );
+}
+
+/** Lane centers (pt from a loop's centerline) for single lines on its road. */
+const SIDE_LANES = [7.5, -7, 12.1, -11.6];
+/** A single line this close to a loop line counts as on the same road. */
+const SIDE_LANE_SNAP = 5;
+
+/**
+ * Moves each single line into a lane beside any loop line it shares a road
+ * with, so neither hides the other. Singles that also share a road with each
+ * other take different lanes. A line that never meets a loop is returned as is.
+ */
+export function sideLaneLines(
+  singles: ProjectedPoint[][],
+  loops: ProjectedPoint[][],
+): ProjectedPoint[][] {
+  const laned: { raw: ProjectedPoint[]; lane: number }[] = [];
+  return singles.map((pts) => {
+    const raw = pointsAlong(pts, 2, 0).map((s) => s.p);
+    const onLoop = raw.map((p) =>
+      loops
+        .map((loop) => nearestOnPolyline(loop, p))
+        .find((near) => near.d <= SIDE_LANE_SNAP),
+    );
+    if (onLoop.filter(Boolean).length < 10) return pts;
+    const taken = new Set(
+      laned
+        .filter(
+          (other) =>
+            raw.filter(
+              (p) => nearestOnPolyline(other.raw, p).d <= SIDE_LANE_SNAP,
+            ).length >= 10,
+        )
+        .map((other) => other.lane),
+    );
+    const lane = SIDE_LANES.findIndex((_, i) => !taken.has(i));
+    if (lane < 0) return pts;
+    laned.push({ raw, lane });
+    const offset = SIDE_LANES[lane];
+    return raw.map((p, i) => {
+      const near = onLoop[i];
+      return near
+        ? {
+            x: near.q.x - near.dir.y * offset,
+            y: near.q.y + near.dir.x * offset,
+          }
+        : p;
+    });
+  });
 }
 
 /** Dash patterns for non-loop routes, so lines differ beyond color. */
@@ -710,6 +797,8 @@ function wrapText(
 }
 
 const MAX_LABEL_CHARS = 30;
+const LEADER_GAP = 3;
+const EXIT_TAG_PAD = 2.5;
 
 /**
  * A stop name short enough for a map label: merged names ("CEAT Lecture
@@ -1254,25 +1343,38 @@ export async function renderTransitMapPdf(input: {
       }
     }
 
-    // Routes: a white casing, then the line itself. Loops draw both travel
-    // directions side by side (right-hand traffic: each on its own right).
+    // Routes: every white casing first, then the lines, so no casing erases
+    // another route. Loops draw both travel directions side by side
+    // (right-hand traffic: each on its own right). A single line that shares
+    // a road with a loop runs in its own lane beside it.
     const routeLines = new Map<string, ProjectedPoint[]>();
     const arrows: { pts: ProjectedPoint[]; color: RGB; hollow: boolean }[] = [];
+    const loopLines: ProjectedPoint[][] = [];
     for (const route of drawnRoutes) {
       const source =
         route.line && route.line.length >= 2 ? route.line : route.stops;
       const pts = source.map(proj);
       routeLines.set(route.id, pts);
-      const color = hexToRgb(route.color);
-      const style = styles.get(route.id);
-      const loop = isLoopRoute(route);
-      page.drawSvgPath(pathOf(pts), {
+      if (isLoopRoute(route)) loopLines.push(pts);
+    }
+    const singles = drawnRoutes.filter((route) => !isLoopRoute(route));
+    sideLaneLines(
+      singles.map((route) => routeLines.get(route.id)!),
+      loopLines,
+    ).forEach((pts, i) => routeLines.set(singles[i].id, pts));
+    for (const route of drawnRoutes) {
+      page.drawSvgPath(pathOf(routeLines.get(route.id)!), {
         ...svgAnchor,
         borderColor: WHITE,
-        borderWidth: loop ? 12 : 7.5,
+        borderWidth: isLoopRoute(route) ? 12 : 7.5,
         borderLineCap: 1,
       });
-      if (loop) {
+    }
+    for (const route of drawnRoutes) {
+      const pts = routeLines.get(route.id)!;
+      const color = hexToRgb(route.color);
+      const style = styles.get(route.id);
+      if (isLoopRoute(route)) {
         // Kaliwa solid with filled arrows; Kanan its own hue, dashed and
         // hollow with hollow arrows, so the two part even in grayscale.
         const revColor = reverseColorOf(route);
@@ -1308,6 +1410,7 @@ export async function renderTransitMapPdf(input: {
           borderWidth: 4,
           borderDashArray: style?.dash ?? undefined,
         });
+        if (isOneWayLoop(route)) arrows.push({ pts, color, hollow: false });
       }
     }
     // Direction chevrons in travel order, offset so the two directions do
@@ -1331,11 +1434,15 @@ export async function renderTransitMapPdf(input: {
     });
 
     // Stop positions: snapped onto their route line when it passes close,
-    // so a road-routed line and its stops never visibly disagree.
+    // so a road-routed line and its stops never visibly disagree. A stop
+    // shared with a loop sits on the loop, between the lanes beside it.
+    const loopIds = drawnRoutes.filter(isLoopRoute).map((r) => r.id);
     const stopPos = new Map<string, ProjectedPoint>();
     for (const stop of stops) {
       const raw = proj(stop);
-      const line = routeLines.get(stop.routeIds[0]);
+      const line = routeLines.get(
+        stop.routeIds.find((id) => loopIds.includes(id)) ?? stop.routeIds[0],
+      );
       const near = line ? nearestOnPolyline(line, raw) : null;
       stopPos.set(stop.key, near && near.d < 14 ? near.q : raw);
     }
@@ -1668,6 +1775,8 @@ export async function renderTransitMapPdf(input: {
         true,
         true,
       );
+      spec.w += 4 * EXIT_TAG_PAD;
+      spec.h += 2 * EXIT_TAG_PAD;
       // Beside the arrow along its edge, sliding away until clear of lines.
       const { x, y } = exit.p;
       const { w, h } = spec;
@@ -1766,22 +1875,29 @@ export async function renderTransitMapPdf(input: {
     for (const spec of specs) {
       const box = placed.get(spec.id);
       if (!box) continue;
-      if (box.leader) {
-        const cx = Math.min(Math.max(spec.ax, box.x), box.x + box.w);
-        const cy = Math.min(Math.max(spec.ay, box.y), box.y + box.h);
-        const dx = cx - spec.ax;
-        const dy = cy - spec.ay;
-        const len = Math.hypot(dx, dy) || 1;
-        page.drawLine({
-          start: {
-            x: spec.ax + (dx / len) * spec.gap,
-            y: spec.ay + (dy / len) * spec.gap,
-          },
-          end: { x: cx, y: cy },
-          thickness: 0.7,
-          color: spec.color,
+      const cx = Math.min(Math.max(spec.ax, box.x), box.x + box.w);
+      const cy = Math.min(Math.max(spec.ay, box.y), box.y + box.h);
+      const dx = cx - spec.ax;
+      const dy = cy - spec.ay;
+      const len = Math.hypot(dx, dy) || 1;
+      const from = Math.min(Math.max(spec.gap - LEADER_GAP, 3.5), len);
+      const start = {
+        x: spec.ax + (dx / len) * from,
+        y: spec.ay + (dy / len) * from,
+      };
+      const end = { x: cx, y: cy };
+      page.drawLine({ start, end, thickness: 2.6, color: WHITE });
+      page.drawLine({ start, end, thickness: 0.9, color: spec.color });
+      if (spec.spots)
+        page.drawRectangle({
+          x: box.x,
+          y: box.y,
+          width: box.w,
+          height: box.h,
+          color: WHITE,
+          borderColor: spec.color,
+          borderWidth: 0.8,
         });
-      }
       const lines = spec.text.split("\n");
       lines.forEach((line, li) => {
         haloText(
@@ -1789,10 +1905,15 @@ export async function renderTransitMapPdf(input: {
           line,
           // Two-line labels left of their anchor read right-aligned.
           box.x +
-            (box.x < spec.ax
-              ? box.w - spec.font.widthOfTextAtSize(line, spec.size)
-              : 0),
-          box.y + spec.size * 0.2 + (lines.length - 1 - li) * spec.size * 1.15,
+            (spec.spots
+              ? 2 * EXIT_TAG_PAD
+              : box.x < spec.ax
+                ? box.w - spec.font.widthOfTextAtSize(line, spec.size)
+                : 0),
+          box.y +
+            (spec.spots ? EXIT_TAG_PAD : 0) +
+            spec.size * 0.2 +
+            (lines.length - 1 - li) * spec.size * 1.15,
           spec.size,
           spec.font,
           spec.color,
