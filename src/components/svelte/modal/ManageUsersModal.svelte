@@ -294,38 +294,37 @@
               >
                 {user.isActive ? "Deactivate" : "Reactivate"}
               </button>
+              {#if pendingRole?.user.id === user.id}
+                <div
+                  class="role-confirm"
+                  class:role-confirm--admin={pendingRole.role === "admin"}
+                  role="alertdialog"
+                  aria-labelledby="role-confirm-title"
+                  aria-describedby="role-confirm-body"
+                >
+                  <p class="role-confirm-title" id="role-confirm-title">
+                    Make {pendingRole.user.displayName} {ROLE_NAMES[pendingRole.role]}?
+                  </p>
+                  <p class="role-confirm-body" id="role-confirm-body">
+                    {ROLE_CONSEQUENCES[pendingRole.role]}
+                  </p>
+                  <div class="settings-danger-actions">
+                    <EntityEditorSubmitButton
+                      label="Cancel"
+                      variant="secondary"
+                      onclick={cancelRoleChange}
+                    />
+                    <EntityEditorSubmitButton
+                      label={pendingRole.role === "admin" ? "Make admin" : "Change role"}
+                      variant={pendingRole.role === "admin" ? "danger" : "primary"}
+                      onclick={confirmRoleChange}
+                    />
+                  </div>
+                </div>
+              {/if}
             </li>
           {/each}
         </ul>
-
-        {#if pendingRole}
-          <div
-            class="role-confirm"
-            class:role-confirm--admin={pendingRole.role === "admin"}
-            role="alertdialog"
-            aria-labelledby="role-confirm-title"
-            aria-describedby="role-confirm-body"
-          >
-            <p class="role-confirm-title" id="role-confirm-title">
-              Make {pendingRole.user.displayName} {ROLE_NAMES[pendingRole.role]}?
-            </p>
-            <p class="role-confirm-body" id="role-confirm-body">
-              {ROLE_CONSEQUENCES[pendingRole.role]}
-            </p>
-            <div class="settings-danger-actions">
-              <EntityEditorSubmitButton
-                label="Cancel"
-                variant="secondary"
-                onclick={cancelRoleChange}
-              />
-              <EntityEditorSubmitButton
-                label={pendingRole.role === "admin" ? "Make admin" : "Change role"}
-                variant={pendingRole.role === "admin" ? "danger" : "primary"}
-                onclick={confirmRoleChange}
-              />
-            </div>
-          </div>
-        {/if}
 
         {#if invites.length > 0}
           <section class="settings-section">
@@ -501,6 +500,7 @@
     color: var(--theme-text-2, hsl(0, 0%, 45%));
   }
   .role-confirm {
+    flex: 1 1 100%;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -538,6 +538,7 @@
   }
   .user-row {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem;
