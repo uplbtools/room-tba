@@ -1,3 +1,10 @@
+## [2.45.1](https://github.com/uplbtools/room-tba/compare/v2.45.0...v2.45.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **transit:** DLTB Buendia bus boards at CPark, 5:30 AM Mon to Sat ([#1504](https://github.com/uplbtools/room-tba/issues/1504)) ([6377620](https://github.com/uplbtools/room-tba/commit/63776203beb607f04fb88ee057fc9074d7151f8f))
+
 # [2.44.0](https://github.com/uplbtools/room-tba/compare/v2.43.0...v2.44.0) (2026-11-15)
 
 ### Features
