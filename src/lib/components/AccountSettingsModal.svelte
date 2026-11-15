@@ -22,6 +22,7 @@
 		username: string;
 		displayName: string;
 		email: string | null;
+		emailVerified: boolean;
 		role: 'admin' | 'editor' | 'contributor';
 		hasPassword: boolean;
 		linkedGoogle: boolean;
@@ -55,6 +56,9 @@
 	let emailRequestPending = $state(false);
 	let emailRequestSent = $state(false);
 	let emailError = $state<string | null>(null);
+	let resendingVerification = $state(false);
+	let verificationSent = $state(false);
+	let verificationError = $state<string | null>(null);
 
 	let currentPasswordDraft = $state('');
 	let newPasswordDraft = $state('');
@@ -182,6 +186,27 @@
 			emailError = 'Network error. Try again.';
 		} finally {
 			emailRequestPending = false;
+		}
+	}
+
+	async function resendVerification() {
+		resendingVerification = true;
+		verificationError = null;
+		try {
+			const res = await fetch('/api/account/resend-verification', {
+				method: 'POST',
+				credentials: 'same-origin'
+			});
+			const data = await res.json().catch(() => ({}) as { error?: string });
+			if (!res.ok) {
+				verificationError = data.error ?? 'Could not send a confirmation link.';
+				return;
+			}
+			verificationSent = true;
+		} catch {
+			verificationError = 'Network error. Try again.';
+		} finally {
+			resendingVerification = false;
 		}
 	}
 
@@ -408,11 +433,39 @@
 						{/if}
 					</section>
 
-					<EntityEditorFormField label="Email" inputId="account-email">
+					<EntityEditorFormField
+						label="Email"
+						inputId="account-email"
+						hint={profile.email
+							? profile.emailVerified
+								? 'Confirmed'
+								: 'Not confirmed. Confirm it to reset your password by email.'
+							: undefined}
+					>
 						{#snippet control()}
 							<input id="account-email" value={profile?.email ?? '(none)'} disabled />
 						{/snippet}
 					</EntityEditorFormField>
+					{#if profile.email && !profile.emailVerified}
+						{#if verificationError}
+							<EntityEditorMessage variant="error" message={verificationError} />
+						{/if}
+						{#if verificationSent}
+							<EntityEditorMessage
+								variant="success"
+								message="Check your inbox for a confirmation link."
+							/>
+						{:else}
+							<button
+								type="button"
+								class="settings-link-btn"
+								disabled={resendingVerification}
+								onclick={resendVerification}
+							>
+								{resendingVerification ? 'Sending…' : 'Send confirmation link'}
+							</button>
+						{/if}
+					{/if}
 					{#if !showChangeEmail}
 						<button
 							type="button"

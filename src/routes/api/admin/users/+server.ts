@@ -2,7 +2,8 @@ import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import {
 	AccountActionError,
 	createAdminUser,
-	listAllAdminUsers
+	listAllAdminUsers,
+	sendEmailVerification
 } from '#lib/services/admin/user.js';
 import type { RequestHandler } from './$types';
 
@@ -51,6 +52,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 			password: body.password,
 			role
 		});
+		if (user.email) await sendEmailVerification(user.id);
 		return json({ success: true, user }, 201);
 	} catch (error) {
 		if (error instanceof AccountActionError) {

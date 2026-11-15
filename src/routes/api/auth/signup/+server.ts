@@ -7,7 +7,11 @@ import {
 import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
 import { sharedRateLimit } from '#lib/api/rate-limit-db.js';
 import { type SignupInput, validateContributorSignup } from '#lib/auth/contributor-signup.js';
-import { AccountActionError, createAdminUser } from '#lib/services/admin/user.js';
+import {
+	AccountActionError,
+	createAdminUser,
+	sendEmailVerification
+} from '#lib/services/admin/user.js';
 import { verifyTurnstileToken } from '#lib/utils/turnstile/turnstile.js';
 import type { RequestHandler } from './$types';
 
@@ -71,6 +75,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 			throw error;
 		}
+		if (user.email) await sendEmailVerification(user.id);
 
 		let token: string;
 		try {
