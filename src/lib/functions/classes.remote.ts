@@ -21,7 +21,7 @@ export const getClassesByCourseCode = query(
 				type: classesTable.type,
 				schedule: classesTable.schedule,
 				roomId: classesTable.roomId,
-				roomCode: roomsTable.roomCode,
+				roomCode: roomsTable.code,
 				directions: roomsTable.directions
 			})
 			.from(classesTable)

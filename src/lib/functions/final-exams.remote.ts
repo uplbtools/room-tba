@@ -19,7 +19,7 @@ export const getFinalExams = query(
 				section: finalExamsTable.section,
 				courseTitle: finalExamsTable.courseTitle,
 				roomId: finalExamsTable.roomId,
-				roomCode: roomsTable.roomCode,
+				roomCode: roomsTable.code,
 				examDate: finalExamsTable.examDate,
 				startsAt: finalExamsTable.startsAt,
 				endsAt: finalExamsTable.endsAt,
@@ -31,7 +31,7 @@ export const getFinalExams = query(
 				and(
 					eq(finalExamsTable.termId, termId),
 					courseCode ? eq(finalExamsTable.courseCode, courseCode) : undefined,
-					roomCode ? eq(roomsTable.roomCode, roomCode) : undefined
+					roomCode ? eq(roomsTable.code, roomCode) : undefined
 				)
 			)
 			.orderBy(finalExamsTable.examDate, finalExamsTable.startsAt, finalExamsTable.courseCode);
