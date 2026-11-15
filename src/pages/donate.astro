@@ -16,7 +16,6 @@ import SiteFooter from "../components/SiteFooter.astro";
     </a>
 
     <header class="hero">
-      <p class="eyebrow">Support the project</p>
       <h1>Buy the volunteers a kape</h1>
       <p class="lede">
         Room TBA and the rest of UPLB Tools are free, open-source, and run by
@@ -63,7 +62,7 @@ import SiteFooter from "../components/SiteFooter.astro";
           target="_blank"
           rel="noopener noreferrer">PayMongo</a
         > via QR Ph, which works with GCash, Maya, and bank apps. We never see
-        your payment details. ₱10 minimum. See
+        your payment details. The minimum is ₱10. See
         our <a href="/terms">Terms</a> and <a href="/privacy"
           >Privacy Policy</a
         >.
@@ -89,9 +88,9 @@ import SiteFooter from "../components/SiteFooter.astro";
 
   const params = new URLSearchParams(location.search);
   if (params.get("success")) {
-    showStatus("Salamat! Your donation went through. 💛", "success");
+    showStatus("Salamat! Your donation went through.", "success");
   } else if (params.get("cancelled")) {
-    showStatus("Checkout cancelled — no charge was made.", "info");
+    showStatus("Checkout was cancelled. No charge was made.", "info");
   }
 
   for (const btn of document.querySelectorAll<HTMLButtonElement>(".amount")) {
@@ -129,12 +128,12 @@ import SiteFooter from "../components/SiteFooter.astro";
         error?: string;
       };
       if (!res.ok || !data.checkout_url) {
-        showStatus(data.error ?? "Something went wrong — try again.", "error");
+        showStatus(data.error ?? "Something went wrong. Try again.", "error");
         return;
       }
       location.href = data.checkout_url;
     } catch {
-      showStatus("Network error — check your connection and retry.", "error");
+      showStatus("Network error. Check your connection and try again.", "error");
     } finally {
       submitEl.disabled = false;
       submitEl.textContent = "Donate";

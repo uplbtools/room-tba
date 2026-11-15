@@ -4,7 +4,6 @@ import Layout from "@layouts/Layout.astro";
 const panels = [
   {
     step: "01",
-    eyebrow: "ROOM TBA",
     title: "Course\nPlanner",
     copy: "Build a possible schedule before you register.",
     detail: "room-tba.uplb.tools/planner",
@@ -12,7 +11,6 @@ const panels = [
   },
   {
     step: "02",
-    eyebrow: "START HERE",
     title: "Choose the\nterm.",
     copy: "Open Planner. The term menu keeps the course list and timetable on the same semester.",
     detail: "The planner opens from the map or /planner.",
@@ -21,7 +19,6 @@ const panels = [
   },
   {
     step: "03",
-    eyebrow: "ADD A SECTION",
     title: "Search.\nOpen. Add.",
     copy: "Search a course code, open its available sections, then use Add on the section that fits.",
     detail: "Lecture, lab, and recitation schedules stay together.",
@@ -30,9 +27,8 @@ const panels = [
   },
   {
     step: "04",
-    eyebrow: "CHECK THE WEEK",
     title: "Spot clashes\nbefore they do.",
-    copy: "The week view places each section by day and time. The conflict badge flags overlaps. Plans save on this device; Share creates a link.",
+    copy: "The week view places each section by day and time. The conflict badge flags overlaps. Plans save on this device, and Share creates a link.",
     detail: "Course offerings can still change up to change of matriculation.",
     image: "/pubmat/planner-start.png",
     imageAlt: "Room TBA Class Planner weekly timetable",
@@ -42,7 +38,7 @@ const panels = [
 
 <Layout
   title="Course Planner guide | Room TBA"
-  description="Four-panel guide to the Room TBA Course Planner."
+  description="This is a four-panel guide to the Room TBA Course Planner."
   canonicalPath="/pubmat/course-planner/"
   robots="noindex,nofollow"
   showAppLoadingShell={false}
@@ -51,7 +47,6 @@ const panels = [
     {panels.map((panel) => (
       <section class:list={["panel", panel.image ? "panel--screen" : "panel--cover"]}>
         <div class="panel__topline">
-          <span>{panel.eyebrow}</span>
           <span>{panel.step} / 04</span>
         </div>
 
