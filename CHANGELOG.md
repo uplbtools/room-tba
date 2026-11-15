@@ -1,3 +1,15 @@
+# [2.42.0](https://github.com/uplbtools/room-tba/compare/v2.41.0...v2.42.0) (2026-11-15)
+
+
+### Bug Fixes
+
+* **transit:** clearing the search from an open stop removes the route ([#1481](https://github.com/uplbtools/room-tba/issues/1481)) ([fcf63a3](https://github.com/uplbtools/room-tba/commit/fcf63a3494fe9187e51d925446f0a7c4a5c74ec9))
+
+
+### Features
+
+* **transit:** route panel title as a jeepney signboard ([#1484](https://github.com/uplbtools/room-tba/issues/1484)) ([1d1fbf7](https://github.com/uplbtools/room-tba/commit/1d1fbf7c7a131dea2b91139e278ab28c026758cf))
+
 ## [2.40.7](https://github.com/uplbtools/room-tba/compare/v2.40.6...v2.40.7) (2026-11-15)
 
 
