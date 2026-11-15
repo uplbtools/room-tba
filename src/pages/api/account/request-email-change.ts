@@ -41,7 +41,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       return json({ error: error.message }, error.status);
     }
     console.error("Request email change failed:", error);
-    return json({ error: "Failed to send confirmation email." }, 500);
+    return json({ error: "Couldn't send confirmation email." }, 500);
   }
 };
 

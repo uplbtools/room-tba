@@ -19,7 +19,7 @@ export const POST: APIRoute = async ({ cookies }) => {
   } catch (error) {
     console.error("Sign out everywhere failed:", error);
     return new Response(
-      JSON.stringify({ error: "Could not sign out other devices. Try again." }),
+      JSON.stringify({ error: "Couldn't sign out other devices. Try again." }),
       {
         status: 500,
         headers: {

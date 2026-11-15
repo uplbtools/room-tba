@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ url, request }) => {
     return json({ success: true, topic: target.topic });
   } catch (error) {
     console.error("Unsubscribe failed:", error);
-    return json({ error: "Could not unsubscribe. Try again." }, 500);
+    return json({ error: "Couldn't unsubscribe. Try again." }, 500);
   }
 };
 

@@ -120,7 +120,7 @@ export const POST: APIRoute = async ({ request }) => {
       return json(
         {
           error:
-            "Sign-up is not configured on this server. Contact the site maintainer.",
+            "Sign-up isn't configured on this server. Contact the site maintainer.",
         },
         503,
       );

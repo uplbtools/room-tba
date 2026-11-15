@@ -68,7 +68,7 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: error.message }, error.status);
     }
     console.error("Accept invite failed:", error);
-    return json({ error: "Could not finish the invite. Try again." }, 500);
+    return json({ error: "Couldn't finish the invite. Try again." }, 500);
   }
 };
 

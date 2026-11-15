@@ -50,7 +50,7 @@ export const POST: APIRoute = async ({ request }) => {
   if (denied) {
     return rateLimitResponse(
       denied.resetAt,
-      "That is a lot of reports at once. Try again in a few minutes.",
+      "That's a lot of reports at once. Try again in a few minutes.",
     );
   }
   const declared = Number(request.headers.get("content-length"));
@@ -81,7 +81,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (
       !reportMatchesRoute(route, routeDirections(route.id) !== null, report)
     ) {
-      return json({ error: "That stop is not on this route." }, 400);
+      return json({ error: "That stop isn't on this route." }, 400);
     }
 
     const result = await recordJeepReport(report);

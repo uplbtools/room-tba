@@ -47,6 +47,6 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       : json({ error: "Jeepney route not found." }, 404);
   } catch (error) {
     console.error("Failed to create jeepney stop:", error);
-    return json({ error: "Failed to add stop." }, 500);
+    return json({ error: "Couldn't add stop." }, 500);
   }
 };

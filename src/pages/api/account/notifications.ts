@@ -16,7 +16,7 @@ export const GET: APIRoute = async ({ cookies }) => {
     return json(await getNotificationPreferences(auth.session.id));
   } catch (error) {
     console.error("Load notification preferences failed:", error);
-    return json({ error: "Could not load email preferences." }, 500);
+    return json({ error: "Couldn't load email preferences." }, 500);
   }
 };
 
@@ -42,7 +42,7 @@ export const PATCH: APIRoute = async ({ cookies, request }) => {
     return json(await updateNotificationPreferences(auth.session.id, patch));
   } catch (error) {
     console.error("Update notification preferences failed:", error);
-    return json({ error: "Could not save email preferences." }, 500);
+    return json({ error: "Couldn't save email preferences." }, 500);
   }
 };
 

@@ -22,7 +22,7 @@ export const GET: APIRoute = async ({ cookies, url }) => {
     if (isMissingSchemaError(error))
       return json({ entries: [], nextBefore: null });
     console.error("Audit log read failed:", error);
-    return json({ error: "Could not load the audit log." }, 500);
+    return json({ error: "Couldn't load the audit log." }, 500);
   }
 };
 

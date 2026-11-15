@@ -25,7 +25,7 @@ export const GET = (async ({ url }) => {
     });
   } catch {
     return json(
-      { error: "Failed to fetch class schedules", success: false },
+      { error: "Couldn't fetch class schedules", success: false },
       500,
     );
   }

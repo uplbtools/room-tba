@@ -35,7 +35,7 @@ export const GET: APIRoute = async ({ request, url }) => {
     return json({ address });
   } catch (error) {
     console.error("Reverse geocode failed:", error);
-    return json({ error: "Could not look up the address." }, 502);
+    return json({ error: "Couldn't look up the address." }, 502);
   }
 };
 

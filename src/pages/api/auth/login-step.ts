@@ -95,7 +95,7 @@ export const POST: APIRoute = async ({ request }) => {
             ip,
           });
           return json(
-            { error: "That code did not work. Try the newest one." },
+            { error: "That code didn't work. Try the newest one." },
             400,
           );
         }

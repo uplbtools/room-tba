@@ -23,7 +23,7 @@ import { logNotificationEmitFailure } from "@lib/notifications/proposal-events";
 export const prerender = false;
 
 const RATE_LIMIT_MESSAGE =
-  "Thanks — that is a lot of feedback at once. Try again in a few minutes.";
+  "Thanks, that's a lot of feedback at once. Try again in a few minutes.";
 
 export const POST: APIRoute = async ({ request }) => {
   // The IP only forms a hashed rate-limit key; it is never stored with the
@@ -64,7 +64,7 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (err) {
     console.error("Failed to store feedback:", err);
     return errorResponse(
-      "Could not send your message. Try again, or reach us on Discord or Messenger.",
+      "Couldn't send your message. Try again, or reach us on Discord or Messenger.",
       500,
     );
   }

@@ -42,7 +42,7 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: error.message }, error.status);
     }
     console.error("Verify email failed:", error);
-    return json({ error: "Could not confirm your email. Try again." }, 500);
+    return json({ error: "Couldn't confirm your email. Try again." }, 500);
   }
 };
 

@@ -51,7 +51,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       return json({ error: error.message }, error.status);
     }
     console.error("Create staff invite failed:", error);
-    return json({ error: "Failed to create invite." }, 500);
+    return json({ error: "Couldn't create invite." }, 500);
   }
 };
 

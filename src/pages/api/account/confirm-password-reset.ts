@@ -61,7 +61,7 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: error.message }, error.status);
     }
     console.error("Confirm password reset failed:", error);
-    return json({ error: "Failed to reset password." }, 500);
+    return json({ error: "Couldn't reset password." }, 500);
   }
 };
 

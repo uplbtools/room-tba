@@ -28,7 +28,7 @@ export const GET: APIRoute = async ({ cookies }) => {
     return json(await getMfaStatus(auth.session));
   } catch (error) {
     console.error("MFA status failed:", error);
-    return json({ error: "Could not load two-step verification." }, 500);
+    return json({ error: "Couldn't load two-step verification." }, 500);
   }
 };
 
@@ -76,7 +76,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       }
       case "disable": {
         if (!(await verifyMfaCode(auth.session.id, code))) {
-          return json({ error: "That code did not work." }, 400);
+          return json({ error: "That code didn't work." }, 400);
         }
         await disableMfa(auth.session);
         await audit("mfa.disabled");
@@ -84,7 +84,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       }
       case "recovery_codes": {
         if (!(await verifyMfaCode(auth.session.id, code))) {
-          return json({ error: "That code did not work." }, 400);
+          return json({ error: "That code didn't work." }, 400);
         }
         return json({
           recoveryCodes: await regenerateRecoveryCodes(auth.session.id),

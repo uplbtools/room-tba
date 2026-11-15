@@ -129,7 +129,7 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
 
     console.error("Failed to update organization:", err);
     return new Response(
-      JSON.stringify({ error: "Failed to save organization" }),
+      JSON.stringify({ error: "Couldn't save organization" }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
