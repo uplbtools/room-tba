@@ -985,7 +985,7 @@ export async function searchLocalRooms(
 /** Offline alias lookup against the PGlite cache (#155 follow-up). */
 export async function searchLocalAliases(
   searchString: string,
-): Promise<{ alias: string; value: string }[]> {
+): Promise<{ alias: string; value: string; targetType: string }[]> {
   const normalized = normalizeAlias(searchString);
   if (!normalized) return [];
   try {
@@ -995,18 +995,26 @@ export async function searchLocalAliases(
       `
       SELECT
         a.alias,
-        COALESCE(b.building_name, a.building_name) AS value,
+        COALESCE(b.building_name, p.name, a.building_name) AS value,
+        a.target_type AS "targetType",
         a.normalized_alias AS "normalizedAlias"
       FROM aliases AS a
       LEFT JOIN buildings AS b
         ON a.target_type = 'building' AND b.id = a.target_id
-      WHERE COALESCE(b.building_name, a.building_name) IS NOT NULL
+      LEFT JOIN places AS p
+        ON a.target_type = 'place' AND p.id = a.target_id
+      WHERE COALESCE(b.building_name, p.name, a.building_name) IS NOT NULL
         AND (a.normalized_alias = $1 OR a.normalized_alias LIKE $2)
       ORDER BY CASE WHEN a.normalized_alias = $1 THEN 0 ELSE 1 END, a.alias
       LIMIT 12
       `,
       [normalized, `${normalized}%`],
-    )) as Results<{ alias: string; value: string; normalizedAlias: string }>;
+    )) as Results<{
+      alias: string;
+      value: string;
+      targetType: string;
+      normalizedAlias: string;
+    }>;
 
     const seen = new Set<string>();
     return data.rows.filter((row) => {
