@@ -95,7 +95,8 @@ export const ROUTE_BOARDING_NOTES: Readonly<Record<string, string>> = {
 export const ROUTE_PRINT_NOTES: Readonly<Record<string, string>> = {
   forestry:
     "Sumakay sa Forestry Jeep Terminal malapit sa Big Belly's pag paakyat, at sa Upper Forestry Jeep Terminal pag pababa.",
-  "kaliwa-kanan": "Kumakaliwa sa gate ang Kaliwa at kumakanan ang Kanan.",
+  "kaliwa-kanan":
+    "Kumakaliwa sa gate ang Kaliwa at kumakanan ang Kanan. Hanggang Olivarez Plaza Mall ang OLIVAREZ, Jollibee sa Lopez Ave ang JUNCTION, at Municipal Hall ang BAYAN.",
 };
 
 /** Forestry's two trips; also written to the database by scripts/fix-transit-data.ts. */

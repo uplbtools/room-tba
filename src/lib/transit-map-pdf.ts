@@ -2580,22 +2580,16 @@ export async function renderTransitMapPdf(input: {
   }
 
   // Town jeeps and buses are not drawn on the map, so they are listed.
-  const townJeeps = [
-    "Crossing / SM Calamba",
-    "Bayan",
-    "Junction",
-    "San Pablo",
-    "Sta. Cruz",
-  ];
+  const townJeeps = ["Crossing / SM Calamba", "San Pablo", "Sta. Cruz"];
   const townTexts = [
     "Mula PHP 14 ang pamasahe, depende sa layo.",
-    "PHP 30 ang pa-Calamba Crossing, 25 discounted.",
+    "PHP 30 ang pa-SM Calamba (Crossing), 25 discounted.",
   ];
   const busTexts = [
-    "May DLTB bus papuntang UP Diliman.",
-    "5 AM, 9 AM at 6 PM ang alis nito galing UP Diliman.",
-    "May DLTB bus din pa-Buendia sa CPark.",
-    "Mag-book ng dalawang ito sa dltb.ph.",
+    "May DLTB bus papuntang UP Diliman, 5 AM, 1 PM at 6 PM ang alis sa UPLB.",
+    "Pabalik, 5 AM, 9 AM at 6 PM ang alis galing UP Diliman.",
+    "May DLTB bus din pa-Buendia sa CPark, 5:30 AM ang alis.",
+    "PHP 197, Lunes hanggang Sabado. Mag-book sa dltb.ph.",
     "Sa Olivarez Plaza Mall, abangan lang ang bus pa-Buendia sa bus stop.",
   ];
   const townLines = townTexts.flatMap((t) => wrapText(t, font, BODY, PANEL_W));
@@ -2734,7 +2728,9 @@ export async function renderTransitMapPdf(input: {
                       ? "Kanan o Kaliwa"
                       : `Saan sasakay ng ${route.name.replace(/\s*(\/|\().*$/, "")}`,
                     texts: [route.boardingNote],
-                    towns: [],
+                    towns: isLoopRoute(route)
+                      ? ["Olivarez", "Junction", "Bayan"]
+                      : [],
                   },
                 ],
               },
@@ -2796,40 +2792,53 @@ export async function renderTransitMapPdf(input: {
           title("Jeeps sa Olivarez Plaza Mall");
           y -= townBoards(pg, x, y, w) + 2;
           fare("", "PHP 14", " pataas, depende sa layo");
-          fare("Calamba Crossing", "PHP 30", ", 25 discounted");
+          fare("", "PHP 30", " pa-Crossing, 25 discounted");
 
           y -= 14;
           title("Bus pa-Manila");
+          // Departure times from UPLB as dark chips.
+          const chips = (times: string[]) => {
+            y -= 2;
+            let cx = x;
+            for (const time of times) {
+              const cw = bold.widthOfTextAtSize(time, BODY) + 10;
+              pg?.drawSvgPath(roundRectPath(cx, y - 18, cw, 15, 3, pageH), {
+                x: 0,
+                y: pageH,
+                color: BOARD,
+              });
+              pg?.drawText(time, {
+                x: cx + 5,
+                y: y - 14,
+                size: BODY,
+                font: bold,
+                color: WHITE,
+              });
+              cx += cw + 5;
+            }
+            y -= 18;
+          };
           board("UP Diliman", SIGN_YELLOW, "DLTB");
-          y -= LEAD - 3;
-          text("Alis galing UP Diliman", x, BODY, font);
-          y -= 4;
-          let cx = x;
-          for (const time of ["5 AM", "9 AM", "6 PM"]) {
-            const cw = bold.widthOfTextAtSize(time, BODY) + 10;
-            pg?.drawSvgPath(roundRectPath(cx, y - 18, cw, 15, 3, pageH), {
-              x: 0,
-              y: pageH,
-              color: BOARD,
-            });
-            pg?.drawText(time, {
-              x: cx + 5,
-              y: y - 14,
-              size: BODY,
-              font: bold,
-              color: WHITE,
-            });
-            cx += cw + 5;
+          chips(["5 AM", "1 PM", "6 PM"]);
+          for (const l of wrapText(
+            "Pabalik galing UPD 5 AM, 9 AM at 6 PM.",
+            font,
+            BODY,
+            w,
+          )) {
+            y -= LEAD;
+            text(l, x, BODY, font);
           }
-          y -= 18 + LEAD;
-          text("Mag-book sa dltb.ph.", x, BODY, font);
           y -= 10;
           board("Buendia", SIGN_YELLOW, "DLTB sa CPark");
-          y -= LEAD - 3;
+          chips(["5:30 AM"]);
+          y -= LEAD;
+          text("PHP 197, Lunes hanggang Sabado.", x, BODY, font);
+          y -= LEAD;
           text("Mag-book sa dltb.ph.", x, BODY, font);
           y -= 4;
           for (const l of wrapText(
-            "Sa Olivarez Plaza Mall, abangan lang ang bus pa-Buendia sa bus stop.",
+            "Sa Olivarez, abangan lang sa bus stop ang bus pa-Buendia.",
             font,
             BODY,
             w,
@@ -2889,7 +2898,7 @@ export async function renderTransitMapPdf(input: {
         const col =
           own && fits(own)
             ? own
-            : columns.filter(fits).sort((p, q) => q.bottom - p.bottom)[0];
+            : columns.filter(fits).sort((p, q) => p.bottom - q.bottom)[0];
         if (!col) return true;
         let y = col.bottom - 12;
         if (block.band) {
@@ -2933,7 +2942,7 @@ export async function renderTransitMapPdf(input: {
               y - at[i]!.row * (TOWN_BOARD_H + 4),
               TOWN_BOARD_H,
               col.w,
-              [SIGN_RED, SIGN_RED],
+              [SIGN_GREEN, SIGN_GREEN],
             ),
           );
           y -= boardsH;
