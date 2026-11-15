@@ -1,10 +1,10 @@
 import type { ClassMapValue } from '#lib/utils/types.js';
-import { offeringGroupKey, parentLectureSection } from '../utils/class-offering-groups.js';
-import { findConflicts } from '../utils/planner/conflicts.js';
-import { mergePlannerState, parsePlanner, serializePlanner } from '../utils/planner/persist.js';
-import type { PlannedSection, PlannerPlan } from '../utils/planner/types.js';
-import { sectionNaturalKey } from '../utils/planner/types.js';
-import { PLANNER_LS_KEY } from './store-types.js';
+import { offeringGroupKey, parentLectureSection } from '#lib/utils/class-offering-groups.js';
+import { findConflicts } from '#lib/utils/planner/conflicts.js';
+import { mergePlannerState, parsePlanner, serializePlanner } from '#lib/utils/planner/persist.js';
+import type { PlannedSection, PlannerPlan } from '#lib/utils/planner/types.js';
+import { sectionNaturalKey } from '#lib/utils/planner/types.js';
+import { PLANNER_LS_KEY } from '../../store-types';
 
 function rowToPlannedSection(row: ClassMapValue): PlannedSection | null {
 	if (!row.courseCode || !row.section || !row.type) return null;

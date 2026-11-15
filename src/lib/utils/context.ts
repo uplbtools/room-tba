@@ -22,6 +22,8 @@ import type ToastStore from '#lib/stores/new/ui/ToastStore.svelte.ts';
 import type ModalStore from '#lib/stores/new/ui/ModalStore.svelte.ts';
 import type FloatingControlPanelStore from '#lib/stores/new/ui/FloatingControlPanelStore.svelte.js';
 import type EscapeActions from '#lib/stores/new/ui/EscapeActionStack.svelte.ts';
+import type TermStore from '#lib/stores/new/data/TermStore.svelte.ts';
+import type PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.ts';
 export type AppContextData =
 	| {
 			buildings: Building[];
@@ -75,3 +77,5 @@ export const [getSearchInfo, initSearchInfo] = createContext<SearchInfo>();
 export const [getToast, initToast] = createContext<ToastStore>();
 export const [getModalStore, initModalStore] = createContext<ModalStore>();
 export const [getEscapeActions, initEscapeActions] = createContext<EscapeActions>();
+export const [getTermStore, initTermStore] = createContext<TermStore>();
+export const [getPlannerStore, initPlannerStore] = createContext<PlannerStore>();
