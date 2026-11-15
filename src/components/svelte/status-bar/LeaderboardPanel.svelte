@@ -295,8 +295,8 @@
           {/each}
         </ul>
         <p>
-          The board starts over on the 1st of every month. Each month's top contributor
-          goes to the hall of fame.
+          The monthly board starts over on the 1st of every month. Each month's top
+          contributor goes to the hall of fame.
         </p>
       </details>
     </div>
