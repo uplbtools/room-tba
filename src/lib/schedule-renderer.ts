@@ -70,10 +70,10 @@ export class ScheduleRenderer {
       timeText: "#FFFFFF",
     },
     fonts: {
-      header: "bold 13px Inter, Arial, sans-serif",
-      time: "12px Inter, Arial, sans-serif",
-      course: "bold 12px Inter, Arial, sans-serif",
-      section: "10px Inter, Arial, sans-serif",
+      header: "bold 13px Figtree, Arial, sans-serif",
+      time: "12px Figtree, Arial, sans-serif",
+      course: "bold 12px Figtree, Arial, sans-serif",
+      section: "10px Figtree, Arial, sans-serif",
     },
   };
   courses: Course[] = [];

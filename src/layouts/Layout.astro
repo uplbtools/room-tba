@@ -13,7 +13,7 @@ import {
   SITE_URL,
   absoluteUrl,
 } from "@lib/site";
-import { darkThemeCss } from "@lib/theme";
+import { themeCss } from "@lib/theme";
 
 type StructuredData = Record<string, unknown>;
 
@@ -198,7 +198,7 @@ const shareTitle = ogTitle ?? title;
         });
       })();
     </script>
-    <style is:inline set:html={darkThemeCss()}></style>
+    <style is:inline set:html={themeCss()}></style>
 
     <style is:global>
       html,
@@ -208,14 +208,13 @@ const shareTitle = ogTitle ?? title;
 
       * {
         font-family:
-          "Inter",
+          "Figtree",
           system-ui,
           -apple-system,
           BlinkMacSystemFont,
           "Segoe UI",
           Roboto,
           sans-serif;
-        font-variation-settings: "opsz" 14;
       }
 
       :root {

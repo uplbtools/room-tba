@@ -172,7 +172,7 @@
     min-width: 0;
     margin: 0;
     color: var(--theme-text, #111);
-    font-family: Inter, system-ui, sans-serif;
+    font-family: Figtree, system-ui, sans-serif;
     font-size: 0.625rem;
     font-weight: 400;
     line-height: 1.2;

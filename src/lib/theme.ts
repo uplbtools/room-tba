@@ -2,8 +2,8 @@
  * Appearance: System / Light / Dark (Jakob audit macro 13).
  *
  * Components keep their light colors as the fallback of a token, e.g.
- * `background: var(--theme-surface, #fff)`. Light mode defines no tokens, so
- * it renders exactly as before; dark mode defines them all on <html> from
+ * `background: var(--theme-surface, #fff)`. Light mode defines only
+ * LIGHT_THEME_TOKENS; dark mode defines them all on <html> from
  * DARK_THEME_TOKENS below. The resolved theme lives on
  * `<html data-theme="light|dark">`, set before first paint by the inline
  * script in Layout.astro (which cannot import this module, so it repeats
@@ -98,24 +98,24 @@ export const DARK_THEME_TOKENS = {
   "surface-3": "#36312f",
   "surface-translucent": "rgb(33 29 28 / 0.9)",
   "surface-faint": "rgb(33 29 28 / 0.35)",
-  text: "#efe9e4",
-  "text-2": "#d3cac3",
-  "text-muted": "#b3aaa3",
+  text: "#ebe8e5",
+  "text-2": "#cbc7c3",
+  "text-muted": "#b3ada8",
   "text-faint": "#8e8580",
-  border: "#4a4442",
+  border: "#47413e",
   "border-strong": "#7a716d",
   "accent-text": "#f2a69c",
   "accent-soft": "#3a2422",
   "accent-border": "#8a4a44",
   "accent-fill": "#a8362b",
-  "danger-text": "#f2b8b5",
-  "amber-text": "#f3cf7a",
+  "danger-text": "#f28888",
+  "amber-text": "#f0b44c",
   "amber-soft": "#3a3020",
   "amber-border": "#7a6233",
-  "green-text": "#86d9b4",
+  "green-text": "#66cc90",
   "green-soft": "#1d332b",
   "green-border": "#3c6b58",
-  "blue-text": "#9cc5f7",
+  "blue-text": "#7ebff1",
   "blue-soft": "#1f2b3d",
   "blue-border": "#40597d",
   "purple-text": "#d7b4f2",
@@ -125,16 +125,32 @@ export const DARK_THEME_TOKENS = {
 
 export type ThemeToken = keyof typeof DARK_THEME_TOKENS;
 
-/**
- * CSS for the dark tokens. Screen only, so printing a page always comes out
- * light. Scoped to app pages (data-app-page); static pages such as /donate
- * still have only light styles.
- */
-export function darkThemeCss(): string {
-  const decls = Object.entries(DARK_THEME_TOKENS)
+/** Tokens shared with GradeSim (gradesim-website src/lib/styles/tokens.css). */
+export const LIGHT_THEME_TOKENS: Partial<Record<ThemeToken, string>> = {
+  text: "#2e2524",
+  "text-2": "#474747",
+  "text-muted": "#666666",
+  border: "#ead9d7",
+  "danger-text": "#b12525",
+  "amber-text": "#8a5d0f",
+  "green-text": "#1a7440",
+  "blue-text": "#2962a3",
+};
+
+const tokenDecls = (tokens: Partial<Record<ThemeToken, string>>) =>
+  Object.entries(tokens)
     .map(([name, value]) => `--theme-${name}:${value};`)
     .join("");
+
+/**
+ * CSS for the light and dark tokens. Dark is screen only, so printing a page
+ * always comes out light. Dark is scoped to app pages (data-app-page); static
+ * pages such as /donate still have only light styles.
+ */
+export function themeCss(): string {
+  const decls = tokenDecls(DARK_THEME_TOKENS);
   return (
+    `:root{${tokenDecls(LIGHT_THEME_TOKENS)}}` +
     "@media screen{" +
     `:root[data-theme="dark"][data-app-page]{color-scheme:dark;${decls}}` +
     ':root[data-theme="dark"][data-app-page] body{background:var(--theme-surface);color:var(--theme-text);}' +
