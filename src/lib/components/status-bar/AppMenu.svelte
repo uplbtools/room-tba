@@ -9,6 +9,7 @@
 	import LifeBuoy from '@lucide/svelte/icons/life-buoy';
 	import CircleHelp from '@lucide/svelte/icons/circle-help';
 	import Inbox from '@lucide/svelte/icons/inbox';
+	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import UserRound from '@lucide/svelte/icons/user-round';
 	import { onMount } from 'svelte';
 	import { formatCatalogUpdatedDate } from '#lib/constants/versioning/data-catalog.js';
@@ -183,6 +184,11 @@
 		modalStore.openModal('changelog');
 	}
 
+	function handleFeedback() {
+		closePanel();
+		modalStore.openModal('feedback');
+	}
+
 	function handleCoverage() {
 		closePanel();
 		modalStore.openModal('coverage');
@@ -315,6 +321,10 @@
 				<button type="button" class="app-menu__action map-chrome-chip" onclick={handleWhatsNew}>
 					<FileText size={14} aria-hidden="true" />
 					<span>What's new</span>
+				</button>
+				<button type="button" class="app-menu__action map-chrome-chip" onclick={handleFeedback}>
+					<MessageSquare size={14} aria-hidden="true" />
+					<span>Send feedback</span>
 				</button>
 				<button
 					type="button"
