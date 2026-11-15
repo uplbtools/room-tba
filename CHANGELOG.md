@@ -1,3 +1,16 @@
+# [2.40.0](https://github.com/uplbtools/room-tba/compare/v2.39.0...v2.40.0) (2026-11-15)
+
+
+### Bug Fixes
+
+* **copy:** plain sentences in the place panels, search and directions ([#1421](https://github.com/uplbtools/room-tba/issues/1421)) ([57260c2](https://github.com/uplbtools/room-tba/commit/57260c273f353674ef46ad9501346012680441ab))
+* **copy:** plain sentences in the wiki ([#1424](https://github.com/uplbtools/room-tba/issues/1424)) ([c4533b2](https://github.com/uplbtools/room-tba/commit/c4533b20a7525505bc889f07e82a823c179c6046))
+
+
+### Features
+
+* **transit-map:** jeepney signboards and readable labels on the printable sheet ([#1427](https://github.com/uplbtools/room-tba/issues/1427)) ([dc62248](https://github.com/uplbtools/room-tba/commit/dc622484222bf81505bf566e5498c68426c1990f))
+
 ## [2.38.4](https://github.com/uplbtools/room-tba/compare/v2.38.3...v2.38.4) (2026-11-12)
 
 
