@@ -96,13 +96,6 @@
 		}
 	}
 
-	$effect(() => {
-		const code = adminAuthStore.oauthError;
-		if (code) {
-			error = OAUTH_ERROR_MESSAGES[code] ?? 'Google sign-in failed. Try again.';
-		}
-	});
-
 	// Each time the modal opens, land on the tab the entry point requested
 	// (the "Sign up" menu entry opens straight into signup).
 	let wasOpen = false;
@@ -111,6 +104,13 @@
 			switchMode(adminAuthStore.loginInitialMode);
 		}
 		wasOpen = adminAuthStore.loginOpen;
+	});
+
+	$effect(() => {
+		const code = adminAuthStore.oauthError;
+		if (code) {
+			error = OAUTH_ERROR_MESSAGES[code] ?? 'Google sign-in failed. Try again.';
+		}
 	});
 
 	async function signInWithGoogle() {
