@@ -7,7 +7,7 @@ import type {
 	EventData,
 	OrgData,
 	PlaceData
-} from '#lib/utils/types';
+} from '#lib/utils/types.js';
 import type { ProposalEntityType } from '#lib/services/contribution/proposal-action.js';
 import {
 	invalidateLocalSyncKeys,
