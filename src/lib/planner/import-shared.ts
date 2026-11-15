@@ -1,5 +1,5 @@
 import { fetchAllClasses } from "@lib/classes-api";
-import type { DecodedSharePlan } from "./share-codec.js";
+import { expandSharedRefs, type DecodedSharePlan } from "./share-codec.js";
 import { sectionNaturalKey, type PlannedSection } from "./types.js";
 
 /**
@@ -37,7 +37,8 @@ export async function resolveSharedPlan(decoded: DecodedSharePlan): Promise<{
   );
 
   let missing = 0;
-  const sections = decoded.refs.map((ref): PlannedSection => {
+  const refs = expandSharedRefs(decoded.refs, pages.flat());
+  const sections = refs.map((ref): PlannedSection => {
     const row = rowsByKey.get(sectionNaturalKey(ref));
     if (!row) {
       missing++;
