@@ -37,6 +37,7 @@
 		"es-toolkit": "^1.52.0",
 		"maplibre-gl": "^6.10.0",
 		"nanoid": "^6.0.2",
+		"pdf-lib": "^1.17.1",
 		"pg": "^8.23.0",
 		"svelte-maplibre": "^2.0.0",
 		"three": "^0.186.0",
