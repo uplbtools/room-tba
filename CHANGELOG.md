@@ -1,3 +1,17 @@
+# [2.45.0](https://github.com/uplbtools/room-tba/compare/v2.44.0...v2.45.0) (2026-11-15)
+
+
+### Bug Fixes
+
+* **transit-map:** leader lines, exit tags and visible shared routes on the printable sheet ([#1459](https://github.com/uplbtools/room-tba/issues/1459)) ([9e3ff69](https://github.com/uplbtools/room-tba/commit/9e3ff690e4deda9a0bcc5be7fec188477ccacc50))
+* **transit-map:** the printable sheet had Kaliwa and Kanan swapped ([#1470](https://github.com/uplbtools/room-tba/issues/1470)) ([3352c9a](https://github.com/uplbtools/room-tba/commit/3352c9a9715a75e93611ba96e4d7dfc92c00d8ab))
+
+
+### Features
+
+* **place-sheet:** icon-only action pills on phones ([#1501](https://github.com/uplbtools/room-tba/issues/1501)) ([3a4962b](https://github.com/uplbtools/room-tba/commit/3a4962b3752d6811a4818fc349daf1fa2e75c0a3))
+* **ui:** buttons shrink slightly while pressed on touch screens ([#1483](https://github.com/uplbtools/room-tba/issues/1483)) ([309c875](https://github.com/uplbtools/room-tba/commit/309c875686075e1f7c3cbec2c463acf40ad2c216))
+
 ## [2.40.7](https://github.com/uplbtools/room-tba/compare/v2.40.6...v2.40.7) (2026-11-15)
 
 
