@@ -1,3 +1,10 @@
+## [2.40.1](https://github.com/uplbtools/room-tba/compare/v2.40.0...v2.40.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **leaderboard:** explain how points work, quieter layout ([#1419](https://github.com/uplbtools/room-tba/issues/1419)) ([56043d3](https://github.com/uplbtools/room-tba/commit/56043d3c60dbb88461dded6cdf3a20d1ae12f642))
+
 ## [2.38.4](https://github.com/uplbtools/room-tba/compare/v2.38.3...v2.38.4) (2026-11-12)
 
 
