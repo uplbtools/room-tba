@@ -39,7 +39,7 @@ describe("How Room TBA works", () => {
     expect(
       screen.getByRole("heading", { name: "How Room TBA works" }),
     ).toBeVisible();
-    expect(screen.getAllByText(/No account needed/)).toHaveLength(1);
+    expect(screen.getAllByText(/You don't need an account/)).toHaveLength(1);
     expect(document.querySelector(".hero-image")).toBeNull();
   });
 

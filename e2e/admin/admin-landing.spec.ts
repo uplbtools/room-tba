@@ -68,7 +68,7 @@ test.describe("admin landing page", () => {
     await expect(
       page.getByRole("heading", { name: "Editing Room TBA" }),
     ).toBeVisible();
-    const pending = page.getByText(/Request sent/);
+    const pending = page.getByText(/Your request was sent/);
     const box = page.getByLabel("What would you like to edit?");
     await expect(pending.or(box)).toBeVisible();
     if (await box.isVisible()) {

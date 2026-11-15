@@ -38,7 +38,7 @@
     <li>
       <Users size={18} aria-hidden="true" />
       <span>
-        <strong>Find an org.</strong> Search its name, or browse the Orgs
+        Search an org's name, or browse the Orgs
         category. Each listing shows its category, host building, and contact
         links.
       </span>
@@ -46,7 +46,7 @@
     <li>
       <Building2 size={18} aria-hidden="true" />
       <span>
-        <strong>Locate the tambayan.</strong> Listings pin to the org's own
+        Listings pin to the org's own
         location when known, otherwise to its host building, so directions
         always resolve.
       </span>
@@ -54,7 +54,7 @@
     <li>
       <Pencil size={18} aria-hidden="true" />
       <span>
-        <strong>Keep it accurate.</strong> Open any listing and hit
+        Open any listing and hit
         <em>Edit</em> to suggest a fix. Signed-in contributors have their
         suggestions credited to them.
       </span>
@@ -131,10 +131,6 @@
     flex: 0 0 auto;
     margin-top: 0.125rem;
     color: var(--theme-purple-text, hsl(265, 45%, 48%));
-  }
-
-  .orgs-modal__points strong {
-    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .orgs-modal__actions {

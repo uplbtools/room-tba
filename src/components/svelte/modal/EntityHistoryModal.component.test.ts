@@ -61,7 +61,7 @@ describe("EntityHistoryModal", () => {
     const more = await screen.findByRole("button", {
       name: "Show older edits",
     });
-    expect(screen.queryByText("No recorded edits yet.")).toBeNull();
+    expect(screen.queryByText("There are no recorded edits yet.")).toBeNull();
     await fireEvent.click(more);
     expect(await screen.findByText("Older name")).toBeInTheDocument();
     expect(String(fetchMock.mock.calls[1]?.[0])).toContain("offset=500");

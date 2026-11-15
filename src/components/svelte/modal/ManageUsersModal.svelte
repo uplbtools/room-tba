@@ -67,7 +67,7 @@
       "Admins can publish, review, and manage every account, including other admins.",
     editor: "Editors publish edits directly and review suggestions.",
     contributor:
-      "Contributors can only suggest edits; they lose publishing and review.",
+      "Contributors can only suggest edits, so they lose publishing and review.",
   };
 
   async function loadUsers() {
@@ -75,7 +75,7 @@
     try {
       const res = await fetch("/api/admin/users", { credentials: "same-origin" });
       if (!res.ok) {
-        loadError = "Could not load users.";
+        loadError = "Couldn't load users.";
         return;
       }
       const data = (await res.json()) as {
@@ -138,7 +138,7 @@
       });
       const data = await res.json().catch(() => ({}) as { error?: string });
       if (!res.ok) {
-        rowError = data.error ?? "Could not update role.";
+        rowError = data.error ?? "Couldn't update role.";
         return;
       }
       users = (users ?? []).map((u) => (u.id === user.id ? { ...u, role } : u));
@@ -161,7 +161,7 @@
       });
       const data = await res.json().catch(() => ({}) as { error?: string });
       if (!res.ok) {
-        rowError = data.error ?? "Could not update account.";
+        rowError = data.error ?? "Couldn't update account.";
         return;
       }
       users = (users ?? []).map((u) =>
@@ -182,7 +182,7 @@
         credentials: "same-origin",
       });
       if (!res.ok) {
-        rowError = "Could not revoke the invite.";
+        rowError = "Couldn't revoke the invite.";
         return;
       }
       invites = invites.filter((invite) => invite.id !== id);
@@ -212,7 +212,7 @@
         inviteUrl?: string | null;
       };
       if (!res.ok) {
-        createError = data.error ?? "Could not send the invite.";
+        createError = data.error ?? "Couldn't send the invite.";
         return;
       }
       if (data.emailed) {
@@ -364,8 +364,8 @@
           <section class="settings-section">
             <h3>Invite admin / editor</h3>
             <p class="settings-hint">
-              They get an email link to choose their own username and password.
-              No temporary passwords to pass around.
+              They get an email link to choose their own username and password,
+              so there are no temporary passwords to pass around.
             </p>
             <EntityEditorFormField label="Display name" inputId="new-user-display-name">
               {#snippet control()}
@@ -401,7 +401,7 @@
             {#if manualInviteUrl}
               <EntityEditorMessage
                 variant="error"
-                message="The invite email could not be sent. Share this one-time link with them directly:"
+                message="The invite email couldn't be sent. Share this one-time link with them directly."
               />
               <input
                 class="invite-url"

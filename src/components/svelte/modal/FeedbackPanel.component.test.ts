@@ -33,7 +33,7 @@ describe("FeedbackPanel", () => {
 
   test("lists what is attached before anything is sent", () => {
     render(FeedbackPanel);
-    const note = screen.getByText(/Sent with your message/i);
+    const note = screen.getByText(/Your message includes/i);
     expect(note.textContent).toMatch(/app version v/);
     expect(note.textContent).toMatch(/No email and no IP address are stored/i);
   });
@@ -59,7 +59,7 @@ describe("FeedbackPanel", () => {
       "Write a message first.",
     );
     expect(screen.getByLabelText("Your message")).toHaveAccessibleDescription(
-      /a wrong room, a bug, an idea\. Write a message first\./,
+      /A wrong room, a bug or an idea\. Write a message first\./,
     );
 
     await typeMessage("the map is blank");
@@ -110,7 +110,9 @@ describe("FeedbackPanel", () => {
     expect(typeof body.wasOnline).toBe("boolean");
 
     await waitFor(() => {
-      expect(screen.getByText(/Sent\. Thank you/i)).toBeVisible();
+      expect(
+        screen.getByText(/Thanks, the team reads every message/i),
+      ).toBeVisible();
     });
   });
 
@@ -142,7 +144,9 @@ describe("FeedbackPanel", () => {
       json: () => Promise.resolve({ success: true }),
     } as Response);
     await waitFor(() => {
-      expect(screen.getByText(/Sent\. Thank you/i)).toBeVisible();
+      expect(
+        screen.getByText(/Thanks, the team reads every message/i),
+      ).toBeVisible();
     });
   });
 

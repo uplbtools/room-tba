@@ -73,7 +73,7 @@
       error =
         loadError instanceof Error
           ? loadError.message
-          : "Could not load progress.";
+          : "Couldn't load progress.";
     } finally {
       loading = false;
     }
@@ -239,7 +239,7 @@
   {:else if activeScope === "building" && buildingData}
     {#if buildingData.termLabel}
       <p class="contributor-progress__meta">
-        {buildingData.buildingName}: schedule counts use {buildingData.termLabel}.
+        For {buildingData.buildingName}, schedule counts use {buildingData.termLabel}.
       </p>
     {:else}
       <p class="contributor-progress__meta">{buildingData.buildingName}</p>
@@ -250,7 +250,7 @@
     {/each}
 
     {#if buildingData.roomRows.length === 0}
-      <p class="contributor-progress__status">No rooms in this building yet.</p>
+      <p class="contributor-progress__status">This building has no rooms yet.</p>
     {:else}
       <ul class="contributor-progress__checklist" aria-label="Room checklist">
         {#each buildingData.roomRows as room (room.id)}
@@ -276,7 +276,7 @@
     </p>
     {#if mineData.totalEdits === 0}
       <p class="contributor-progress__status">
-        No published edits in history yet.
+        There are no published edits in history yet.
       </p>
     {:else}
       <ul class="contributor-progress__list">

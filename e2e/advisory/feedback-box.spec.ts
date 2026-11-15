@@ -29,7 +29,7 @@ test.describe("feedback box @advisory", () => {
     ).toBeVisible();
     await expect(dialog.getByLabel("Your message")).toBeVisible();
     await expect(dialog.getByLabel("Contact (optional)")).toBeVisible();
-    await expect(dialog.getByText(/Sent with your message/i)).toBeVisible();
+    await expect(dialog.getByText(/Your message includes/i)).toBeVisible();
     await expect(dialog.getByRole("link", { name: "Messenger" })).toBeVisible();
     await expect(dialog.getByRole("link", { name: "Discord" })).toBeVisible();
   });
@@ -64,6 +64,8 @@ test.describe("feedback box @advisory", () => {
       }),
     );
     await dialog.getByRole("button", { name: "Send feedback" }).click();
-    await expect(dialog.getByText(/Sent\. Thank you/i)).toBeVisible();
+    await expect(
+      dialog.getByText(/the team reads every message/i),
+    ).toBeVisible();
   });
 });

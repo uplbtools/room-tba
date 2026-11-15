@@ -181,7 +181,7 @@
       await navigator.clipboard.writeText(url);
       toastStore.show("Share link copied", "success");
     } catch {
-      toastStore.show("Could not copy the link", "error");
+      toastStore.show("Couldn't copy the link", "error");
     }
   }
 
@@ -217,7 +217,7 @@
       link.click();
       URL.revokeObjectURL(url);
     } catch {
-      toastStore.show("Could not create the image", "error");
+      toastStore.show("Couldn't create the image", "error");
     } finally {
       exportingImage = false;
     }
@@ -482,7 +482,7 @@
     <!-- Lived in Settings once; it explains the Planner's own sections, and
          why some never get a map stop, so it belongs here. -->
     <p class="planner-save-note" role="note">
-      <strong>Why a class may be missing from your day's stops:</strong>
+      <strong>Why a class may be missing from your day's stops.</strong>
       {ROOM_SCHEDULE_SCOPE_NOTE}
     </p>
   </details>
@@ -606,7 +606,7 @@
         {/if}
         <p class="planner-side__hint" role="note">
           AMIS doesn't list instructors here. Jot each section's professor
-          below; notes stay private (synced to your account when signed in).
+          below. Notes stay private and sync to your account when you're signed in.
         </p>
         <ul class="planner-offerings">
           {#each courseGroups as group (group.courseCode)}

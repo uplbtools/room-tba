@@ -54,12 +54,12 @@
         error?: string;
       };
       if (!res.ok) {
-        error = data.error ?? "Could not load history.";
+        error = data.error ?? "Couldn't load history.";
         return;
       }
       entries = data.entries ?? [];
     } catch {
-      error = "Could not load history.";
+      error = "Couldn't load history.";
     } finally {
       loading = false;
     }
@@ -92,7 +92,7 @@
       };
       if (!res.ok) {
         toastStore.show(
-          data.error ?? "Could not restore this version.",
+          data.error ?? "Couldn't restore this version.",
           "error",
         );
         return;
@@ -149,7 +149,7 @@
     {:else if error}
       <p class="entity-history-error" role="alert">{error}</p>
     {:else if entries.length === 0}
-      <p class="entity-history-note">No recorded changes yet.</p>
+      <p class="entity-history-note">There are no recorded changes yet.</p>
     {:else}
       <ol class="entity-history-list">
         {#each entries as entry (entry.id)}

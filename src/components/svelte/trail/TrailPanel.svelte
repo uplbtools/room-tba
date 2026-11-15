@@ -234,9 +234,9 @@
     </header>
 
     <p class="trail-note">
-      {formatKm(summary.lengthMeters)} each way, from {formatMeters(summary.startElevation)}
+      The trail is {formatKm(summary.lengthMeters)} each way, from {formatMeters(summary.startElevation)}
       at Station 1 to {formatMeters(summary.summitElevation)} at Peak 2. Time uses Naismith's
-      rule (5 km per hour plus 1 hour per 600 m climbed); mud and rest stops often add hours.
+      rule (5 km per hour plus 1 hour per 600 m climbed). Mud and rest stops often add hours.
     </p>
 
     <section class="trail-section" aria-labelledby="trail-profile-heading">
@@ -255,7 +255,7 @@
         {/each}
       </ul>
       <p class="trail-note">
-        Rules and hours change; confirm with MCME before your hike. This map is for planning, not
+        Rules and hours change, so confirm with MCME before your hike. This map is for planning, not
         navigation.
       </p>
     </section>
@@ -287,10 +287,10 @@
     </section>
 
     <p class="trail-source">
-      Trail line and stations
+      Trail line and stations are from
       <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer"
         >(c) OpenStreetMap contributors</a
-      >, ODbL. Elevations from Terrain Tiles (Mapzen, AWS Open Data), accurate to about 10 m.
+      > (ODbL). Elevations are from Terrain Tiles (Mapzen, AWS Open Data) and accurate to about 10 m.
     </p>
   {/if}
 </div>

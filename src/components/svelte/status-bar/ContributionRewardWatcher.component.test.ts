@@ -54,7 +54,7 @@ describe("ContributionRewardWatcher", () => {
     await vi.advanceTimersByTimeAsync(5000);
 
     expect(toastStore.message).toBe(
-      "+5, you're #12 this month. New badge: First edit",
+      "+5, you're #12 this month. You earned the First edit badge",
     );
     expect(localStorage.getItem("room-tba-contribution-reward-seen")).toBe(
       "41",

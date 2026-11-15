@@ -100,7 +100,7 @@
       if (res.status === 503) {
         uploadConfigured = false;
         throw new Error(
-          data.error ?? "Image uploads are not configured on this server yet.",
+          data.error ?? "Image uploads aren't configured on this server yet.",
         );
       }
       if (!res.ok || !data.url) {
@@ -113,7 +113,7 @@
       error =
         uploadError instanceof Error
           ? uploadError.message
-          : "Failed to upload image";
+          : "Couldn't upload the image.";
     } finally {
       uploading = false;
     }
@@ -169,13 +169,13 @@
   />
   <p class="entity-editor-muted image-upload-hint">
     {#if uploadConfigured === false}
-      Image uploads are not configured on this server. You can still save
+      Image uploads aren't configured on this server. You can still save
       without a photo.
     {:else if needsProposal}
       Send your suggestion first. You can add a photo while it waits for
       review, and reviewers check it before it goes live.
     {:else}
-      JPEG, PNG, or WebP up to {maxSizeLabel}.
+      Use a JPEG, PNG, or WebP up to {maxSizeLabel}.
     {/if}
   </p>
   {#if error}

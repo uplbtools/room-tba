@@ -89,10 +89,10 @@
 
 <SettingsSection variant="list" title="Offline maps">
   <p class="data-storage__note" id="offline-maps-data-note">
-    Save campus data on this device for use without a connection. Best on
-    Wi-Fi{mapSize
-      ? `: the map alone uses about ${mapSize} of data.`
-      : "; the map is the largest download."}
+    Save campus data on this device for use without a connection. Use Wi-Fi
+    if you can. {mapSize
+      ? `The map alone uses about ${mapSize} of data.`
+      : "The map is the largest download."}
   </p>
   {#if !allSaved}
     <div class="data-storage__action">
@@ -158,7 +158,7 @@
   {:else}
     <div class="data-storage__confirm" role="group" aria-label="Reset offline data">
       <p id="settings-storage-warning" class="data-storage__warning">
-        Downloaded offline maps will be removed. You will need a connection to
+        Downloaded offline maps will be removed. You'll need a connection to
         download them again.
       </p>
       <div class="data-storage__confirm-actions">

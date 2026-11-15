@@ -101,7 +101,9 @@ describe("AdminHome (auth audit item 15)", () => {
       target: { value: "Rooms in the CEM building" },
     });
     await fireEvent.click(screen.getByRole("button", { name: "Send request" }));
-    await waitFor(() => expect(screen.getByText(/Request sent/)).toBeVisible());
+    await waitFor(() =>
+      expect(screen.getByText(/Your request was sent/)).toBeVisible(),
+    );
     const post = fn.mock.calls.find(([, init]) => init?.method === "POST");
     expect(post?.[0]).toBe("/api/account/access-request");
   });

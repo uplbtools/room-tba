@@ -127,7 +127,7 @@ describe("AcademicCalendarScreen", () => {
     render(AcademicCalendarScreen);
     expect(document.querySelectorAll(".acal-dot")).toHaveLength(0);
     expect(document.querySelector(".acal-milestones")?.textContent).toContain(
-      "No registrar calendar published",
+      "There's no registrar calendar published",
     );
   });
 

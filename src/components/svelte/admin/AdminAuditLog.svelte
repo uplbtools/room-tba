@@ -30,7 +30,7 @@
         { credentials: "same-origin" },
       );
       if (!res.ok) {
-        error = "Could not load the audit log.";
+        error = "Couldn't load the audit log.";
         return;
       }
       const data = (await res.json()) as {
@@ -75,7 +75,7 @@
 
 <SettingsSection
   title="Audit log"
-  description="Sign-ins, account changes, and review decisions. Admins only."
+  description="Sign-ins, account changes, and review decisions appear here. Only admins can see this."
 >
   {#if error}
     <EntityEditorMessage variant="error" message={error} />
@@ -83,7 +83,7 @@
   {#if !loaded}
     <p><LoadingIndicator /></p>
   {:else if entries.length === 0}
-    <p class="audit-empty">No entries yet.</p>
+    <p class="audit-empty">There are no entries yet.</p>
   {:else}
     <ol class="audit-list" aria-label="Audit log entries">
       {#each entries as entry (entry.id)}

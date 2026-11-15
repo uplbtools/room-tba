@@ -67,7 +67,7 @@
   <ModalHeader
     id="saved-places-modal-title"
     title="Saved"
-    description="Places you starred and opened recently, on this device."
+    description="These are the places you starred and opened recently, on this device."
   />
 
   <div class="saved-places__scroll map-chrome-scroll">

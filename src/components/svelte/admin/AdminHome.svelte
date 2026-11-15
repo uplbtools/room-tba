@@ -100,7 +100,7 @@
     try {
       const res = await fetch("/api/admin/dashboard", { credentials: "same-origin" });
       if (!res.ok) {
-        dashboardError = "Could not load the dashboard.";
+        dashboardError = "Couldn't load the dashboard.";
         return;
       }
       dashboard = (await res.json()) as Dashboard;
@@ -137,7 +137,7 @@
         request?: MyRequest;
       };
       if (!res.ok) {
-        requestError = data.error ?? "Could not send the request.";
+        requestError = data.error ?? "Couldn't send the request.";
         return;
       }
       myRequest = data.request ?? null;
@@ -161,7 +161,7 @@
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
-        accessError = data.error ?? "Could not update the request.";
+        accessError = data.error ?? "Couldn't update the request.";
         return;
       }
       await loadDashboard();
@@ -210,26 +210,26 @@
 <div class="admin-home">
   {#if !viewer}
     <p class="admin-lead">
-      Sign in to suggest edits, or to review and publish them if you are on
+      Sign in to suggest edits, or to review and publish them if you're on
       the editor team.
     </p>
     {@render rolesExplainer()}
     <a class="admin-primary" href="/?editor=login">Sign in</a>
   {:else if !isStaff}
     <p class="admin-lead">
-      You are signed in as <strong>{viewer.displayName}</strong>, a contributor.
+      You're signed in as <strong>{viewer.displayName}</strong>, a contributor.
     </p>
     {@render rolesExplainer()}
     <SettingsSection
       title="Request editor access"
-      description="Editors publish directly and review suggestions. Tell the admins what you would like to help with."
+      description="Editors publish directly and review suggestions. Tell the admins what you'd like to help with."
     >
       {#if !requestLoaded}
         <p><LoadingIndicator /></p>
       {:else if myRequest?.status === "pending"}
         <EntityEditorMessage
           variant="success"
-          message={`Request sent ${when(myRequest.createdAt)}. An admin will review it; you will see the new role the next time you sign in.`}
+          message={`Your request was sent ${when(myRequest.createdAt)}. An admin will review it, and you'll see the new role the next time you sign in.`}
         />
       {:else}
         {#if myRequest?.status === "declined"}
@@ -241,7 +241,7 @@
         <EntityEditorFormField
           label="What would you like to edit?"
           inputId="access-request-message"
-          hint="For example: rooms in your college, org listings, or events."
+          hint="For example, rooms in your college, org listings, or events."
         >
           {#snippet control()}
             <textarea
@@ -308,7 +308,7 @@
 
         <SettingsSection
           title="Daily digest"
-          description="Email to editors listing suggestions waiting for review."
+          description="This email goes to editors and lists suggestions waiting for review."
         >
           {#if lastDigest}
             <p class="admin-line">
@@ -319,7 +319,7 @@
                 : lastDigest.status}
             </p>
           {:else}
-            <p class="admin-line">No runs recorded yet.</p>
+            <p class="admin-line">No runs have been recorded yet.</p>
           {/if}
           <p class="admin-line">
             {dashboard.digest.recipientCount ?? "?"} recipient{dashboard.digest
@@ -338,7 +338,7 @@
 
         <SettingsSection
           title="Email and notifications"
-          description="Delivery over the last 7 days."
+          description="This shows delivery over the last 7 days."
         >
           {#if dashboard.email}
             <p class="admin-line">
@@ -355,7 +355,7 @@
               </ul>
             {/if}
           {:else}
-            <p class="admin-line">Email log unavailable.</p>
+            <p class="admin-line">The email log is unavailable.</p>
           {/if}
           {#if dashboard.outbox}
             <p class="admin-line">
@@ -365,9 +365,9 @@
           {/if}
         </SettingsSection>
 
-        <SettingsSection title="Recent activity" description="Latest published edits.">
+        <SettingsSection title="Recent activity" description="These are the latest published edits.">
           {#if dashboard.recentActivity.length === 0}
-            <p class="admin-line">Nothing yet.</p>
+            <p class="admin-line">There's nothing yet.</p>
           {:else}
             <ul class="admin-list">
               {#each dashboard.recentActivity as entry (entry.id)}
@@ -421,7 +421,7 @@
                 {/each}
               </ul>
             {:else}
-              <p class="admin-line">No pending editor access requests.</p>
+              <p class="admin-line">There are no pending editor access requests.</p>
             {/if}
             {#snippet footer()}
               <a class="admin-primary" href="/?manage=users">Manage users</a>
