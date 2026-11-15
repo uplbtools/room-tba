@@ -1,82 +1,35 @@
 <script lang="ts">
-	import { editorChromeStore, sidebarStore } from '#lib/stores.svelte.js';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import AppMenu from '../status-bar/AppMenu.svelte';
-
 	import mapIcon from '../../../assets/icons/map.svg?url';
 	import plannerIcon from '../../../assets/icons/planner.svg?url';
-	import finalExamsIcon from '../../../assets/icons/final-exams.svg?url';
 
-	type TabId = 'map' | 'planner' | 'finals';
-
-	const active = $derived(sidebarStore.panelOpen);
-
-	function go(id: TabId) {
-		sidebarStore.changeOpened(id);
-	}
+	const links = [
+		{ href: resolve('map'), label: 'Map', icon: mapIcon, routeId: '/(app)/map' },
+		{
+			href: resolve('map/planner'),
+			label: 'Planner',
+			icon: plannerIcon,
+			routeId: '/(app)/map/planner'
+		}
+	];
+	const onPlanner = $derived(page.route.id === '/(app)/map/planner');
 </script>
 
 <nav class="mobile-bottom-nav" aria-label="Primary">
-	<button
-		type="button"
-		class="mobile-bottom-nav__item"
-		class:mobile-bottom-nav__item--active={active === 'map'}
-		aria-current={active === 'map' ? 'page' : undefined}
-		onclick={() => go('map')}
-	>
-		<img src={mapIcon} alt="" width="24" height="24" decoding="async" />
-		<span>Map</span>
-	</button>
-
-	<button
-		type="button"
-		class="mobile-bottom-nav__item"
-		class:mobile-bottom-nav__item--active={active === 'planner'}
-		aria-current={active === 'planner' ? 'page' : undefined}
-		onclick={() => go('planner')}
-	>
-		<img src={plannerIcon} alt="" width="24" height="24" decoding="async" />
-		<span>Planner</span>
-	</button>
-
-	<button
-		type="button"
-		class="mobile-bottom-nav__fab"
-		aria-label="Add something to the map"
-		onclick={() => editorChromeStore.openAdditionModal()}
-	>
-		<svg
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2.25"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			aria-hidden="true"
+	{#each links as link (link.href)}
+		{@const active = onPlanner === (link.routeId === '/(app)/map/planner')}
+		<a
+			href={link.href}
+			class="mobile-bottom-nav__item"
+			class:mobile-bottom-nav__item--active={active}
+			aria-current={active ? 'page' : undefined}
 		>
-			<path
-				d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-			/>
-			<path d="M12 7v6" />
-			<path d="M9 10h6" />
-		</svg>
-	</button>
-
-	<button
-		type="button"
-		class="mobile-bottom-nav__item"
-		class:mobile-bottom-nav__item--active={active === 'finals'}
-		aria-current={active === 'finals' ? 'page' : undefined}
-		onclick={() => go('finals')}
-	>
-		<img src={finalExamsIcon} alt="" width="24" height="24" decoding="async" />
-		<span>Final Exams</span>
-	</button>
-
-	<!-- Menu, not Account: this is the only mobile entry point to Today, the
-       academic calendar, the changelog, coverage, the leaderboard and the
-       review queue (#951). Sign in / account settings sits inside it. -->
+			<img src={link.icon} alt="" width="24" height="24" decoding="async" />
+			<span>{link.label}</span>
+		</a>
+	{/each}
 	<AppMenu />
 </nav>
 
@@ -85,7 +38,7 @@
 		pointer-events: auto;
 		box-sizing: border-box;
 		display: grid;
-		grid-template-columns: 1fr 1fr auto 1fr 1fr;
+		grid-template-columns: 1fr 1fr 1fr;
 		align-items: center;
 		column-gap: 0.15rem;
 		width: 100%;
@@ -116,6 +69,7 @@
 		font-weight: 500;
 		line-height: 1.1;
 		cursor: pointer;
+		text-decoration: none;
 	}
 
 	.mobile-bottom-nav__item img {
@@ -138,27 +92,6 @@
 
 	.mobile-bottom-nav__item--active img {
 		filter: invert(14%) sepia(62%) saturate(2800%) hue-rotate(325deg) brightness(85%) contrast(95%);
-	}
-
-	.mobile-bottom-nav__fab {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 3.5rem;
-		height: 3.5rem;
-		margin: 0 0.15rem;
-		padding: 0;
-		border: none;
-		border-radius: 1.05rem;
-		background: #8d1437;
-		color: #fff;
-		box-shadow: 0 3px 10px rgb(141 20 55 / 0.35);
-		cursor: pointer;
-		transform: translateY(-0.65rem);
-	}
-
-	.mobile-bottom-nav__fab:hover {
-		background: #7a1130;
 	}
 
 	/* AppMenu ships its own chip styling for the status bar; here it has to read

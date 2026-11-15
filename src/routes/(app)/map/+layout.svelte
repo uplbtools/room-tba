@@ -37,6 +37,8 @@
 	import Toast from '#lib/components/Toast.svelte';
 	import ModalStore from '#lib/stores/new/ui/ModalStore.svelte.js';
 	import TermStore from '#lib/stores/new/data/TermStore.svelte.js';
+	import DesktopTopBar from '#lib/components/map-chrome/DesktopTopBar.svelte';
+	import MobileBottomNav from '#lib/components/map-chrome/MobileBottomNav.svelte';
 	import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
 	import AdminAuthStore from '#lib/stores/new/data/AdminAuthStore.svelte.js';
 	import ProposalsStore from '#lib/stores/new/data/ProposalsStore.svelte.js';
@@ -576,6 +578,9 @@
 
 <main class="layout-root">
 	<UILayer>
+		<div class="-mx-3 -mt-3 hidden self-stretch sm:block">
+			<DesktopTopBar />
+		</div>
 		<Search />
 
 		<div
@@ -583,6 +588,9 @@
 		>
 			{@render children()}
 			<MapControlsStack />
+		</div>
+		<div class="-mx-3 -mb-3 self-stretch sm:hidden">
+			<MobileBottomNav />
 		</div>
 	</UILayer>
 	<UIMap />
