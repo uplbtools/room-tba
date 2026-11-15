@@ -27,6 +27,7 @@ import type PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.ts';
 import type AdminAuthStore from '#lib/stores/new/data/AdminAuthStore.svelte.ts';
 import type ProposalsStore from '#lib/stores/new/data/ProposalsStore.svelte.ts';
 import type OfflineStore from '#lib/stores/new/data/OfflineStore.svelte.ts';
+import type AnnouncementsStore from '#lib/stores/new/data/AnnouncementsStore.svelte.ts';
 export type AppContextData =
 	| {
 			buildings: Building[];
@@ -85,3 +86,4 @@ export const [getPlannerStore, initPlannerStore] = createContext<PlannerStore>()
 export const [getAdminAuthStore, initAdminAuthStore] = createContext<AdminAuthStore>();
 export const [getProposalsStore, initProposalsStore] = createContext<ProposalsStore>();
 export const [getOfflineStore, initOfflineStore] = createContext<OfflineStore>();
+export const [getAnnouncementsStore, initAnnouncementsStore] = createContext<AnnouncementsStore>();

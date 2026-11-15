@@ -28,6 +28,7 @@
 	import CoverageModal from '../modal/CoverageModal.svelte';
 	import LeaderboardModal from '../modal/LeaderboardModal.svelte';
 	import ChangelogModal from '../modal/ChangelogModal.svelte';
+	import AnnouncementsModal from '../modal/AnnouncementsModal.svelte';
 
 	// const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 
@@ -139,6 +140,10 @@
 			<ModalContent className="max-w-2xl"><CoverageModal /></ModalContent>
 		{:else if modalStore.type === 'changelog'}
 			<ModalContent className="flex max-w-2xl flex-col p-6"><ChangelogModal /></ModalContent>
+		{:else if modalStore.type === 'announcements'}
+			<ModalContent className="flex max-w-2xl flex-col overflow-y-auto p-6"
+				><AnnouncementsModal /></ModalContent
+			>
 		{:else if modalStore.type === 'leaderboard'}
 			<ModalContent className="max-w-2xl"><LeaderboardModal /></ModalContent>
 			<!-- <ModalContent>Lorem ipsums dolor</ModalContent> -->

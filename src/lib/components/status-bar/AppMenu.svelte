@@ -9,10 +9,12 @@
 	import LifeBuoy from '@lucide/svelte/icons/life-buoy';
 	import CircleHelp from '@lucide/svelte/icons/circle-help';
 	import Inbox from '@lucide/svelte/icons/inbox';
+	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import BusFront from '@lucide/svelte/icons/bus-front';
 	import Printer from '@lucide/svelte/icons/printer';
 	import UserRound from '@lucide/svelte/icons/user-round';
 	import { onMount } from 'svelte';
+	import { getAnnouncements } from '#lib/functions/announcements.remote.js';
 	import { formatCatalogUpdatedDate } from '#lib/constants/versioning/data-catalog.js';
 	import { APP_VERSION_LABEL } from '#lib/constants/versioning/version.js';
 	import { statusBarNavGroups } from '#lib/constants/content/links/status-bar.js';
@@ -26,6 +28,7 @@
 	import { rafThrottle } from '#lib/utils/layout-css-vars.js';
 	import {
 		getAdminAuthStore,
+		getAnnouncementsStore,
 		getMapToolsStore,
 		getModalStore,
 		getProposalsStore,
@@ -46,6 +49,7 @@
 
 	const { onSignOut = defaultSignOut }: Props = $props();
 	const adminAuthStore = getAdminAuthStore();
+	const announcementsStore = getAnnouncementsStore();
 	const mapToolsStore = getMapToolsStore();
 	const modalStore = getModalStore();
 	const proposalsStore = getProposalsStore();
@@ -183,6 +187,11 @@
 	function handleWhatsNew() {
 		closePanel();
 		modalStore.openModal('changelog');
+	}
+
+	function handleAnnouncements() {
+		closePanel();
+		modalStore.openModal('announcements');
 	}
 
 	function handleCoverage() {
@@ -330,6 +339,23 @@
 				<button type="button" class="app-menu__action map-chrome-chip" onclick={handleHowItWorks}>
 					<LifeBuoy size={14} aria-hidden="true" />
 					<span>How Room TBA works</span>
+				</button>
+				<button
+					type="button"
+					class="app-menu__action map-chrome-chip"
+					onclick={handleAnnouncements}
+				>
+					<Megaphone size={14} aria-hidden="true" />
+					<span>
+						Announcements
+						<svelte:boundary>
+							{#snippet failed()}{/snippet}
+							{@const unread = announcementsStore.unread(await getAnnouncements())}
+							{#if unread > 0}
+								<span class="app-menu__badge">{unread}</span>
+							{/if}
+						</svelte:boundary>
+					</span>
 				</button>
 				<button type="button" class="app-menu__action map-chrome-chip" onclick={handleWhatsNew}>
 					<FileText size={14} aria-hidden="true" />

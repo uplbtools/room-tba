@@ -1,8 +1,19 @@
-import { fireEvent, render, screen } from '@testing-library/svelte';
-import { beforeEach, describe, expect, test } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/svelte';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import AnnouncementBar from './AnnouncementBar.svelte';
-import { announcementsStore } from '#lib/stores.svelte.js';
+import AnnouncementsStore from '#lib/stores/new/data/AnnouncementsStore.svelte.js';
 import type { AnnouncementData } from '#lib/utils/types.js';
+
+let items: AnnouncementData[] = [];
+const announcementsStore = new AnnouncementsStore();
+
+vi.mock('#lib/functions/announcements.remote.js', () => ({
+	getAnnouncements: vi.fn(async () => items)
+}));
+vi.mock('#lib/utils/context.js', () => ({
+	getAnnouncementsStore: () => announcementsStore,
+	getModalStore: () => ({ openModal: vi.fn() })
+}));
 
 const row = (id: number, severity: string, title: string): AnnouncementData =>
 	({
@@ -23,25 +34,26 @@ describe('AnnouncementBar', () => {
 	beforeEach(() => {
 		localStorage.clear();
 		announcementsStore.hydrate();
-		announcementsStore.items = [];
+		items = [];
 	});
 
-	test('critical notices show without opening the panel; info ones do not', () => {
-		announcementsStore.items = [row(1, 'info', 'Just so you know')];
+	test('critical notices show without opening the panel; info ones do not', async () => {
+		items = [row(1, 'info', 'Just so you know')];
 		const { unmount } = render(AnnouncementBar);
+		await new Promise((resolve) => setTimeout(resolve, 20));
 		expect(screen.queryByRole('alert')).toBe(null);
 		unmount();
 
-		announcementsStore.items = [row(2, 'critical', 'Search is down')];
+		items = [row(2, 'critical', 'Search is down')];
 		render(AnnouncementBar);
-		expect(screen.getByRole('alert')).toHaveTextContent('Search is down');
+		expect(await screen.findByRole('alert')).toHaveTextContent('Search is down');
 	});
 
 	test('dismissing hides the bar', async () => {
-		announcementsStore.items = [row(3, 'critical', 'Search is down')];
+		items = [row(3, 'critical', 'Search is down')];
 		render(AnnouncementBar);
 
-		await fireEvent.click(screen.getByRole('button', { name: /dismiss announcement/i }));
-		expect(screen.queryByRole('alert')).toBe(null);
+		await fireEvent.click(await screen.findByRole('button', { name: /dismiss announcement/i }));
+		await waitFor(() => expect(screen.queryByRole('alert')).toBe(null));
 	});
 });
