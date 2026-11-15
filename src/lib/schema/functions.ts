@@ -90,14 +90,14 @@ export const PlaceProposalSchema = v.object({
 export const CollegeProposalSchema = v.object({
 	meta: ProposalMetaSchema,
 	body: v.object({
-		collegeName: v.string()
+		collegeName: v.pipe(v.string(), v.trim(), v.nonEmpty('Name is empty'), v.maxLength(100))
 	})
 });
 
 export const DivisionProposalSchema = v.object({
 	meta: ProposalMetaSchema,
 	body: v.object({
-		divisionName: v.string()
+		divisionName: v.pipe(v.string(), v.trim(), v.nonEmpty('Name is empty'), v.maxLength(100))
 	})
 });
 
