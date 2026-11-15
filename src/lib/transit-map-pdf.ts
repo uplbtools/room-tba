@@ -91,7 +91,7 @@ const SIGN_RED = rgb(0.94, 0.31, 0.18);
  * Print palettes. The sheet is taped to walls and photocopied, so the base
  * map stays pale and the routes carry the colour. `routes` overrides a
  * route's app colour on paper only (by route id); `loopReverse` gives a
- * loop's reverse direction (Kanan) its own hue, so it never reads as Kaliwa.
+ * loop's reverse direction (Kaliwa) its own hue, so it never reads as Kanan.
  */
 export type TransitMapPalette = "app" | "high-contrast" | "colorblind";
 type PaletteSpec = {
@@ -1273,7 +1273,7 @@ export async function renderTransitMapPdf(input: {
         borderLineCap: 1,
       });
       if (loop) {
-        // Kaliwa solid with filled arrows; Kanan its own hue, dashed and
+        // Kanan solid with filled arrows; Kaliwa its own hue, dashed and
         // hollow with hollow arrows, so the two part even in grayscale.
         const revColor = reverseColorOf(route);
         const revDash = style?.reverseDash ?? LOOP_REVERSE_DASH;
@@ -1910,7 +1910,10 @@ export async function renderTransitMapPdf(input: {
       const color = hexToRgb(route.color);
       const style = styles.get(route.id);
       const loop = isLoopRoute(route);
-      const names = loop ? route.name.split(/\s*\/\s*/) : [route.name];
+      // "Kaliwa / Kanan" lists its stops in Kanan order.
+      const names = loop
+        ? route.name.split(/\s*\/\s*/).reverse()
+        : [route.name];
       if (loop && names.length < 2) names.push(`${route.name} reverse`);
       // Each board has its name in plain type too, beside it when it fits.
       const boards = names.slice(0, 2).map((name) => {
