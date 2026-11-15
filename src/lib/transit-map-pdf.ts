@@ -63,6 +63,10 @@ export type TransitBasemap = {
   roadsMinor: [number, number][][];
   water: [number, number][][];
   buildings: [number, number][][];
+  /** Closed rings: woods and lawns, sports fields, ponds. */
+  green?: [number, number][][];
+  fields?: [number, number][][];
+  lakes?: [number, number][][];
   gates: { name: string; lat: number; lon: number }[];
 };
 
@@ -96,16 +100,43 @@ const SIGN_RED = rgb(0.94, 0.31, 0.18);
  * route's app colour on paper only (by route id); `loopReverse` gives a
  * loop's reverse direction (Kaliwa) its own hue, so it never reads as Kanan.
  */
-export type TransitMapPalette = "app" | "high-contrast" | "colorblind";
+export type TransitMapPalette =
+  | "paper"
+  | "app"
+  | "high-contrast"
+  | "colorblind";
 type PaletteSpec = {
   building: RGB;
   roadMajor: RGB;
   roadMinor: RGB;
   water: RGB;
+  /** Fill under the map; white when unset. */
+  land?: RGB;
+  green?: RGB;
+  field?: RGB;
+  /** Outline under the roads, for pale roads on a tinted land. */
+  roadCasing?: RGB;
   routes: Record<string, string>;
   loopReverse: Record<string, string>;
 };
 export const TRANSIT_MAP_PALETTES: Record<TransitMapPalette, PaletteSpec> = {
+  // The default: warm land, soft greens and white roads under deep routes.
+  paper: {
+    land: rgb(0.972, 0.957, 0.925),
+    green: rgb(0.89, 0.925, 0.83),
+    field: rgb(0.83, 0.9, 0.76),
+    building: rgb(0.9, 0.86, 0.79),
+    roadMajor: WHITE,
+    roadMinor: WHITE,
+    roadCasing: rgb(0.83, 0.8, 0.74),
+    water: rgb(0.62, 0.8, 0.92),
+    routes: {
+      "kaliwa-kanan": "#B71C1C",
+      forestry: "#E65100",
+      "up-rural": "#0D47A1",
+    },
+    loopReverse: { "kaliwa-kanan": "#6A1B9A" },
+  },
   // The colours riders see in the app, on a lighter base map.
   app: {
     building: rgb(0.93, 0.92, 0.9),
@@ -115,7 +146,7 @@ export const TRANSIT_MAP_PALETTES: Record<TransitMapPalette, PaletteSpec> = {
     routes: {},
     loopReverse: { "kaliwa-kanan": "#7B1FA2" },
   },
-  // Deeper route colours on a near-white base: survives a cheap printer.
+  // The same route colours on a near-white base: survives a cheap printer.
   "high-contrast": {
     building: rgb(0.95, 0.95, 0.95),
     roadMajor: rgb(0.86, 0.86, 0.86),
@@ -1267,7 +1298,7 @@ export async function renderTransitMapPdf(input: {
   const pageW = poster ? size.h : size.w;
   const pageH = poster ? size.w : size.h;
   const generatedAt = input.generatedAt ?? new Date();
-  const palette = TRANSIT_MAP_PALETTES[input.palette ?? "high-contrast"];
+  const palette = TRANSIT_MAP_PALETTES[input.palette ?? "paper"];
 
   const pdf = await PDFDocument.create();
   pdf.setTitle("UPLB Jeepney Routes");
@@ -1530,7 +1561,7 @@ export async function renderTransitMapPdf(input: {
     y: frame.y,
     width: frame.w,
     height: frame.h,
-    color: WHITE,
+    color: palette.land ?? WHITE,
   });
 
   const fitPoints: LatLon[] = [...coreStops];
@@ -1581,6 +1612,15 @@ export async function renderTransitMapPdf(input: {
     const gateMarks: { name: string; p: ProjectedPoint }[] = [];
     if (input.basemap) {
       const b = input.basemap;
+      const green = palette.green && layerPath(b.green ?? [], true);
+      if (green)
+        page.drawSvgPath(green, { ...svgAnchor, color: palette.green });
+      const fields = palette.field && layerPath(b.fields ?? [], true);
+      if (fields)
+        page.drawSvgPath(fields, { ...svgAnchor, color: palette.field });
+      const lakes = layerPath(b.lakes ?? [], true);
+      if (lakes)
+        page.drawSvgPath(lakes, { ...svgAnchor, color: palette.water });
       const buildings = layerPath(b.buildings, true);
       if (buildings)
         page.drawSvgPath(buildings, { ...svgAnchor, color: palette.building });
@@ -1592,6 +1632,23 @@ export async function renderTransitMapPdf(input: {
           borderWidth: 1.4,
         });
       const minor = layerPath(b.roadsMinor, false);
+      const major = layerPath(b.roadsMajor, false);
+      if (palette.roadCasing) {
+        if (minor)
+          page.drawSvgPath(minor, {
+            ...svgAnchor,
+            borderColor: palette.roadCasing,
+            borderWidth: 2.1,
+            borderLineCap: 1,
+          });
+        if (major)
+          page.drawSvgPath(major, {
+            ...svgAnchor,
+            borderColor: palette.roadCasing,
+            borderWidth: 4.1,
+            borderLineCap: 1,
+          });
+      }
       if (minor)
         page.drawSvgPath(minor, {
           ...svgAnchor,
@@ -1599,7 +1656,6 @@ export async function renderTransitMapPdf(input: {
           borderWidth: 1.1,
           borderLineCap: 1,
         });
-      const major = layerPath(b.roadsMajor, false);
       if (major)
         page.drawSvgPath(major, {
           ...svgAnchor,

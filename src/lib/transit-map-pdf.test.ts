@@ -234,7 +234,12 @@ describe("renderTransitMapPdf", () => {
   });
 
   test("renders every print palette", async () => {
-    for (const palette of ["app", "high-contrast", "colorblind"] as const) {
+    for (const palette of [
+      "paper",
+      "app",
+      "high-contrast",
+      "colorblind",
+    ] as const) {
       const bytes = await renderTransitMapPdf({ routes: [route()], palette });
       const header = Buffer.from(bytes.slice(0, 5)).toString("latin1");
       expect(header).toBe("%PDF-");

@@ -1,6 +1,6 @@
 /**
  * Fetch the ground context for the printable transit map (streets, water,
- * buildings and named gates around campus) from OpenStreetMap via Overpass,
+ * buildings, green areas and named gates around campus) from OpenStreetMap via Overpass,
  * thin it, and bundle it as `src/constants/transit-basemap.json`. The PDF
  * draws it as light vector line work under the routes, so the request path
  * makes no network calls and embeds no raster tiles.
@@ -25,6 +25,7 @@ const PRECISION = 5;
 const THIN_METERS = 12;
 /** Sheds and kiosks add bytes, not orientation. */
 const MIN_BUILDING_M2 = 120;
+const MIN_AREA_M2 = 300;
 
 type Pt = [number, number]; // [lon, lat]
 
@@ -32,6 +33,11 @@ const QUERY = `[out:json][timeout:90];(
   way["highway"~"^(trunk|primary|secondary|tertiary|residential|unclassified|service|living_street)$"](${BBOX});
   way["waterway"~"^(river|stream|canal)$"](${BBOX});
   way["building"](${BBOX});
+  way["landuse"~"^(forest|grass|meadow|recreation_ground|farmland|orchard)$"](${BBOX});
+  way["natural"~"^(wood|scrub|grassland|water)$"](${BBOX});
+  way["leisure"~"^(park|pitch|garden|golf_course|nature_reserve)$"](${BBOX});
+  relation["landuse"="forest"](${BBOX});
+  relation["natural"="wood"](${BBOX});
   node["barrier"~"^(gate|lift_gate)$"]["name"](${BBOX});
   node["entrance"]["name"~"[Gg]ate"](${BBOX});
 );out geom;`;
@@ -95,6 +101,7 @@ type Element = {
   lon?: number;
   tags?: Record<string, string>;
   geometry?: { lat: number; lon: number }[];
+  members?: { role?: string; geometry?: { lat: number; lon: number }[] }[];
 };
 
 const data = (await fetchOverpass()) as { elements?: Element[] };
@@ -102,11 +109,30 @@ const roadsMajor: Pt[][] = [];
 const roadsMinor: Pt[][] = [];
 const water: Pt[][] = [];
 const buildings: Pt[][] = [];
+const green: Pt[][] = [];
+const fields: Pt[][] = [];
+const lakes: Pt[][] = [];
+/** Keep a closed outline as a ring, without its closing duplicate. */
+function pushArea(into: Pt[][], geometry: { lat: number; lon: number }[]) {
+  const raw = geometry.map((g): Pt => [g.lon, g.lat]);
+  const first = raw[0];
+  const last = raw[raw.length - 1];
+  if (raw.length < 4 || first[0] !== last[0] || first[1] !== last[1]) return;
+  if (areaM2(raw) < MIN_AREA_M2) return;
+  const ring = thin(raw.slice(0, -1), 6);
+  if (ring.length >= 3) into.push(ring);
+}
 const gates: { name: string; lat: number; lon: number }[] = [];
 for (const el of data.elements ?? []) {
   const tags = el.tags ?? {};
   if (el.type === "node" && tags.name && el.lat != null && el.lon != null) {
     gates.push({ name: tags.name, lat: round(el.lat), lon: round(el.lon) });
+    continue;
+  }
+  if (el.type === "relation") {
+    for (const member of el.members ?? [])
+      if (member.role === "outer" && member.geometry)
+        pushArea(green, member.geometry);
     continue;
   }
   if (el.type !== "way" || !el.geometry || el.geometry.length < 2) continue;
@@ -116,6 +142,18 @@ for (const el of data.elements ?? []) {
     // Outline: drop the closing duplicate; the PDF path closes it.
     const ring = thin(raw.slice(0, -1), 2);
     if (ring.length >= 3) buildings.push(ring);
+    continue;
+  }
+  if (tags.natural === "water") {
+    pushArea(lakes, el.geometry);
+    continue;
+  }
+  if (tags.leisure === "pitch") {
+    pushArea(fields, el.geometry);
+    continue;
+  }
+  if (tags.landuse || tags.natural || tags.leisure) {
+    pushArea(green, el.geometry);
     continue;
   }
   const pts = thin(raw, THIN_METERS);
@@ -131,9 +169,12 @@ const body = JSON.stringify({
   roadsMinor,
   water,
   buildings,
+  green,
+  fields,
+  lakes,
   gates,
 });
 writeFileSync(OUT_FILE, body);
 console.log(
-  `wrote ${OUT_FILE}: ${roadsMajor.length} major, ${roadsMinor.length} minor, ${water.length} water, ${buildings.length} buildings, ${gates.length} gates (${Math.round(body.length / 1024)} KB)`,
+  `wrote ${OUT_FILE}: ${roadsMajor.length} major, ${roadsMinor.length} minor, ${water.length} water, ${buildings.length} buildings, ${green.length} green, ${fields.length} fields, ${lakes.length} lakes, ${gates.length} gates (${Math.round(body.length / 1024)} KB)`,
 );
