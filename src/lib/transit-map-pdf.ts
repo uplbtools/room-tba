@@ -1154,11 +1154,12 @@ export async function renderTransitMapPdf(input: {
   });
 
   // ── Map frame ─────────────────────────────────────────────────────────
+  const keyH = here && hereOnMap ? KEY_H : 0;
   const frame: Box = {
     x: MARGIN,
-    y: FOOTER_H + 8 + KEY_H,
+    y: FOOTER_H + 8 + keyH,
     w: pageW - MARGIN * 2 - PANEL_W - PANEL_GAP,
-    h: pageH - HEADER_H - 10 - FOOTER_H - 8 - KEY_H,
+    h: pageH - HEADER_H - 10 - FOOTER_H - 8 - keyH,
   };
   page.drawRectangle({
     x: frame.x,
@@ -1987,18 +1988,6 @@ export async function renderTransitMapPdf(input: {
           }),
       ]);
     }
-    if (input.basemap)
-      keys.push([
-        "Campus gate",
-        (x, y) =>
-          page.drawRectangle({
-            x: x + 8.5,
-            y: y - 0.5,
-            width: 7,
-            height: 7,
-            color: INK,
-          }),
-      ]);
     let kx = frame.x;
     const ky = frame.y - KEY_H + 5;
     for (const [label, icon] of keys) {
