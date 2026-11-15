@@ -559,6 +559,24 @@ export const adminAuditLogTable = pgTable('admin_audit_log', {
 	createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull()
 });
 
+/** Email invites for new staff (0064). Only the SHA-256 of the token is stored. */
+export const staffInvitesTable = pgTable('staff_invites', {
+	id: bigserial({ mode: 'number' }).primaryKey(),
+	email: text().notNull(),
+	displayName: varchar('display_name', { length: 100 }),
+	role: adminRoleEnum().notNull(),
+	tokenHash: text('token_hash').notNull().unique(),
+	invitedBy: integer('invited_by').references(() => adminUsersTable.id, {
+		onDelete: 'set null'
+	}),
+	expiresAt: timestamp('expires_at', { mode: 'string' }).notNull(),
+	acceptedAt: timestamp('accepted_at', { mode: 'string' }),
+	acceptedUserId: integer('accepted_user_id').references(() => adminUsersTable.id, {
+		onDelete: 'set null'
+	}),
+	createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull()
+});
+
 /** SHA-256 of each proposal's owner token (0057). Server-only. */
 export const proposalOwnerTokensTable = pgTable('proposal_owner_tokens', {
 	proposalId: integer('proposal_id')

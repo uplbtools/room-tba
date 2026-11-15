@@ -6,6 +6,8 @@ export type AuditAction =
 	| 'login.success'
 	| 'login.failure'
 	| 'user.created'
+	| 'user.invited'
+	| 'user.invite_accepted'
 	| 'user.role_changed'
 	| 'user.activated'
 	| 'user.deactivated'

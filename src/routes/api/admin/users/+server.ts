@@ -1,5 +1,6 @@
 import { clientIp } from '#lib/api/rate-limit.js';
 import { recordAudit } from '#lib/services/admin/audit-log.js';
+import { listPendingInvites } from '#lib/services/admin/staff-invite.js';
 import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import {
 	AccountActionError,
@@ -15,8 +16,8 @@ export const GET: RequestHandler = async ({ cookies }) => {
 	});
 	if (auth instanceof Response) return auth;
 
-	const users = await listAllAdminUsers();
-	return json({ users });
+	const [users, invites] = await Promise.all([listAllAdminUsers(), listPendingInvites()]);
+	return json({ users, invites });
 };
 
 export const POST: RequestHandler = async ({ cookies, request }) => {
