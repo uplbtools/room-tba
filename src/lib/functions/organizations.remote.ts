@@ -1,9 +1,11 @@
 import { form, query } from '$app/server';
 import { ListQuerySchema, OrgProposalSchema, TableIdSchema } from '#lib/schema/functions.js';
 import { client } from '#lib/server/db/index.js';
-import { editProposalsTable, organizationsTable } from '#lib/server/db/schema.js';
+import { organizationsTable } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
 import { error } from '@sveltejs/kit';
+import { updateOrganization } from '#lib/services/admin/actions.js';
+import { saveEntityEdit } from '#lib/services/contribution/entity-edit.js';
 import { eq, isNotNull, or } from 'drizzle-orm';
 import { delay } from 'es-toolkit';
 
@@ -54,18 +56,19 @@ export const getOrgsList = query(ListQuerySchema, async(offset = 0) => {
 	return rows;
 })
 
-export const addOrgSuggestion = form(OrgProposalSchema, async ({ meta, body: proposedPatch }) => {
-	try {
-		await db.insert(editProposalsTable).values({
-			entityType: 'create_organization',
-			entityId: meta.entityId,
-			baseVersion: meta.baseVersion,
-			submitterName: meta.submitterName,
-			proposedPatch
-		});
-	} catch {
-		error(500, {
-			message: 'SERVER ERROR: Cannot add organization suggestion'
-		});
+export const addOrgSuggestion = form(OrgProposalSchema, async ({ meta, body }) => {
+	const [current] = await db.select().from(organizationsTable).where(eq(organizationsTable.id, meta.entityId));
+	if (!current) error(404, 'Not found');
+	const result = await saveEntityEdit({
+		entityType: 'organization',
+		meta,
+		body,
+		current,
+		publish: (patch, editedBy) => updateOrganization(meta.entityId, patch, meta.baseVersion, editedBy)
+	});
+	if (result.published) {
+		await getOrgById(String(meta.entityId)).refresh();
+		await getMapOrgsData().refresh();
 	}
+	return result;
 });

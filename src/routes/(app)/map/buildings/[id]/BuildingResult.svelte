@@ -66,6 +66,7 @@
 	import type { getBuildingById } from '#lib/functions/buildings.remote.js';
 	import ResultActions from '#lib/components/new/ResultActions.svelte';
 	import BuildingRooms from './BuildingRooms.svelte';
+	import SuggestEditButton from '#lib/components/new/SuggestEditButton.svelte';
 	// // import EntityDirectionsChip from './EntityDirectionsChip.svelte';
 	// import EntityGoogleMapsLink from './EntityGoogleMapsLink.svelte';
 	// import EntityShareCopyLink from './EntityShareCopyLink.svelte';
@@ -866,17 +867,14 @@
 				</section>
 			{/if}
 		</svelte:boundary>
-		<button
-			class="self-start rounded-full border border-neutral-300 px-3 py-1 text-sm hover:bg-neutral-100"
-			onclick={() => {
-				modalStore.openModal('modify-suggestion', {
-					id: building.id,
-					version: building.version,
-					buildingName: building.buildingName,
-					directions: building.directions ?? ''
-				});
-			}}>Suggest an edit</button
-		>
+		<SuggestEditButton
+			data={{
+				id: building.id,
+				version: building.version,
+				buildingName: building.buildingName,
+				directions: building.directions ?? ''
+			}}
+		/>
 	</div>
 {/key}
 

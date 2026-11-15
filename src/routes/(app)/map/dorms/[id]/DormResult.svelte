@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ResultActions from '#lib/components/new/ResultActions.svelte';
+	import SuggestEditButton from '#lib/components/new/SuggestEditButton.svelte';
 	import Users from '@lucide/svelte/icons/users';
 	import Building2 from '@lucide/svelte/icons/building-2';
 	import EntityStreetAddress from '#lib/components/entity/EntityStreetAddress.svelte';
@@ -703,6 +704,9 @@
 			</div>
 		</header>
 		<ResultActions data={dorm} name={dorm.dormName} />
+		<SuggestEditButton
+			data={{ id: dorm.id, version: dorm.version, dormName: dorm.dormName, description: dorm.description ?? '' }}
+		/>
 		{#if kuboDormCta}
 			<EntityExternalLink
 				href={kuboDormCta.href}
