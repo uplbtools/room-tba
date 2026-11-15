@@ -700,7 +700,7 @@
         {/if}
 
         {#if staleSections.length > 0}
-          <h2 class="planner-side__heading">No longer offered</h2>
+          <h2 class="planner-side__heading">Not offered this term</h2>
           <ul class="planner-plain-list planner-plain-list--stale">
             {#each staleSections as s (s.courseCode + s.section + s.type)}
               <li>{s.courseCode} {s.type} {s.section}</li>
