@@ -20,4 +20,4 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
   exit 1
 fi
 
-exec env ASTRO_E2E_NODE=1 bunx astro preview --host "$HOST" --port "$PORT"
+exec env ASTRO_E2E_NODE=1 TURNSTILE_ALLOW_UNCONFIGURED=1 bunx astro preview --host "$HOST" --port "$PORT"

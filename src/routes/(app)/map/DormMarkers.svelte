@@ -5,7 +5,7 @@
 	import PinGlyph from '#lib/components/map/PinGlyph.svelte';
 	import { getMapDormsData } from '#lib/functions/dorms.remote.js';
 	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
-	import { hasLocation } from '#lib/utils/map/marker.ts';
+	import { hasLocation } from '#lib/utils/map/marker.js';
 
 	interface Props {
 		showDormPins: boolean;
