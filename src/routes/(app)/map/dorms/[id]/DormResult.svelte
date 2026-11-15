@@ -733,7 +733,12 @@
 				{#if dorm.description}
 					<p class="text-sm text-neutral-800">{dorm.description}</p>
 				{/if}
-				<EntityLastUpdated updatedAt={dorm.updatedAt} />
+				<EntityLastUpdated
+					updatedAt={dorm.updatedAt}
+					entityType="dorm"
+					entityId={dorm.id}
+					entityName={dorm.dormName}
+				/>
 			</div>
 		{/if}
 

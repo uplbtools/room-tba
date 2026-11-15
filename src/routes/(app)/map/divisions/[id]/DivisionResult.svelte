@@ -19,5 +19,10 @@
 			ariaLabel={`Open ${division.divisionName} website (opens in new tab)`}
 		/>
 	{/if}
-	<EntityLastUpdated updatedAt={division.updatedAt} />
+	<EntityLastUpdated
+		updatedAt={division.updatedAt}
+		entityType="division"
+		entityId={division.id}
+		entityName={division.divisionName}
+	/>
 </div>

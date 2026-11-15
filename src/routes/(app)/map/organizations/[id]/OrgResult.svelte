@@ -313,7 +313,12 @@
 				</div>
 			{/if}
 
-			<EntityLastUpdated updatedAt={org.updatedAt} />
+			<EntityLastUpdated
+				updatedAt={org.updatedAt}
+				entityType="organization"
+				entityId={org.id}
+				entityName={org.name}
+			/>
 		</div>
 
 		{#if org.imageUrl}

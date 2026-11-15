@@ -1,4 +1,5 @@
 <script lang="ts">
+	import EntityLastUpdated from '#lib/components/new/EntityLastUpdated.svelte';
 	import { resolve } from '$app/paths';
 	import ResultActions from '#lib/components/new/ResultActions.svelte';
 	import SuggestEditButton from '#lib/components/new/SuggestEditButton.svelte';
@@ -33,6 +34,7 @@
 		data={{ id: room.id, version: room.version, directions: room.directions ?? '' }}
 	/>
 
+	<EntityLastUpdated entityType="room" entityId={room.id} entityName={room.code} />
 	{#if room.directions}
 		<p class="text-sm text-neutral-800">{room.directions}</p>
 	{/if}

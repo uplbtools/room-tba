@@ -628,7 +628,13 @@
 					</p>
 				{/if}
 			</div>
-			<EntityLastUpdated updatedAt={building.updatedAt} lastEditedBy={building.lastEditedBy} />
+			<EntityLastUpdated
+				updatedAt={building.updatedAt}
+				lastEditedBy={building.lastEditedBy}
+				entityType="building"
+				entityId={building.id}
+				entityName={building.buildingName}
+			/>
 		</section>
 		{#if sanitizeCrFacilities(building.crFacilities).length > 0}
 			<section class="building-cr" aria-label="CR facilities">

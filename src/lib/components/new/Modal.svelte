@@ -32,6 +32,7 @@
 	import FeedbackPanel from '../modal/FeedbackPanel.svelte';
 	import HotlinesModal from '../modal/HotlinesModal.svelte';
 	import SavedPlacesModal from '../modal/SavedPlacesModal.svelte';
+	import EntityHistoryModal from '../modal/EntityHistoryModal.svelte';
 
 	// const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 
@@ -164,6 +165,8 @@
 			<ModalContent className="flex max-w-xl flex-col gap-4 overflow-y-auto p-6"
 				><HotlinesModal /></ModalContent
 			>
+		{:else if modalStore.type === 'entity-history'}
+			<ModalContent className="flex max-w-xl flex-col"><EntityHistoryModal /></ModalContent>
 			<!-- <ModalContent>Lorem ipsums dolor</ModalContent> -->
 		{/if}
 	</div>
