@@ -186,7 +186,7 @@ const KEY_H = 18;
 const POSTER_STRIPS_H: Record<TransitMapFormat, number> = {
   a4: 310,
   letter: 300,
-  a3: 580,
+  a3: 620,
 };
 
 /** Straight-line distance times this is the printed walking estimate. */
@@ -2819,35 +2819,27 @@ export async function renderTransitMapPdf(input: {
             }
             y -= 18;
           };
-          y -= LEAD - 3;
-          text("PHP 197, Lunes hanggang Sabado.", x, BODY, font);
-          y -= LEAD;
-          text("Mag-book sa dltb.ph.", x, BODY, font);
+          const para = (t: string) => {
+            for (const l of wrapText(t, font, BODY, w)) {
+              y -= LEAD;
+              text(l, x, BODY, font);
+            }
+          };
+          y += 3;
+          para(
+            "Sa CPark sumasakay ang DLTB bus. PHP 197 ito, Lunes hanggang Sabado. Mag-book sa dltb.ph.",
+          );
           y -= 8;
           board("UP Diliman", SIGN_YELLOW, "DLTB");
           chips(["5 AM", "1 PM", "6 PM"]);
-          for (const l of wrapText(
-            "Pabalik galing UPD 5 AM, 9 AM at 6 PM.",
-            font,
-            BODY,
-            w,
-          )) {
-            y -= LEAD;
-            text(l, x, BODY, font);
-          }
+          para("Pabalik galing UPD 5 AM, 9 AM at 6 PM.");
           y -= 10;
-          board("Buendia", SIGN_YELLOW, "DLTB sa CPark");
+          board("Buendia", SIGN_YELLOW, "DLTB");
           chips(["5:30 AM"]);
-          y -= 4;
-          for (const l of wrapText(
-            "Sa Olivarez, abangan lang sa bus stop ang bus pa-Buendia.",
-            font,
-            BODY,
-            w,
-          )) {
-            y -= LEAD;
-            text(l, x, BODY, font);
-          }
+          y -= 16;
+          board("Buendia", SIGN_YELLOW, "Sa Olivarez");
+          y += 1;
+          para("Ibang bus ito. Abangan lang sa bus stop.");
           y -= 4;
           return top - y;
         },
