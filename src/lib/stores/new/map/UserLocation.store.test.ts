@@ -40,6 +40,15 @@ describe('UserLocation follow mode', () => {
 		expect(mapInstance.easeTo).toHaveBeenLastCalledWith(expect.objectContaining({ bearing: 0 }));
 	});
 
+	test('the phone compass wins over the direction of travel', () => {
+		const { userLocation, mapInstance, map } = setup();
+		userLocation.bearing = 90;
+		userLocation.deviceHeading = 200;
+		userLocation.cycleFollow(map);
+		userLocation.cycleFollow(map);
+		expect(mapInstance.easeTo).toHaveBeenLastCalledWith(expect.objectContaining({ bearing: 200 }));
+	});
+
 	test('a new fix moves the map only while following', () => {
 		const { userLocation, mapInstance, map } = setup();
 		userLocation.follow(map);

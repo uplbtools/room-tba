@@ -30,7 +30,7 @@
 		followMode === 'heading'
 			? 'Following your heading. Show north up'
 			: followMode === 'follow'
-				? userLocation.bearing !== null
+				? userLocation.heading !== null
 					? 'Following your location. Follow your heading'
 					: 'Following your location'
 				: 'My location'
