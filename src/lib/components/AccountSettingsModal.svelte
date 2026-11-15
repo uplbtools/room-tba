@@ -67,6 +67,8 @@
 	let passwordSaved = $state(false);
 
 	let unlinkingGoogle = $state(false);
+	let signingOutEverywhere = $state(false);
+	let signOutError = $state<string | null>(null);
 	let identityError = $state<string | null>(null);
 
 	let showDeleteConfirm = $state(false);
@@ -270,6 +272,29 @@
 			identityError = 'Network error. Try again.';
 		} finally {
 			unlinkingGoogle = false;
+		}
+	}
+
+	async function signOutEverywhere() {
+		signingOutEverywhere = true;
+		signOutError = null;
+		try {
+			const res = await fetch('/api/account/sign-out-everywhere', {
+				method: 'POST',
+				credentials: 'same-origin'
+			});
+			const data = await res.json().catch(() => ({}) as { error?: string });
+			if (!res.ok) {
+				signOutError = data.error ?? "Couldn't sign out of all devices.";
+				return;
+			}
+			close();
+			await adminAuthStore.logout();
+			toastStore.show("You're signed out of all devices.", 'success');
+		} catch {
+			signOutError = 'Network error. Try again.';
+		} finally {
+			signingOutEverywhere = false;
 		}
 	}
 
@@ -575,6 +600,24 @@
 							onclick={connectGoogle}
 						/>
 					{/if}
+				</section>
+
+				<section class="settings-section entity-editor-form">
+					<h3>Signed-in devices</h3>
+					<p class="field-hint">
+						Sign out everywhere, this device included, if you used a shared computer or think
+						someone else has access.
+					</p>
+					{#if signOutError}
+						<EntityEditorMessage variant="error" message={signOutError} />
+					{/if}
+					<EntityEditorSubmitButton
+						label="Sign out of all devices"
+						savingLabel="Signing out…"
+						saving={signingOutEverywhere}
+						variant="secondary"
+						onclick={signOutEverywhere}
+					/>
 				</section>
 
 				<section class="settings-section entity-editor-form">
