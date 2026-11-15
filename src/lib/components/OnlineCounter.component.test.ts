@@ -27,33 +27,42 @@ describe('OnlineCounter', () => {
 
 		render(OnlineCounter);
 
-		expect(await screen.findByText(/7 online/)).toBeInTheDocument();
+		const status = await screen.findByRole('status');
+		expect(status).toHaveTextContent('7 people online now');
 	});
 
-	test('shows -- and never a made-up number when the request fails', async () => {
-		vi.stubGlobal(
-			'fetch',
-			vi.fn(async () => {
-				throw new Error('offline');
-			})
-		);
+	test('renders nothing, never a made-up number, when the request fails', async () => {
+		const fetchMock = vi.fn(async () => {
+			throw new Error('offline');
+		});
+		vi.stubGlobal('fetch', fetchMock);
 
-		render(OnlineCounter);
+		const { container } = render(OnlineCounter);
+		await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
-		expect(await screen.findByText('--')).toBeInTheDocument();
-		// Regression guard: the old counter invented a number between 20 and 150.
-		expect(screen.queryByText(/\d+ online/)).toBeNull();
+		expect(container.querySelector('.online-counter')).toBeNull();
+		expect(screen.queryByText(/\d+ (people )?online/)).toBeNull();
 	});
 
-	test('shows -- when the API answers with an error status', async () => {
-		vi.stubGlobal(
-			'fetch',
-			vi.fn(async () => jsonResponse({ error: 'invalid sid' }, 400))
-		);
+	test('renders nothing when the API answers with an error status', async () => {
+		const fetchMock = vi.fn(async () => jsonResponse({ error: 'invalid sid' }, 400));
+		vi.stubGlobal('fetch', fetchMock);
 
-		render(OnlineCounter);
+		const { container } = render(OnlineCounter);
+		await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
-		expect(await screen.findByText('--')).toBeInTheDocument();
+		expect(container.querySelector('.online-counter')).toBeNull();
+	});
+
+	test('stays hidden when you are the only one online', async () => {
+		const fetchMock = vi.fn(async () => jsonResponse({ online: 1 }));
+		vi.stubGlobal('fetch', fetchMock);
+
+		const { container } = render(OnlineCounter);
+		await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
+		await new Promise((resolve) => setTimeout(resolve, 20));
+
+		expect(container.querySelector('.online-counter')).toBeNull();
 	});
 
 	test('keeps the last known count when a later heartbeat fails', async () => {
@@ -65,12 +74,12 @@ describe('OnlineCounter', () => {
 		vi.useFakeTimers();
 
 		render(OnlineCounter);
-		await vi.waitFor(() => expect(screen.getByText(/12 online/)).toBeTruthy());
+		await vi.waitFor(() => expect(screen.getByText(/12 people online/)).toBeTruthy());
 
 		await vi.advanceTimersByTimeAsync(30_000);
 
 		expect(fetchMock).toHaveBeenCalledTimes(2);
-		expect(screen.getByText(/12 online/)).toBeInTheDocument();
+		expect(screen.getByText(/12 people online/)).toBeInTheDocument();
 	});
 
 	test('posts only an anonymous sessionStorage sid, reused across heartbeats', async () => {
@@ -95,6 +104,19 @@ describe('OnlineCounter', () => {
 		await vi.advanceTimersByTimeAsync(30_000);
 		const [, secondInit] = fetchMock.mock.calls[1] as [string, RequestInit];
 		expect(JSON.parse(secondInit.body as string).sid).toBe(body.sid);
+	});
+
+	test('renders a static presence dot, not the old pulsing one', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => jsonResponse({ online: 2 }))
+		);
+
+		const { container } = render(OnlineCounter);
+
+		expect(await screen.findByText(/2 people online/)).toBeInTheDocument();
+		expect(container.querySelector('.presence-dot')).not.toBeNull();
+		expect(container.querySelector('.pulse-dot')).toBeNull();
 	});
 
 	test('stops heartbeating after unmount', async () => {

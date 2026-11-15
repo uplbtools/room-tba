@@ -9,7 +9,7 @@
 		fieldSaveActionLabel
 	} from '#lib/utils/editor/field-action-label.js';
 	import { adminAuthStore, mapEditStore, mapProposalStore } from '#lib/stores.svelte.js';
-	import type { DormData } from '#lib/utils/types';
+	import type { DormData } from '#lib/utils/types.js';
 	import '../editor/entity-editor.css';
 	import type { EntityPhoto } from '#lib/utils/entity/entity-photos.js';
 

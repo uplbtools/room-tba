@@ -96,7 +96,7 @@
 		OrgData,
 		PlaceData,
 		TableSyncInfo
-	} from '#lib/utils/types';
+	} from '#lib/utils/types.js';
 	import UIMap from './Map.svelte';
 
 	// import { MapStore } from '#lib/stores/map/map-stores.svelte.js';
