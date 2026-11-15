@@ -10,8 +10,8 @@
     shouldClearDrawnRoute,
   } from "@lib/transit-route-visibility";
 
-  // Picking a place or another list while a stop is open replaces the stop
-  // panel (it otherwise outranks every other panel and hides the choice).
+  // Picking a place or another list, or clearing the search, while a stop is
+  // open replaces the stop panel (it otherwise outranks every other panel).
   let lastQueryKey: string | null = null;
   $effect(() => {
     const key = `${queryStore.type}:${queryStore.category}:${queryStore.queryValue}`;
@@ -19,7 +19,6 @@
     lastQueryKey = key;
     if (
       changed &&
-      queryStore.category !== null &&
       !isRoutePanelQuery(queryStore.category, queryStore.queryValue) &&
       untrack(() => jeepneyStore.selectedStopIndex) !== null
     ) {

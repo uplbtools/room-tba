@@ -95,7 +95,7 @@
   }
 
   .desktop-top-bar__title {
-    font-family: "DM Sans", Inter, system-ui, sans-serif;
+    font-family: "DM Sans", Figtree, system-ui, sans-serif;
     font-size: clamp(0.95rem, 1.15vw, 1.09rem);
     font-weight: 700;
     line-height: 1;

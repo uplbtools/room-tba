@@ -38,7 +38,7 @@
 <MapChromeActionChip
   toolbar
   pressed={saved}
-  ariaLabel={`Save ${place.label}`}
+  ariaLabel={`${saved ? "Saved" : "Save"} ${place.label}`}
   onclick={onToggle}
 >
   <span class="entity-save-icon" class:entity-save-icon--on={saved}>

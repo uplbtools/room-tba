@@ -1282,7 +1282,7 @@
     .map-search-chrome--redesign
     .map-search-chrome__pill
     input {
-    font-family: Inter, system-ui, sans-serif;
+    font-family: Figtree, system-ui, sans-serif;
     font-size: 0.8125rem;
     font-weight: 600;
     line-height: 1.2;

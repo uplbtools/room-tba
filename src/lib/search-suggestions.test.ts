@@ -208,6 +208,22 @@ describe("rankSuggestions", () => {
     expect(ranked[0]?.score).toBe(MATCH.prefix);
   });
 
+  it("resolves a place alias to the place", () => {
+    const [hit] = scoreAliases(
+      "oble",
+      [{ alias: "Oble", value: "Oblation", targetType: "place" }],
+      [],
+      [{ name: "Oblation", lat: 14.165, lon: 121.24 }],
+    );
+    expect(hit).toMatchObject({
+      value: "Oblation",
+      category: "place",
+      lat: 14.165,
+      secondary: "Oble",
+      score: MATCH.exact,
+    });
+  });
+
   it("returns a room code query's room first", () => {
     const ranked = rankSuggestions([
       ...scoreEntities("PS 105", {

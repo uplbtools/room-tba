@@ -1,3 +1,39 @@
+# [2.44.0](https://github.com/uplbtools/room-tba/compare/v2.43.0...v2.44.0) (2026-11-15)
+
+### Features
+
+* **search:** aliases can point at places ([#1496](https://github.com/uplbtools/room-tba/issues/1496)) ([3bdd563](https://github.com/uplbtools/room-tba/commit/3bdd56305f0777e54cc0de1535556cc42b0b0cc4))
+
+# [2.43.0](https://github.com/uplbtools/room-tba/compare/v2.42.0...v2.43.0) (2026-11-15)
+
+### Features
+
+* **planner:** open the plan's courses in GradeSim ([#1485](https://github.com/uplbtools/room-tba/issues/1485)) ([36bbf06](https://github.com/uplbtools/room-tba/commit/36bbf06207270c5d08808e329c0428c3386fde13)), closes [#planner](https://github.com/uplbtools/room-tba/issues/planner)
+* **theme:** shared UPLB Tools tokens and Figtree ([#1478](https://github.com/uplbtools/room-tba/issues/1478)) ([4a47ebf](https://github.com/uplbtools/room-tba/commit/4a47ebf74923b65a7a89137ea4ee1275e108c719))
+
+# [2.42.0](https://github.com/uplbtools/room-tba/compare/v2.41.0...v2.42.0) (2026-11-15)
+
+### Bug Fixes
+
+* **transit:** clearing the search from an open stop removes the route ([#1481](https://github.com/uplbtools/room-tba/issues/1481)) ([fcf63a3](https://github.com/uplbtools/room-tba/commit/fcf63a3494fe9187e51d925446f0a7c4a5c74ec9))
+
+### Features
+
+* **transit:** route panel title as a jeepney signboard ([#1484](https://github.com/uplbtools/room-tba/issues/1484)) ([1d1fbf7](https://github.com/uplbtools/room-tba/commit/1d1fbf7c7a131dea2b91139e278ab28c026758cf))
+
+# [2.41.0](https://github.com/uplbtools/room-tba/compare/v2.40.8...v2.41.0) (2026-11-15)
+
+### Features
+
+* **planner:** plan links can leave out the class type or the section ([#1482](https://github.com/uplbtools/room-tba/issues/1482)) ([dbbd738](https://github.com/uplbtools/room-tba/commit/dbbd73813da739b74f6db918f7c06ff59aa3a2ae))
+
+## [2.40.8](https://github.com/uplbtools/room-tba/compare/v2.40.7...v2.40.8) (2026-11-15)
+
+### Bug Fixes
+
+* **focus-trap:** leave keys to another open dialog that has focus ([#1446](https://github.com/uplbtools/room-tba/issues/1446)) ([3b2154c](https://github.com/uplbtools/room-tba/commit/3b2154c7ba7c1dc79c9ca40fd4bd293f4fdd7339))
+* **mobile:** no Back entry for the full-screen view in phone landscape ([#1447](https://github.com/uplbtools/room-tba/issues/1447)) ([43886a8](https://github.com/uplbtools/room-tba/commit/43886a8b0d54fbe7b432e6b13d48482f9f8904f4))
+
 ## [2.40.7](https://github.com/uplbtools/room-tba/compare/v2.40.6...v2.40.7) (2026-11-15)
 
 

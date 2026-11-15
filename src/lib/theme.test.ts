@@ -4,8 +4,9 @@ import { join } from "node:path";
 import { contrastRatio, contrastWithWhite } from "./color-contrast";
 import {
   DARK_THEME_TOKENS as T,
+  LIGHT_THEME_TOKENS as L,
   THEME_STORAGE_KEY,
-  darkThemeCss,
+  themeCss,
   parseThemePreference,
   resolveTheme,
 } from "./theme";
@@ -77,10 +78,18 @@ describe("dark tokens meet WCAG AA", () => {
   });
 });
 
-describe("darkThemeCss", () => {
+test("light text tokens meet WCAG AA on white", () => {
+  for (const [name, value] of Object.entries(L)) {
+    if (name === "border") continue;
+    expect(contrastRatio(value, "#ffffff")).toBeGreaterThanOrEqual(4.5);
+  }
+});
+
+describe("themeCss", () => {
   test("defines every token, screen-only, scoped to app pages", () => {
-    const css = darkThemeCss();
-    expect(css.startsWith("@media screen{")).toBe(true);
+    const css = themeCss();
+    expect(css.startsWith(":root{--theme-text:")).toBe(true);
+    expect(css).toContain('@media screen{:root[data-theme="dark"]');
     expect(css).toContain(':root[data-theme="dark"][data-app-page]');
     for (const name of Object.keys(T)) {
       expect(css).toContain(`--theme-${name}:`);
