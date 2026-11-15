@@ -32,7 +32,7 @@ export const POST: RequestHandler = async ({ cookies, params, request }) => {
 				detail: { proposalId: proposal.id, entityLabel: proposal.entityLabel },
 				ip: clientIp(request)
 			});
-			void emitProposalReviewed(proposal, 'rejected').catch((err) => {
+			await emitProposalReviewed(proposal, 'rejected').catch((err) => {
 				logNotificationEmitFailure('Proposal reviewed notification failed', err);
 			});
 		}

@@ -69,7 +69,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 			proposalId: Number.isInteger(body.proposalId) ? body.proposalId : null
 		});
 
-		void emitProposalSubmitted(proposal, session?.id).catch((err) => {
+		await emitProposalSubmitted(proposal, session?.id).catch((err) => {
 			logNotificationEmitFailure('Notification emit failed', err);
 		});
 

@@ -925,3 +925,18 @@ export const floraSpecimensTable = pgTable(
 		index('flora_specimens_notable_idx').on(table.isNotable)
 	]
 );
+
+/** Discord/gateway delivery queue (0061). Server-only. */
+export const notificationOutboxTable = pgTable('notification_outbox', {
+	id: bigserial({ mode: 'number' }).primaryKey(),
+	eventType: varchar('event_type', { length: 64 }).notNull(),
+	idempotencyKey: text('idempotency_key').notNull().unique(),
+	event: jsonb().notNull(),
+	/** `pending` | `sent` | `dead` */
+	status: varchar({ length: 16 }).default('pending').notNull(),
+	attempts: integer().default(0).notNull(),
+	nextAttemptAt: timestamp('next_attempt_at', { mode: 'string' }).defaultNow().notNull(),
+	lastError: text('last_error'),
+	createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull(),
+	sentAt: timestamp('sent_at', { mode: 'string' })
+});

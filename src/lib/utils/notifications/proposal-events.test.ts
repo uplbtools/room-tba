@@ -6,8 +6,8 @@ const { notify } = vi.hoisted(() => ({
 	notify: vi.fn(async (_envelope: unknown) => {})
 }));
 
-vi.mock('./index', () => ({
-	getNotificationAdapter: () => ({ notify })
+vi.mock('./outbox', () => ({
+	enqueueNotification: notify
 }));
 
 const { emitProposalReviewed, emitProposalSubmitted } = await import('./proposal-events');
@@ -31,7 +31,7 @@ const sampleProposal = {
 } satisfies EditProposalSummary;
 
 describe('proposal notification events', () => {
-	test('emitProposalSubmitted uses NoOp adapter without error', async () => {
+	test('emitProposalSubmitted enqueues without error', async () => {
 		await expect(emitProposalSubmitted(sampleProposal, undefined)).resolves.toBeUndefined();
 	});
 
