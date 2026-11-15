@@ -1,3 +1,10 @@
+## [2.40.5](https://github.com/uplbtools/room-tba/compare/v2.40.4...v2.40.5) (2026-11-15)
+
+
+### Bug Fixes
+
+* **copy:** plain sentences in API and lib messages ([#1425](https://github.com/uplbtools/room-tba/issues/1425)) ([0678283](https://github.com/uplbtools/room-tba/commit/067828349d520756e60496502ca5ba5a394bf642))
+
 ## [2.38.4](https://github.com/uplbtools/room-tba/compare/v2.38.3...v2.38.4) (2026-11-12)
 
 
