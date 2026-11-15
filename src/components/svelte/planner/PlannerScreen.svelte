@@ -1,5 +1,6 @@
 <script lang="ts">
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
+  import GraduationCap from "@lucide/svelte/icons/graduation-cap";
   import Share2 from "@lucide/svelte/icons/share-2";
   import ImageDown from "@lucide/svelte/icons/image-down";
   import Pencil from "@lucide/svelte/icons/pencil";
@@ -32,7 +33,10 @@
   } from "@lib/planner/format";
   import { buildPlanIcs } from "@lib/planner/ics";
   import { renderPlanToPng } from "@lib/planner/plan-image";
-  import { encodeSharePlan } from "@lib/planner/share-codec";
+  import {
+    encodeSharePlan,
+    gradesimTakeUrl,
+  } from "@lib/planner/share-codec";
   import FinalExamsList from "@ui/room/FinalExamsList.svelte";
   import TermSelector from "@ui/TermSelector.svelte";
   import GoogleCalendarIcon from "@ui/icons/GoogleCalendarIcon.svelte";
@@ -231,6 +235,8 @@
         .replace(/^-+|-+$/g, "") || "plan"
     );
   }
+
+  const gradesimUrl = $derived(plan ? gradesimTakeUrl(plan) : null);
 
   // Share / calendar / image only make sense once something is scheduled; the
   // buttons stay visible but disabled before then so the affordance is known.
@@ -453,6 +459,19 @@
             {exportingImage ? "Saving…" : "Image"}
           </span>
         </button>
+        {#if gradesimUrl}
+          <a
+            class="planner-action"
+            href={gradesimUrl}
+            target="_blank"
+            rel="noopener"
+            title="Add these courses to this term in your GradeSim plan"
+          >
+            <GraduationCap size={15} aria-hidden="true" />
+            <span class="planner-action__label">Open in GradeSim</span>
+            <span class="planner-action__short">GradeSim</span>
+          </a>
+        {/if}
       </div>
     {/if}
   </header>
@@ -781,6 +800,7 @@
   .planner-actions {
     display: flex;
     flex: 0 0 auto;
+    flex-wrap: wrap;
     gap: 0.5rem;
   }
 
