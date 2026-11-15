@@ -2662,7 +2662,18 @@ export async function renderTransitMapPdf(input: {
     });
     // The rest of the guide fills the space under the shorter stop lists.
     type Section = { title: string; texts: string[]; towns: string[] };
-    type Block = { prefer: number; band?: string; sections: Section[] };
+    type Draw = (
+      pg: PDFPage | null,
+      x: number,
+      top: number,
+      w: number,
+    ) => number;
+    type Block = {
+      prefer: number;
+      band?: string;
+      sections: Section[];
+      custom?: Draw;
+    };
     const blocks: Block[] = [
       ...drawnRoutes.flatMap((route, i) =>
         route.boardingNote
@@ -2685,14 +2696,106 @@ export async function renderTransitMapPdf(input: {
       {
         prefer: -1,
         band: "Palabas ng campus",
-        sections: [
-          {
-            title: "Jeeps sa Olivarez Plaza Mall",
-            texts: townTexts,
-            towns: townJeeps,
-          },
-          { title: "Bus pa-Manila", texts: busTexts, towns: [] },
-        ],
+        sections: [],
+        // Draws when given a page, and returns its height either way.
+        custom: (pg, x, top, w) => {
+          let y = top;
+          const text = (t: string, tx: number, size: number, f: PDFFont) => {
+            pg?.drawText(t, { x: tx, y, size, font: f, color: INK });
+            return f.widthOfTextAtSize(t, size);
+          };
+          const title = (t: string) => {
+            y -= HEAD;
+            text(t, x, HEAD, bold);
+            y -= 5;
+          };
+          // A board with its note beside it, or under it when there's no room.
+          const board = (name: string, paint: RGB, note: string) => {
+            const words = signboardWords(name);
+            const bw = signboardLayout(words, TOWN_BOARD_H, w).w;
+            if (pg)
+              drawSignboard(pg, pageH, words, x, y, TOWN_BOARD_H, w, [
+                paint,
+                paint,
+              ]);
+            const beside = bw + 6 + bold.widthOfTextAtSize(note, BODY) <= w;
+            y -= TOWN_BOARD_H;
+            if (beside) {
+              const ny = y;
+              y += TOWN_BOARD_H / 2 - BODY * 0.36;
+              text(note, x + bw + 6, BODY, bold);
+              y = ny - 4;
+            } else {
+              y -= LEAD;
+              text(note, x, BODY, bold);
+              y -= 4;
+            }
+          };
+          const fare = (label: string, amount: string, rest: string) => {
+            y -= LEAD;
+            let tx = x;
+            const full =
+              font.widthOfTextAtSize(`${label} ${rest}`, BODY) +
+              bold.widthOfTextAtSize(amount, BODY + 1.5);
+            if (label && full > w) {
+              text(label, x, BODY, font);
+              y -= LEAD;
+            } else if (label) tx += text(`${label} `, tx, BODY, font);
+            tx += text(amount, tx, BODY + 1.5, bold);
+            text(rest, tx, BODY, font);
+          };
+
+          title("Jeeps sa Olivarez Plaza Mall");
+          let bx = x;
+          let rowTop = y;
+          for (const town of townJeeps) {
+            const words = signboardWords(town);
+            const bw = signboardLayout(words, TOWN_BOARD_H, w).w;
+            if (bx > x && bx + bw > x + w) {
+              bx = x;
+              rowTop -= TOWN_BOARD_H + 4;
+            }
+            if (pg)
+              drawSignboard(pg, pageH, words, bx, rowTop, TOWN_BOARD_H, w, [
+                SIGN_RED,
+                SIGN_RED,
+              ]);
+            bx += bw + 6;
+          }
+          y = rowTop - TOWN_BOARD_H - 2;
+          fare("", "PHP 14", " pataas, depende sa layo");
+          fare("Calamba Crossing", "PHP 30", ", 25 discounted");
+
+          y -= 14;
+          title("Bus pa-Manila");
+          board("UP Diliman", SIGN_YELLOW, "DLTB");
+          y -= LEAD - 3;
+          text("Alis galing UP Diliman", x, BODY, font);
+          y -= 4;
+          let cx = x;
+          for (const time of ["5 AM", "9 AM", "6 PM"]) {
+            const cw = bold.widthOfTextAtSize(time, BODY) + 10;
+            pg?.drawSvgPath(roundRectPath(cx, y - 18, cw, 15, 3, pageH), {
+              x: 0,
+              y: pageH,
+              color: BOARD,
+            });
+            pg?.drawText(time, {
+              x: cx + 5,
+              y: y - 14,
+              size: BODY,
+              font: bold,
+              color: WHITE,
+            });
+            cx += cw + 5;
+          }
+          y -= 24;
+          board("Buendia", SIGN_YELLOW, "Sa Olivarez Plaza Mall");
+          y -= LEAD - 3;
+          text("Mag-book sa dltb.ph.", x, BODY, font);
+          y -= 4;
+          return top - y;
+        },
       },
     ];
     const HEAD = 11.5;
@@ -2725,6 +2828,7 @@ export async function renderTransitMapPdf(input: {
     };
     const blockH = (block: Block, w: number) =>
       (block.band ? BAND + 8 : 0) +
+      (block.custom?.(null, 0, 0, w) ?? 0) +
       block.sections.reduce(
         (sum, sec, i) => sum + layoutSection(sec, w).h + (i > 0 ? 8 : 0),
         0,
@@ -2761,6 +2865,7 @@ export async function renderTransitMapPdf(input: {
           });
           y -= BAND + 8;
         }
+        if (block.custom) y -= block.custom(pg, col.x, y, col.w);
         block.sections.forEach((sec, si) => {
           if (si > 0) y -= 8;
           const { lines, titles, at, boardsH } = layoutSection(sec, col.w);
