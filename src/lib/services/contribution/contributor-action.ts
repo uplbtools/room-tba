@@ -10,12 +10,13 @@ import {
 	periodAt,
 	pointsToPass,
 	rankContributors,
+	type ContributionKind,
 	type LeaderboardWindow,
 	type LedgerRow,
 	type Standing
 } from '#lib/utils/contributors/scoring.js';
 import { createHash } from 'node:crypto';
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, lte, sql } from 'drizzle-orm';
 import type { EditProposalSummary } from './proposal-action';
 
 export type ContributionSource = 'proposal_approved' | 'editor_published';
@@ -31,6 +32,7 @@ type ContributionInput = {
 	entityLabel: string;
 	source: ContributionSource;
 	proposalId?: number | null;
+	kind: ContributionKind;
 };
 
 async function recordContribution(input: ContributionInput): Promise<void> {
@@ -48,6 +50,7 @@ export async function recordProposalContribution(proposal: EditProposalSummary):
 	// leaderboard only ever showed staff: the rows for public contributors were
 	// never written in the first place. They are recorded with a null userId and
 	// credited by name.
+	const patch = proposal.proposedPatch;
 	await recordContribution({
 		userId: proposal.submitterUserId ?? null,
 		submitterName: proposal.submitterName,
@@ -55,8 +58,47 @@ export async function recordProposalContribution(proposal: EditProposalSummary):
 		entityId: proposal.entityId,
 		entityLabel: proposal.entityLabel,
 		source: 'proposal_approved',
-		proposalId: proposal.id
+		proposalId: proposal.id,
+		kind: classifyContribution({
+			entityType: proposal.entityType,
+			keys: patch && typeof patch === 'object' ? Object.keys(patch) : []
+		})
 	});
+}
+
+/**
+ * A restore undid every edit after the restored version. Those edits stay in
+ * the ledger for the audit trail but stop earning points. Event location edits
+ * are their own proposal type over the event row, so they go with it.
+ */
+export async function markContributionsReverted(input: {
+	entityType: string;
+	entityId: number;
+	/** created_at of the first history row the restore undid. */
+	since: string;
+	/** Highest ledger id before the restore wrote its own row. */
+	throughId: number;
+}): Promise<void> {
+	const types = input.entityType === 'event' ? ['event', 'event_locations'] : [input.entityType];
+	await db
+		.update(contributionsTable)
+		.set({ revertedAt: sql`now()` })
+		.where(
+			and(
+				inArray(contributionsTable.entityType, types),
+				eq(contributionsTable.entityId, input.entityId),
+				sql`${contributionsTable.createdAt} >= ${input.since}`,
+				lte(contributionsTable.id, input.throughId),
+				isNull(contributionsTable.revertedAt)
+			)
+		);
+}
+
+export async function latestContributionId(): Promise<number> {
+	const [row] = await db
+		.select({ id: sql<number | null>`max(${contributionsTable.id})` })
+		.from(contributionsTable);
+	return Number(row?.id ?? 0);
 }
 
 export type MyContribution = {

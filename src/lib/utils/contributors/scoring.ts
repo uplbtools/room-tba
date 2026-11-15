@@ -43,6 +43,15 @@ export function classifyContribution(input: {
 	return 'text';
 }
 
+/** Keys whose value differs between two snapshots (editor publishes). */
+export function changedKeys(before: unknown, after: unknown): string[] {
+	const a = (before && typeof before === 'object' ? before : {}) as Record<string, unknown>;
+	const b = (after && typeof after === 'object' ? after : {}) as Record<string, unknown>;
+	return [...new Set([...Object.keys(a), ...Object.keys(b)])].filter(
+		(key) => JSON.stringify(a[key]) !== JSON.stringify(b[key])
+	);
+}
+
 export type LedgerRow = {
 	id: number;
 	userId: number | null;

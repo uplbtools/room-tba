@@ -37,6 +37,7 @@ import {
 } from '#lib/server/db/schema.js';
 import type { EventData, PlaceData, Room } from '#lib/utils/types.js';
 import { recordEditorContribution } from '../contribution/contributor-action';
+import { changedKeys, classifyContribution } from '#lib/utils/contributors/scoring.js';
 import { EditConflictError } from '../contribution/edit-conflict-error';
 import { getEventById } from '../entity/event';
 
@@ -152,7 +153,8 @@ export async function recordEditorHistory({
 			submitterName: publishingActor.displayName,
 			entityType,
 			entityId,
-			entityLabel: typeof label === 'string' ? label : `${entityType} #${entityId}`
+			entityLabel: typeof label === 'string' ? label : `${entityType} #${entityId}`,
+			kind: classifyContribution({ entityType, action, keys: changedKeys(before, after) })
 		});
 	}
 }
