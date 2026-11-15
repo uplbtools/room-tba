@@ -31,14 +31,16 @@
 	let rowError = $state<string | null>(null);
 	let savingUserId = $state<number | null>(null);
 
+	type PendingInvite = { id: number; email: string; role: ManagedUser['role']; expiresAt: string };
+	let invites = $state<PendingInvite[]>([]);
+
 	let showCreateForm = $state(false);
-	let newUsername = $state('');
 	let newDisplayName = $state('');
 	let newEmail = $state('');
-	let newPassword = $state('');
 	let newRole = $state<'admin' | 'editor' | 'contributor'>('editor');
 	let creating = $state(false);
 	let createError = $state<string | null>(null);
+	let manualInviteUrl = $state<string | null>(null);
 
 	async function loadUsers() {
 		loadError = null;
@@ -48,8 +50,9 @@
 				loadError = 'Could not load users.';
 				return;
 			}
-			const data = (await res.json()) as { users: ManagedUser[] };
+			const data = (await res.json()) as { users: ManagedUser[]; invites?: PendingInvite[] };
 			users = data.users;
+			invites = data.invites ?? [];
 		} catch {
 			loadError = 'Network error loading users.';
 		}
@@ -119,34 +122,56 @@
 		}
 	}
 
-	async function createUser() {
+	async function revokeInvite(id: number) {
+		rowError = null;
+		try {
+			const res = await fetch(`/api/admin/users/invite?id=${id}`, {
+				method: 'DELETE',
+				credentials: 'same-origin'
+			});
+			if (!res.ok) {
+				rowError = "Couldn't revoke the invite.";
+				return;
+			}
+			invites = invites.filter((invite) => invite.id !== id);
+		} catch {
+			rowError = 'Network error. Try again.';
+		}
+	}
+
+	async function sendInvite() {
 		creating = true;
 		createError = null;
+		manualInviteUrl = null;
 		try {
-			const res = await fetch('/api/admin/users', {
+			const res = await fetch('/api/admin/users/invite', {
 				method: 'POST',
 				credentials: 'same-origin',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					username: newUsername,
+					email: newEmail,
 					displayName: newDisplayName || undefined,
-					email: newEmail || undefined,
-					password: newPassword,
 					role: newRole
 				})
 			});
-			const data = await res.json().catch(() => ({}) as { error?: string });
+			const data = (await res.json().catch(() => ({}))) as {
+				error?: string;
+				emailed?: boolean;
+				inviteUrl?: string | null;
+			};
 			if (!res.ok) {
-				createError = data.error ?? 'Could not create account.';
+				createError = data.error ?? "Couldn't send the invite.";
 				return;
 			}
-			toastStore.show(`${newUsername} created. Share the temp password with them.`, 'success');
-			newUsername = '';
+			if (data.emailed) {
+				toastStore.show(`Invite sent to ${newEmail}.`, 'success');
+				showCreateForm = false;
+			} else {
+				manualInviteUrl = data.inviteUrl ?? null;
+			}
 			newDisplayName = '';
 			newEmail = '';
-			newPassword = '';
 			newRole = 'editor';
-			showCreateForm = false;
 			await loadUsers();
 		} catch {
 			createError = 'Network error. Try again.';
@@ -219,6 +244,33 @@
 					{/each}
 				</ul>
 
+				{#if invites.length > 0}
+					<section class="settings-section">
+						<h3>Pending invites</h3>
+						<ul class="user-list">
+							{#each invites as invite (invite.id)}
+								<li class="user-row">
+									<div class="user-row-info">
+										<strong>{invite.email}</strong>
+										<small>
+											{invite.role}, expires {new Date(
+												`${invite.expiresAt.replace(' ', 'T')}Z`
+											).toLocaleDateString()}
+										</small>
+									</div>
+									<button
+										type="button"
+										class="settings-link-btn"
+										onclick={() => revokeInvite(invite.id)}
+									>
+										Revoke
+									</button>
+								</li>
+							{/each}
+						</ul>
+					</section>
+				{/if}
+
 				{#if !showCreateForm}
 					<EntityEditorSubmitButton
 						label="Invite admin / editor"
@@ -226,13 +278,8 @@
 						onclick={() => (showCreateForm = true)}
 					/>
 				{:else}
-					<section class="settings-section">
+					<section class="settings-section entity-editor-form">
 						<h3>Invite admin / editor</h3>
-						<EntityEditorFormField label="Username" inputId="new-user-username">
-							{#snippet control()}
-								<input id="new-user-username" bind:value={newUsername} disabled={creating} />
-							{/snippet}
-						</EntityEditorFormField>
 						<EntityEditorFormField label="Display name" inputId="new-user-display-name">
 							{#snippet control()}
 								<input id="new-user-display-name" bind:value={newDisplayName} disabled={creating} />
@@ -241,20 +288,6 @@
 						<EntityEditorFormField label="Email" inputId="new-user-email">
 							{#snippet control()}
 								<input id="new-user-email" type="email" bind:value={newEmail} disabled={creating} />
-							{/snippet}
-						</EntityEditorFormField>
-						<EntityEditorFormField
-							label="Temporary password"
-							inputId="new-user-password"
-							hint="At least 10 characters. Share it with them out of band; they can change it after signing in."
-						>
-							{#snippet control()}
-								<input
-									id="new-user-password"
-									type="password"
-									bind:value={newPassword}
-									disabled={creating}
-								/>
 							{/snippet}
 						</EntityEditorFormField>
 						<EntityEditorFormField label="Role" inputId="new-user-role">
@@ -269,19 +302,34 @@
 						{#if createError}
 							<EntityEditorMessage variant="error" message={createError} />
 						{/if}
+						{#if manualInviteUrl}
+							<EntityEditorMessage
+								variant="error"
+								message="The invite email couldn't be sent. Share this one-time link with them directly."
+							/>
+							<input
+								readonly
+								value={manualInviteUrl}
+								aria-label="Invite link"
+								onfocus={(e) => e.currentTarget.select()}
+							/>
+						{/if}
 						<div class="settings-danger-actions">
 							<EntityEditorSubmitButton
-								label="Create account"
-								savingLabel="Creating…"
+								label="Send invite"
+								savingLabel="Sending…"
 								saving={creating}
-								disabled={!newUsername.trim() || newPassword.length < 10}
-								onclick={createUser}
+								disabled={!newEmail.trim()}
+								onclick={sendInvite}
 							/>
 							<EntityEditorSubmitButton
 								label="Cancel"
 								variant="secondary"
 								disabled={creating}
-								onclick={() => (showCreateForm = false)}
+								onclick={() => {
+									showCreateForm = false;
+									manualInviteUrl = null;
+								}}
 							/>
 						</div>
 					</section>
