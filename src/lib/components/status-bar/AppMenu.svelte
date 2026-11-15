@@ -10,6 +10,8 @@
 	import CircleHelp from '@lucide/svelte/icons/circle-help';
 	import Inbox from '@lucide/svelte/icons/inbox';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
+	import BusFront from '@lucide/svelte/icons/bus-front';
+	import Printer from '@lucide/svelte/icons/printer';
 	import UserRound from '@lucide/svelte/icons/user-round';
 	import { onMount } from 'svelte';
 	import { formatCatalogUpdatedDate } from '#lib/constants/versioning/data-catalog.js';
@@ -285,6 +287,23 @@
 				<a class="app-menu__action map-chrome-chip" href="/map/final-exams" onclick={closePanel}>
 					<CalendarX size={14} aria-hidden="true" />
 					<span>Final exams</span>
+				</a>
+			</section>
+
+			<section class="app-menu__section" aria-label="Transit">
+				<a class="app-menu__action map-chrome-chip" href="/map/transit" onclick={closePanel}>
+					<BusFront size={14} aria-hidden="true" />
+					<span>Jeepney and bus routes</span>
+				</a>
+				<a
+					class="app-menu__action map-chrome-chip"
+					href="/api/transit-map"
+					target="_blank"
+					rel="noopener"
+					onclick={closePanel}
+				>
+					<Printer size={14} aria-hidden="true" />
+					<span>Printable transit map</span>
 				</a>
 			</section>
 
