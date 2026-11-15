@@ -186,7 +186,7 @@ const KEY_H = 18;
 const POSTER_STRIPS_H: Record<TransitMapFormat, number> = {
   a4: 310,
   letter: 300,
-  a3: 512,
+  a3: 580,
 };
 
 /** Straight-line distance times this is the printed walking estimate. */
@@ -1092,6 +1092,7 @@ function drawStopStrips(
   const { pageH, font, bold, lines, box } = o;
   const anchor = { x: 0, y: pageH };
   const GAP = 14;
+  const cols: { x: number; w: number; bottom: number }[] = [];
   const INDENT = 20;
   const maxStops = Math.max(...lines.map((l) => l.route.stops.length));
   // Tight rows set each name on one line; roomy rows let a name wrap.
@@ -1297,8 +1298,10 @@ function drawStopStrips(
         }),
       );
     });
+    cols.push({ x, w: colW, bottom: cy(last) - rowH / 2 });
     x += colW + GAP;
   });
+  return cols;
 }
 
 export async function renderTransitMapPdf(input: {
@@ -2559,16 +2562,18 @@ export async function renderTransitMapPdf(input: {
 
   // Town jeeps and buses are not drawn on the map, so they are listed.
   const townJeeps = ["Calamba", "San Pablo", "Sta. Cruz"];
-  const townLines = [
+  const townTexts = [
     "Mula PHP 14 ang pamasahe, depende sa layo.",
     "PHP 30 ang pa-Calamba Crossing, 25 discounted.",
-  ].flatMap((text) => wrapText(text, font, BODY, PANEL_W));
-  const busLines = [
+  ];
+  const busTexts = [
     "May DLTB bus papuntang UP Diliman.",
     "5 AM, 9 AM at 6 PM ang alis nito galing UP Diliman.",
     "May ibang bus pa-Buendia sa Olivarez Plaza Mall.",
     "Mag-book sa dltb.ph.",
-  ].flatMap((text) => wrapText(text, font, BODY, PANEL_W));
+  ];
+  const townLines = townTexts.flatMap((t) => wrapText(t, font, BODY, PANEL_W));
+  const busLines = busTexts.flatMap((t) => wrapText(t, font, BODY, PANEL_W));
   const TOWN_BOARD_H = 15;
   const townH =
     9 +
@@ -2650,15 +2655,129 @@ export async function renderTransitMapPdf(input: {
     nearest: nearest?.stop ?? null,
   };
   if (drawnRoutes.length > 0 && poster) {
-    drawStopStrips(page, {
+    const floor = FOOTER_H + 14;
+    const cols = drawStopStrips(page, {
       ...strips,
-      box: {
-        x: MARGIN,
-        top: stripsTop,
-        w: pageW - MARGIN * 2,
-        bottom: FOOTER_H + 14,
-      },
+      box: { x: MARGIN, top: stripsTop, w: pageW - MARGIN * 2, bottom: floor },
     });
+    // The rest of the guide fills the space under the shorter stop lists.
+    const blocks = [
+      ...drawnRoutes.flatMap((route, i) =>
+        route.boardingNote
+          ? [
+              {
+                prefer: i,
+                title: isLoopRoute(route)
+                  ? "Kanan o Kaliwa"
+                  : `Saan sasakay ng ${route.name.replace(/\s*(\/|\().*$/, "")}`,
+                texts: [route.boardingNote],
+                towns: [] as string[],
+              },
+            ]
+          : [],
+      ),
+      {
+        prefer: -1,
+        title: "Bus pa-Manila",
+        texts: busTexts,
+        towns: [] as string[],
+      },
+      {
+        prefer: -1,
+        title: "Jeeps sa Olivarez Plaza Mall",
+        texts: townTexts,
+        towns: townJeeps,
+      },
+    ];
+    const HEAD = 11.5;
+    const BOARD_GAP = 6;
+    const layout = (block: (typeof blocks)[number], w: number) => {
+      const lines = block.texts.flatMap((t) => wrapText(t, font, BODY, w));
+      // Boards flow left to right and wrap to a new row.
+      let bx = 0;
+      let rows = block.towns.length ? 1 : 0;
+      const at = block.towns.map((t) => {
+        const bw = signboardLayout(signboardWords(t), TOWN_BOARD_H, w).w;
+        if (bx > 0 && bx + bw > w) {
+          bx = 0;
+          rows++;
+        }
+        const pos = { x: bx, row: rows - 1 };
+        bx += bw + BOARD_GAP;
+        return pos;
+      });
+      const boardsH = rows * (TOWN_BOARD_H + 4);
+      const titles = wrapText(block.title, bold, HEAD, w);
+      return {
+        lines,
+        titles,
+        at,
+        boardsH,
+        h: titles.length * 14 + 2 + boardsH + lines.length * LEAD,
+      };
+    };
+    const place = (
+      pg: PDFPage,
+      list: typeof blocks,
+      columns: { x: number; w: number; bottom: number }[],
+    ) =>
+      list.filter((block) => {
+        const fits = (c: (typeof columns)[number]) =>
+          c.bottom - 12 - layout(block, c.w).h >= floor;
+        const own = columns[block.prefer];
+        const col =
+          own && fits(own)
+            ? own
+            : columns.filter(fits).sort((p, q) => q.bottom - p.bottom)[0];
+        if (!col) return true;
+        const { lines, titles, at, boardsH } = layout(block, col.w);
+        let y = col.bottom - 12;
+        for (const t of titles) {
+          pg.drawText(t, {
+            x: col.x,
+            y: y - HEAD,
+            size: HEAD,
+            font: bold,
+            color: INK,
+          });
+          y -= 14;
+        }
+        y -= 2;
+        block.towns.forEach((town, i) =>
+          drawSignboard(
+            pg,
+            pageH,
+            signboardWords(town),
+            col.x + at[i]!.x,
+            y - at[i]!.row * (TOWN_BOARD_H + 4),
+            TOWN_BOARD_H,
+            col.w,
+            [SIGN_RED, SIGN_RED],
+          ),
+        );
+        y -= boardsH;
+        for (const l of lines) {
+          pg.drawText(l, { x: col.x, y: y - 9, size: BODY, font, color: INK });
+          y -= LEAD;
+        }
+        col.bottom = y;
+        return false;
+      });
+    const left = place(page, blocks, cols);
+    // Whatever is left goes on a second page in three columns.
+    if (left.length > 0) {
+      const more = pdf.addPage([pageW, pageH]);
+      const w = (pageW - MARGIN * 2 - 2 * 14) / 3;
+      place(
+        more,
+        left.map((block) => ({ ...block, prefer: -1 })),
+        [0, 1, 2].map((i) => ({
+          x: MARGIN + i * (w + 14),
+          w,
+          bottom: pageH - SAFE,
+        })),
+      );
+    }
   } else if (drawnRoutes.length > 0) {
     // Page 2 of the sheet: the same strips at full size.
     const BAND_H = 52;
