@@ -130,7 +130,7 @@ describe("confidence degrades honestly", () => {
     });
     expect(signal?.floor).toBe(2);
     expect(signal?.confidence).toBe("low");
-    expect(signal?.reason).toContain("Used the room number");
+    expect(signal?.reason).toContain("we used the room number");
   });
 
   it.each([

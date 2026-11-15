@@ -76,7 +76,7 @@ async function assertNoDuplicateRoomCodesInBuilding(
     const normalized = normalizeEntityName(row.roomCode);
     if (seen.has(normalized)) {
       throw new Error(
-        `Cannot merge buildings: duplicate room code "${row.roomCode}" would exist in the kept building.`,
+        `Can't merge buildings because room code "${row.roomCode}" would exist twice in the kept building.`,
       );
     }
     seen.add(normalized);

@@ -30,7 +30,7 @@ export function newPasswordError(password: string): string | null {
     return `Password must be at least ${MIN_CONTRIBUTOR_PASSWORD_LENGTH} characters.`;
   }
   if (passwordByteLength(password) > MAX_PASSWORD_BYTES) {
-    return `Password is too long. Keep it to ${MAX_PASSWORD_BYTES} bytes: about ${MAX_PASSWORD_BYTES} plain letters, fewer with emoji or accented letters.`;
+    return `Password is too long. Keep it to ${MAX_PASSWORD_BYTES} bytes, which is about ${MAX_PASSWORD_BYTES} plain letters, fewer with emoji or accented letters.`;
   }
   return null;
 }
@@ -43,7 +43,7 @@ export function usernameError(raw: string): string | null {
     username.length > USERNAME_MAX_LENGTH ||
     !USERNAME_PATTERN.test(username)
   ) {
-    return `Username must be ${USERNAME_MIN_LENGTH}–${USERNAME_MAX_LENGTH} characters: lowercase letters, numbers, and . _ - (starting with a letter or number).`;
+    return `Username must be ${USERNAME_MIN_LENGTH} to ${USERNAME_MAX_LENGTH} characters. Use lowercase letters, numbers, and . _ - (starting with a letter or number).`;
   }
   return null;
 }

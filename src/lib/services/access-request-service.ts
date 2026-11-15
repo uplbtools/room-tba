@@ -170,8 +170,7 @@ export async function createAccessRequest(
     }
     throw error;
   }
-  if (!created)
-    throw new AccountActionError("Could not save the request.", 500);
+  if (!created) throw new AccountActionError("Couldn't save the request.", 500);
   await notifyAdmins({
     requestId: created.id,
     username: user.username,

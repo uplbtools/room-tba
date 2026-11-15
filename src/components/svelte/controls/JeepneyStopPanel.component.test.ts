@@ -237,7 +237,9 @@ describe("JeepneyStopPanel jeep reports", () => {
     openLibrary();
 
     expect(
-      await screen.findByText("Likely busy now: classes just ended nearby"),
+      await screen.findByText(
+        "Likely busy now since classes just ended nearby",
+      ),
     ).toBeVisible();
     expect(screen.getByText(CROWDING_ESTIMATE_NOTE)).toBeVisible();
   });
@@ -256,7 +258,7 @@ describe("JeepneyStopPanel jeep reports", () => {
     openLibrary();
 
     expect(
-      await screen.findByText("Busy: many jeeps reported full"),
+      await screen.findByText("Busy since many jeeps reported full"),
     ).toBeVisible();
     expect(screen.getByText(CROWDING_REPORTS_NOTE)).toBeVisible();
   });

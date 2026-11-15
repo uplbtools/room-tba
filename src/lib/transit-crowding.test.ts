@@ -70,7 +70,7 @@ describe("crowdingHint", () => {
   test("right after many classes end nearby", () => {
     for (const minute of [0, 5, 9]) {
       expect(crowdingHint({ ...base, now: manila(THU, 10, minute) })).toEqual({
-        text: "Likely busy now: classes just ended nearby",
+        text: "Likely busy now since classes just ended nearby",
         source: "estimate",
       });
     }
@@ -80,7 +80,7 @@ describe("crowdingHint", () => {
 
   test("in the minutes before many classes start", () => {
     expect(crowdingHint({ ...base, now: manila(THU, 14, 22) })?.text).toBe(
-      "Likely busy now: classes start soon nearby",
+      "Likely busy now since classes start soon nearby",
     );
     expect(crowdingHint({ ...base, now: manila(THU, 14, 30) })).toBeNull();
   });
@@ -122,13 +122,16 @@ describe("crowdingHint", () => {
     ];
     expect(
       crowdingHint({ ...base, peaks: lunch, now: manila(THU, 12, 4) })?.text,
-    ).toBe("Likely busy now: classes just ended nearby");
+    ).toBe("Likely busy now since classes just ended nearby");
   });
 
   test("three full reports outrank every estimate", () => {
     expect(
       crowdingHint({ ...base, fullReports: 3, now: manila(SUN, 3, 0) }),
-    ).toEqual({ text: "Busy: many jeeps reported full", source: "reports" });
+    ).toEqual({
+      text: "Busy since many jeeps reported full",
+      source: "reports",
+    });
     expect(
       crowdingHint({ ...base, fullReports: 2, now: manila(SUN, 3, 0) }),
     ).toBeNull();

@@ -35,11 +35,16 @@ export function editErrorMessage(
     "failed to save building position",
     "failed to save dorm position",
     "failed to save event location",
+    "couldn't save building",
+    "couldn't save dorm",
+    "couldn't save the building position",
+    "couldn't save the dorm position",
+    "couldn't save the event location",
   ]);
 
   if (genericReasons.has(normalizedReason)) {
     return `${name} failed to save.`;
   }
 
-  return `${name} failed to save: ${reason}`;
+  return `${name} failed to save. ${reason}`;
 }

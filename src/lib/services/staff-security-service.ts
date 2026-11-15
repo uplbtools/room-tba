@@ -49,7 +49,7 @@ export function isMfaAvailable(): boolean {
 function encryptionKey(): Buffer {
   if (!TOTP_ENCRYPTION_KEY?.trim()) {
     throw new AccountActionError(
-      "Two-step verification is not configured on this server.",
+      "Two-step verification isn't configured on this server.",
       503,
     );
   }
@@ -167,7 +167,7 @@ export async function confirmMfaEnrollment(
   const step = verifyTotp(open(row.totpSecretEnc, key), code);
   if (step === null) {
     throw new AccountActionError(
-      "That code did not match. Check the time on your phone and try the newest code.",
+      "That code didn't match. Check the time on your phone and try the newest code.",
       400,
     );
   }

@@ -1081,7 +1081,7 @@ export async function renderTransitMapPdf(input: {
         .map((r) => r.name),
     );
     intro = [
-      { text: "You are at " },
+      { text: "You're at " },
       { text: here.name ?? "the star on this map", bold: true },
       { text: ". The nearest jeepney stop is " },
       { text: nearest.stop.name, bold: true },
@@ -1099,7 +1099,7 @@ export async function renderTransitMapPdf(input: {
       },
     ];
   } else {
-    intro = [{ text: "Campus jeepney routes and their stops." }];
+    intro = [{ text: "These are the campus jeepney routes and their stops." }];
   }
   const INTRO_SIZE = 11;
   drawRuns(page, intro, MARGIN, pageH - 56, introW, INTRO_SIZE, 14, 2, {
@@ -1853,7 +1853,7 @@ export async function renderTransitMapPdf(input: {
   const fareText = (r: { fareRegular: number; fareDiscounted: number }) =>
     Number.isFinite(r.fareRegular)
       ? `PHP ${r.fareRegular} a ride, PHP ${r.fareDiscounted} discounted`
-      : "Fare not verified yet: ask the driver";
+      : "Fare not verified yet. Ask the driver.";
   const tint = (c: RGB) =>
     rgb(
       1 - (1 - c.red) * 0.09,
@@ -2173,7 +2173,7 @@ export async function renderTransitMapPdf(input: {
 
   // Riding tips, for first-years and visitors reading the sheet on a wall.
   const tips = [
-    "Kaliwa turns left at the gate; Kanan, right.",
+    "Kaliwa turns left at the gate, and Kanan turns right.",
     "Board and alight at yellow stops only.",
   ];
   const tipLines = tips.map((t) => wrapText(t, font, BODY, PANEL_W - 36));
@@ -2225,7 +2225,7 @@ export async function renderTransitMapPdf(input: {
   });
   drawJeep(page, pageH, MARGIN, roadY - 2, 0.7, SUNNY);
   page.drawText(
-    `Room TBA by UPLB Tools, room-tba.uplb.tools. Printed ${dateLabel}. Prices verified Oct 7, 2026.`,
+    `Room TBA by UPLB Tools, room-tba.uplb.tools. Printed ${dateLabel}. We verified prices on Oct 7, 2026.`,
     { x: MARGIN + 34, y: 9, size: 7.5, font, color: MUTED },
   );
   const footRight = input.basemap

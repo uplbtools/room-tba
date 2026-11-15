@@ -141,7 +141,7 @@ export function routeFareInfo(route: {
     return {
       kind: "distance",
       minimum: TOWN_JEEPNEY_MINIMUM_FARE,
-      note: `Fare is ${minimumText(TOWN_JEEPNEY_MINIMUM_FARE)}. The fare to the end of the line is not verified yet. ${FARES_VERIFIED_NOTE}`,
+      note: `Fare is ${minimumText(TOWN_JEEPNEY_MINIMUM_FARE)}. The fare to the end of the line isn't verified yet. ${FARES_VERIFIED_NOTE}`,
     };
   }
   return {

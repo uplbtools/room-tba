@@ -142,7 +142,7 @@ export async function syncCampusDirectoryForOffline(options?: {
         phase: "rooms",
         step: 2,
         totalSteps: 4,
-        label: `Rooms: ${target.label} (${roomStep}/${roomTargets.length})`,
+        label: `Downloading rooms for ${target.label} (${roomStep}/${roomTargets.length})`,
       });
 
       if (target.kind === "building") {

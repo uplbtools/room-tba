@@ -1056,7 +1056,7 @@ export async function submitProposal(
         .limit(1);
       if (!row) {
         throw new ProposalValidationError(
-          "That building is not on the map yet. Wait for editors to approve your building suggestion, or pick a building that already exists.",
+          "That building isn't on the map yet. Wait for editors to approve your building suggestion, or pick a building that already exists.",
         );
       }
     }
@@ -1160,7 +1160,7 @@ async function promoteProposalImage(patch: Record<string, unknown>) {
   if (!isQuarantineKey(key)) return;
   if (!isR2Configured()) {
     throw new ProposalActionError(
-      "Image storage is not configured, so this photo cannot be published.",
+      "Image storage isn't configured, so this photo can't be published.",
       503,
     );
   }

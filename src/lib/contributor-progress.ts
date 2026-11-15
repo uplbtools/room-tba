@@ -224,7 +224,7 @@ export function missingFieldLabel(
   roomCode: string,
   category: RoomFieldCategory,
 ): string {
-  return `${roomCode} — ${ROOM_FIELD_LABELS[category].toLowerCase()} missing`;
+  return `${roomCode} is missing its ${ROOM_FIELD_LABELS[category].toLowerCase()}`;
 }
 
 type ContributorProgressApiResponse = {

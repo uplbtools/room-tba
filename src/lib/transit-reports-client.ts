@@ -109,7 +109,7 @@ export async function postJeepReport(input: {
     const body = (await res.json().catch(() => null)) as {
       error?: string;
     } | null;
-    return { ok: false, error: body?.error ?? "Could not send the report." };
+    return { ok: false, error: body?.error ?? "Couldn't send the report." };
   } catch {
     return { ok: false, error: "You seem to be offline. Try again." };
   }

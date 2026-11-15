@@ -155,7 +155,7 @@ export function inferRoomSignal(
     // itself, so it wins; the disagreement is named and confidence drops.
     floor = code.floor;
     confidence = "low";
-    reason = `"${room.roomCode}" implies floor ${code.floor}; the directions mention floor ${prose.floor}, which is more often the way in than the room. Used the room number`;
+    reason = `"${room.roomCode}" implies floor ${code.floor}. The directions mention floor ${prose.floor}, which is more often the way in than the room, so we used the room number`;
   } else if (code && prose.floor !== null) {
     floor = code.floor;
     confidence = "high";
@@ -167,7 +167,7 @@ export function inferRoomSignal(
   } else if (prose.floor !== null) {
     floor = prose.floor;
     confidence = "medium";
-    reason = `Directions text names floor ${prose.floor}; the code carries no number`;
+    reason = `Directions text names floor ${prose.floor}, and the code carries no number`;
   } else {
     return null;
   }
