@@ -114,7 +114,7 @@ export default class UserLocation {
 			this.requestLocation();
 			return;
 		}
-		if (map.isMapReady()) {
+		if (!map.isMapReady()) {
 			this.toastStore.show('Map component is still initializing', 'info');
 			return;
 		}

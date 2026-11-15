@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeStringList } from './string-lists';
+import { normalizeAmenityList, normalizeStringList } from './string-lists';
 
 describe('normalizeStringList', () => {
 	it('strips single quotes from array elements', () => {
@@ -52,5 +52,24 @@ describe('normalizeStringList', () => {
 			'Shared rooms',
 			'Laundry facilities'
 		]);
+	});
+});
+
+describe('normalizeAmenityList', () => {
+	it('keeps Wi-Fi and WiFi as one amenity', () => {
+		expect(normalizeAmenityList(['Wi-Fi', 'WiFi', 'Wi-Fi;Laundry'])).toEqual([
+			'Wi-Fi',
+			'WiFi',
+			'Wi-Fi',
+			'Laundry'
+		]);
+		expect(normalizeAmenityList("['Free WiFi', 'Study Lounge']")).toEqual([
+			'Free WiFi',
+			'Study Lounge'
+		]);
+	});
+
+	it('still splits labels merged without separators', () => {
+		expect(normalizeAmenityList('LaundryStudy Lounge')).toEqual(['Laundry', 'Study Lounge']);
 	});
 });

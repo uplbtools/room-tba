@@ -31,7 +31,18 @@ export const FIELD_LABELS: Record<string, string> = {
 	rooms: 'Bundled rooms',
 	locations: 'Locations',
 	routeId: 'Jeepney route',
-	isActive: 'Listed'
+	isActive: 'Listed',
+	name: 'Name',
+	hours: 'Hours',
+	websiteLink: 'Website',
+	facebookLink: 'Facebook page',
+	fullName: 'Full name',
+	amenities: 'Amenities',
+	priceRange: 'Price range',
+	bio: 'Bio',
+	orgType: 'Organization type',
+	establishedYear: 'Year established',
+	memberCount: 'Members'
 };
 
 export type FieldDiff = {

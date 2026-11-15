@@ -20,7 +20,7 @@
 	import EntityShareCopyLink from '#lib/components/entity/EntityShareCopyLink.svelte';
 	import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
 	import EntityEditorPinRow from '#lib/components/editor/EntityEditorPinRow.svelte';
-	import type { OrgData } from '#lib/utils/types';
+	import type { OrgData } from '#lib/utils/types.js';
 	import {
 		isStudentOrganization,
 		orgCategoryLabel,
@@ -307,7 +307,7 @@
 				</div>
 			{/if}
 
-			<EntityLastUpdated updatedAt={org.updatedAt} entityType="organization" entityId={org.id} />
+			<EntityLastUpdated updatedAt={org.updatedAt} />
 		</div>
 
 		<img
