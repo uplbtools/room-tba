@@ -82,7 +82,7 @@
         classes = [];
         classNextCursor = null;
         classHasMore = false;
-        classesError = "Could not load classes for this course.";
+        classesError = "Couldn't load classes for this course.";
       })
       .finally(() => {
         classesLoading = false;

@@ -463,7 +463,7 @@
     if (field === "buildingName") {
       const trimmedName = nameDraft.trim();
       if (trimmedName.length === 0) {
-        fieldError = `${current.buildingName} name cannot be empty.`;
+        fieldError = `${current.buildingName} name can't be empty.`;
         return;
       }
       body.buildingName = trimmedName;
@@ -499,7 +499,7 @@
 
       const outcome = handlePersistEntityResult<BuildingData>(result, {
         syncFromServer: syncBuildingFromServer,
-        fallbackError: `${current.buildingName} ${fieldLabel(field)} could not be saved.`,
+        fallbackError: `${current.buildingName} ${fieldLabel(field)} couldn't be saved.`,
       });
 
       if (outcome.error) {
@@ -536,7 +536,7 @@
       }
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.buildingName} ${fieldLabel(field)} failed to save: ${reason}`;
+      fieldError = `${current.buildingName} ${fieldLabel(field)} failed to save (${reason}).`;
     } finally {
       savingField = null;
     }
@@ -569,7 +569,7 @@
           syncBuildingFromServer(result.latest as BuildingData);
         fieldError =
           result.error ??
-          `${current.buildingName} could not be merged into ${mergePrompt.candidate.buildingName}.`;
+          `${current.buildingName} couldn't be merged into ${mergePrompt.candidate.buildingName}.`;
         return;
       }
 
@@ -584,7 +584,7 @@
       editing = false;
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.buildingName} merge failed: ${reason}`;
+      fieldError = `${current.buildingName} merge failed (${reason}).`;
     } finally {
       mergingEntity = false;
     }
@@ -624,7 +624,7 @@
     if (nameDraft.trim() !== current.buildingName) {
       const trimmedName = nameDraft.trim();
       if (trimmedName.length === 0) {
-        fieldError = `${current.buildingName} name cannot be empty.`;
+        fieldError = `${current.buildingName} name can't be empty.`;
         return;
       }
       patch.buildingName = trimmedName;
@@ -660,7 +660,7 @@
 
       const outcome = handlePersistEntityResult<BuildingData>(result, {
         syncFromServer: syncBuildingFromServer,
-        fallbackError: `${current.buildingName} could not be saved.`,
+        fallbackError: `${current.buildingName} couldn't be saved.`,
       });
 
       if (outcome.error) {
@@ -688,7 +688,7 @@
       }
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.buildingName} failed to save: ${reason}`;
+      fieldError = `${current.buildingName} failed to save (${reason}).`;
     } finally {
       savingField = null;
     }
@@ -823,7 +823,7 @@
               entityKind="building"
               sourceLabel={building.buildingName}
               candidateLabel={mergePrompt.candidate.buildingName}
-              detail="Merge rooms and map pins into the kept building;"
+              detail="Rooms and map pins move to the kept building. Merge"
               merging={mergingEntity}
               disabled={savingField !== null}
               onconfirm={confirmBuildingMerge}
@@ -835,7 +835,7 @@
             {#if canPublish}
               <EntityEditorPinRow
                 label={mapEditStore.enabled
-                  ? "Map pin: drag marker on map"
+                  ? "Map pin (drag marker on map)"
                   : "Map pin"}
                 pickLabel={mapEditStore.enabled ? "Active" : "Enable map edit"}
                 disabled={mapEditStore.enabled || savingField !== null}
@@ -844,7 +844,7 @@
             {:else}
               <EntityEditorPinRow
                 label={pinProposalActive
-                  ? "Pin move: drag marker on map"
+                  ? "Pin move (drag marker on map)"
                   : "Map pin"}
                 pickLabel={pinProposalActive ? "Active" : "Suggest move"}
                 disabled={pinProposalActive || savingField !== null}

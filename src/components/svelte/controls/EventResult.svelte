@@ -380,7 +380,7 @@
       }
     } catch (error) {
       toastStore.show(
-        error instanceof Error ? error.message : "Failed to save event.",
+        error instanceof Error ? error.message : "Couldn't save the event.",
         "error",
       );
     } finally {
@@ -430,7 +430,7 @@
       toastStore.show(
         error instanceof Error
           ? error.message
-          : `Failed to save location for ${event.title}.`,
+          : `Couldn't save the location for ${event.title}.`,
         "error",
       );
     } finally {
@@ -493,7 +493,7 @@
       toastStore.show(
         error instanceof Error
           ? error.message
-          : `Failed to deactivate ${event.title}.`,
+          : `Couldn't deactivate ${event.title}.`,
         "error",
       );
     } finally {
@@ -608,7 +608,7 @@
       toastStore.show(
         error instanceof Error
           ? error.message
-          : "Failed to place event marker.",
+          : "Couldn't place the event marker.",
         "error",
       );
     } finally {

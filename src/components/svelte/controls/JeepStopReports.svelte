@@ -185,7 +185,7 @@
     };
     message = {
       key: row.key,
-      text: full ? "Thanks, marked as full." : "Thanks, reported.",
+      text: full ? "Thanks, marked as full." : "Thanks, we got your report.",
       error: false,
     };
     void loadReports(stopKeys);

@@ -120,7 +120,7 @@
     const name = nameDraft.trim();
     if (name !== current.name) {
       if (!name) {
-        fieldError = "Name cannot be empty.";
+        fieldError = "Name can't be empty.";
         return null;
       }
       patch.name = name;
@@ -185,7 +185,7 @@
 
       const outcome = handlePersistEntityResult<OrgData>(result, {
         syncFromServer,
-        fallbackError: `${current.name} could not be saved.`,
+        fallbackError: `${current.name} couldn't be saved.`,
       });
 
       if (outcome.error) {
@@ -204,7 +204,7 @@
       additionProposalStore.clearDraftPin();
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.name} failed to save: ${reason}`;
+      fieldError = `${current.name} failed to save (${reason}).`;
     } finally {
       saving = false;
     }

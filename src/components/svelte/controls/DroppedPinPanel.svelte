@@ -61,7 +61,7 @@
       await copyTextToClipboard(coords);
       toastStore.show(`Copied ${coords}.`, "success");
     } catch {
-      toastStore.show("Could not copy the coordinates.", "error");
+      toastStore.show("Couldn't copy the coordinates.", "error");
     }
   }
 
