@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Megaphone from '@lucide/svelte/icons/megaphone';
-	import { adminAuthStore, announcementsStore, modalStore } from '#lib/stores.svelte.js';
+	import { getAnnouncements } from '#lib/functions/announcements.remote.js';
+	import { getAdminAuthStore, getAnnouncementsStore, getModalStore } from '#lib/utils/context.js';
 	import {
 		ANNOUNCEMENT_SEVERITIES,
 		ANNOUNCEMENT_SEVERITY_LABELS,
@@ -16,14 +17,16 @@
 	} from '#lib/utils/event/event-time.js';
 	import type { AnnouncementData } from '#lib/utils/types.js';
 
+	const adminAuthStore = getAdminAuthStore();
+	const announcementsStore = getAnnouncementsStore();
+	const modalStore = getModalStore();
+
 	const canPublish = $derived(adminAuthStore.canPublish);
 
 	/** Editors manage every row; everyone else sees only what is live. */
 	let editorRows = $state.raw<AnnouncementData[]>([]);
 	let editorError = $state<string | null>(null);
 	let saving = $state(false);
-
-	const rows = $derived(canPublish ? sortNewestFirst(editorRows) : announcementsStore.items);
 
 	type Draft = {
 		id: number | null;
@@ -38,10 +41,9 @@
 
 	let draft = $state<Draft | null>(null);
 
-	onMount(() => {
-		// Opening the panel is what clears the badge (#777).
-		announcementsStore.markSeen();
+	onMount(async () => {
 		if (canPublish) void loadEditorRows();
+		announcementsStore.markSeen(await getAnnouncements());
 	});
 
 	async function loadEditorRows() {
@@ -118,7 +120,7 @@
 				return;
 			}
 			draft = null;
-			await Promise.all([loadEditorRows(), announcementsStore.load()]);
+			await Promise.all([loadEditorRows(), getAnnouncements().refresh()]);
 		} catch {
 			editorError = 'Network error. Try again.';
 		} finally {
@@ -142,7 +144,7 @@
 				editorError = data.error ?? 'Could not delete the announcement.';
 				return;
 			}
-			await Promise.all([loadEditorRows(), announcementsStore.load()]);
+			await Promise.all([loadEditorRows(), getAnnouncements().refresh()]);
 		} catch {
 			editorError = 'Network error. Try again.';
 		} finally {
@@ -237,52 +239,58 @@
 	{/if}
 
 	<div class="announcements__list">
-		{#if rows.length === 0}
-			<p class="announcements__empty">
-				No announcements right now. Check back when something is up.
-			</p>
-		{/if}
-		{#each rows as row (row.id)}
-			<article class="announcements__item" data-severity={row.severity}>
-				<div class="announcements__item-head">
-					<span class="announcements__chip" data-severity={row.severity}>
-						{ANNOUNCEMENT_SEVERITY_LABELS[row.severity as AnnouncementSeverity] ?? row.severity}
-					</span>
-					<h3 class="announcements__item-title">{row.title}</h3>
-				</div>
-				<p class="announcements__body">{row.body}</p>
-				{#if row.linkUrl}
-					<a
-						class="announcements__link"
-						href={row.linkUrl}
-						target="_blank"
-						rel="noopener noreferrer">More details</a
-					>
-				{/if}
-				<p class="announcements__meta">
-					<time datetime={row.startsOn} title={formatCampusDateTime(row.startsOn)}>
-						{relativeDateLabel(row.startsOn)}
-					</time>
-					{#if row.author}<span>· {row.author}</span>{/if}
-					{#if canPublish && statusLabel(row)}
-						<span class="announcements__status">· {statusLabel(row)}</span>
-					{/if}
+		<svelte:boundary>
+			{#snippet failed()}
+				<p class="announcements__empty">Couldn't load announcements. Try again.</p>
+			{/snippet}
+			{@const rows = canPublish ? sortNewestFirst(editorRows) : await getAnnouncements()}
+			{#if rows.length === 0}
+				<p class="announcements__empty">
+					No announcements right now. Check back when something is up.
 				</p>
-				{#if canPublish}
-					<div class="announcements__actions">
-						<button type="button" class="announcements__btn" onclick={() => editDraft(row)}
-							>Edit</button
-						>
-						<button
-							type="button"
-							class="announcements__btn announcements__btn--danger"
-							onclick={() => void remove(row)}
-							disabled={saving}>Delete</button
-						>
+			{/if}
+			{#each rows as row (row.id)}
+				<article class="announcements__item" data-severity={row.severity}>
+					<div class="announcements__item-head">
+						<span class="announcements__chip" data-severity={row.severity}>
+							{ANNOUNCEMENT_SEVERITY_LABELS[row.severity as AnnouncementSeverity] ?? row.severity}
+						</span>
+						<h3 class="announcements__item-title">{row.title}</h3>
 					</div>
-				{/if}
-			</article>
-		{/each}
+					<p class="announcements__body">{row.body}</p>
+					{#if row.linkUrl}
+						<a
+							class="announcements__link"
+							href={row.linkUrl}
+							target="_blank"
+							rel="noopener noreferrer">More details</a
+						>
+					{/if}
+					<p class="announcements__meta">
+						<time datetime={row.startsOn} title={formatCampusDateTime(row.startsOn)}>
+							{relativeDateLabel(row.startsOn)}
+						</time>
+						{#if row.author}<span>· {row.author}</span>{/if}
+						{#if canPublish && statusLabel(row)}
+							<span class="announcements__status">· {statusLabel(row)}</span>
+						{/if}
+					</p>
+					{#if canPublish}
+						<div class="announcements__actions">
+							<button type="button" class="announcements__btn" onclick={() => editDraft(row)}
+								>Edit</button
+							>
+							<button
+								type="button"
+								class="announcements__btn announcements__btn--danger"
+								onclick={() => void remove(row)}
+								disabled={saving}>Delete</button
+							>
+						</div>
+					{/if}
+				</article>
+			{/each}
+		</svelte:boundary>
 	</div>
 </div>
 

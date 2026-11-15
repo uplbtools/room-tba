@@ -1,16 +1,12 @@
-import { error, json } from '@sveltejs/kit';
-import { db } from '#lib/server/db/index.js';
-import { collegesTable } from '#lib/server/db/schema.js';
+import { json } from '@sveltejs/kit';
+import { listPublishedAnnouncements } from '#lib/services/announcement.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async () => {
 	try {
-		const data = await db.select().from(collegesTable);
-		return json(data);
+		return json(await listPublishedAnnouncements());
 	} catch (e) {
-		console.error(e);
-		throw error(500, {
-			message: 'Cannot query data for announcements'
-		});
+		console.error('Failed to load announcements:', e);
+		return json([]);
 	}
 };

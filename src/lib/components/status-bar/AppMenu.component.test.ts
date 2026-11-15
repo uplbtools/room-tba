@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import AppMenu from './AppMenu.svelte';
 import AdminAuthStore from '#lib/stores/new/data/AdminAuthStore.svelte.js';
+import AnnouncementsStore from '#lib/stores/new/data/AnnouncementsStore.svelte.js';
 import OfflineStore from '#lib/stores/new/data/OfflineStore.svelte.js';
 import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
 import ProposalsStore from '#lib/stores/new/data/ProposalsStore.svelte.js';
@@ -10,9 +11,13 @@ import type ModalStore from '#lib/stores/new/ui/ModalStore.svelte.js';
 import ToastStore from '#lib/stores/new/ui/ToastStore.svelte.js';
 
 vi.mock('$env/dynamic/public', () => ({ env: {} }));
+vi.mock('#lib/functions/announcements.remote.js', () => ({
+	getAnnouncements: vi.fn(async () => [])
+}));
 vi.mock('#lib/utils/context.js', async (importOriginal) => ({
 	...(await importOriginal<typeof import('#lib/utils/context.js')>()),
 	getAdminAuthStore: () => adminAuthStore,
+	getAnnouncementsStore: () => announcementsStore,
 	getMapToolsStore: () => mapToolsStore,
 	getModalStore: () => modalStore,
 	getOfflineStore: () => offlineStore,
@@ -35,6 +40,7 @@ const modalStore = {
 		this.landingTab = null;
 	}
 };
+const announcementsStore = new AnnouncementsStore();
 const proposalsStore: ProposalsStore = new ProposalsStore(() => adminAuthStore.canReview);
 const adminAuthStore: AdminAuthStore = new AdminAuthStore({
 	modalStore: modalStore as unknown as ModalStore,

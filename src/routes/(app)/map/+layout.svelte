@@ -11,6 +11,8 @@
 	import FloatingControlPanelStore from '#lib/stores/new/ui/FloatingControlPanelStore.svelte.js';
 	import UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
 	import OfflineStore from '#lib/stores/new/data/OfflineStore.svelte.js';
+	import AnnouncementsStore from '#lib/stores/new/data/AnnouncementsStore.svelte.js';
+	import AnnouncementBar from '#lib/components/AnnouncementBar.svelte';
 	import {
 		initMapStore,
 		initTravelTimeStore,
@@ -27,6 +29,7 @@
 		initAdminAuthStore,
 		initProposalsStore,
 		initOfflineStore,
+		initAnnouncementsStore,
 		getEscapeActions,
 		getToast
 	} from '#lib/utils/context.js';
@@ -549,6 +552,7 @@
 	initUserLocation(new UserLocation());
 	initSearchInfo(new SearchInfo());
 	initOfflineStore(new OfflineStore());
+	const announcementsStore = initAnnouncementsStore(new AnnouncementsStore());
 	const modalStore = initModalStore(new ModalStore());
 	const termStore = initTermStore(new TermStore());
 	const plannerStore = initPlannerStore(new PlannerStore(() => termStore.activeTermId));
@@ -585,6 +589,7 @@
 
 	onMount(() => {
 		void termStore.init();
+		announcementsStore.hydrate();
 		plannerStore.init();
 		void adminAuthStore.hydrate();
 
@@ -615,6 +620,7 @@
 
 <main class="layout-root">
 	<UILayer>
+		<AnnouncementBar />
 		<div class="-mx-3 -mt-3 hidden self-stretch sm:block">
 			<DesktopTopBar />
 		</div>

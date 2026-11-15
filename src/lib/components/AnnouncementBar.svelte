@@ -1,54 +1,55 @@
 <script lang="ts">
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import X from '@lucide/svelte/icons/x';
-	import { announcementsStore, modalStore } from '#lib/stores.svelte.js';
+	import { getAnnouncements } from '#lib/functions/announcements.remote.js';
+	import { getAnnouncementsStore, getModalStore } from '#lib/utils/context.js';
 
-	// Critical only (#777): an outage notice must not depend on opening a panel,
-	// but info/warning notices stay inside the panel so chrome does not nag.
-	const notice = $derived(announcementsStore.criticalNotice);
+	const announcementsStore = getAnnouncementsStore();
+	const modalStore = getModalStore();
 </script>
 
-{#if notice}
-	<div class="announcement-bar" role="alert">
-		<TriangleAlert size={16} aria-hidden="true" />
-		<div class="announcement-bar__text">
-			<span class="announcement-bar__title">{notice.title}</span>
-			<span class="announcement-bar__body">{notice.body}</span>
+<svelte:boundary>
+	{#snippet failed()}{/snippet}
+	{@const notice = announcementsStore.critical(await getAnnouncements())}
+	{#if notice}
+		<div class="announcement-bar" role="alert">
+			<TriangleAlert size={16} aria-hidden="true" />
+			<div class="announcement-bar__text">
+				<span class="announcement-bar__title">{notice.title}</span>
+				<span class="announcement-bar__body">{notice.body}</span>
+			</div>
+			<button
+				type="button"
+				class="announcement-bar__more"
+				onclick={() => modalStore.openModal('announcements')}
+			>
+				Details
+			</button>
+			<button
+				type="button"
+				class="announcement-bar__dismiss"
+				aria-label="Dismiss announcement"
+				onclick={() => announcementsStore.dismissCritical(notice.id)}
+			>
+				<X size={16} aria-hidden="true" />
+			</button>
 		</div>
-		<button
-			type="button"
-			class="announcement-bar__more"
-			onclick={() => modalStore.openModal('announcements')}
-		>
-			Details
-		</button>
-		<button
-			type="button"
-			class="announcement-bar__dismiss"
-			aria-label="Dismiss announcement"
-			onclick={() => announcementsStore.dismissCritical(notice.id)}
-		>
-			<X size={16} aria-hidden="true" />
-		</button>
-	</div>
-{/if}
+	{/if}
+</svelte:boundary>
 
 <style>
 	.announcement-bar {
-		position: fixed;
-		top: var(--staging-banner-height, 0px);
-		left: 0;
-		right: 0;
-		z-index: var(--z-staging-banner, 20);
+		pointer-events: auto;
+		align-self: stretch;
 		box-sizing: border-box;
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 		padding: 0.5rem 0.75rem;
-		padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
 		background: hsl(0, 70%, 95%);
 		color: hsl(0, 55%, 22%);
-		border-bottom: 2px solid hsl(0, 60%, 45%);
+		border: 2px solid hsl(0, 60%, 45%);
+		border-radius: 0.75rem;
 	}
 
 	.announcement-bar__text {
