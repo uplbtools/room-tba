@@ -474,7 +474,7 @@
   .suggestions-header {
     margin: 0;
     padding: 8px;
-    font-family: Inter, system-ui, sans-serif;
+    font-family: Figtree, system-ui, sans-serif;
     font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.02em;
