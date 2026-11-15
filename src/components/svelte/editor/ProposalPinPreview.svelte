@@ -58,7 +58,7 @@
 <div class="proposal-pin-preview">
   {#if styleError}
     <p class="proposal-pin-preview__fallback">
-      Map tiles unavailable. Proposed position: {change.after.lat.toFixed(6)}, {change.after.lon.toFixed(
+      Map tiles are unavailable. The proposed position is {change.after.lat.toFixed(6)}, {change.after.lon.toFixed(
         6,
       )}
     </p>

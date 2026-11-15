@@ -38,7 +38,7 @@
   <div class="changelog-modal__scroll">
     {#if entries.length === 0}
       <p class="changelog-modal__lead">
-        No changelog entries found. See <a href="/changelog">/changelog</a>.
+        There are no changelog entries. See <a href="/changelog">/changelog</a>.
       </p>
     {/if}
     {#each entries as entry (entry.version)}

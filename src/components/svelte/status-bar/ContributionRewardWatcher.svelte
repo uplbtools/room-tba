@@ -45,7 +45,7 @@
     );
     const badgeNote =
       badges.length > 0
-        ? `. New badge: ${badges.map((badge) => badge.label).join(", ")}`
+        ? `. You earned the ${badges.map((badge) => badge.label).join(" and ")} ${badges.length === 1 ? "badge" : "badges"}`
         : "";
     toastStore.show(`${rewardMessage(gained, me.rank)}${badgeNote}`, "success", {
       label: "Leaderboard",

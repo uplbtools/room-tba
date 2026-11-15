@@ -41,17 +41,17 @@
       .then(async (res) => {
         if (cancelled) return;
         if (res.status === 404) {
-          error = "This contributor's profile is not public.";
+          error = "This contributor's profile isn't public.";
           return;
         }
-        if (!res.ok) throw new Error("Could not load this profile.");
+        if (!res.ok) throw new Error("Couldn't load this profile.");
         const data = (await res.json()) as { profile?: ContributorProfile };
         profile = data.profile ?? null;
       })
       .catch((err) => {
         if (!cancelled) {
           error =
-            err instanceof Error ? err.message : "Could not load this profile.";
+            err instanceof Error ? err.message : "Couldn't load this profile.";
         }
       })
       .finally(() => {
@@ -121,7 +121,7 @@
     </p>
   {:else if error || !profile}
     <p class="contributor-profile__status">
-      {error ?? "This contributor's profile is not public."}
+      {error ?? "This contributor's profile isn't public."}
     </p>
   {:else}
     <header class="contributor-profile__head">

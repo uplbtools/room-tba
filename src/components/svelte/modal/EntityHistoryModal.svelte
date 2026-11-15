@@ -40,7 +40,7 @@
       nextOffset = data.nextOffset;
     } catch {
       if (requested !== generation) return;
-      error = "Could not load the edit history. Check your connection and try again.";
+      error = "Couldn't load the edit history. Check your connection and try again.";
     } finally {
       if (requested === generation) loading = false;
     }
@@ -70,8 +70,8 @@
   />
   <div class="entity-history-public__scroll map-chrome-scroll">
   <p class="entity-history-public__note">
-    Changes to what this card shows, newest first. Contact details are not
-    listed here.
+    These are changes to what this card shows, newest first. Contact details
+    aren't listed here.
   </p>
 
   {#if error}
@@ -86,7 +86,7 @@
   {:else if loading && entries.length === 0}
     <LoadingIndicator label="Loading edit history" />
   {:else if entries.length === 0 && nextOffset === null}
-    <p class="entity-history-public__note">No recorded edits yet.</p>
+    <p class="entity-history-public__note">There are no recorded edits yet.</p>
   {/if}
 
   {#if entries.length > 0}

@@ -247,7 +247,7 @@
     <p class="course-search__note">Searching…</p>
   {:else if courses.length === 0}
     <p class="course-search__note">
-      {query.trim() ? "No courses found this term." : "No classes this term."}
+      {query.trim() ? "No courses match your search this term." : "There are no classes this term."}
     </p>
   {:else}
     <div class="course-search__list">
@@ -329,7 +329,7 @@
     {#if hasMore}
       <p class="course-search__note">
         {#if !query.trim()}
-          Showing {courses.length} courses so far ({courses.at(-1)?.courseCode}
+          This list shows {courses.length} courses so far ({courses.at(-1)?.courseCode}
           and earlier).
           <button
             type="button"
@@ -340,7 +340,7 @@
             {loadingMore ? "Loading…" : "Show more"}
           </button>
         {:else}
-          Showing the first {rows.length} sections. Search a fuller course code
+          This list shows the first {rows.length} sections. Search a fuller course code
           to find the rest.
         {/if}
       </p>

@@ -111,7 +111,7 @@
     {
       icon: Ticket,
       label: "Campus events",
-      supporting: "See what is on and where",
+      supporting: "See what's on and where",
       action: () => {
         sidebarStore.changeOpened("map");
         queryStore.updateQuery({
@@ -205,7 +205,7 @@
 
   <div class="landing__scroll map-chrome-scroll">
     <p class="landing__intro">
-      Find rooms, routes, classes, and events at UPLB. No account needed.
+      Find rooms, routes, classes, and events at UPLB. You don't need an account.
     </p>
 
     <SettingsSection variant="list" title="What you can do">

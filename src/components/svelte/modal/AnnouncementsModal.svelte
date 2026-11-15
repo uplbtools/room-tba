@@ -125,7 +125,7 @@
       );
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        editorError = data.error ?? "Could not save the announcement.";
+        editorError = data.error ?? "Couldn't save the announcement.";
         return;
       }
       draft = null;
@@ -150,7 +150,7 @@
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        editorError = data.error ?? "Could not delete the announcement.";
+        editorError = data.error ?? "Couldn't delete the announcement.";
         return;
       }
       await Promise.all([loadEditorRows(), announcementsStore.load()]);
@@ -253,7 +253,7 @@
     {#if rows.length === 0}
       <div class="announcements__empty">
         <MegaphoneOff size={28} aria-hidden="true" />
-        <p>No announcements right now.</p>
+        <p>There are no announcements right now.</p>
         <p>Campus updates also go out on Facebook.</p>
         <CommunityPlatformLink
           brand="facebook"

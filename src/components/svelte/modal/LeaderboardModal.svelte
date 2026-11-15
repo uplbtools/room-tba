@@ -7,7 +7,7 @@
   <ModalHeader
     id="leaderboard-modal-title"
     title="Contributor leaderboard"
-    description="Top volunteers helping map the campus and verify room schedules."
+    description="These are the top volunteers who help map the campus and verify room schedules."
   />
   <div class="leaderboard-modal-body map-chrome-scroll">
     <LeaderboardPanel />

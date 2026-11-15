@@ -85,7 +85,7 @@
         fetch(`/api/contributors/leaderboard?${query}`),
         loadMyStanding(query),
       ]);
-      if (!boardRes.ok) throw new Error("Could not load the leaderboard.");
+      if (!boardRes.ok) throw new Error("Couldn't load the leaderboard.");
       const body = (await boardRes.json()) as Partial<LeaderboardResponse>;
       if (seq !== requestSeq) return;
       data = {
@@ -98,7 +98,7 @@
       me = standing;
     } catch (err) {
       if (seq !== requestSeq) return;
-      error = err instanceof Error ? err.message : "Could not load the leaderboard.";
+      error = err instanceof Error ? err.message : "Couldn't load the leaderboard.";
     } finally {
       if (seq === requestSeq) loading = false;
     }
@@ -286,7 +286,7 @@
       <p class="lb-status lb-status--error">{error}</p>
     {:else}
       {#if rows.length === 0}
-        <p class="lb-status">No approved edits yet {WINDOW_PHRASE[timeWindow]}.</p>
+        <p class="lb-status">There are no approved edits yet {WINDOW_PHRASE[timeWindow]}.</p>
       {:else}
         <ol class="lb-list" aria-busy={loading}>
           {#each rows as row (row.key)}
@@ -343,9 +343,9 @@
                 <span class="lb-person__name">You</span>
                 <span class="lb-person__sub">
                   {#if me.optedOut}
-                    Hidden from credits. Turn on "Show me in credits" in Account settings.
+                    You're hidden from credits. Turn on "Show me in credits" in Account settings.
                   {:else if !me.rank}
-                    No points yet {WINDOW_PHRASE[timeWindow]}
+                    You have no points yet {WINDOW_PHRASE[timeWindow]}
                   {:else if me.toPass}
                     {me.toPass.points} more to pass #{me.toPass.rank}
                   {:else}

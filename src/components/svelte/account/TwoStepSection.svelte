@@ -28,7 +28,7 @@
     try {
       const res = await fetch("/api/account/mfa", { credentials: "same-origin" });
       if (!res.ok) {
-        loadError = "Could not load two-step verification.";
+        loadError = "Couldn't load two-step verification.";
         return;
       }
       status = (await res.json()) as Status;
@@ -51,7 +51,7 @@
       });
       const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
-        error = typeof data.error === "string" ? data.error : "That did not work.";
+        error = typeof data.error === "string" ? data.error : "That didn't work.";
         return null;
       }
       return data;
@@ -102,13 +102,13 @@
   <SettingsSection
     title="Two-step verification"
     description={status.required
-      ? "Required for admins: a code from an authenticator app at each password sign-in. Signing in with Google also counts."
+      ? "Admins must enter a code from an authenticator app at each password sign-in. Signing in with Google also counts."
       : "Ask for a code from an authenticator app at each password sign-in. Signing in with Google also counts."}
   >
     {#snippet meta()}
       <span class="settings-current">
         {#if !status?.available}
-          Not available on this server yet.
+          This isn't available on this server yet.
         {:else if status?.enabled}
           On. {status.recoveryCodesLeft} recovery code{status.recoveryCodesLeft === 1
             ? ""
@@ -122,7 +122,7 @@
     {#if recoveryCodes}
       <p class="twostep-lead">
         Save these recovery codes somewhere safe. Each signs you in once if you
-        lose your phone. They will not be shown again.
+        lose your phone. They won't be shown again.
       </p>
       <ul class="twostep-codes" aria-label="Recovery codes">
         {#each recoveryCodes as recovery (recovery)}
@@ -136,7 +136,7 @@
       </p>
       <a class="twostep-link" href={enrollment.otpauthUri}>Open in authenticator app</a>
       <p class="twostep-secret">
-        Or enter this key by hand:
+        You can also enter this key by hand.
         <code>{enrollment.secret.replace(/(.{4})/g, "$1 ").trim()}</code>
       </p>
     {/if}

@@ -47,7 +47,7 @@
       Try again
     </button>
   {:else if people.length === 0}
-    <p class="status-line">No public contributors found yet.</p>
+    <p class="status-line">We haven't found any public contributors yet.</p>
   {:else}
     <PeopleAvatarGrid {people} showGithubMeta />
   {/if}

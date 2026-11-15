@@ -74,7 +74,7 @@
         proposalId: activeProposalId,
       });
       if (!result.ok) {
-        withdrawError = result.error ?? "Could not withdraw suggestion.";
+        withdrawError = result.error ?? "Couldn't withdraw suggestion.";
         return;
       }
       toastStore.show("Suggestion withdrawn.", "success");
@@ -119,7 +119,7 @@
     <EntityEditorFormField
       label="Note to reviewer (optional)"
       inputId="{submitterNameId}-note"
-      hint="Goes to the editor who reviews this, and is never shown on the map. Use it for context, sources, or anything that is not part of the entry itself."
+      hint="It goes to the editor who reviews this and is never shown on the map. Use it for context, sources, or anything that isn't part of the entry itself."
     >
       {#snippet control()}
         <textarea

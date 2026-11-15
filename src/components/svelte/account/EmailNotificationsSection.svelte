@@ -23,7 +23,7 @@
         credentials: "same-origin",
       });
       if (!res.ok) {
-        error = "Could not load your email preferences.";
+        error = "Couldn't load your email preferences.";
         return;
       }
       prefs = (await res.json()) as Prefs;
@@ -49,7 +49,7 @@
       prefs = (await res.json()) as Prefs;
     } catch {
       prefs = { ...prefs, [key]: !next };
-      error = "Could not save. Try again.";
+      error = "Couldn't save. Try again.";
     } finally {
       saving = null;
     }
@@ -68,7 +68,7 @@
 
 <SettingsSection
   title="Email notifications"
-  description="Optional emails. Password and sign-in emails always send."
+  description="These emails are optional. Password and sign-in emails always send."
 >
   {#if isStaff}
     {@render switchRow(
