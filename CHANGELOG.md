@@ -1,3 +1,10 @@
+## [2.40.2](https://github.com/uplbtools/room-tba/compare/v2.40.1...v2.40.2) (2026-11-15)
+
+
+### Bug Fixes
+
+* **mobile:** a place left at the preview doesn't reopen full screen on Back ([#1433](https://github.com/uplbtools/room-tba/issues/1433)) ([a77ce9a](https://github.com/uplbtools/room-tba/commit/a77ce9abd528c44cd08aeb9c9d2b30e56cd2de3d))
+
 ## [2.38.4](https://github.com/uplbtools/room-tba/compare/v2.38.3...v2.38.4) (2026-11-12)
 
 
