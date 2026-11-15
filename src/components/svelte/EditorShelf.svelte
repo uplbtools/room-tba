@@ -131,6 +131,7 @@
         Add to map…
       </button>
     </div>
+    <hr class="editor-shelf-divider" />
   {/if}
 
   {#if adminAuthStore.canReview}
@@ -165,6 +166,8 @@
       Manage users
     </button>
   {/if}
+
+  <hr class="editor-shelf-divider" />
 
   <button
     type="button"
@@ -228,6 +231,14 @@
 
   .editor-shelf-actions {
     display: contents;
+  }
+
+  .editor-shelf-divider {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin: 0.25rem 0;
+    border: 0;
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 90%));
   }
 
   .editor-shelf-action {
