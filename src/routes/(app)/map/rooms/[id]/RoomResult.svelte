@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import EntityDirectionsChip from '#lib/components/entity/EntityDirectionsChip.svelte';
-	import EntityShareCopyLink from '#lib/components/entity/EntityShareCopyLink.svelte';
+	import ResultActions from '#lib/components/new/ResultActions.svelte';
 	import Classes from '#lib/components/room/Classes.svelte';
 	import FinalExamsList from '#lib/components/room/FinalExamsList.svelte';
 	import { getClassesByRoomId } from '#lib/functions/classes.remote.js';
@@ -17,24 +15,22 @@
 	const termStore = getTermStore();
 </script>
 
-<div class="entity-detail">
-	<header class="entity-header">
-		<h2 class="entity-header__title">{room.code}</h2>
+<div class="flex flex-col gap-3 p-6">
+	<header class="flex flex-col">
+		<h2 class="text-2xl font-semibold">{room.code}</h2>
 		{#if room.buildingId != null && room.buildingName}
-			<a href={resolve('/map/buildings/[id]', { id: String(room.buildingId) })}>
+			<a
+				class="text-sm text-neutral-700 hover:underline"
+				href={resolve('/map/buildings/[id]', { id: String(room.buildingId) })}
+			>
 				{room.buildingName}
 			</a>
 		{/if}
-		<div class="entity-actions">
-			{#if room.lat != null && room.lon != null}
-				<EntityDirectionsChip lat={room.lat} lon={room.lon} destinationLabel={room.code} />
-			{/if}
-			<EntityShareCopyLink url={page.url.href} entityLabel={room.code} />
-		</div>
 	</header>
+	<ResultActions data={room} name={room.buildingName ?? room.code} />
 
 	{#if room.directions}
-		<p class="entity-directions__text">{room.directions}</p>
+		<p class="text-sm text-neutral-800">{room.directions}</p>
 	{/if}
 
 	{#if termStore.activeTermId != null}

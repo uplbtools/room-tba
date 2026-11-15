@@ -609,7 +609,7 @@
 			<h2 class="text-2xl font-semibold">{building.buildingName}</h2>
 			<span class="text-sm text-neutral-700">{buildingTypeLabel}</span>
 		</header>
-		<ResultActions data={building} />
+		<ResultActions data={building} name={building.buildingName} />
 
 		<section class="entity-directions" aria-label="Directions">
 			<div class="entity-directions__segment">
