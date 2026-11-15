@@ -1,3 +1,10 @@
+# [2.44.0](https://github.com/uplbtools/room-tba/compare/v2.43.0...v2.44.0) (2026-11-15)
+
+
+### Features
+
+* **search:** aliases can point at places ([#1496](https://github.com/uplbtools/room-tba/issues/1496)) ([3bdd563](https://github.com/uplbtools/room-tba/commit/3bdd56305f0777e54cc0de1535556cc42b0b0cc4))
+
 ## [2.40.7](https://github.com/uplbtools/room-tba/compare/v2.40.6...v2.40.7) (2026-11-15)
 
 
