@@ -359,6 +359,18 @@ export function badgesFor(contributions: number) {
 	return BADGES.map((badge) => ({ ...badge, earned: contributions >= badge.threshold }));
 }
 
+/** Badges crossed when the edit count went from `before` to `after`. */
+export function newBadges(before: number, after: number) {
+	return badgesFor(after).filter((badge) => badge.earned && before < badge.threshold);
+}
+
 export function pointsLabel(points: number): string {
 	return `${points} ${points === 1 ? 'point' : 'points'}`;
+}
+
+/** "+5, you're #12 this month" */
+export function rewardMessage(gained: number, place: number | null): string {
+	return place
+		? `+${gained}, you're #${place} this month`
+		: `+${pointsLabel(gained)} for your approved edit`;
 }

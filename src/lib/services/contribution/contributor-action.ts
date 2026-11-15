@@ -8,6 +8,7 @@ import {
 	emptyBreakdown,
 	hallOfFame,
 	isContributionKind,
+	KIND_POINTS,
 	periodAt,
 	pointsToPass,
 	rankContributors,
@@ -260,7 +261,12 @@ export async function getContributorStanding(
 		points: self?.points ?? 0,
 		breakdown: self?.breakdown ?? emptyBreakdown(),
 		toPass: pass && { points: pass.points, rank: pass.place },
-		optedOut: !visible
+		optedOut: !visible,
+		contributions: allTime?.contributions ?? 0,
+		recent: [...mine]
+			.sort((a, b) => b.createdAtMs - a.createdAtMs)
+			.slice(0, 8)
+			.map((row) => ({ id: row.id, points: KIND_POINTS[row.kind] }))
 	};
 }
 

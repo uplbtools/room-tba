@@ -9,7 +9,9 @@ import {
 	pointsToPass,
 	rankContributors,
 	type ContributionKind,
-	type LedgerRow
+	type LedgerRow,
+	newBadges,
+	rewardMessage
 } from './scoring.js';
 
 let nextId = 1;
@@ -287,5 +289,18 @@ describe('periods', () => {
 		expect(fame.map((entry) => entry.label)).toEqual(['September 2026', 'August 2026']);
 		expect(fame[0]?.winners.map((w) => w.displayName)).toEqual(['Ana']);
 		expect(fame[1]?.winners.map((w) => w.displayName).sort()).toEqual(['Ben', 'Cara']);
+	});
+});
+
+describe('rewards', () => {
+	test('names only the badges just crossed', () => {
+		expect(newBadges(0, 1).map((b) => b.id)).toEqual(['first']);
+		expect(newBadges(9, 11).map((b) => b.id)).toEqual(['ten']);
+		expect(newBadges(11, 12)).toEqual([]);
+	});
+
+	test('says the place when there is one', () => {
+		expect(rewardMessage(5, 3)).toBe("+5, you're #3 this month");
+		expect(rewardMessage(1, null)).toBe('+1 point for your approved edit');
 	});
 });
