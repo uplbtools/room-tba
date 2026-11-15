@@ -21,7 +21,7 @@ import {
 	rankBuildingsByHistory,
 	resolveProbableLocation
 } from '#lib/utils/probable-location.js';
-import type { ClassMapValue } from '#lib/utils/types';
+import type { ClassMapValue } from '#lib/utils/types.js';
 
 const historySelect = {
 	buildingId: buildingsTable.id,
