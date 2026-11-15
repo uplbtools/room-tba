@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { getModalStore } from '#lib/utils/context.js';
 	import { APP_VERSION_LABEL } from '#lib/constants/versioning/version.js';
-	import { parseChangelogEntries } from '#lib/utils/changelog-highlights.js';
+	import { parseChangelogEntries, userFacingEntries } from '#lib/utils/changelog-highlights.js';
 	import { releaseTimestampLabel } from '#lib/utils/release-timestamps.js';
 	import changelogRaw from '../../../../CHANGELOG.md?raw';
 	import FollowUpdates from '#lib/components/community/FollowUpdates.svelte';
 
 	const modalStore = getModalStore();
-	const entries = parseChangelogEntries(changelogRaw);
+	const entries = userFacingEntries(parseChangelogEntries(changelogRaw));
 </script>
 
 <div class="changelog-modal">

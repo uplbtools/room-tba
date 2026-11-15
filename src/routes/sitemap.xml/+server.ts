@@ -48,6 +48,7 @@ export const GET: RequestHandler = async () => {
 	const urls = [
 		'/',
 		'/faq',
+		'/changelog',
 		'/privacy',
 		'/terms',
 		entityIndexPath('rooms'),
