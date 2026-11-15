@@ -2,6 +2,9 @@
 	import { getModalStore, getSearchInfo } from '#lib/utils/context.js';
 	import ModalContent from './ModalContent.svelte';
 	import BuildingModifyForm from './forms/BuildingModifyForm.svelte';
+	import DormModifyForm from './forms/DormModifyForm.svelte';
+	import OrgModifyForm from './forms/OrgModifyForm.svelte';
+	import PlaceModifyForm from './forms/PlaceModifyForm.svelte';
 
 	// script code
 	const searchInfo = getSearchInfo();
@@ -13,8 +16,12 @@
 	{#if dataRecord !== null}
 		{#if searchInfo.category === 'building'}
 			<BuildingModifyForm {...dataRecord} />
-		{:else if searchInfo.category === 'college'}
-
+		{:else if searchInfo.category === 'dorm'}
+			<DormModifyForm {...dataRecord} />
+		{:else if searchInfo.category === 'organization'}
+			<OrgModifyForm {...dataRecord} />
+		{:else if searchInfo.category === 'place'}
+			<PlaceModifyForm {...dataRecord} />
 		{/if}
 	{/if}
 </ModalContent>

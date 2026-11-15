@@ -1,24 +1,16 @@
 <script lang="ts">
 	import { addBuildingSuggestion } from '#lib/functions/buildings.remote.js';
 	import { BuildingProposalSchema } from '#lib/schema/functions.js';
-	import { getAdminAuthStore, getEscapeActions, getToast } from '#lib/utils/context.js';
-	import { isHttpError } from '@sveltejs/kit';
 	import * as v from 'valibot';
+	import EntityEditForm from './EntityEditForm.svelte';
 	import Input from './Input.svelte';
-	import Form from './Form.svelte';
 	import InputField from './InputField.svelte';
 	import InputIssues from './InputIssues.svelte';
 	import Textarea from './Textarea.svelte';
-	import { onMount } from 'svelte';
 
-	// script code
 	const rawProps: Record<string, unknown> = $props();
 
-	const toastStore = getToast();
-	const escapedActions = getEscapeActions();
-	const adminAuthStore = getAdminAuthStore();
-
-	const { id, version, ...buildingInitData } = $derived(
+	const { id, version, ...body } = $derived(
 		v.parse(
 			v.intersect([
 				BuildingProposalSchema.entries.body,
@@ -27,60 +19,15 @@
 			rawProps
 		)
 	);
-
-	onMount(() => {
-		addBuildingSuggestion.fields.set({
-			body: buildingInitData,
-			meta: {
-				baseVersion: version,
-				entityId: id,
-				submitterName: adminAuthStore.displayName ?? ''
-			}
-		});
-		addBuildingSuggestion.validate();
-	});
 </script>
 
-<Form
-	{...addBuildingSuggestion.enhance(async (form) => {
-		try {
-			if (await form.submit()) {
-				escapedActions.trigger();
-				toastStore.show(
-					addBuildingSuggestion.result?.published
-						? 'Saved.'
-						: 'Contribution submitted, thank you!!!',
-					'success'
-				);
-			} else {
-				toastStore.show('Contribution has some validation errors', 'error');
-			}
-		} catch (e) {
-			toastStore.show(isHttpError(e) ? e.body.message : "Couldn't send your edit.", 'error');
-		}
-	})}
-	oninput={() => addBuildingSuggestion.validate()}
->
-	{#if adminAuthStore.isLoggedIn}
-		<Input
-			{...addBuildingSuggestion.fields.meta.submitterName.as(
-				'hidden',
-				adminAuthStore.displayName ?? ''
-			)}
-		/>
-	{:else}
-		<InputField>
-			<label for="contributor-name">What is your name?</label>
-			<Input
-				{...addBuildingSuggestion.fields.meta.submitterName.as('text')}
-				id="contributor-name"
-			/>
-			<InputIssues issues={addBuildingSuggestion.fields.meta.submitterName.issues()} />
-		</InputField>
-	{/if}
+<EntityEditForm remote={addBuildingSuggestion} {id} {version} {body}>
 	<InputField>
-		<label for="building-name">Building name</label>
-		<Input {...addBuildingSuggestion.fields.body.buildingName.as('text')} id="building-name" />
+		<label for="building-buildingname">Building name</label>
+		<Input
+			{...addBuildingSuggestion.fields.body.buildingName.as('text')}
+			id="building-buildingname"
+		/>
 		<InputIssues issues={addBuildingSuggestion.fields.body.buildingName.issues()} />
 	</InputField>
 	<InputField>
@@ -90,9 +37,4 @@
 			{...addBuildingSuggestion.fields.body.directions.as('text')}
 		/>
 	</InputField>
-	<Input {...addBuildingSuggestion.fields.meta.entityId.as('hidden', id)} />
-	<Input {...addBuildingSuggestion.fields.meta.baseVersion.as('hidden', version)} />
-</Form>
-
-<style>
-</style>
+</EntityEditForm>

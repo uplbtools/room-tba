@@ -56,8 +56,8 @@ export const BuildingProposalSchema = v.object({
 export const DormProposalSchema = v.object({
 	meta: ProposalMetaSchema,
 	body: v.object({
-		dormName: v.string(),
-		directions: v.string(),
+		dormName: v.pipe(v.string(), v.trim(), v.nonEmpty('Dorm name is empty')),
+		description: v.pipe(v.string(), v.trim()),
 		lon: v.optional(v.number()),
 		lat: v.optional(v.number()),
 		gender: v.optional(v.union([v.literal('Male'), v.literal('Female'), v.literal('Co-ed')])),
@@ -68,22 +68,22 @@ export const DormProposalSchema = v.object({
 export const OrgProposalSchema = v.object({
 	meta: ProposalMetaSchema,
 	body: v.object({
-		name: v.string(),
-		category: v.pipe(v.string(), v.maxLength(24)),
+		name: v.pipe(v.string(), v.trim(), v.nonEmpty('Name is empty')),
+		category: v.optional(v.pipe(v.string(), v.maxLength(24))),
 		lon: v.optional(v.number()),
 		lat: v.optional(v.number()),
-		description: v.string()
+		description: v.pipe(v.string(), v.trim())
 	})
 });
 
 export const PlaceProposalSchema = v.object({
 	meta: ProposalMetaSchema,
 	body: v.object({
-		name: v.string(),
-		category: v.pipe(v.string(), v.maxLength(24)),
+		name: v.pipe(v.string(), v.trim(), v.nonEmpty('Name is empty')),
+		category: v.optional(v.pipe(v.string(), v.maxLength(24))),
 		lon: v.optional(v.number()),
 		lat: v.optional(v.number()),
-		description: v.string()
+		description: v.pipe(v.string(), v.trim())
 	})
 });
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ResultActions from '#lib/components/new/ResultActions.svelte';
+	import SuggestEditButton from '#lib/components/new/SuggestEditButton.svelte';
 	// import {
 	// 	additionProposalStore,
 	// 	searchInfo,
@@ -135,6 +136,9 @@
 			{/if}
 		</header>
 		<ResultActions data={place} name={place.name} />
+		<SuggestEditButton
+			data={{ id: place.id, version: place.version, name: place.name, description: place.description ?? '' }}
+		/>
 		<!-- <EntityEditorToggle
 					expanded={editing}
 					{canPublish}
