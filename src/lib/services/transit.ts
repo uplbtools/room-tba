@@ -1,7 +1,12 @@
 import { and, asc, eq, max, sql } from 'drizzle-orm';
 import { jeepneyRoutesTable, jeepneyStopsTable } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
-import type { JeepneyRoute, JeepneyStop } from '#lib/constants/map/jeepney-routes.js';
+import {
+	BUNDLED_BUS_ROUTES,
+	JEEPNEY_ROUTES,
+	type JeepneyRoute,
+	type JeepneyStop
+} from '#lib/constants/map/jeepney-routes.js';
 import { refreshSyncKey, recordEditorHistory } from './admin/actions';
 import { EditConflictError } from './contribution/edit-conflict-error';
 
@@ -59,6 +64,20 @@ export async function getAllJeepneyRoutes(): Promise<JeepneyRoute[]> {
 				})
 			)
 	}));
+}
+
+/** A route by id from the database, else from the bundled list. */
+export async function getTransitRouteForPage(
+	routeId: string | undefined
+): Promise<JeepneyRoute | null> {
+	if (!routeId) return null;
+	try {
+		const route = (await getAllJeepneyRoutes()).find((r) => r.id === routeId);
+		if (route) return route;
+	} catch (error) {
+		console.error('Transit page route lookup failed:', error);
+	}
+	return [...JEEPNEY_ROUTES, ...BUNDLED_BUS_ROUTES].find((r) => r.id === routeId) ?? null;
 }
 
 export async function getJeepneyStopById(id: number) {
