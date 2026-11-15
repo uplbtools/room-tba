@@ -900,16 +900,32 @@ export function signboardWords(name: string): [string, string] {
   return [first, rest.join(" ")];
 }
 
+function signboardUnits(text: string) {
+  return [...text].reduce(
+    (sum, ch) => sum + (SIGNBOARD_GLYPHS[ch]?.width ?? 0) + SIGNBOARD_TRACKING,
+    0,
+  );
+}
+
 /** Lettering size and board width for `words` on a board `h` tall. */
-function signboardLayout(words: [string, string], h: number, maxW: number) {
-  const pad = h * 0.32;
+function signboardLayout(
+  words: [string, string],
+  h: number,
+  maxW: number,
+  stack = false,
+) {
   const texts = words.filter(Boolean);
-  const units = (text: string) =>
-    [...text].reduce(
-      (sum, ch) =>
-        sum + (SIGNBOARD_GLYPHS[ch]?.width ?? 0) + SIGNBOARD_TRACKING,
-      0,
+  if (stack) {
+    const pad = h * 0.16;
+    const widest = Math.max(...texts.map((t) => signboardUnits(t)));
+    const size = Math.min(
+      (h * 0.29) / SIGNBOARD_CAP,
+      ((maxW - pad * 2) * 1000) / widest,
     );
+    return { pad, gap: 0, size, w: (widest * size) / 1000 + pad * 2 };
+  }
+  const pad = h * 0.32;
+  const units = signboardUnits;
   const gap = SIGNBOARD_GLYPHS[" "].width * 1.4;
   const total =
     texts.reduce((sum, text) => sum + units(text), 0) +
@@ -924,7 +940,7 @@ function signboardLayout(words: [string, string], h: number, maxW: number) {
 /**
  * A jeepney signboard, `h` tall with its top-left corner at (x, top): shadowed
  * capitals on a black board. With `cup` it hangs from a windshield suction
- * cup. Returns the board's width.
+ * cup. With `stack` each word gets its own line. Returns the board's width.
  */
 function drawSignboard(
   page: PDFPage,
@@ -936,8 +952,9 @@ function drawSignboard(
   maxW: number,
   paint: [RGB, RGB] = [SIGN_GREEN, SIGN_YELLOW],
   cup = false,
+  stack = false,
 ): number {
-  const { pad, gap, size, w } = signboardLayout(words, h, maxW);
+  const { pad, gap, size, w } = signboardLayout(words, h, maxW, stack);
   const runs = words
     .map((text, i) => ({ text, color: paint[i] }))
     .filter((run) => run.text);
@@ -972,10 +989,12 @@ function drawSignboard(
     });
     page.drawCircle({ ...hole, size: h * 0.045, color: BOARD_EDGE });
   }
-  const baseline = top - h / 2 - (size * SIGNBOARD_CAP) / 2 - h * 0.03;
   const depth = size * 0.055;
   let cx = x + pad;
-  for (const run of runs) {
+  runs.forEach((run, line) => {
+    const mid = stack ? top - (h / 4) * (2 * line + 1) : top - h / 2;
+    const baseline = mid - (size * SIGNBOARD_CAP) / 2 - h * 0.03;
+    if (stack) cx = x + (w - (signboardUnits(run.text) * size) / 1000) / 2;
     for (const ch of run.text) {
       const glyph = SIGNBOARD_GLYPHS[ch];
       if (!glyph) continue;
@@ -996,7 +1015,7 @@ function drawSignboard(
       cx += ((glyph.width + SIGNBOARD_TRACKING) * size) / 1000;
     }
     cx += (gap * size) / 1000;
-  }
+  });
   return w;
 }
 
@@ -2561,7 +2580,13 @@ export async function renderTransitMapPdf(input: {
   }
 
   // Town jeeps and buses are not drawn on the map, so they are listed.
-  const townJeeps = ["Calamba", "San Pablo", "Sta. Cruz"];
+  const townJeeps = [
+    "Crossing / SM Calamba",
+    "Bayan",
+    "Junction",
+    "San Pablo",
+    "Sta. Cruz",
+  ];
   const townTexts = [
     "Mula PHP 14 ang pamasahe, depende sa layo.",
     "PHP 30 ang pa-Calamba Crossing, 25 discounted.",
@@ -2576,12 +2601,51 @@ export async function renderTransitMapPdf(input: {
   const townLines = townTexts.flatMap((t) => wrapText(t, font, BODY, PANEL_W));
   const busLines = busTexts.flatMap((t) => wrapText(t, font, BODY, PANEL_W));
   const TOWN_BOARD_H = 15;
+  // Town boards flow left to right and wrap. Returns the rows' height.
+  const townBoards = (
+    pg: PDFPage | null,
+    x: number,
+    top: number,
+    w: number,
+    boardH = TOWN_BOARD_H,
+  ) => {
+    let bx = x;
+    let rowTop = top;
+    let rowH = 0;
+    for (const town of townJeeps) {
+      const stack = town.includes("/");
+      const h = stack ? boardH * 1.5 : boardH;
+      const words = signboardWords(town);
+      const bw = signboardLayout(words, h, w, stack).w;
+      if (bx > x && bx + bw > x + w) {
+        bx = x;
+        rowTop -= rowH + 4;
+        rowH = 0;
+      }
+      if (pg)
+        drawSignboard(
+          pg,
+          pageH,
+          words,
+          bx,
+          rowTop,
+          h,
+          w,
+          [SIGN_RED, SIGN_RED],
+          false,
+          stack,
+        );
+      rowH = Math.max(rowH, h);
+      bx += bw + 6;
+    }
+    return top - rowTop + rowH;
+  };
   const townH =
     9 +
     21 +
-    TOWN_BOARD_H +
+    townBoards(null, 0, 0, PANEL_W, 12) +
     4 +
-    (1 + townLines.length) * LEAD +
+    townLines.length * LEAD +
     8 +
     20 +
     busLines.length * LEAD;
@@ -2589,24 +2653,7 @@ export async function renderTransitMapPdf(input: {
     rule();
     heading("Jeeps sa Olivarez Plaza Mall");
     py -= 3;
-    const col = PANEL_W / townJeeps.length;
-    const top = py;
-    townJeeps.forEach((to, i) => {
-      const x = px + i * col;
-      py = top;
-      drawSignboard(
-        page,
-        pageH,
-        signboardWords(to),
-        x,
-        py,
-        TOWN_BOARD_H,
-        col - 6,
-        [SIGN_RED, SIGN_RED],
-      );
-      py -= TOWN_BOARD_H + 4;
-      line(to, x, bold);
-    });
+    py -= townBoards(page, px, py, PANEL_W, 12) + 4;
     for (const l of townLines) line(l);
     py -= 8;
     heading("Bus pa-Manila");
@@ -2747,23 +2794,7 @@ export async function renderTransitMapPdf(input: {
           };
 
           title("Jeeps sa Olivarez Plaza Mall");
-          let bx = x;
-          let rowTop = y;
-          for (const town of townJeeps) {
-            const words = signboardWords(town);
-            const bw = signboardLayout(words, TOWN_BOARD_H, w).w;
-            if (bx > x && bx + bw > x + w) {
-              bx = x;
-              rowTop -= TOWN_BOARD_H + 4;
-            }
-            if (pg)
-              drawSignboard(pg, pageH, words, bx, rowTop, TOWN_BOARD_H, w, [
-                SIGN_RED,
-                SIGN_RED,
-              ]);
-            bx += bw + 6;
-          }
-          y = rowTop - TOWN_BOARD_H - 2;
+          y -= townBoards(pg, x, y, w) + 2;
           fare("", "PHP 14", " pataas, depende sa layo");
           fare("Calamba Crossing", "PHP 30", ", 25 discounted");
 
