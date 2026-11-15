@@ -562,7 +562,7 @@ export type AliasCacheRow = AliasMatch & {
   normalizedAlias: string;
 };
 
-/** All alias rows with resolved building names for PGlite cache refresh (#155). */
+/** All alias rows with resolved building and place names for PGlite cache refresh (#155). */
 export async function listAliasesForCache(): Promise<AliasCacheRow[]> {
   try {
     const rows = await db
@@ -573,6 +573,7 @@ export async function listAliasesForCache(): Promise<AliasCacheRow[]> {
         targetType: aliasesTable.targetType,
         targetId: aliasesTable.targetId,
         buildingName: buildingsTable.buildingName,
+        placeName: placesTable.name,
       })
       .from(aliasesTable)
       .leftJoin(
@@ -580,6 +581,13 @@ export async function listAliasesForCache(): Promise<AliasCacheRow[]> {
         and(
           eq(aliasesTable.targetType, "building"),
           eq(buildingsTable.id, aliasesTable.targetId),
+        ),
+      )
+      .leftJoin(
+        placesTable,
+        and(
+          eq(aliasesTable.targetType, "place"),
+          eq(placesTable.id, aliasesTable.targetId),
         ),
       );
 
@@ -589,7 +597,7 @@ export async function listAliasesForCache(): Promise<AliasCacheRow[]> {
       normalizedAlias: row.normalizedAlias,
       targetType: row.targetType,
       targetId: row.targetId,
-      value: row.buildingName,
+      value: row.buildingName ?? row.placeName,
     }));
   } catch (e) {
     console.error("Error: ", e);
@@ -598,7 +606,7 @@ export async function listAliasesForCache(): Promise<AliasCacheRow[]> {
 }
 
 /** Resolve a search term against the alias/synonym map (#155). Matches exact
- * and prefix normalized aliases, returning the (deduped) building targets. */
+ * and prefix normalized aliases, returning the (deduped) building and place targets. */
 export async function searchAliases(
   searchString: string,
 ): Promise<AliasMatch[]> {
@@ -612,6 +620,7 @@ export async function searchAliases(
         targetType: aliasesTable.targetType,
         targetId: aliasesTable.targetId,
         buildingName: buildingsTable.buildingName,
+        placeName: placesTable.name,
       })
       .from(aliasesTable)
       .leftJoin(
@@ -619,6 +628,13 @@ export async function searchAliases(
         and(
           eq(aliasesTable.targetType, "building"),
           eq(buildingsTable.id, aliasesTable.targetId),
+        ),
+      )
+      .leftJoin(
+        placesTable,
+        and(
+          eq(aliasesTable.targetType, "place"),
+          eq(placesTable.id, aliasesTable.targetId),
         ),
       )
       .where(
@@ -645,7 +661,7 @@ export async function searchAliases(
         alias: row.alias,
         targetType: row.targetType,
         targetId: row.targetId,
-        value: row.buildingName,
+        value: row.buildingName ?? row.placeName,
       });
     }
     return matches;
