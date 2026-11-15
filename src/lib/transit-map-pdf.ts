@@ -1,5 +1,5 @@
 /**
- * Printable transit map PDF for the UPLB jeepney routes.
+ * Printable transit map PDF for the UPLB jeep and bus routes.
  *
  * The frame is fitted to the campus stops and the place the map was opened
  * from, not to the full route extent: stops that fall outside it (the malls,
@@ -1341,9 +1341,9 @@ export async function renderTransitMapPdf(input: {
   const palette = TRANSIT_MAP_PALETTES[input.palette ?? "paper"];
 
   const pdf = await PDFDocument.create();
-  pdf.setTitle("UPLB Jeepney Routes");
+  pdf.setTitle("UPLB Jeeps & Buses");
   pdf.setAuthor("Room TBA");
-  pdf.setSubject("Printable map of UPLB jeepney routes and stops");
+  pdf.setSubject("Printable map of UPLB jeep and bus routes and stops");
   pdf.setCreator("Room TBA (room-tba.uplb.tools)");
   pdf.setLanguage("en-PH");
   pdf.setCreationDate(generatedAt);
@@ -1421,7 +1421,7 @@ export async function renderTransitMapPdf(input: {
   const titleW = drawSignboard(
     page,
     pageH,
-    ["UPLB", "JEEPNEY ROUTES"],
+    ["UPLB", "JEEPS & BUSES"],
     MARGIN,
     pageH - SAFE - 14,
     26,
@@ -1557,7 +1557,7 @@ export async function renderTransitMapPdf(input: {
     ];
   } else {
     intro = [
-      { text: "Mga jeepney route sa campus at kung saan sila humihinto." },
+      { text: "Mga jeep at bus sa UPLB at kung saan sila humihinto." },
     ];
   }
   const INTRO_SIZE = 11;

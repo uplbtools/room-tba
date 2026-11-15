@@ -204,7 +204,7 @@ describe("renderTransitMapPdf", () => {
     expect(bytes.length).toBeGreaterThan(2000);
 
     const pdf = await PDFDocument.load(bytes);
-    expect(pdf.getTitle()).toBe("UPLB Jeepney Routes");
+    expect(pdf.getTitle()).toBe("UPLB Jeeps & Buses");
     expect(pdf.getAuthor()).toBe("Room TBA");
   });
 
