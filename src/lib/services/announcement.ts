@@ -4,7 +4,7 @@ import { db } from '#lib/utils/db.js';
 import { announcementsTable } from '#lib/server/db/schema.js';
 import { normalizeAnnouncementSeverity } from '#lib/constants/announcement-severities.js';
 import { filterPublished } from '#lib/utils/announcements.js';
-import type { AnnouncementData } from '#lib/utils/types';
+import type { AnnouncementData } from '#lib/utils/types.js';
 import { EditConflictError, refreshSyncKey } from './admin/actions';
 
 export type AnnouncementUpdateInput = Partial<{

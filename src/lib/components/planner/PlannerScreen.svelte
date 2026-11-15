@@ -30,7 +30,7 @@
 	import GoogleCalendarIcon from '#lib/components/icons/GoogleCalendarIcon.svelte';
 	import PlannerCourseSearch from './PlannerCourseSearch.svelte';
 	import PlannerGrid from './PlannerGrid.svelte';
-	import type { ClassMapValue, FinalExamRow } from '#lib/utils/types';
+	import type { ClassMapValue, FinalExamRow } from '#lib/utils/types.js';
 	import { tick } from 'svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 

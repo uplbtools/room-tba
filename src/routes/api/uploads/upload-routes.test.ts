@@ -8,15 +8,7 @@ const { uploadImageToR2, editorSessionOrUnauthorized } = vi.hoisted(() => ({
 	editorSessionOrUnauthorized: vi.fn()
 }));
 
-vi.mock('$env/dynamic/private', () => ({
-	env: {
-		R2_PUBLIC_URL: 'https://cdn.example.test',
-		R2_ACCOUNT_ID: 'account',
-		R2_ACCESS_KEY_ID: 'key',
-		R2_SECRET_ACCESS_KEY: 'secret',
-		R2_BUCKET_NAME: 'bucket'
-	}
-}));
+vi.mock('$app/env/private', () => ({ R2_PUBLIC_URL: 'https://cdn.example.test' }));
 vi.mock('#lib/admin/require-editor.js', () => ({ editorSessionOrUnauthorized }));
 vi.mock('#lib/utils/r2-upload.js', () => ({
 	UPLOAD_MAX_BYTES: 5 * 1024 * 1024,

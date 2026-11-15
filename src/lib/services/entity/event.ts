@@ -17,7 +17,7 @@ import type {
 	EventLocationData,
 	EventRouteData,
 	EventRouteStopData
-} from '#lib/utils/types';
+} from '#lib/utils/types.js';
 
 type EventRow = typeof eventsTable.$inferSelect;
 type EventLocationRow = typeof eventLocationsTable.$inferSelect;
