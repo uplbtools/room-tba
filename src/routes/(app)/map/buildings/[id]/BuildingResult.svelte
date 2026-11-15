@@ -600,11 +600,10 @@
 </script>
 
 {#key building}
-	<img
-		src={building.imageUrl ?? 'https://dummyimage.com/960x540/000/fff&text=Lorem+ipsum+dolor'}
-		alt={building.buildingName}
-	/>
-	<div class="flex flex-col gap-3 px-6">
+	{#if building.imageUrl}
+		<img src={building.imageUrl} alt={building.buildingName} />
+	{/if}
+	<div class="flex flex-col gap-3 p-6">
 		<header class="flex flex-col">
 			<h2 class="text-2xl font-semibold">{building.buildingName}</h2>
 			<span class="text-sm text-neutral-700">{buildingTypeLabel}</span>
@@ -632,10 +631,12 @@
 		</section>
 		{#if sanitizeCrFacilities(building.crFacilities).length > 0}
 			<section class="building-cr" aria-label="CR facilities">
-				<h3 class="entity-section-heading">CR facilities</h3>
-				<div class="entity-tag-list">
+				<h3 class="font-semibold">CR facilities</h3>
+				<div class="flex flex-wrap gap-2">
 					{#each sanitizeCrFacilities(building.crFacilities) as slug (slug)}
-						<span class="entity-tag-chip building-cr__chip">{crFacilityLabel(slug)}</span>
+						<span class="rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
+							>{crFacilityLabel(slug)}</span
+						>
 					{/each}
 				</div>
 			</section>
@@ -847,13 +848,13 @@
 			{@const buildingOrgs = await orgsPromise}
 			{#if buildingOrgs.length > 0}
 				<section class="building-orgs" aria-label="Organizations and offices here">
-					<h3 class="entity-section-heading">Orgs & offices here</h3>
+					<h3 class="font-semibold">Orgs & offices here</h3>
 
-					<div class="entity-tag-list">
+					<div class="flex flex-wrap gap-2">
 						{#each buildingOrgs as org (org.id)}
 							<button
 								type="button"
-								class="entity-tag-chip building-orgs__chip"
+								class="rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-200"
 								onclick={async () => {
 									await goto(resolve(`map/organizations/${org.id}`));
 								}}

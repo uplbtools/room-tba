@@ -795,7 +795,7 @@
 
 		<!-- {#if !editing && showDormDetails}
 			<section class="entity-dorm-details" aria-label="Details and amenities">
-				<h3 class="entity-section-heading">Details & amenities</h3>
+				<h3 class="font-semibold">Details & amenities</h3>
 
 				{#if dorm.managingOffice}
 					<div class="entity-detail-row">
@@ -835,9 +835,9 @@
 				{#if amenities.length > 0}
 					<div class="entity-tag-block">
 						<span class="entity-detail-row__label">Amenities</span>
-						<div class="entity-tag-list">
+						<div class="flex flex-wrap gap-2">
 							{#each amenities as amenity (amenity)}
-								<span class="entity-tag-chip">{amenity}</span>
+								<span class="rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700">{amenity}</span>
 							{/each}
 						</div>
 					</div>
