@@ -1,7 +1,7 @@
 <script lang="ts">
+	import ResultActions from '#lib/components/new/ResultActions.svelte';
 	import Users from '@lucide/svelte/icons/users';
 	import Building2 from '@lucide/svelte/icons/building-2';
-	import EntityGoogleMapsLink from '#lib/components/entity/EntityGoogleMapsLink.svelte';
 	import EntityStreetAddress from '#lib/components/entity/EntityStreetAddress.svelte';
 	import BadgeCheck from '@lucide/svelte/icons/badge-check';
 	import KeyRound from '@lucide/svelte/icons/key-round';
@@ -25,14 +25,12 @@
 	// import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
 	import EntityPhotoGallery from '#lib/components/entity/EntityPhotoGallery.svelte';
 	import EntityLastUpdated from '#lib/components/new/EntityLastUpdated.svelte';
-	import EntityShareCopyLink from '#lib/components/entity/EntityShareCopyLink.svelte';
 	import EntityExternalLink from '#lib/components/entity/EntityExternalLink.svelte';
 	import {
 		getKuboDormCta,
 		kuboDormDirectory,
 		loadKuboDormDirectory
 	} from '#lib/utils/integrations/kubo/kubo-dorms.js';
-	import { page } from '$app/state';
 	type DormEditableField =
 		| 'dormName'
 		| 'shortName'
@@ -649,11 +647,11 @@
 	);
 </script>
 
-<div class="entity-detail">
+<div class="flex flex-col gap-3 p-6">
 	{#if dorm}
-		<header class="entity-header">
+		<header class="flex flex-col gap-2">
 			<div class="entity-header__title-row">
-				<h2 class="entity-header__title">
+				<h2 class="text-2xl font-semibold">
 					{dorm.dormName}
 					{#if showShortName}
 						<span class="entity-header__abbrev">{dorm.shortName}</span>
@@ -661,58 +659,60 @@
 				</h2>
 			</div>
 
-			<div class="entity-meta-row">
+			<div class="flex flex-wrap gap-2">
 				{#if dorm.isUpManaged}
-					<span class="entity-meta-chip up-badge">
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
+					>
 						<BadgeCheck size={12} />
 						UP-managed
 					</span>
 				{:else}
-					<span class="entity-meta-chip private-badge">
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
+					>
 						<KeyRound size={12} />
 						Private
 					</span>
 				{/if}
 				{#if genderLabel}
-					<span class="entity-meta-chip gender-badge" style:--badge-color={genderColor}>
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
+						style:color={genderColor}
+					>
 						<Users size={12} />
 						{genderLabel}
 					</span>
 				{/if}
 				{#if dorm.capacity}
-					<span class="entity-meta-chip capacity-badge">
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
+					>
 						<Building2 size={12} />
 						{dorm.capacity} beds
 					</span>
 				{/if}
 				{#if dorm.priceRange}
-					<span class="entity-meta-chip price-badge">
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
+					>
 						<CircleDollarSign size={12} aria-hidden="true" />
 						{dorm.priceRange}
 					</span>
 				{/if}
 			</div>
-
-			<div class="entity-actions">
-				{#if dorm.lon && dorm.lat}
-					<!-- <EntityDirectionsChip lat={dorm.lat} lon={dorm.lon} destinationLabel={dorm.dormName} /> -->
-					<EntityGoogleMapsLink
-						lat={dorm.lat}
-						lon={dorm.lon}
-						ariaLabel={`Open ${dorm.dormName} in Google Maps`}
-					/>
-				{/if}
-				<EntityShareCopyLink url={page.url.href} entityLabel={dorm.dormName} />
-				{#if kuboDormCta}
-					<EntityExternalLink
-						href={kuboDormCta.href}
-						label={kuboDormCta.label}
-						ariaLabel={kuboDormCta.ariaLabel}
-						class="entity-footer__link--button entity-footer__link--kubo"
-						iconSrc="/kubo-logo.png"
-					/>
-				{/if}
-				<!-- <EntityEditorToggle
+		</header>
+		<ResultActions data={dorm} name={dorm.dormName} />
+		{#if kuboDormCta}
+			<EntityExternalLink
+				href={kuboDormCta.href}
+				label={kuboDormCta.label}
+				ariaLabel={kuboDormCta.ariaLabel}
+				class="entity-footer__link--button entity-footer__link--kubo"
+				iconSrc="/kubo-logo.png"
+			/>
+		{/if}
+		<!-- <EntityEditorToggle
 					expanded={editing}
 					{canPublish}
 					publishOpenLabel="Edit dorm"
@@ -720,16 +720,14 @@
 					variant="toolbar"
 					onclick={() => (editing = !editing)}
 				/> -->
-			</div>
-		</header>
 
 		{#if !editing}
-			<div class="entity-body entity-body--compact">
+			<div class="flex flex-col gap-2 text-sm text-neutral-700">
 				{#if dorm.lat && dorm.lon}
 					<EntityStreetAddress lat={dorm.lat} lon={dorm.lon} />
 				{/if}
 				{#if dorm.description}
-					<p class="entity-directions__text">{dorm.description}</p>
+					<p class="text-sm text-neutral-800">{dorm.description}</p>
 				{/if}
 				<EntityLastUpdated updatedAt={dorm.updatedAt} />
 			</div>

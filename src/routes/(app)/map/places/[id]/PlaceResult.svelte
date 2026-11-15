@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ResultActions from '#lib/components/new/ResultActions.svelte';
 	// import {
 	// 	additionProposalStore,
 	// 	searchInfo,
@@ -17,12 +18,8 @@
 	import type { PlaceData } from '#lib/utils/types.js';
 	import EntityEditorPinRow from '#lib/components/editor/EntityEditorPinRow.svelte';
 	import EntityEditorToggle from '#lib/components/editor/EntityEditorToggle.svelte';
-	import EntityDirectionsChip from '#lib/components/entity/EntityDirectionsChip.svelte';
-	import EntityGoogleMapsLink from '#lib/components/entity/EntityGoogleMapsLink.svelte';
 	import EntityStreetAddress from '#lib/components/entity/EntityStreetAddress.svelte';
-	import EntityShareCopyLink from '#lib/components/entity/EntityShareCopyLink.svelte';
 	import EntityExternalLink from '#lib/components/entity/EntityExternalLink.svelte';
-	import { page } from '$app/state';
 
 	interface Props {
 		place: PlaceData;
@@ -127,23 +124,18 @@
 </script>
 
 {#if place}
-	<div class="entity-detail">
-		<header class="entity-header">
-			<h2 class="entity-header__title">{place.name}</h2>
+	<div class="flex flex-col gap-3 p-6">
+		<header class="flex flex-col gap-2">
+			<h2 class="text-2xl font-semibold">{place.name}</h2>
 			{#if placeDirectoryLabel(place.category)}
-				<span class="place-category-badge">{placeDirectoryLabel(place.category)}</span>
+				<span
+					class="inline-flex items-center gap-1 self-start rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
+					>{placeDirectoryLabel(place.category)}</span
+				>
 			{/if}
-			<div class="entity-actions">
-				{#if place.lat != null && place.lon != null}
-					<EntityDirectionsChip lat={place.lat} lon={place.lon} destinationLabel={place.name} />
-					<EntityGoogleMapsLink
-						lat={place.lat}
-						lon={place.lon}
-						ariaLabel={`Open ${place.name} in Google Maps`}
-					/>
-				{/if}
-				<EntityShareCopyLink url={page.url.href} entityLabel={place.name} />
-				<!-- <EntityEditorToggle
+		</header>
+		<ResultActions data={place} name={place.name} />
+		<!-- <EntityEditorToggle
 					expanded={editing}
 					{canPublish}
 					publishOpenLabel="Edit place"
@@ -158,15 +150,13 @@
 						}
 					}}
 				/> -->
-			</div>
-		</header>
 
 		{#if !editing}
 			{#if place.lat != null && place.lon != null}
 				<EntityStreetAddress lat={place.lat} lon={place.lon} />
 			{/if}
 			{#if place.description}
-				<p class="entity-directions__text">{place.description}</p>
+				<p class="text-sm text-neutral-800">{place.description}</p>
 			{/if}
 			<ul class="place-facts">
 				{#if place.hours}
@@ -234,16 +224,6 @@
 
 <style>
 	/* @import './entity-detail.css'; */
-	.place-category-badge {
-		display: inline-block;
-		align-self: flex-start;
-		padding: 0.125rem 0.5rem;
-		border-radius: 999px;
-		background: hsl(162, 45%, 92%);
-		color: #0d7a5f;
-		font-size: 0.6875rem;
-		font-weight: 600;
-	}
 	.place-facts {
 		list-style: none;
 		padding: 0;
