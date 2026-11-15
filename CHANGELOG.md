@@ -1,3 +1,72 @@
+## [2.40.7](https://github.com/uplbtools/room-tba/compare/v2.40.6...v2.40.7) (2026-11-15)
+
+
+### Bug Fixes
+
+* **copy:** plain sentences in the app shell components ([#1426](https://github.com/uplbtools/room-tba/issues/1426)) ([6ec514b](https://github.com/uplbtools/room-tba/commit/6ec514b63c7d471eece8fc4290acc34b17fd5ffd))
+
+## [2.40.6](https://github.com/uplbtools/room-tba/compare/v2.40.5...v2.40.6) (2026-11-15)
+
+
+### Bug Fixes
+
+* **transit-map:** key and bus lines on the printable sheet ([#1437](https://github.com/uplbtools/room-tba/issues/1437)) ([0a350b3](https://github.com/uplbtools/room-tba/commit/0a350b3a415caf276a054ea369ad3f487b2be6fc))
+
+## [2.40.5](https://github.com/uplbtools/room-tba/compare/v2.40.4...v2.40.5) (2026-11-15)
+
+
+### Bug Fixes
+
+* **copy:** plain sentences in API and lib messages ([#1425](https://github.com/uplbtools/room-tba/issues/1425)) ([0678283](https://github.com/uplbtools/room-tba/commit/067828349d520756e60496502ca5ba5a394bf642))
+
+## [2.40.4](https://github.com/uplbtools/room-tba/compare/v2.40.3...v2.40.4) (2026-11-15)
+
+
+### Bug Fixes
+
+* **copy:** plain sentences in modals, planner, status bar, editor and admin ([#1423](https://github.com/uplbtools/room-tba/issues/1423)) ([83e55c6](https://github.com/uplbtools/room-tba/commit/83e55c621d72041386e441951c47c35c580baaf9))
+
+## [2.40.3](https://github.com/uplbtools/room-tba/compare/v2.40.2...v2.40.3) (2026-11-15)
+
+
+### Bug Fixes
+
+* **copy:** plain sentences on the static pages ([#1422](https://github.com/uplbtools/room-tba/issues/1422)) ([43fbfdf](https://github.com/uplbtools/room-tba/commit/43fbfdfe728779332678fb618393767088da96b3))
+
+## [2.40.2](https://github.com/uplbtools/room-tba/compare/v2.40.1...v2.40.2) (2026-11-15)
+
+
+### Bug Fixes
+
+* **mobile:** a place left at the preview doesn't reopen full screen on Back ([#1433](https://github.com/uplbtools/room-tba/issues/1433)) ([a77ce9a](https://github.com/uplbtools/room-tba/commit/a77ce9abd528c44cd08aeb9c9d2b30e56cd2de3d))
+
+## [2.40.1](https://github.com/uplbtools/room-tba/compare/v2.40.0...v2.40.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **leaderboard:** explain how points work, quieter layout ([#1419](https://github.com/uplbtools/room-tba/issues/1419)) ([56043d3](https://github.com/uplbtools/room-tba/commit/56043d3c60dbb88461dded6cdf3a20d1ae12f642))
+
+# [2.40.0](https://github.com/uplbtools/room-tba/compare/v2.39.0...v2.40.0) (2026-11-15)
+
+
+### Bug Fixes
+
+* **copy:** plain sentences in the place panels, search and directions ([#1421](https://github.com/uplbtools/room-tba/issues/1421)) ([57260c2](https://github.com/uplbtools/room-tba/commit/57260c273f353674ef46ad9501346012680441ab))
+* **copy:** plain sentences in the wiki ([#1424](https://github.com/uplbtools/room-tba/issues/1424)) ([c4533b2](https://github.com/uplbtools/room-tba/commit/c4533b20a7525505bc889f07e82a823c179c6046))
+
+
+### Features
+
+* **transit-map:** jeepney signboards and readable labels on the printable sheet ([#1427](https://github.com/uplbtools/room-tba/issues/1427)) ([dc62248](https://github.com/uplbtools/room-tba/commit/dc622484222bf81505bf566e5498c68426c1990f))
+
+# [2.39.0](https://github.com/uplbtools/room-tba/compare/v2.38.4...v2.39.0) (2026-11-15)
+
+
+### Features
+
+* **mobile:** a place opens full screen on phones ([#1389](https://github.com/uplbtools/room-tba/issues/1389)) ([56e9e28](https://github.com/uplbtools/room-tba/commit/56e9e28d84c37eab8a352726d604fde01c5a28f2)), closes [#1289](https://github.com/uplbtools/room-tba/issues/1289) [#1290](https://github.com/uplbtools/room-tba/issues/1290) [#1307](https://github.com/uplbtools/room-tba/issues/1307) [#1298](https://github.com/uplbtools/room-tba/issues/1298) [#1295](https://github.com/uplbtools/room-tba/issues/1295) [#1296](https://github.com/uplbtools/room-tba/issues/1296) [#1301](https://github.com/uplbtools/room-tba/issues/1301) [#1303](https://github.com/uplbtools/room-tba/issues/1303) [#1300](https://github.com/uplbtools/room-tba/issues/1300) [#1298](https://github.com/uplbtools/room-tba/issues/1298) [#1300](https://github.com/uplbtools/room-tba/issues/1300) [#1305](https://github.com/uplbtools/room-tba/issues/1305)
+
 ## [2.38.4](https://github.com/uplbtools/room-tba/compare/v2.38.3...v2.38.4) (2026-11-12)
 
 
