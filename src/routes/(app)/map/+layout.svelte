@@ -51,6 +51,7 @@
 	import Modal from '#lib/components/new/Modal.svelte';
 	import AdminLoginModal from '#lib/components/AdminLoginModal.svelte';
 	import AccountSettingsModal from '#lib/components/AccountSettingsModal.svelte';
+	import ManageUsersModal from '#lib/components/modal/ManageUsersModal.svelte';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { goto, replaceState } from '$app/navigation';
@@ -647,6 +648,9 @@
 	{/if}
 	{#if adminAuthStore.accountSettingsOpen}
 		<AccountSettingsModal />
+	{/if}
+	{#if adminAuthStore.manageUsersOpen}
+		<ManageUsersModal />
 	{/if}
 	<Toast />
 </main>

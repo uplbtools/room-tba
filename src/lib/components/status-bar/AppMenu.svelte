@@ -10,6 +10,7 @@
 	import CircleHelp from '@lucide/svelte/icons/circle-help';
 	import Inbox from '@lucide/svelte/icons/inbox';
 	import Megaphone from '@lucide/svelte/icons/megaphone';
+	import ShieldCheck from '@lucide/svelte/icons/shield-check';
 	import Siren from '@lucide/svelte/icons/siren';
 	import Star from '@lucide/svelte/icons/star';
 	import BookOpen from '@lucide/svelte/icons/book-open';
@@ -193,6 +194,11 @@
 		modalStore.openModal('changelog');
 	}
 
+	function openEditorTools() {
+		closePanel();
+		modalStore.openModal('editor-tools');
+	}
+
 	function handleAnnouncements() {
 		closePanel();
 		modalStore.openModal('announcements');
@@ -274,6 +280,15 @@
 						<span>
 							{adminAuthStore.username ? 'Account settings' : 'Contributor sign in'}
 						</span>
+					</button>
+				</section>
+			{/if}
+
+			{#if adminAuthStore.canPublish || adminAuthStore.canReview}
+				<section class="app-menu__section" aria-label="Editor tools">
+					<button type="button" class="app-menu__action map-chrome-chip" onclick={openEditorTools}>
+						<ShieldCheck size={14} aria-hidden="true" />
+						<span>Editor tools</span>
 					</button>
 				</section>
 			{/if}
