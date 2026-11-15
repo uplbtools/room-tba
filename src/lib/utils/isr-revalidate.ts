@@ -6,68 +6,38 @@
  */
 
 import {
+	entityIndexPath,
 	getBuildingCanonicalPath,
 	getCollegeCanonicalPath,
 	getDivisionCanonicalPath,
 	getDormCanonicalPath,
 	getEventCanonicalPath,
 	getOrganizationCanonicalPath,
-	getOrganizationIndexPath,
 	getPlaceCanonicalPath,
-	getPlaceIndexPath,
 	getRoomCanonicalPath
 } from '#lib/utils/entity/entity-urls.js';
 import { SITE_URL } from '#lib/utils/site.js';
-import type {
-	Building,
-	College,
-	Division,
-	DormData,
-	OrgData,
-	PlaceData,
-	Room
-} from '#lib/utils/types.js';
 
 const SITEMAP_PATH = '/sitemap.xml';
 
-// The revalidated path is the canonical entity URL, so these delegate rather
-// than rebuilding it — a URL change stays in one place.
-export function roomIsrPath(room: Pick<Room, 'id' | 'code'>): string {
-	return getRoomCanonicalPath(room);
-}
+type Row = { id: number };
 
-export function buildingIsrPath(building: Pick<Building, 'buildingName'>): string {
-	return getBuildingCanonicalPath(building.buildingName);
-}
+export const roomIsrPath = (room: Row) => getRoomCanonicalPath(room);
+export const buildingIsrPath = (building: Row) => getBuildingCanonicalPath(building);
+export const collegeIsrPath = (college: Row) => getCollegeCanonicalPath(college);
+export const divisionIsrPath = (division: Row) => getDivisionCanonicalPath(division);
+export const dormIsrPath = (dorm: Row) => getDormCanonicalPath(dorm);
+export const eventIsrPath = (event: Row) => getEventCanonicalPath(event);
 
-export function collegeIsrPath(college: Pick<College, 'collegeName'>): string {
-	return getCollegeCanonicalPath(college.collegeName);
-}
+export const organizationIsrPaths = (organization: Row) => [
+	getOrganizationCanonicalPath(organization),
+	entityIndexPath('organizations')
+];
 
-export function divisionIsrPath(division: Pick<Division, 'divisionName'>): string {
-	return getDivisionCanonicalPath(division.divisionName);
-}
-
-export function dormIsrPath(dorm: Pick<DormData, 'id' | 'dormName'>): string {
-	return getDormCanonicalPath(dorm);
-}
-
-export function eventIsrPath(slug: string): string {
-	return getEventCanonicalPath(slug);
-}
-
-// Organizations and places each span two segments, so a mutation has to
-// revalidate the entity page and the index it is listed on — which index that
-// is follows from the row's own category.
-export function organizationIsrPaths(
-	organization: Pick<OrgData, 'id' | 'name'> & Partial<Pick<OrgData, 'category'>>
-): string[] {
-	return [getOrganizationCanonicalPath(organization), getOrganizationIndexPath(organization)];
-}
-
-export function placeIsrPaths(place: Pick<PlaceData, 'id' | 'name' | 'category'>): string[] {
-	return [getPlaceCanonicalPath(place), getPlaceIndexPath(place)];
-}
+export const placeIsrPaths = (place: Row) => [
+	getPlaceCanonicalPath(place),
+	entityIndexPath('places')
+];
 
 /** Fire-and-forget ISR revalidation; always includes sitemap when paths are provided. */
 export function revalidateIsrPaths(paths: string[] | undefined): void {

@@ -1466,9 +1466,7 @@ export async function createEvent(
 		});
 	}
 	await refreshEventSyncKeys(
-		after?.slug
-			? [eventIsrPath(after.slug), entityIndexPath('events')]
-			: [entityIndexPath('events')]
+		after?.slug ? [eventIsrPath(after), entityIndexPath('events')] : [entityIndexPath('events')]
 	);
 	return after;
 }
@@ -1541,8 +1539,7 @@ export async function updateEvent(
 		});
 	}
 	const eventPaths = [entityIndexPath('events')];
-	if (after?.slug) eventPaths.push(eventIsrPath(after.slug));
-	if (before.slug !== after?.slug) eventPaths.push(eventIsrPath(before.slug));
+	eventPaths.push(eventIsrPath(after ?? before));
 	await refreshEventSyncKeys(eventPaths);
 	return after;
 }
@@ -1594,9 +1591,7 @@ export async function updateEventLocations(
 		});
 	}
 	await refreshEventSyncKeys(
-		after?.slug
-			? [eventIsrPath(after.slug), entityIndexPath('events')]
-			: [entityIndexPath('events')]
+		after?.slug ? [eventIsrPath(after), entityIndexPath('events')] : [entityIndexPath('events')]
 	);
 	return after;
 }

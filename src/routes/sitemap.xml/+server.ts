@@ -1,4 +1,3 @@
-import { getEventSlug } from '#lib/utils/app-data.js';
 import { campusTransit } from '#lib/campus.config.js';
 import { JEEPNEY_ROUTES } from '#lib/constants/map/jeepney-routes.js';
 import {
@@ -48,12 +47,9 @@ export const GET: RequestHandler = async () => {
 
 	const urls = [
 		'/',
-		'/changelog',
 		'/faq',
 		'/privacy',
 		'/terms',
-		'/wiki',
-		'/wiki/section-times',
 		entityIndexPath('rooms'),
 		entityIndexPath('buildings'),
 		entityIndexPath('divisions'),
@@ -62,18 +58,15 @@ export const GET: RequestHandler = async () => {
 		entityIndexPath('events'),
 		entityIndexPath('organizations'),
 		entityIndexPath('units'),
-		entityIndexPath('landmarks'),
-		entityIndexPath('establishments'),
+		entityIndexPath('places'),
+		'/map/planner',
 		...(campusTransit.enabled ? [TRANSIT_INDEX_PATH] : []),
 		...rooms.map((room) => getRoomCanonicalPath(room)),
-		...buildings.map((building) => getBuildingCanonicalPath(building.buildingName)),
-		...divisions.map((division) => getDivisionCanonicalPath(division.divisionName)),
-		...colleges.map((college) => getCollegeCanonicalPath(college.collegeName)),
+		...buildings.map((building) => getBuildingCanonicalPath(building)),
+		...divisions.map((division) => getDivisionCanonicalPath(division)),
+		...colleges.map((college) => getCollegeCanonicalPath(college)),
 		...dorms.map((dorm) => getDormCanonicalPath(dorm)),
-		...events.map((event) => getEventCanonicalPath(getEventSlug(event))),
-		// Each helper picks the canonical segment from the row's own category
-		// (organizations/units, landmarks/establishments), so the sitemap lists
-		// exactly the URL the in-app links point at.
+		...events.map((event) => getEventCanonicalPath(event)),
 		...organizations.map((organization) => getOrganizationCanonicalPath(organization)),
 		...places.map((place) => getPlaceCanonicalPath(place)),
 		...(campusTransit.enabled

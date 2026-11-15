@@ -19,7 +19,7 @@ export const load: PageServerLoad = async () => {
 			const roomCount = roomCounts.get(college.id) ?? 0;
 
 			return {
-				href: getCollegeCanonicalPath(college.collegeName),
+				href: getCollegeCanonicalPath(college),
 				label: college.collegeName,
 				description: `${roomCount} room${roomCount === 1 ? '' : 's'} connected to this college`
 			};
