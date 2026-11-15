@@ -87,12 +87,12 @@ export const getUnionSuggestions = query(
 			.limit(3);
 		const rooms = db
 			.select({
-				name: roomsTable.roomCode,
+				name: roomsTable.code,
 				id: roomsTable.id,
 				type: sql<EntityType>`'room'`
 			})
 			.from(roomsTable)
-			.where(like(lower(roomsTable.roomCode), `%${query}%`))
+			.where(like(lower(roomsTable.code), `%${query}%`))
 			.limit(3);
 
 		const results = await unionAll(
