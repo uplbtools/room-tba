@@ -53,7 +53,7 @@
       toastStore.show("Address copied.", "success");
       setTimeout(() => (copied = false), 1800);
     } catch {
-      toastStore.show("Could not copy the address.", "error");
+      toastStore.show("Couldn't copy the address.", "error");
     }
   }
 </script>
