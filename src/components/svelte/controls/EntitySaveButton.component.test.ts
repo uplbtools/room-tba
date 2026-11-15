@@ -30,6 +30,7 @@ describe("EntitySaveButton", () => {
     await fireEvent.click(btn);
     expect(btn).toHaveAttribute("aria-pressed", "true");
     expect(btn).toHaveTextContent("Saved");
+    expect(btn).toHaveAccessibleName("Saved Makiling Residence Hall");
     expect(savedPlaces.has("dorm", place.value)).toBe(true);
 
     await fireEvent.click(btn);
