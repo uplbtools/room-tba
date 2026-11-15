@@ -36,6 +36,7 @@ describe('legacy entity redirects', () => {
 		expect(await resolveLegacyEntityPath('/building/no-such-hall')).toBe('/map/buildings');
 		expect(await resolveLegacyEntityPath('/room/')).toBe('/map/rooms');
 		expect(await resolveLegacyEntityPath('/planner')).toBe('/map/planner');
+		expect(await resolveLegacyEntityPath('/final-exams')).toBe('/map/final-exams');
 	});
 
 	it('leaves paths that were never entity paths alone', async () => {

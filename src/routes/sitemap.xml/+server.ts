@@ -60,6 +60,8 @@ export const GET: RequestHandler = async () => {
 		entityIndexPath('units'),
 		entityIndexPath('places'),
 		'/map/planner',
+		'/map/calendar',
+		'/map/final-exams',
 		...(campusTransit.enabled ? [TRANSIT_INDEX_PATH] : []),
 		...rooms.map((room) => getRoomCanonicalPath(room)),
 		...buildings.map((building) => getBuildingCanonicalPath(building)),

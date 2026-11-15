@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Menu from '@lucide/svelte/icons/menu';
 	import CalendarDays from '@lucide/svelte/icons/calendar-days';
+	import CalendarX from '@lucide/svelte/icons/calendar-x';
 	import Keyboard from '@lucide/svelte/icons/keyboard';
 	import ChartColumn from '@lucide/svelte/icons/chart-column';
 	import FileText from '@lucide/svelte/icons/file-text';
@@ -269,6 +270,10 @@
 				<a class="app-menu__action map-chrome-chip" href="/map/calendar" onclick={closePanel}>
 					<CalendarDays size={14} aria-hidden="true" />
 					<span>Academic calendar</span>
+				</a>
+				<a class="app-menu__action map-chrome-chip" href="/map/final-exams" onclick={closePanel}>
+					<CalendarX size={14} aria-hidden="true" />
+					<span>Final exams</span>
 				</a>
 			</section>
 
