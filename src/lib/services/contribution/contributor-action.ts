@@ -1,6 +1,7 @@
 import { db } from '#lib/utils/db.js';
 import { adminUsersTable, contributionsTable, editProposalsTable } from '#lib/server/db/schema.js';
 import {
+	badgesFor,
 	buildCreditKeyResolver,
 	classifyContribution,
 	daysLeft,
@@ -260,5 +261,66 @@ export async function getContributorStanding(
 		breakdown: self?.breakdown ?? emptyBreakdown(),
 		toPass: pass && { points: pass.points, rank: pass.place },
 		optedOut: !visible
+	};
+}
+
+const ENTITY_PATHS: Record<string, string> = {
+	building: 'buildings',
+	college: 'colleges',
+	division: 'divisions',
+	dorm: 'dorms',
+	event: 'events',
+	organization: 'organizations',
+	place: 'places',
+	room: 'rooms'
+};
+
+/** Null for an unknown key or an account hidden from credits. */
+export async function getContributorProfile(key: string, source: ContributionSource) {
+	const rows = await loadLedger(source);
+	const resolver = buildCreditKeyResolver(rows);
+	const mine = rows
+		.filter((row) => {
+			const rowKey = resolver.keyFor(row);
+			return rowKey !== null && publicKey(rowKey) === key;
+		})
+		.sort((a, b) => b.createdAtMs - a.createdAtMs);
+	const ownerKey = mine[0] && resolver.keyFor(mine[0]);
+	const [standing] = rankContributors(mine, { resolver });
+	if (!ownerKey || !standing) return null;
+
+	const [account] = ownerKey.startsWith('u:')
+		? await db
+				.select({
+					avatarUrl: adminUsersTable.avatarUrl,
+					profileUrl: adminUsersTable.profileUrl,
+					createdAt: adminUsersTable.createdAt
+				})
+				.from(adminUsersTable)
+				.where(eq(adminUsersTable.id, Number(ownerKey.slice(2))))
+				.limit(1)
+		: [];
+
+	return {
+		displayName: standing.displayName,
+		avatarUrl: account?.avatarUrl ?? null,
+		profileUrl: account?.profileUrl ?? null,
+		joinedAt: new Date(
+			account ? Date.parse(`${account.createdAt.replace(' ', 'T')}Z`) : standing.firstAtMs
+		).toISOString(),
+		points: standing.points,
+		contributionCount: standing.contributions,
+		breakdown: standing.breakdown,
+		badges: badgesFor(standing.contributions),
+		recent: mine.slice(0, 8).map((row) => {
+			const path = ENTITY_PATHS[row.entityType];
+			return {
+				id: row.id,
+				kind: row.kind,
+				entityLabel: row.entityLabel,
+				href: path && row.entityId > 0 ? `/map/${path}/${row.entityId}` : null,
+				createdAt: new Date(row.createdAtMs).toISOString()
+			};
+		})
 	};
 }

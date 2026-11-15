@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Avatar from '#lib/components/Avatar.svelte';
+	import ContributorProfile from './ContributorProfile.svelte';
 	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	import { getLeaderboard, getMyStanding } from '#lib/functions/leaderboard.remote.js';
 	import {
@@ -27,6 +28,7 @@
 	let timeWindow = $state<LeaderboardWindow>('month');
 	let board = $state<(typeof BOARDS)[number]['value']>('community');
 	let expandedKey = $state<string | null>(null);
+	let profile = $state<{ key: string; isMe: boolean } | null>(null);
 
 	const phrase = $derived(WINDOWS.find((option) => option.value === timeWindow)!.phrase);
 
@@ -70,7 +72,16 @@
 	{/if}
 {/snippet}
 
-<div class="flex flex-col gap-2 pt-1 pb-2">
+{#if profile}
+	<ContributorProfile
+		profileKey={profile.key}
+		{board}
+		isMe={profile.isMe}
+		onback={() => (profile = null)}
+	/>
+{/if}
+
+<div class="flex flex-col gap-2 pt-1 pb-2" hidden={profile !== null}>
 	<div class="flex gap-1 border-b border-neutral-200" role="tablist" aria-label="Leaderboard">
 		{#each BOARDS as option (option.value)}
 			<button
@@ -174,7 +185,12 @@
 								<span aria-label={rankLabel(row)}>{row.rank}</span>
 							{/if}
 						</span>
-						<span class="flex min-h-12 min-w-0 items-center gap-3">
+						<button
+							type="button"
+							class="flex min-h-12 min-w-0 items-center gap-3 text-left"
+							aria-label="View profile of {row.displayName}"
+							onclick={() => (profile = { key: row.key, isMe: me?.key === row.key })}
+						>
 							<Avatar name={row.displayName} size={36} />
 							<span class="flex min-w-0 flex-col">
 								<span class="line-clamp-2 leading-tight font-medium [overflow-wrap:anywhere]"
@@ -186,7 +202,7 @@
 									<span class="text-[0.8125rem] text-neutral-600">Getting started</span>
 								{/if}
 							</span>
-						</span>
+						</button>
 						{@render score(row.key, row.points, row.breakdown)}
 					</li>
 				{/each}
@@ -205,7 +221,13 @@
 					<span class="text-center font-semibold text-neutral-600 tabular-nums">
 						{me.rank ? `#${me.rank}` : '-'}
 					</span>
-					<span class="flex min-h-12 min-w-0 items-center gap-3">
+					<button
+						type="button"
+						class="flex min-h-12 min-w-0 items-center gap-3 text-left"
+						aria-label="View your profile"
+						disabled={me.optedOut}
+						onclick={() => (profile = { key: me.key, isMe: true })}
+					>
 						<Avatar name="You" size={36} />
 						<span class="flex min-w-0 flex-col">
 							<span class="font-medium">You</span>
@@ -221,7 +243,7 @@
 								{/if}
 							</span>
 						</span>
-					</span>
+					</button>
 					{@render score(`me-${me.key}`, me.points, me.breakdown)}
 				</div>
 			</div>
@@ -244,7 +266,14 @@
 							<span class="text-[0.8125rem] text-neutral-600">{entry.label}</span>
 							<span class="text-[0.9375rem]">
 								<span class="font-semibold [overflow-wrap:anywhere]">
-									{entry.winners.map((winner) => winner.displayName).join(', ')}
+									{#each entry.winners as winner, i (winner.key)}
+										<button
+											type="button"
+											class="font-semibold underline"
+											onclick={() => (profile = { key: winner.key, isMe: me?.key === winner.key })}
+											>{winner.displayName}</button
+										>{i < entry.winners.length - 1 ? ', ' : ''}
+									{/each}
 								</span>
 								<span class="float-right ml-2 text-[0.8125rem] text-neutral-600 tabular-nums">
 									{pointsLabel(entry.winners[0]?.points ?? 0)}

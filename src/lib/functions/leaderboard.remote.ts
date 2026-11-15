@@ -3,6 +3,7 @@ import * as v from 'valibot';
 import { optionalEditorSession } from '#lib/admin/require-editor.js';
 import {
 	getContributorLeaderboard,
+	getContributorProfile as loadContributorProfile,
 	getContributorStanding,
 	type ContributionSource
 } from '#lib/services/contribution/contributor-action.js';
@@ -27,3 +28,8 @@ export const getMyStanding = query(params, async ({ window, board }) => {
 		? getContributorStanding(window, SOURCES[board], session.id)
 		: null;
 });
+
+export const getContributorProfile = query(
+	v.object({ key: v.pipe(v.string(), v.regex(/^[ucn].{1,120}$/s)), board: params.entries.board }),
+	({ key, board }) => loadContributorProfile(key, SOURCES[board])
+);
