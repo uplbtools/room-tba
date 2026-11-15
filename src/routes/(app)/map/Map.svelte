@@ -4454,6 +4454,13 @@ let selectedEventRouteStops = $derived.by(() => {
 {/if} -->
 
 <style>
+	@media (max-width: 639px) {
+		.map-container :global(.maplibregl-ctrl-bottom-left),
+		.map-container :global(.maplibregl-ctrl-bottom-right) {
+			bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px));
+		}
+	}
+
 	.map-container {
 		position: fixed;
 		top: 0;

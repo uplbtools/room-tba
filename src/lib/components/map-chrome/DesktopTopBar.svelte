@@ -10,6 +10,7 @@
 		{ href: resolve('map'), label: 'Map', routeId: '/(app)/map' },
 		{ href: resolve('map/planner'), label: 'Planner', routeId: '/(app)/map/planner' }
 	];
+	const onPlanner = $derived(page.route.id === '/(app)/map/planner');
 
 	function handleSignIn() {
 		if (adminAuthStore.username) {
@@ -37,7 +38,7 @@
 
 	<nav class="desktop-top-bar__nav" aria-label="Primary">
 		{#each links as link (link.href)}
-			{@const active = page.route.id === link.routeId}
+			{@const active = onPlanner === (link.routeId === '/(app)/map/planner')}
 			<a
 				href={link.href}
 				class="desktop-top-bar__link"
