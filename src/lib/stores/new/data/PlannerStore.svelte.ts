@@ -151,7 +151,8 @@ export default class PlannerStore {
 
 	ensurePlanForActiveTerm = (): PlannerPlan | null => {
 		if (this.activeTermId == null) return null;
-		if (this.plansForTerm.length > 0) return this.activePlan;
+		const termId = this.activeTermId;
+		if (this.plans.some((plan) => plan.termId === termId)) return this.activePlan;
 		return this.createPlan();
 	};
 
