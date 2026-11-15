@@ -21,7 +21,9 @@
 <form {...props} class="flex flex-col gap-3" {@attach formAttachment}>
 	{@render children()}
 	<div>
-		<button type="reset">Reset</button>
-		<button type="submit">Submit</button>
+		<button type="reset" class="rounded-full px-3 py-1 text-sm hover:bg-neutral-100">Reset</button>
+		<button type="submit" class="rounded-full bg-neutral-900 px-3 py-1 text-sm text-white"
+			>Submit</button
+		>
 	</div>
 </form>
