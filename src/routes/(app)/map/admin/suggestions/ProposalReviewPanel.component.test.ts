@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import ProposalReviewPanelHost from '@test/components/ProposalReviewPanelHost.svelte';
+import ProposalReviewPanel from './ProposalReviewPanel.svelte';
 import AdminAuthStore from '#lib/stores/new/data/AdminAuthStore.svelte.js';
 import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
 import ProposalsStore from '#lib/stores/new/data/ProposalsStore.svelte.js';
@@ -8,6 +8,13 @@ import type ModalStore from '#lib/stores/new/ui/ModalStore.svelte.js';
 import ToastStore from '#lib/stores/new/ui/ToastStore.svelte.js';
 
 vi.mock('#lib/supabase/env.js', () => ({ isSupabaseConfigured: () => false }));
+const mapData = (current: unknown[] = []) => ({ current, refresh: async () => {} });
+vi.mock('#lib/functions/buildings.remote.js', () => ({
+	getMapBuildingsData: () => mapData([{ id: 1, buildingName: 'Class Hall' }])
+}));
+vi.mock('#lib/functions/dorms.remote.js', () => ({ getMapDormsData: () => mapData() }));
+vi.mock('#lib/functions/organizations.remote.js', () => ({ getMapOrgsData: () => mapData() }));
+vi.mock('#lib/functions/places.remote.js', () => ({ getMapPlacesData: () => mapData() }));
 vi.mock('#lib/utils/context.js', async (importOriginal) => ({
 	...(await importOriginal<typeof import('#lib/utils/context.js')>()),
 	getAdminAuthStore: () => adminAuthStore,
@@ -60,7 +67,7 @@ describe('ProposalReviewPanel diffs', () => {
 	test('renders before and after for a changed field at 320px', async () => {
 		mountAtWidth(320);
 		proposalsStore.proposals = [baseProposal()];
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 		expect(screen.getByText('Directions')).toBeVisible();
 		expect(screen.getByText('Enter from the west gate')).toBeVisible();
@@ -70,7 +77,7 @@ describe('ProposalReviewPanel diffs', () => {
 
 	test('collapsed rows keep the diff body out of the DOM', () => {
 		proposalsStore.proposals = [baseProposal()];
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		// The row is listed, but its diffs and buttons are not mounted yet.
 		expect(screen.getByText('Old Hall')).toBeVisible();
 		expect(screen.queryByText('Enter from the east gate')).toBeNull();
@@ -79,7 +86,7 @@ describe('ProposalReviewPanel diffs', () => {
 
 	test('shows stale banner when published version moved past baseVersion', async () => {
 		proposalsStore.proposals = [{ ...baseProposal(), currentVersion: 5 }];
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 		expect(screen.getByRole('alert').textContent).toMatch(/published data changed/i);
 	});
@@ -96,7 +103,7 @@ describe('ProposalReviewPanel diffs', () => {
 				currentVersion: null
 			}
 		];
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 		expect(screen.getByText('New entry')).toBeVisible();
 		expect(screen.getByText('CEM 203')).toBeVisible();
@@ -112,7 +119,6 @@ describe('ProposalReviewPanel foreign keys (#873)', () => {
 	});
 
 	test('a building reassignment shows names, not raw row ids', async () => {
-		// loadedAppContext() seeds building id 1 as "Class Hall".
 		proposalsStore.proposals = [
 			{
 				...baseProposal(),
@@ -121,7 +127,7 @@ describe('ProposalReviewPanel foreign keys (#873)', () => {
 				currentValues: { buildingId: 99 }
 			}
 		];
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 
 		expect(screen.getByText('Building')).toBeVisible();
@@ -143,7 +149,7 @@ describe('ProposalReviewPanel note flow (#873)', () => {
 	});
 
 	test('the note field appears only after choosing reject', async () => {
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 
 		expect(screen.queryByLabelText(/note to yeyel/i)).toBeNull();
@@ -157,7 +163,7 @@ describe('ProposalReviewPanel note flow (#873)', () => {
 	});
 
 	test('request changes keeps confirm disabled until a note is written', async () => {
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Request changes' }));
@@ -181,7 +187,7 @@ describe('ProposalReviewPanel note flow (#873)', () => {
 				submitterNote: 'You may opt to remove this room from the app.'
 			}
 		];
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 
 		expect(screen.getByText(/you may opt to remove this room from the app/i)).toBeVisible();
@@ -212,7 +218,7 @@ describe('ProposalReviewPanel bulk actions', () => {
 		);
 		vi.stubGlobal('fetch', fetchMock);
 
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 
 		const approveBtn = screen.getByRole('button', {
 			name: /approve selected/i
@@ -244,7 +250,7 @@ describe('ProposalReviewPanel bulk actions', () => {
 		);
 		vi.stubGlobal('fetch', fetchMock);
 
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await fireEvent.click(screen.getByLabelText(/^select all$/i));
 		await fireEvent.click(screen.getByRole('button', { name: /reject selected/i }));
 
@@ -270,7 +276,7 @@ describe('ProposalReviewPanel bulk actions', () => {
 			{ ...baseProposal(), id: 8, submitterName: 'Yeyel' },
 			{ ...baseProposal(), id: 9, submitterName: 'Ana' }
 		];
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 
 		await fireEvent.click(screen.getByLabelText(/select all 2 suggestions from yeyel/i));
 		expect(screen.getByText(/2 selected/)).toBeVisible();
@@ -295,7 +301,7 @@ describe('ProposalReviewPanel map preview', () => {
 
 	test('offers a preview for a proposal that moves a pin', async () => {
 		proposalsStore.proposals = [pinProposal()];
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 
 		expect(screen.getByRole('button', { name: /show map preview/i })).toBeVisible();
@@ -305,7 +311,7 @@ describe('ProposalReviewPanel map preview', () => {
 	// closed until asked for.
 	test('the preview starts closed', async () => {
 		proposalsStore.proposals = [pinProposal()];
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 
 		const toggle = screen.getByRole('button', { name: /show map preview/i });
@@ -314,7 +320,7 @@ describe('ProposalReviewPanel map preview', () => {
 
 	test('no preview for a proposal that does not move a pin', async () => {
 		proposalsStore.proposals = [baseProposal()];
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 
 		expect(screen.queryByRole('button', { name: /map preview/i })).toBeNull();
@@ -340,7 +346,7 @@ describe('ProposalReviewPanel undo after approve', () => {
 		);
 		vi.stubGlobal('fetch', fetchMock);
 
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 		await fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
 
@@ -366,7 +372,7 @@ describe('ProposalReviewPanel undo after approve', () => {
 
 		const row = () => document.querySelector('[data-proposal-row="7"]');
 
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 		await fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
 		// Held rows leave the queue optimistically (the label survives in the
@@ -391,7 +397,7 @@ describe('ProposalReviewPanel undo after approve', () => {
 		);
 		vi.stubGlobal('fetch', fetchMock);
 
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 		await fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
 		await fireEvent.click(screen.getByRole('button', { name: /publish now/i }));
@@ -420,7 +426,7 @@ describe('ProposalReviewPanel keyboard shortcuts', () => {
 	});
 
 	test('the shortcut hint is visible, not hidden in a help modal', () => {
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		expect(screen.getByText(/next \/ previous suggestion/i)).toBeVisible();
 	});
 
@@ -433,7 +439,7 @@ describe('ProposalReviewPanel keyboard shortcuts', () => {
 		);
 		vi.stubGlobal('fetch', fetchMock);
 
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await fireEvent.keyDown(window, { key: 'j' });
 		await fireEvent.keyDown(window, { key: 'a' });
 
@@ -453,7 +459,7 @@ describe('ProposalReviewPanel keyboard shortcuts', () => {
 		);
 		vi.stubGlobal('fetch', fetchMock);
 
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await fireEvent.keyDown(window, { key: 'j' });
 		await fireEvent.keyDown(window, { key: 'r' });
 
@@ -473,7 +479,7 @@ describe('ProposalReviewPanel keyboard shortcuts', () => {
 		);
 		vi.stubGlobal('fetch', fetchMock);
 
-		render(ProposalReviewPanelHost);
+		render(ProposalReviewPanel);
 		await expandFirstRow();
 		await fireEvent.click(screen.getByRole('button', { name: 'Reject' }));
 

@@ -222,11 +222,6 @@
 		closePanel();
 		modalStore.openModal('landing', { landingTab: 'welcome' });
 	}
-
-	function handleReview() {
-		closePanel();
-		modalStore.openModal('review');
-	}
 </script>
 
 <svelte:window onpointerdown={handleDocumentPointerDown} />
@@ -285,7 +280,11 @@
 
 			{#if adminAuthStore.canReview}
 				<section class="app-menu__section" aria-label="Review">
-					<button type="button" class="app-menu__action map-chrome-chip" onclick={handleReview}>
+					<a
+						class="app-menu__action map-chrome-chip"
+						href="/map/admin/suggestions"
+						onclick={closePanel}
+					>
 						<Inbox size={14} aria-hidden="true" />
 						<span>
 							Review suggested edits
@@ -293,7 +292,7 @@
 								<span class="app-menu__badge">{proposalsStore.pendingCount}</span>
 							{/if}
 						</span>
-					</button>
+					</a>
 				</section>
 			{/if}
 

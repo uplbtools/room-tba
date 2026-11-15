@@ -1,17 +1,12 @@
 <script lang="ts">
 	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { buildFieldDiffs } from '#lib/utils/proposals/diff.js';
-	import { appEntityNameResolver } from '#lib/utils/proposals/entity-names.js';
-	import { afterProposalPublished } from '#lib/utils/proposals/apply-published-entity.js';
-	import { syncOpenEntityQueryAfterPublish } from '#lib/utils/proposals/sync-open-entity-query.js';
-	import {
-		getAdminAuthStore,
-		getAppActions,
-		getAppData,
-		getProposalsStore,
-		getToast
-	} from '#lib/utils/context.js';
+	import { buildFieldDiffs, type EntityNameResolver } from '#lib/utils/proposals/diff.js';
+	import { getMapBuildingsData } from '#lib/functions/buildings.remote.js';
+	import { getMapDormsData } from '#lib/functions/dorms.remote.js';
+	import { getMapOrgsData } from '#lib/functions/organizations.remote.js';
+	import { getMapPlacesData } from '#lib/functions/places.remote.js';
+	import { getAdminAuthStore, getProposalsStore, getToast } from '#lib/utils/context.js';
 	import type { ProposalEntityType } from '#lib/services/contribution/proposal-action.js';
 	import { parseBundledRooms } from '#lib/utils/proposals/create-proposal-validation.js';
 	import EntityEditorFormField from '#lib/components/editor/EntityEditorFormField.svelte';
@@ -23,16 +18,19 @@
 		stepIndex,
 		REVIEW_SHORTCUT_HINTS
 	} from '#lib/utils/proposals/review-shortcuts.js';
+	import '#lib/components/editor/review-panel.css';
+	import '#lib/components/editor/entity-editor.css';
 
 	const adminAuthStore = getAdminAuthStore();
 	const proposalsStore = getProposalsStore();
 	const toastStore = getToast();
 
-	const appActions = getAppActions();
-	const appData = getAppData();
+	const mapBuildings = getMapBuildingsData();
 
-	/** Turns buildingId/collegeId/divisionId into names for the diff (#873). */
-	const resolveEntityName = $derived(appEntityNameResolver(appData()));
+	const resolveEntityName: EntityNameResolver = (field, id) =>
+		field === 'buildingId'
+			? (mapBuildings.current?.find((b) => b.id === id)?.buildingName ?? null)
+			: null;
 
 	type ReviewAction = 'approve' | 'reject' | 'request-changes';
 	/** Reject may carry a note; request-changes requires one. */
@@ -149,12 +147,8 @@
 		if (!res.ok) {
 			return { ok: false, error: (data as { error?: string }).error };
 		}
-		const published = (data as { published?: unknown }).published;
-		const entityType = (data as { proposal?: { entityType?: string } }).proposal?.entityType;
-		if (entityType) {
-			afterProposalPublished(appActions, appData, entityType as ProposalEntityType, published);
-			syncOpenEntityQueryAfterPublish(appData, entityType as ProposalEntityType, published);
-		}
+		for (const mapData of [getMapBuildingsData, getMapDormsData, getMapOrgsData, getMapPlacesData])
+			void mapData().refresh();
 		noteById[id] = '';
 		return { ok: true };
 	}
@@ -717,9 +711,6 @@
 {/if}
 
 <style>
-	@import './editor/review-panel.css';
-	@import './editor/entity-editor.css';
-
 	.entity-review-shortcuts {
 		display: flex;
 		flex-wrap: wrap;
