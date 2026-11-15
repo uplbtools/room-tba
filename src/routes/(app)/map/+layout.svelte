@@ -579,7 +579,7 @@
 		<Search />
 
 		<div
-			class="flex grow basis-96 flex-col-reverse items-end justify-end gap-7 self-stretch sm:flex-row"
+			class="flex min-h-0 grow basis-96 flex-col-reverse items-end justify-end gap-7 self-stretch sm:flex-row"
 		>
 			{@render children()}
 			<MapControlsStack />

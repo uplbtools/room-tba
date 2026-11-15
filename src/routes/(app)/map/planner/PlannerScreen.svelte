@@ -35,7 +35,7 @@
 	import PlannerCourseSearch from './PlannerCourseSearch.svelte';
 	import PlannerGrid from './PlannerGrid.svelte';
 	import type { ClassMapValue, FinalExamRow } from '#lib/utils/types.js';
-	import { onMount, tick, untrack } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 
 	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
@@ -322,10 +322,10 @@
 		);
 	});
 
-	// Never leave the active term with zero plans — empty chrome is unusable.
-	$effect(() => {
-		void plannerStore.activeTermId;
-		untrack(plannerStore.ensurePlanForActiveTerm);
+	onMount(async () => {
+		await termStore.init();
+		plannerStore.init();
+		plannerStore.ensurePlanForActiveTerm();
 	});
 
 	$effect(() => {
