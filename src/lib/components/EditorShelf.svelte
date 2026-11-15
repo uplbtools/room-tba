@@ -1,29 +1,20 @@
 <script lang="ts">
-	import CalendarPlus from '@lucide/svelte/icons/calendar-plus';
 	import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
 	import LogOut from '@lucide/svelte/icons/log-out';
-	import MapPinPlus from '@lucide/svelte/icons/map-pin-plus';
-	import Pencil from '@lucide/svelte/icons/pencil';
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
 	import Settings from '@lucide/svelte/icons/settings';
 	import Users from '@lucide/svelte/icons/users';
-	import {
-		adminAuthStore,
-		editorChromeStore,
-		eventPlacementStore,
-		mapEditStore,
-		modalStore,
-		proposalsStore,
-		sidePanelStore,
-		toastStore
-	} from '#lib/stores.svelte.js';
-	import { beginEventPlacement } from '#lib/utils/event/event-placement.js';
+	import { getAdminAuthStore, getProposalsStore, getToast } from '#lib/utils/context.js';
 
 	type Props = {
 		onclose?: () => void;
 	};
 
 	let { onclose }: Props = $props();
+
+	const adminAuthStore = getAdminAuthStore();
+	const proposalsStore = getProposalsStore();
+	const toastStore = getToast();
 
 	const adminLabel = $derived(adminAuthStore.displayName ?? adminAuthStore.username ?? 'editor');
 	const roleLabel = $derived(
@@ -33,28 +24,8 @@
 				? 'Editor'
 				: 'Contributor'
 	);
-	const placingEvent = $derived(eventPlacementStore.active || eventPlacementStore.creating);
-
-	function toggleMapEditMode() {
-		mapEditStore.toggle();
-		// Editing happens on the map; leaving the dialog open would cover it.
-		onclose?.();
-	}
-
-	function handleAddEvent() {
-		if (!beginEventPlacement({ propose: false })) return;
-		onclose?.();
-		toastStore.show('Click the map to place the new event.', 'info');
-	}
-
-	function handleAddToMap() {
-		onclose?.();
-		editorChromeStore.openAdditionModal();
-	}
 
 	async function handleLogout() {
-		editorChromeStore.closeAdditionModal();
-		mapEditStore.close();
 		onclose?.();
 		await adminAuthStore.logout();
 		toastStore.show('Signed out.', 'info');
@@ -68,18 +39,6 @@
 	function handleManageUsers() {
 		onclose?.();
 		adminAuthStore.openManageUsers();
-	}
-
-	function handleReviewQueue() {
-		onclose?.();
-		sidePanelStore.openPanel({ type: 'admin-suggestions' });
-		sidePanelStore.expand();
-	}
-
-	function addEventLabel() {
-		if (eventPlacementStore.creating) return 'Creating event…';
-		if (eventPlacementStore.active) return 'Choose event location';
-		return 'Add event';
 	}
 </script>
 
@@ -95,41 +54,13 @@
 		{/if}
 	</div>
 
-	{#if adminAuthStore.canPublish}
-		<div class="editor-shelf-actions">
-			<button
-				type="button"
-				class="editor-shelf-action"
-				class:active={mapEditStore.enabled}
-				aria-pressed={mapEditStore.enabled}
-				onclick={toggleMapEditMode}
-			>
-				<Pencil size={16} aria-hidden="true" />
-				{mapEditStore.enabled ? 'Turn off map edit' : 'Turn on map edit'}
-			</button>
-			<button
-				type="button"
-				class="editor-shelf-action"
-				disabled={placingEvent}
-				onclick={handleAddEvent}
-			>
-				<CalendarPlus size={16} aria-hidden="true" />
-				{addEventLabel()}
-			</button>
-			<button type="button" class="editor-shelf-action" onclick={handleAddToMap}>
-				<MapPinPlus size={16} aria-hidden="true" />
-				Add to map…
-			</button>
-		</div>
-	{/if}
-
 	{#if adminAuthStore.canReview}
-		<button type="button" class="editor-shelf-action" onclick={handleReviewQueue}>
+		<a class="editor-shelf-action" href="/map/admin/suggestions" onclick={onclose}>
 			<ClipboardCheck size={16} aria-hidden="true" />
 			Review suggested edits{proposalsStore.pendingCount > 0
 				? ` (${proposalsStore.pendingCount})`
 				: ''}
-		</button>
+		</a>
 	{/if}
 
 	<button type="button" class="editor-shelf-action" onclick={handleAccountSettings}>
@@ -200,10 +131,6 @@
 		white-space: nowrap;
 	}
 
-	.editor-shelf-actions {
-		display: contents;
-	}
-
 	.editor-shelf-action {
 		display: flex;
 		align-items: center;
@@ -221,6 +148,7 @@
 		font-weight: 700;
 		padding: 0.3125rem 0.5rem;
 		text-align: left;
+		text-decoration: none;
 	}
 
 	.editor-shelf-action:hover,
@@ -231,17 +159,6 @@
 	.editor-shelf-action:focus-visible {
 		outline: 2px solid hsl(5, 53%, 32%);
 		outline-offset: -2px;
-	}
-
-	.editor-shelf-action:disabled {
-		cursor: not-allowed;
-		opacity: 0.45;
-	}
-
-	.editor-shelf-action.active {
-		border-color: hsl(160, 84%, 26%);
-		background-color: hsl(160, 84%, 26%);
-		color: white;
 	}
 
 	.editor-shelf-action.danger {

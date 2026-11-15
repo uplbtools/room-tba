@@ -13,7 +13,6 @@
 	// import StudentOrgsModal from './StudentOrgsModal.svelte';
 	// import SettingsModal from './SettingsModal.svelte';
 	// import JeepneyRouteModal from './JeepneyRouteModal.svelte';
-	// import EditorToolsModal from './EditorToolsModal.svelte';
 	// import PrivacyModal from './PrivacyModal.svelte';
 	// import OfflineMapsModal from './OfflineMapsModal.svelte';
 	// import IconButton from '#lib/components/IconButton.svelte';
@@ -28,6 +27,7 @@
 	import CoverageModal from '../modal/CoverageModal.svelte';
 	import LeaderboardModal from '../modal/LeaderboardModal.svelte';
 	import ChangelogModal from '../modal/ChangelogModal.svelte';
+	import EditorToolsModal from '../modal/EditorToolsModal.svelte';
 	import AnnouncementsModal from '../modal/AnnouncementsModal.svelte';
 	import FeedbackPanel from '../modal/FeedbackPanel.svelte';
 	import HotlinesModal from '../modal/HotlinesModal.svelte';
@@ -149,6 +149,8 @@
 			>
 		{:else if modalStore.type === 'leaderboard'}
 			<ModalContent className="max-w-2xl"><LeaderboardModal /></ModalContent>
+		{:else if modalStore.type === 'editor-tools'}
+			<ModalContent className="min-h-0 max-w-md"><EditorToolsModal /></ModalContent>
 		{:else if modalStore.type === 'feedback'}
 			<ModalContent className="flex max-w-xl flex-col gap-3 overflow-y-auto p-6">
 				<h2 class="text-xl font-semibold">Send feedback</h2>

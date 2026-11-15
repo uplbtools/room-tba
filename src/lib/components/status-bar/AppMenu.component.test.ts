@@ -81,6 +81,28 @@ describe('AppMenu review entry', () => {
 	});
 });
 
+describe('AppMenu editor tools entry', () => {
+	beforeEach(() => {
+		modalStore.closeModal();
+		adminAuthStore.canPublish = false;
+		adminAuthStore.canReview = false;
+	});
+
+	test('editors open the editor tools dialog', async () => {
+		adminAuthStore.canPublish = true;
+		render(AppMenu, { props: { onSignOut: () => {} } });
+		await fireEvent.click(screen.getByRole('button', { name: /app menu/i }));
+		await fireEvent.click(screen.getByRole('button', { name: /editor tools/i }));
+		expect(modalStore.type).toBe('editor-tools');
+	});
+
+	test('contributors do not see editor tools', async () => {
+		render(AppMenu, { props: { onSignOut: () => {} } });
+		await fireEvent.click(screen.getByRole('button', { name: /app menu/i }));
+		expect(screen.queryByRole('button', { name: /editor tools/i })).toBeNull();
+	});
+});
+
 describe('AppMenu help entry', () => {
 	beforeEach(() => {
 		modalStore.closeModal();
