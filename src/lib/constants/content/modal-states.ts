@@ -17,5 +17,6 @@ export const modalOptions = [
 	'add-suggestion',
 	'modify-suggestion',
 	'feedback',
-	'hotlines'
+	'hotlines',
+	'saved-places'
 ] as const;

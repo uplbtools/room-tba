@@ -22,6 +22,7 @@
 	<ResultActions
 		data={{ lat: location?.resolvedLat ?? null, lon: location?.resolvedLon ?? null }}
 		name={location?.resolvedLabel}
+		label={event.title}
 	/>
 
 	{#if location}

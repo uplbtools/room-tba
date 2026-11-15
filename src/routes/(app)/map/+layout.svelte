@@ -12,6 +12,7 @@
 	import UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
 	import OfflineStore from '#lib/stores/new/data/OfflineStore.svelte.js';
 	import AnnouncementsStore from '#lib/stores/new/data/AnnouncementsStore.svelte.js';
+	import SavedPlacesStore from '#lib/stores/new/data/SavedPlacesStore.svelte.js';
 	import AnnouncementBar from '#lib/components/AnnouncementBar.svelte';
 	import {
 		initMapStore,
@@ -30,6 +31,7 @@
 		initProposalsStore,
 		initOfflineStore,
 		initAnnouncementsStore,
+		initSavedPlacesStore,
 		getEscapeActions,
 		getToast
 	} from '#lib/utils/context.js';
@@ -553,6 +555,7 @@
 	initSearchInfo(new SearchInfo());
 	initOfflineStore(new OfflineStore());
 	const announcementsStore = initAnnouncementsStore(new AnnouncementsStore());
+	const savedPlacesStore = initSavedPlacesStore(new SavedPlacesStore());
 	const modalStore = initModalStore(new ModalStore());
 	const termStore = initTermStore(new TermStore());
 	const plannerStore = initPlannerStore(new PlannerStore(() => termStore.activeTermId));
@@ -590,6 +593,7 @@
 	onMount(() => {
 		void termStore.init();
 		announcementsStore.hydrate();
+		savedPlacesStore.hydrate();
 		plannerStore.init();
 		void adminAuthStore.hydrate();
 
