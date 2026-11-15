@@ -16,6 +16,7 @@ describe('legacy entity redirects', () => {
 	it('moves the bare index paths too', () => {
 		expect(resolveLegacyEntityPath('/building')).toBe('/map/buildings/');
 		expect(resolveLegacyEntityPath('/room/')).toBe('/map/rooms/');
+		expect(resolveLegacyEntityPath('/planner')).toBe('/map/planner/');
 	});
 
 	it('leaves paths that were never entity paths alone', () => {

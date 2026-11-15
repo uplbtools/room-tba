@@ -15,7 +15,8 @@ const LEGACY_SEGMENTS: Record<string, string> = {
 	landmark: 'landmarks',
 	establishment: 'establishments',
 	event: 'events',
-	transit: 'transit'
+	transit: 'transit',
+	planner: 'planner'
 };
 
 const LEGACY_PATH_PATTERN = new RegExp(`^/(${Object.keys(LEGACY_SEGMENTS).join('|')})(/.*)?$`);

@@ -45,10 +45,6 @@ export const TERM_CALENDAR_WINDOWS: Record<
 	}
 };
 
-/**
- * Last day of change of matriculation per term (Asia/Manila, date-only). Until
- * this date, course offerings can still change — surfaced in the planner note.
- */
 export const CHANGE_OF_MATRICULATION_ENDS: Record<number, string> = {};
 
 // AYs with a machine-readable registrar calendar PDF come straight from
@@ -79,6 +75,55 @@ export function changeOfMatriculationLabel(termId: number | null | undefined): s
 		year: 'numeric',
 		timeZone: 'UTC'
 	});
+}
+
+export type ChangeOfMatriculationPeriod = { startsOn: string; endsOn: string };
+
+export function changeOfMatriculationPeriod(
+	termId: number | null | undefined
+): ChangeOfMatriculationPeriod | null {
+	if (termId == null) return null;
+	for (const calendar of [academicCalendar2024, academicCalendar2026]) {
+		const milestone = (
+			calendar.milestones as {
+				termId: number;
+				label: string;
+				startsOn?: string;
+				endsOn?: string;
+			}[]
+		).find(
+			(m) =>
+				m.termId === termId && /change of matriculation/i.test(m.label) && m.startsOn && m.endsOn
+		);
+		if (milestone?.startsOn && milestone.endsOn) {
+			return { startsOn: milestone.startsOn, endsOn: milestone.endsOn };
+		}
+	}
+	const endsOn = CHANGE_OF_MATRICULATION_ENDS[termId];
+	const startsOn = TERM_CALENDAR_WINDOWS[termId]?.startsOn;
+	return endsOn && startsOn ? { startsOn, endsOn } : null;
+}
+
+export function formatDateRange(startsOn: string, endsOn: string): string {
+	const parse = (iso: string) => {
+		const [year, month, day] = iso.split('-').map(Number);
+		return new Date(Date.UTC(year, month - 1, day));
+	};
+	const start = parse(startsOn);
+	const end = parse(endsOn);
+	const fmt = (date: Date, options: Intl.DateTimeFormatOptions) =>
+		date.toLocaleDateString('en-US', { ...options, timeZone: 'UTC' });
+	const sameYear = start.getUTCFullYear() === end.getUTCFullYear();
+	if (startsOn === endsOn) {
+		return fmt(start, { month: 'short', day: 'numeric', year: 'numeric' });
+	}
+	if (sameYear && start.getUTCMonth() === end.getUTCMonth()) {
+		return `${fmt(start, { month: 'short', day: 'numeric' })}\u2013${end.getUTCDate()}, ${end.getUTCFullYear()}`;
+	}
+	if (sameYear) {
+		return `${fmt(start, { month: 'short', day: 'numeric' })} \u2013 ${fmt(end, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+	}
+	return `${fmt(start, { month: 'short', day: 'numeric', year: 'numeric' })} \u2013 ${fmt(end, { month: 'short', day: 'numeric', year: 'numeric' })}`;
 }
 
 /** YYYY-MM-DD for `date` as seen in Asia/Manila — the app's notion of "today". */
@@ -156,11 +201,6 @@ function pickTermWithClasses<T extends TermPick>(terms: T[]): T | null {
 	);
 }
 
-/**
- * Resolve the interactive term on load.
- * URL wins; stale local picks (no classes / undated 1251-era rows) lose to the
- * calendar default; otherwise honor a prior manual selection.
- */
 export function resolveInitialTermId(
 	terms: TermPick[],
 	options: {

@@ -1,5 +1,9 @@
 import type { ClassMapValue } from '#lib/utils/types.js';
-import { offeringGroupKey, parentLectureSection } from '#lib/utils/class-offering-groups.js';
+import {
+	offeringGroupKey,
+	parentLectureSection,
+	resolveParentLecture
+} from '#lib/utils/class-offering-groups.js';
 import { findConflicts } from '#lib/utils/planner/conflicts.js';
 import { mergePlannerState, parsePlanner, serializePlanner } from '#lib/utils/planner/persist.js';
 import type { PlannedSection, PlannerPlan } from '#lib/utils/planner/types.js';
@@ -16,6 +20,11 @@ function rowToPlannedSection(row: ClassMapValue): PlannedSection | null {
 		roomCode: row.roomCode ?? null,
 		courseTitle: row.courseTitle ?? null
 	};
+}
+
+function normalizeTitle(title: string | null | undefined): string | null {
+	const t = title?.trim().replace(/\s+/g, ' ').toLowerCase();
+	return t ? t : null;
 }
 
 export default class PlannerStore {
@@ -85,13 +94,19 @@ export default class PlannerStore {
 		this.persist();
 	};
 
-	/** Swap a course to another section: drop every planned row of the course, add the new offering. */
 	replaceCourse = (courseCode: string, rows: ClassMapValue[]) => {
 		// Only prune when a plan already exists; addOffering lazily creates the
 		// plan for the term, so the first add (no active plan yet) must not bail.
 		const plan = this.activePlan;
 		if (plan) {
-			plan.sections = plan.sections.filter((s) => s.courseCode !== courseCode);
+			const title = normalizeTitle(rows[0]?.courseTitle);
+			plan.sections = plan.sections.filter(
+				(s) =>
+					s.courseCode !== courseCode ||
+					(title !== null &&
+						normalizeTitle(s.courseTitle) !== null &&
+						normalizeTitle(s.courseTitle) !== title)
+			);
 		}
 		this.addOffering(rows);
 		this.persist();
@@ -104,7 +119,9 @@ export default class PlannerStore {
 		// component removes the whole unit. Resolve each section to its lecture
 		// (itself if it is the lecture, else the parent encoded in a child section
 		// like "C-4L" -> "C") and drop everything in that unit for the course.
-		const unitOf = (s: string) => parentLectureSection({ section: s }) ?? s;
+		const planned = plan.sections.filter((s) => s.courseCode === courseCode).map((s) => s.section);
+		const unitOf = (s: string) =>
+			resolveParentLecture({ section: s }, planned) ?? parentLectureSection({ section: s }) ?? s;
 		const targetUnit = unitOf(section);
 		plan.sections = plan.sections.filter(
 			(s) => s.courseCode !== courseCode || unitOf(s.section) !== targetUnit
@@ -132,10 +149,6 @@ export default class PlannerStore {
 		return plan;
 	};
 
-	/**
-	 * Keep the active term from hitting an empty plan list (incomprehensible UI).
-	 * No-op when there is no active term or a plan already exists for it.
-	 */
 	ensurePlanForActiveTerm = (): PlannerPlan | null => {
 		if (this.activeTermId == null) return null;
 		if (this.plansForTerm.length > 0) return this.activePlan;
