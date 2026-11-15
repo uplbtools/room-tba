@@ -86,4 +86,8 @@
 			</li>
 		{/each}
 	</ol>
+
+	<a class="text-sm underline" href="/api/transit-map" target="_blank" rel="noopener"
+		>Printable jeepney map</a
+	>
 </div>
