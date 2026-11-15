@@ -30,7 +30,7 @@
 		"@maplibre/maplibre-gl-directions": "^0.9.1",
 		"@supabase/ssr": "^0.12.7",
 		"@supabase/supabase-js": "^2.116.0",
-		"@vercel/og": "^1.0.2",
+		"@vercel/og": "1.0.1",
 		"bcrypt": "^6.0.0",
 		"cn": "^0.5.0",
 		"dotenv": "^17.4.2",
