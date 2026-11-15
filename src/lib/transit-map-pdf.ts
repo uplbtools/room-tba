@@ -1987,19 +1987,6 @@ export async function renderTransitMapPdf(input: {
           }),
       ]);
     }
-    if (stops.some((st) => st.routeIds.length > 1))
-      keys.push([
-        "Pwede lumipat ng jeep",
-        (x, y) =>
-          page.drawCircle({
-            x: x + 12,
-            y: y + 3,
-            size: 3.6,
-            color: WHITE,
-            borderColor: INK,
-            borderWidth: 1.9,
-          }),
-      ]);
     if (input.basemap)
       keys.push([
         "Campus gate",
