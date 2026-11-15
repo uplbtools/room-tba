@@ -14,7 +14,7 @@ const articles = [
     title: "Frequently asked questions",
     kicker: "Student FAQ",
     blurb:
-      "Where the 3D building models come from, whether Room TBA is official UPLB, how class and room data is updated, and how to report wrong data. Short, plain-language answers for students.",
+      "Answers on where the 3D building models come from, whether Room TBA is official UPLB, how class and room data is updated and how to report wrong data.",
     sourcePath: "src/pages/faq.astro",
   },
 ].map((article) => {
@@ -28,18 +28,17 @@ const articles = [
 
 const title = "Wiki | Room TBA";
 const description =
-  "Plain-language guides to UPLB class schedules, section names, rooms, jeepneys, and campus systems, backed by Room TBA data.";
+  "Read plain-language guides to UPLB class schedules, section names, rooms, jeepneys and campus systems, backed by Room TBA data.";
 ---
 
 <WikiLayout {title} {description} canonicalPath="/wiki">
   <article class="wiki-article">
     <header class="article-hero">
-      <p class="wiki-eyebrow">Room TBA Wiki</p>
       <h1 class="wiki-title">The campus details nobody explains</h1>
       <p class="wiki-lede">
-        Short guides built from Room TBA’s schedule and campus data. Each
-        article shows its evidence, who wrote it, and the cases where the
-        pattern breaks. Spotted a mistake? Every article has a “Report a
+        These guides are built from Room TBA’s schedule and campus data. Each
+        article shows its evidence, who wrote it and the cases where the
+        pattern breaks. If you spot a mistake, every article has a “Report a
         correction” link.
       </p>
     </header>
@@ -51,7 +50,7 @@ const description =
         <input
           id="wiki-search-input"
           type="search"
-          placeholder="Try: curfew, jeep, TBA"
+          placeholder="Try curfew, jeep or TBA"
           autocomplete="off"
           enterkeyhint="search"
         />

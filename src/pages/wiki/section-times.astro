@@ -6,7 +6,7 @@ import WikiProvenance from "../../components/wiki/WikiProvenance.astro";
 
 const title = "What times do UPLB section names correspond to? | Room TBA Wiki";
 const description =
-  "Exhaustive glossary of UPLB AMIS section codes: letter ladders, NSTP/HK/GI/residency/ROTC, MS/PhD course numbers (200+/300+/400+), every activity type, and L/R/C suffixes.";
+  "This page is a glossary of UPLB AMIS section codes. It covers letter ladders, NSTP/HK/GI/residency/ROTC, MS/PhD course numbers (200+/300+/400+), every activity type and L/R/C suffixes.";
 
 const timeBlocks = [
   { wf: "A", tth: "S", time: "7:00", windows: "7:00–8:00 or 7:00–8:30", wfMatch: 78.4, tthMatch: 86.8 },
@@ -44,18 +44,18 @@ const missingLetters = "J, K, L, M, N, O, P, Q, R";
 
 /** AMIS activity types present in Room TBA classes table (prod census). */
 const activityTypes = [
-  { code: "LEC", meaning: "Lecture", rows: 22547, note: "Primary class meeting; section letter often encodes day + start." },
-  { code: "LAB", meaning: "Laboratory", rows: 12679, note: "Usually ends in L (B3L, G-1L). Letter echoes parent lecture; time is independent." },
+  { code: "LEC", meaning: "Lecture", rows: 22547, note: "Primary class meeting. The section letter often encodes day + start." },
+  { code: "LAB", meaning: "Laboratory", rows: 12679, note: "Usually ends in L (B3L, G-1L). Letter echoes parent lecture, and time is independent." },
   { code: "THE", meaning: "Thesis", rows: 9651, note: "Usually no fixed room/schedule in AMIS. Section often advisor initials + number." },
   { code: "SPR", meaning: "Special problem", rows: 2509, note: "Usually roomless. Section often initials + number." },
-  { code: "PRA", meaning: "Practicum", rows: 2372, note: "May meet off-campus; rarely has a campus room code." },
-  { code: "DSR", meaning: "Dissertation", rows: 700, note: "Graduate thesis-level; almost never scheduled on the map." },
+  { code: "PRA", meaning: "Practicum", rows: 2372, note: "May meet off-campus and rarely has a campus room code." },
+  { code: "DSR", meaning: "Dissertation", rows: 700, note: "Graduate thesis-level, almost never scheduled on the map." },
   { code: "RCT", meaning: "Recitation", rows: 203, note: "Usually ends in R (AB2R, UV-1R). Bundled with its parent lecture in the planner." },
-  { code: "SEM", meaning: "Seminar", rows: 78, note: "Small discussion section; may reuse a single letter or a numbered code." },
-  { code: "IND", meaning: "Independent study", rows: 69, note: "No fixed room; section often faculty initials." },
+  { code: "SEM", meaning: "Seminar", rows: 78, note: "Small discussion section that may reuse a single letter or a numbered code." },
+  { code: "IND", meaning: "Independent study", rows: 69, note: "No fixed room. The section is often faculty initials." },
   { code: "CPT", meaning: "Computational / computer laboratory", rows: 55, note: "Often ends in C (AB-1C, UV-2C). Same parent-letter idea as labs." },
-  { code: "STO", meaning: "Special topics", rows: 45, note: "Department-defined topics; letter ladder rarely applies." },
-  { code: "FLD", meaning: "Fieldwork", rows: 13, note: "Off-site or field meetings; schedule may be empty or atypical." },
+  { code: "STO", meaning: "Special topics", rows: 45, note: "Department-defined topics, and the letter ladder rarely applies." },
+  { code: "FLD", meaning: "Fieldwork", rows: 13, note: "Off-site or field meetings. The schedule may be empty or atypical." },
 ] as const;
 
 /**
@@ -64,10 +64,10 @@ const activityTypes = [
  */
 const twoLetterCodes = [
   { code: "AB", family: "WF pair", meaning: "Early WF-family double section (often WF 8–9 or M/W/F 8–10)", rows: 504 },
-  { code: "AC", family: "WF span", meaning: "Spans A–C WF blocks; uncommon", rows: 6 },
-  { code: "AD", family: "WF span", meaning: "Spans A–D; uncommon", rows: 4 },
-  { code: "AR", family: "special", meaning: "Often graduate / HUME-style codes; many rows have empty schedules", rows: 76 },
-  { code: "AS", family: "cross", meaning: "Mixes WF A with TTh S; rare", rows: 6 },
+  { code: "AC", family: "WF span", meaning: "Spans A–C WF blocks, uncommon", rows: 6 },
+  { code: "AD", family: "WF span", meaning: "Spans A–D, uncommon", rows: 4 },
+  { code: "AR", family: "special", meaning: "Often graduate / HUME-style codes, and many rows have empty schedules", rows: 76 },
+  { code: "AS", family: "cross", meaning: "Mixes WF A with TTh S, rare", rows: 6 },
   { code: "AV", family: "cross", meaning: "Rare cross-family code", rows: 1 },
   { code: "BC", family: "WF pair", meaning: "Adjacent WF B–C pair", rows: 68 },
   { code: "BD", family: "WF span / 3h", meaning: "Often a single weekday 9:00–12:00 (3 h) under a B–D label", rows: 136 },
@@ -79,7 +79,7 @@ const twoLetterCodes = [
   { code: "CU", family: "cross", meaning: "Uncommon cross-family", rows: 13 },
   { code: "DE", family: "WF pair", meaning: "Adjacent WF D–E", rows: 9 },
   { code: "DV", family: "cross", meaning: "Uncommon", rows: 13 },
-  { code: "EF", family: "WF pair / 3h", meaning: "Afternoon WF-family; often single-day 1:00–4:00", rows: 435 },
+  { code: "EF", family: "WF pair / 3h", meaning: "Afternoon WF-family, often single-day 1:00–4:00", rows: 435 },
   { code: "EG", family: "WF span", meaning: "Uncommon", rows: 12 },
   { code: "EW", family: "cross", meaning: "Uncommon (also appears on midyear-style grids)", rows: 11 },
   { code: "FC", family: "cross", meaning: "Rare", rows: 1 },
@@ -87,9 +87,9 @@ const twoLetterCodes = [
   { code: "FH", family: "WF span", meaning: "Rare", rows: 1 },
   { code: "FT", family: "cross", meaning: "Rare", rows: 1 },
   { code: "FX", family: "cross", meaning: "Uncommon", rows: 5 },
-  { code: "GH", family: "WF pair / 3h", meaning: "Late WF-family; often M/W/F 4:00–7:00", rows: 298 },
+  { code: "GH", family: "WF pair / 3h", meaning: "Late WF-family, often M/W/F 4:00–7:00", rows: 298 },
   { code: "GY", family: "cross", meaning: "Uncommon", rows: 12 },
-  { code: "HI", family: "WF edge", meaning: "H with rare I; uncommon", rows: 7 },
+  { code: "HI", family: "WF edge", meaning: "H with rare I, uncommon", rows: 7 },
   { code: "HZ", family: "cross", meaning: "Rare", rows: 2 },
   { code: "SB", family: "cross", meaning: "Rare", rows: 3 },
   { code: "SE", family: "cross", meaning: "Rare", rows: 1 },
@@ -108,11 +108,11 @@ const twoLetterCodes = [
   { code: "UX", family: "TTh span", meaning: "Rare", rows: 1 },
   { code: "UZ", family: "TTh span", meaning: "Rare", rows: 1 },
   { code: "VW", family: "TTh pair", meaning: "Adjacent TTh V–W", rows: 11 },
-  { code: "WX", family: "TTh pair / 3h", meaning: "Afternoon TTh-family; often T/Th/S 1:00–4:00", rows: 402 },
+  { code: "WX", family: "TTh pair / 3h", meaning: "Afternoon TTh-family, often T/Th/S 1:00–4:00", rows: 402 },
   { code: "WY", family: "TTh span / 3h", meaning: "Often a long single-day afternoon block", rows: 48 },
   { code: "WZ", family: "TTh span", meaning: "Rare", rows: 1 },
   { code: "XY", family: "TTh pair", meaning: "Adjacent TTh X–Y", rows: 31 },
-  { code: "YZ", family: "TTh pair / 3h", meaning: "Late TTh-family; often T/Th 4:00–7:00", rows: 256 },
+  { code: "YZ", family: "TTh pair / 3h", meaning: "Late TTh-family, often T/Th 4:00–7:00", rows: 256 },
 ] as const;
 
 const morphology = [
@@ -134,7 +134,7 @@ const morphology = [
   {
     pattern: "XnL / XYnL",
     example: "B3L, AB1L, ST11L",
-    meaning: "Compact lab: parent lecture + group number + L.",
+    meaning: "Compact lab, built from parent lecture + group number + L.",
   },
   {
     pattern: "X-nL / XY-nL",
@@ -144,7 +144,7 @@ const morphology = [
   {
     pattern: "XnR / XYnR",
     example: "AB2R, ST1R",
-    meaning: "Compact recitation (RCT): parent lecture + number + R.",
+    meaning: "Compact recitation (RCT), built from parent lecture + number + R.",
   },
   {
     pattern: "X-nR / XY-nR",
@@ -201,7 +201,7 @@ const midyearSectionPatterns = [
     pattern: "A–H (single letter)",
     example: "C, B, H, G",
     meaning:
-      "Most common midyear LEC labels, but they almost always meet MTWThFS (or MTWThF), not WF. Do not read C as “WF 10:00.”",
+      "Most common midyear LEC labels, but they almost always meet MTWThFS (or MTWThF), not WF. Don’t read C as “WF 10:00.”",
   },
   {
     pattern: "S–Z (single letter)",
@@ -219,19 +219,19 @@ const midyearSectionPatterns = [
     pattern: "Cross-ladder compounds",
     example: "BCTU, FGXY, CDUV, GHYZ, ABST, DEVW",
     meaning:
-      "Midyear-specific: stitches a WF-family pair with a TTh-family pair into one section name for a long daily lecture (e.g. B+C with T+U).",
+      "Midyear-specific. It stitches a WF-family pair with a TTh-family pair into one section name for a long daily lecture (e.g. B+C with T+U).",
   },
   {
     pattern: "Letter + digits",
     example: "B1, E2, G1",
     meaning:
-      "Parallel midyear lecture groups under the same letter label; still dense daily meetings.",
+      "Parallel midyear lecture groups under the same letter label, still dense daily meetings.",
   },
   {
     pattern: "Labs",
     example: "1L, 2L, AB1L, BC-1L, U-2L",
     meaning:
-      "Bare nL is common in midyear CHEM/PHYS-style labs. Parent-letter labs still do not inherit the lecture’s MTWThFS clock.",
+      "Bare nL is common in midyear CHEM/PHYS-style labs. Parent-letter labs still don’t inherit the lecture’s MTWThFS clock.",
   },
 ] as const;
 
@@ -256,21 +256,21 @@ const gradCourseBands = [
   },
   {
     band: "200–299",
-    level: "Mixed: many Undergraduate Thesis / Major Practice rows; also MS coursework LEC",
+    level: "Mixed, with many Undergraduate Thesis / Major Practice rows and some MS coursework LEC",
     rows: "THE ~4.5k, LEC ~5.2k, PRA ~2.1k",
     sectionNote: "Thesis/practicum sections are usually advisor initials + digits (AAB1, MCR3), not clock letters. Coursework LEC may still use AB/ST-style labels.",
   },
   {
     band: "300–399",
-    level: "Mostly Master’s Thesis; some MS/PhD coursework",
+    level: "Mostly Master’s Thesis, with some MS/PhD coursework",
     rows: "THE ~3.6k, LEC ~0.8k",
-    sectionNote: "Titles are usually “Master’s Thesis.” Section codes are faculty-style (FOR 300 AAB1). Letter ladder does not apply.",
+    sectionNote: "Titles are usually “Master’s Thesis.” Section codes are faculty-style (FOR 300 AAB1). Letter ladder doesn’t apply.",
   },
   {
     band: "400+",
     level: "Doctoral dissertation",
     rows: "THE ~1.7k, DSR ~0.7k",
-    sectionNote: "Almost all Dissertation / Doctoral Dissertation. Type THE or DSR; empty schedules are normal.",
+    sectionNote: "Almost all Dissertation / Doctoral Dissertation. Type THE or DSR. Empty schedules are normal.",
   },
 ] as const;
 
@@ -288,7 +288,7 @@ const gradSectionPatterns = [
   {
     pattern: "TBA section",
     example: "VPAR 236 TBA",
-    meaning: "Common on graduate LEC when the meeting is not fixed in AMIS.",
+    meaning: "Common on graduate LEC when the meeting isn’t fixed in AMIS.",
   },
 ] as const;
 
@@ -309,7 +309,7 @@ const letterUseful = [
     mode: "Midyear LEC",
     days: "Usually MTWThFS",
     block: "105 min",
-    useful: "No (letters label groups; compounds like BCTU are midyear-only)",
+    useful: "No (letters label groups, compounds like BCTU are midyear-only)",
   },
   {
     mode: "Midyear LAB",
@@ -321,7 +321,7 @@ const letterUseful = [
     mode: "HK 11 / HK 12",
     days: "Often single day or dense midyear",
     block: "2–3.5 h activity",
-    useful: "Soft (letter hints the block; title has the sport)",
+    useful: "Soft (the letter hints the block and the title has the sport)",
   },
   {
     mode: "NSTP / ROTC / GI / Residency",
@@ -372,7 +372,7 @@ const specialCourses = [
     rows: 327,
     type: "LEC",
     sectionMeaning:
-      "AMIS course code is literally \"GI .\". Sections look like F2, W1, ST1, CD3 (letter+number groups for 1-hour advising slots). Do not read F as the WF F-block; GI meetings are mostly single-day hour slots.",
+      "AMIS course code is literally \"GI .\". Sections look like F2, W1, ST1, CD3 (letter+number groups for 1-hour advising slots). Don’t read F as the WF F-block. GI meetings are mostly single-day hour slots.",
     letterUseful: "No",
   },
   {
@@ -381,7 +381,7 @@ const specialCourses = [
     rows: 2,
     type: "IND",
     sectionMeaning:
-      "Sections are UGRD and GRAD. No schedule, no room. These are enrollment placeholders, not classes on the map. Unrelated to RES 201–205 (Resilience Studies), which are normal academic LEC rows.",
+      "Sections are UGRD and GRAD. They have no schedule and no room. These are enrollment placeholders, not classes on the map. Unrelated to RES 201–205 (Resilience Studies), which are normal academic LEC rows.",
     letterUseful: "N/A",
   },
   {
@@ -412,10 +412,10 @@ const nstpPrefixes = [
 
 /** Oldest→newest term trend (AMIS normalize + prod DB counts, July 16, 2026). */
 const termTrends = [
-  { term: "1231", label: "AY 23–24 1st", db: 5096, lecSched: 2729, tth: 35.4, wf: 31.1, single: 30.9, dense: 0, d90: 1387, note: "DB: LEC+LAB only" },
-  { term: "1232", label: "AY 23–24 2nd", db: 4875, lecSched: 2600, tth: 37.2, wf: 32.3, single: 28.5, dense: 0, d90: 1371, note: "DB: LEC+LAB only" },
-  { term: "1241", label: "AY 24–25 1st", db: 5117, lecSched: 2800, tth: 36.2, wf: 31.2, single: 30.1, dense: 0, d90: 1474, note: "DB: LEC+LAB only" },
-  { term: "1242", label: "AY 24–25 2nd", db: 4824, lecSched: 2596, tth: 38.3, wf: 33.4, single: 26.4, dense: 0, d90: 1462, note: "DB: LEC+LAB only" },
+  { term: "1231", label: "AY 23–24 1st", db: 5096, lecSched: 2729, tth: 35.4, wf: 31.1, single: 30.9, dense: 0, d90: 1387, note: "DB has LEC+LAB only" },
+  { term: "1232", label: "AY 23–24 2nd", db: 4875, lecSched: 2600, tth: 37.2, wf: 32.3, single: 28.5, dense: 0, d90: 1371, note: "DB has LEC+LAB only" },
+  { term: "1241", label: "AY 24–25 1st", db: 5117, lecSched: 2800, tth: 36.2, wf: 31.2, single: 30.1, dense: 0, d90: 1474, note: "DB has LEC+LAB only" },
+  { term: "1242", label: "AY 24–25 2nd", db: 4824, lecSched: 2596, tth: 38.3, wf: 33.4, single: 26.4, dense: 0, d90: 1462, note: "DB has LEC+LAB only" },
   { term: "1243", label: "AY 24–25 Mid", db: 231, lecSched: 122, tth: 1.6, wf: 0, single: 0.8, dense: 73.0, d90: 0, note: "105-min dense grid" },
   { term: "1251", label: "AY 25–26 1st", db: 5596, lecSched: 2669, tth: 35.7, wf: 32.3, single: 29.8, dense: 0, d90: 1456, note: "RCT + trickle of THE/SPR" },
   { term: "1252", label: "AY 25–26 2nd", db: 12613, lecSched: 2651, tth: 37.3, wf: 32.4, single: 27.9, dense: 0, d90: 1473, note: "DB adds ~7.5k THE/SPR/PRA/DSR" },
@@ -433,7 +433,6 @@ const termTrends = [
 >
   <article class="wiki-article">
     <header class="article-hero">
-      <p class="wiki-eyebrow">Class schedules</p>
       <h1 class="wiki-title">What times do UPLB section names correspond to?</h1>
       <p class="wiki-lede">
         Every class row in Room TBA has an AMIS <strong>activity type</strong>
@@ -443,10 +442,10 @@ const termTrends = [
         lecture times.
       </p>
       <p class="article-meta">
-        Glossary census: July 16, 2026, all terms in prod. Letter-ladder match
-        test: July 14, 2026, 8,917 single-letter regular-semester lectures
-        (87.5%). Term-trend pass: July 16, 2026, AMIS caches 1231→1261 + prod
-        row counts.
+        The glossary census was taken on July 16, 2026 across all terms in prod.
+        The letter-ladder match test ran on July 14, 2026 against 8,917
+        single-letter regular-semester lectures (87.5%). The term-trend pass
+        ran on July 16, 2026 using AMIS caches 1231→1261 plus prod row counts.
       </p>
       <WikiProvenance sourcePath="src/pages/wiki/section-times.astro" />
     </header>
@@ -456,7 +455,7 @@ const termTrends = [
       <h2 id="short-answer">The short answer</h2>
       <p>
         For regular-semester lectures, treat the letter as a time-block code.
-        <strong>A–H</strong> mostly mean WF; <strong>S–Z</strong> mean the same
+        <strong>A–H</strong> mostly mean WF, and <strong>S–Z</strong> mean the same
         clock starts on TTh. Digits and trailing <strong>L</strong> /
         <strong>R</strong> / <strong>C</strong> mark parallel groups, labs,
         recitations, and computational labs. Thesis and special-problem
@@ -465,8 +464,8 @@ const termTrends = [
       <p>
         <strong>NSTP</strong>, <strong>HK</strong>, <strong>GI</strong>,
         <strong>residency</strong>, and <strong>ROTC / MS</strong> use
-        different section grammars: college/component codes, activity titles,
-        or enrollment placeholders. See
+        different section grammars, namely college/component codes, activity
+        titles or enrollment placeholders. See
         <a href="#special-courses">NSTP, HK, GI, residency, ROTC</a>.
         Graduate research uses course numbers
         <a href="#grad-courses">200+ / 300+ / 400+</a> with advisor-style
@@ -541,8 +540,8 @@ const termTrends = [
     <section aria-labelledby="single-letters">
       <h2 id="single-letters">Every single-letter code</h2>
       <p>
-        Letters that appear as standalone section codes in Room TBA. Letters
-        <strong>{missingLetters}</strong> do not appear as single-letter
+        These are the letters that appear as standalone section codes in Room
+        TBA. Letters <strong>{missingLetters}</strong> don’t appear as single-letter
         sections in the archive. <strong>L</strong> and <strong>R</strong> show
         up as lab/recit suffixes instead.
       </p>
@@ -652,8 +651,8 @@ const termTrends = [
         </table>
       </div>
       <p class="figure-note">
-        {twoLetterCodes.length} distinct two-letter LEC codes. Counts are LEC
-        rows only; the same string can appear again as a lab parent or with
+        The archive has {twoLetterCodes.length} distinct two-letter LEC codes. Counts are LEC
+        rows only, and the same string can appear again as a lab parent or with
         digits (AB1, ST2).
       </p>
     </section>
@@ -663,29 +662,30 @@ const termTrends = [
       <ul class="break-list">
         <li>
           <strong>Digits</strong> (<code>AB1</code>, <code>ST3</code>,
-          <code>B2</code>): parallel lecture sections in the same letter
+          <code>B2</code>) mark parallel lecture sections in the same letter
           family. About 5,600 one-letter+digit and 1,800 two-letter+digit LEC
           rows in the archive.
         </li>
         <li>
-          <strong>L</strong>: laboratory. Compact (<code>B3L</code>,
+          <strong>L</strong> marks a laboratory, written compact (<code>B3L</code>,
           <code>ST11L</code>) or dashed (<code>G-1L</code>,
           <code>UV-2L</code>). ~11,900 LAB rows end in L. The parent lecture is
-          the letter run before the number; the lab clock is independent.
+          the letter run before the number, and the lab clock is independent.
         </li>
         <li>
-          <strong>R</strong>: recitation (<code>RCT</code>). Compact
+          <strong>R</strong> marks a recitation (<code>RCT</code>), written compact
           (<code>AB2R</code>) or dashed (<code>UV-1R</code>). All 203 RCT rows
           in Room TBA use an R suffix. Planner offerings bundle the parent LEC
           with its RCT.
         </li>
         <li>
-          <strong>C</strong>: computational lab (<code>CPT</code>), e.g.
-          <code>AB-1C</code>, <code>UV-2C</code>.
+          <strong>C</strong> marks a computational lab (<code>CPT</code>), for example
+          <code>AB-1C</code> and <code>UV-2C</code>.
         </li>
         <li>
-          <strong>Bare <code>nL</code></strong>: labs without a parent letter
-          (CHEM, PHYS, ENSC). Still type LAB; no WF/TTh preview from a letter.
+          <strong>Bare <code>nL</code></strong> means a lab without a parent letter
+          (CHEM, PHYS, ENSC). It’s still type LAB, and a letter gives no WF/TTh
+          preview.
         </li>
       </ul>
     </section>
@@ -693,7 +693,7 @@ const termTrends = [
     <section aria-labelledby="special-courses">
       <h2 id="special-courses">NSTP, HK, GI, residency, and ROTC</h2>
       <p>
-        These courses show up often in student schedules but do not follow the
+        These courses show up often in student schedules but don’t follow the
         undergrad lecture letter ladder the same way. Counts are all imported
         terms in Room TBA (July 16, 2026 census).
       </p>
@@ -755,10 +755,10 @@ const termTrends = [
         </table>
       </div>
       <p class="figure-note">
-        Examples: <code>ASC3</code> = AS + CWTS + group 3;
-        <code>ASL7</code> = AS + LTS + group 7; <code>EN4</code> =
-        Engineering group 4; <code>RO1A</code> = ROTC. Typical NSTP meeting is
-        a single weekday 3-hour block (often Monday).
+        Examples include <code>ASC3</code> (AS + CWTS + group 3),
+        <code>ASL7</code> (AS + LTS + group 7), <code>EN4</code>
+        (Engineering group 4) and <code>RO1A</code> (ROTC). A typical NSTP
+        meeting is a single weekday 3-hour block (often Monday).
       </p>
 
       <h3 id="hk-notes">HK 11 and HK 12</h3>
@@ -767,27 +767,27 @@ const termTrends = [
         activity inside <code>course_title</code> (for example “Human Kinetics
         Activities (Badminton)”). Section codes reuse AB/ST/UV-style pairs with
         digits, and many rows are typed LAB even when the meeting is the main
-        activity. <strong>HK 11</strong> is the wellness lecture; same section
-        shape, usually type LEC.
+        activity. <strong>HK 11</strong> is the wellness lecture. It has the same section
+        shape and is usually type LEC.
       </p>
 
       <h3 id="gi-residency">GI and residency</h3>
       <p>
         <strong>GI .</strong> (Guidance Instructions) is a required advising
         course with 1-hour slots. Section codes look like academic letters but
-        do not track the WF/TTh ladder reliably.
+        don’t track the WF/TTh ladder reliably.
       </p>
       <p>
         <strong>RESIDENCY (UGRD)</strong> and <strong>RESIDENCY (GRD)</strong>
         are type <code>IND</code> with sections <code>UGRD</code> /
         <code>GRAD</code> and empty schedules. They keep a student enrolled
-        without a meeting time. Do not confuse them with <code>RES 201</code>–
+        without a meeting time. Don’t confuse them with <code>RES 201</code>–
         <code>RES 205</code> (Resilience Studies), which are ordinary academic
         lectures.
       </p>
       <p>
         No separate PATHFIT / PE / CWTS / LTS course codes appear in Room TBA
-        beyond NSTP and HK; those components live inside NSTP section prefixes
+        beyond NSTP and HK. Those components live inside NSTP section prefixes
         or HK activity titles.
       </p>
     </section>
@@ -823,7 +823,7 @@ const termTrends = [
           </tbody>
         </table>
       </div>
-      <p>Practical decoding:</p>
+      <p>In practice, decode them like this.</p>
       <ul class="break-list">
         <li>
           <strong>200</strong> titled “Undergraduate Thesis” / “Major Practice”
@@ -831,7 +831,7 @@ const termTrends = [
         </li>
         <li>
           <strong>200–299 LEC</strong> with a real subject title (e.g. AENG 201
-          Advanced Engineering Mathematics) → graduate coursework; may still
+          Advanced Engineering Mathematics) → graduate coursework that may still
           show a letter section.
         </li>
         <li>
@@ -864,8 +864,8 @@ const termTrends = [
         </table>
       </div>
       <p class="figure-note">
-        Census from prod <code>classes</code> (all terms). Do not use A–H /
-        S–Z time inference on THE / SPR / DSR / IND rows.
+        This is a census from prod <code>classes</code> (all terms). Don’t use
+        A–H / S–Z time inference on THE / SPR / DSR / IND rows.
       </p>
     </section>
 
@@ -874,15 +874,15 @@ const termTrends = [
       <h2 id="term-trends">What changed across terms</h2>
       <p>
         Oldest archive term is CRS <strong>1231</strong> (AY 2023–2024 1st
-        semester); newest is <strong>1261</strong> (AY 2026–2027 1st). Reading
+        semester), and the newest is <strong>1261</strong> (AY 2026–2027 1st). Reading
         AMIS exports through the same normalizer, the <em>calendar</em> barely
         moved. What jumped in Room TBA’s table is mostly <em>import scope</em>.
       </p>
       <h3 id="term-trends-schedule">Schedule shape (stable)</h3>
       <ul class="break-list">
         <li>
-          Regular-semester scheduled LEC slots stay on the same mix:
-          <strong>~35–38% TTh</strong>, <strong>~31–33% WF</strong>,
+          Regular-semester scheduled LEC slots stay on the same mix of
+          <strong>~35–38% TTh</strong>, <strong>~31–33% WF</strong> and
           <strong>~26–31% single-day</strong>. That band holds from 1231 through
           1261.
         </li>
@@ -897,9 +897,9 @@ const termTrends = [
           letter-ladder clocks.
         </li>
         <li>
-          Midyear (1243, 1253) is a different calendar every year:
-          <strong>~71–73% dense MTWThFS</strong>, almost no WF, and
-          <strong>105-minute</strong> blocks (not 90). That is semester type,
+          Midyear (1243, 1253) is a different calendar every year, with
+          <strong>~71–73% dense MTWThFS</strong>, almost no WF and
+          <strong>105-minute</strong> blocks (not 90). That’s semester type,
           not a multi-year drift.
         </li>
       </ul>
@@ -907,9 +907,9 @@ const termTrends = [
       <ul class="break-list">
         <li>
           Terms <strong>1231–1243</strong> and midyear <strong>1253</strong> in
-          prod are still mostly <strong>LEC + LAB</strong> (~4.8k–5.1k regular;
-          ~230 midyear). AMIS itself already had ~4k THE rows each term; Room TBA
-          simply did not import them yet.
+          prod are still mostly <strong>LEC + LAB</strong> (~4.8k–5.1k regular and
+          ~230 midyear). AMIS itself already had ~4k THE rows each term, and Room
+          TBA didn’t import them yet.
         </li>
         <li>
           <strong>1251</strong> adds RCT (~100) and a small THE/SPR/PRA/DSR
@@ -919,7 +919,7 @@ const termTrends = [
           <strong>1252</strong> and <strong>1261</strong> jump to ~12.6k–12.9k
           DB rows because the importer started keeping thesis / SP / practicum /
           dissertation with null rooms (~7.5k roomless rows). AMIS LEC/LAB volume
-          did not double. Room TBA’s catalog got wider.
+          didn’t double. Room TBA’s catalog got wider.
         </li>
       </ul>
       <p class="table-hint">Scroll sideways for the full table.</p>
@@ -960,7 +960,7 @@ const termTrends = [
       <h3 id="term-trends-why">Likely reasons</h3>
       <ul class="break-list">
         <li>
-          <strong>Import policy, not campus growth.</strong> AMIS regular-term
+          <strong>The cause is import policy, not campus growth.</strong> AMIS regular-term
           dumps stay ~11k–13k rows across the archive. The DB doubling at 1252/1261
           matches turning on NON_ROOM types (THE/SPR/PRA/DSR/IND) in the importer,
           plus RCT for the planner. See
@@ -968,18 +968,18 @@ const termTrends = [
         </li>
         <li>
           <strong>Letter ladder still maps the same grid.</strong> Stable TTh/WF
-          shares mean A–H / S–Z time inference did not rot between AY 2023–2024 and
+          shares mean A–H / S–Z time inference didn’t rot between AY 2023–2024 and
           AY 2026–2027.
         </li>
         <li>
           <strong>Midyear is a fixed alternate calendar.</strong> Dense daily
-          meetings and 105-minute offsets appear in both 1243 and 1253; do not
+          meetings and 105-minute offsets appear in both 1243 and 1253. Don’t
           read them as a trend away from WF/TTh.
         </li>
         <li>
           <strong>1261 scheduled LEC is a bit lower</strong> (2,466 vs ~2,600–2,800
           earlier). Early-term / incomplete offering data is the boring
-          explanation; re-check after COM if the gap remains.
+          explanation, so re-check after COM if the gap remains.
         </li>
       </ul>
       <p class="figure-note">
@@ -999,9 +999,9 @@ const termTrends = [
       <p>
         About <strong>55%</strong> of those LEC slots are 90 minutes long
         (1,472 of 2,653). On the TTh+WF pairs alone, 90-minute meetings make up
-        about <strong>78%</strong> of the slots. Peaks land on the wiki starts:
-        8:30, 10:00, 1:00, 2:30, 4:00, and the early/late edges at 7:00 and
-        5:30. Single-day lectures are often three hours (for example 1:00–4:00
+        about <strong>78%</strong> of the slots. Peaks land on the wiki starts of
+        8:30, 10:00, 1:00, 2:30 and 4:00, plus the early and late edges at
+        7:00 and 5:30. Single-day lectures are often three hours (for example 1:00–4:00
         PM or 9:00–12:00) on one weekday.
       </p>
       <figure class="share-chart">
@@ -1034,7 +1034,7 @@ const termTrends = [
         <strong>86%</strong> are <strong>105-minute</strong> blocks that start
         on :45 or :15 offsets, not the regular :00/:30 ladder.
       </p>
-      <p>Four windows hold most midyear lectures (~61% of LEC slots):</p>
+      <p>Four windows hold most midyear lectures (~61% of LEC slots).</p>
       <ul class="quartet">
         {midyearQuartet.map((window) => (
           <li><code>{window}</code></li>
@@ -1044,8 +1044,8 @@ const termTrends = [
         Weekly contact for a typical midyear LEC is about
         <strong>10.5 hours</strong> (6 × 105 min), versus roughly
         <strong>3 hours</strong> for a regular TTh or WF paired lecture
-        (2 × 90 min). Same course credit, denser calendar. Do not use A–H /
-        S–Z inference for midyear or for <code>*L</code> labs.
+        (2 × 90 min). The course credit is the same but the calendar is denser.
+        Don’t use A–H / S–Z inference for midyear or for <code>*L</code> labs.
       </p>
       <figure class="share-chart">
         <figcaption>LEC day patterns, term 1253 (132 slots)</figcaption>
@@ -1081,7 +1081,7 @@ const termTrends = [
         false for midyear. S–Z singles are rare.
       </p>
       <p>
-        Departments also invent <strong>cross-ladder compounds</strong>: one
+        Departments also invent <strong>cross-ladder compounds</strong>, which are one
         section string that concatenates a WF-family pair with a TTh-family
         pair so the name covers a long daily block.
       </p>
@@ -1128,7 +1128,7 @@ const termTrends = [
         </table>
       </div>
       <p class="figure-note">
-        Observed on midyear AMIS lecture rows (e.g. CHEM 32 <code>BCTU</code> /
+        These were observed on midyear AMIS lecture rows (e.g. CHEM 32 <code>BCTU</code> /
         <code>FGXY</code> on MTWThFS). Treat these as midyear labels, not as
         “take both a BC and a TU regular-sem section.”
       </p>
@@ -1162,7 +1162,7 @@ const termTrends = [
     </section>
 
     <aside class="article-callout" aria-labelledby="why-not-perfect">
-      <h2 id="why-not-perfect">Why the code is not perfect</h2>
+      <h2 id="why-not-perfect">Why the code isn’t perfect</h2>
       <p>
         The letter test covers 8,917 single-letter regular-semester lectures
         only. It excludes midyear, labs, recitations, and longer codes. In that
@@ -1170,24 +1170,24 @@ const termTrends = [
       </p>
       <ul class="break-list">
         <li>
-          <strong>Midyear</strong>: MTWThFS and 105-minute offsets; A–H labels
-          no longer mean WF; compounds like <code>BCTU</code> /
+          <strong>Midyear</strong> sections meet MTWThFS in 105-minute offsets, A–H
+          labels no longer mean WF, and compounds like <code>BCTU</code> /
           <code>FGXY</code> stitch both letter ladders.
         </li>
         <li>
-          <strong>Labs</strong>: letter echoes the lecture; lab time is
+          <strong>Labs</strong> echo the lecture’s letter, but lab time is
           independent.
         </li>
         <li>
-          <strong>Single-day LEC</strong>: about 29% of 1252 LEC slots; often
-          three hours on one weekday.
+          <strong>Single-day LEC</strong> makes up about 29% of 1252 LEC slots and
+          is often three hours on one weekday.
         </li>
         <li>
-          <strong>AM/PM typos</strong>: for example SFFG 123 G1 entered as
-          <code>WF 04:00AM-05:30AM</code>; Room TBA parses the text literally.
+          <strong>AM/PM typos</strong> happen, for example SFFG 123 G1 entered as
+          <code>WF 04:00AM-05:30AM</code>. Room TBA parses the text literally.
         </li>
         <li>
-          <strong>Graduate / special topics</strong>: THE, SPR, DSR, IND, STO
+          <strong>Graduate / special topics</strong> (THE, SPR, DSR, IND, STO)
           often ignore the undergrad grid.
         </li>
       </ul>
