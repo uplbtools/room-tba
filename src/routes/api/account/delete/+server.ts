@@ -1,6 +1,7 @@
 import { clearSessionCookie } from '#lib/admin/auth.js';
 import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
-import { checkRateLimit, clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { sharedRateLimit } from '#lib/api/rate-limit-db.js';
 import { AccountActionError, softDeleteAccount } from '#lib/services/admin/user.js';
 import type { RequestHandler } from './$types';
 
@@ -10,7 +11,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	const auth = await editorSessionOrUnauthorized(cookies);
 	if (auth instanceof Response) return auth;
 
-	const rate = checkRateLimit(
+	const rate = await sharedRateLimit(
 		`account-delete:${auth.session.id}:${clientIp(request)}`,
 		LIMIT.max,
 		LIMIT.windowMs

@@ -1,11 +1,12 @@
-import { checkRateLimit, clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { sharedRateLimit } from '#lib/api/rate-limit-db.js';
 import { AccountActionError, confirmPasswordReset } from '#lib/services/admin/user.js';
 import type { RequestHandler } from './$types';
 
 const LIMIT = { max: 8, windowMs: 60 * 1000 };
 
 export const POST: RequestHandler = async ({ request }) => {
-	const rate = checkRateLimit(
+	const rate = await sharedRateLimit(
 		`account-confirm-password-reset:${clientIp(request)}`,
 		LIMIT.max,
 		LIMIT.windowMs

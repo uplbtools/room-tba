@@ -9,6 +9,13 @@ export type RateLimitResult =
 	| { allowed: true; remaining: number; resetAt: number }
 	| { allowed: false; remaining: 0; resetAt: number };
 
+export type RateLimiter = (
+	key: string,
+	max: number,
+	windowMs: number,
+	now?: number
+) => RateLimitResult | Promise<RateLimitResult>;
+
 /** Best-effort in-memory limiter (per server instance). */
 export function checkRateLimit(
 	key: string,

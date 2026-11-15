@@ -4,7 +4,8 @@ import {
 	createSessionToken,
 	setSessionCookie
 } from '#lib/admin/auth.js';
-import { checkRateLimit, clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { sharedRateLimit } from '#lib/api/rate-limit-db.js';
 import { type SignupInput, validateContributorSignup } from '#lib/auth/contributor-signup.js';
 import { AccountActionError, createAdminUser } from '#lib/services/admin/user.js';
 import { verifyTurnstileToken } from '#lib/utils/turnstile/turnstile.js';
@@ -24,7 +25,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		const ip = clientIp(request);
 		const skipRateLimit = process.env.ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT === '1';
 		if (!skipRateLimit) {
-			const rate = checkRateLimit(
+			const rate = await sharedRateLimit(
 				`contributor-signup:ip:${ip}`,
 				SIGNUP_IP_LIMIT.max,
 				SIGNUP_IP_LIMIT.windowMs

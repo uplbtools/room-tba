@@ -1,4 +1,5 @@
-import { checkRateLimit, clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { sharedRateLimit } from '#lib/api/rate-limit-db.js';
 import { requestPasswordReset } from '#lib/services/admin/user.js';
 import type { RequestHandler } from './$types';
 
@@ -7,7 +8,7 @@ const LIMIT = { max: 5, windowMs: 60 * 1000 };
 /** Public — a locked-out user has no session yet. Always returns success
  * regardless of whether the login matched, to avoid account enumeration. */
 export const POST: RequestHandler = async ({ request }) => {
-	const rate = checkRateLimit(
+	const rate = await sharedRateLimit(
 		`account-request-password-reset:${clientIp(request)}`,
 		LIMIT.max,
 		LIMIT.windowMs

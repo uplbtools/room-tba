@@ -1,5 +1,6 @@
 import { R2_PUBLIC_URL } from '$app/env/private';
-import { checkRateLimit, clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { sharedRateLimit } from '#lib/api/rate-limit-db.js';
 import { json, errorResponse } from '#lib/api/json.js';
 import {
 	buildUploadKey,
@@ -47,7 +48,7 @@ export async function uploadImageRequest(options: {
 	rateLimitKey?: string;
 	uploadedBy: string;
 }): Promise<Response> {
-	const rate = checkRateLimit(
+	const rate = await sharedRateLimit(
 		`upload:${options.rateLimitKey ?? clientIp(options.request)}`,
 		UPLOAD_LIMIT.max,
 		UPLOAD_LIMIT.windowMs
