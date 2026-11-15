@@ -72,7 +72,7 @@
     <p class="measure-panel__hint">
       {measureRouteStore.waypoints.length === 0
         ? "Tap the map to drop waypoints along your route."
-        : "Tap again to add the next stop; tap a numbered pin to remove it."}
+        : "Tap again to add the next stop, or tap a numbered pin to remove it."}
     </p>
   {:else}
     <div class="measure-panel__modes" role="group" aria-label="Travel mode">
@@ -99,7 +99,7 @@
         {formatDistance(activeTotal.meters)} over
         {measureRouteStore.waypoints.length} stops
       {:else}
-        No {measureRouteStore.mode === "drive" ? "drivable" : "ridable"} path
+        There's no {measureRouteStore.mode === "drive" ? "drivable" : "ridable"} path
         between some stops.
       {/if}
     </p>
@@ -124,7 +124,7 @@
   {/if}
   {#if measureRouteStore.loadFailed}
     <p class="measure-panel__hint">
-      Could not load the path network. Check your connection and tap again.
+      Couldn't load the path network. Check your connection and tap again.
     </p>
   {/if}
   <p class="measure-panel__attribution">paths © OpenStreetMap contributors</p>

@@ -141,12 +141,12 @@
   const roomBuildingNotice = $derived.by(() => {
     if (kind !== "create_room" || isPublish) return null;
     if (pendingBuildingLabel) {
-      return `Your building suggestion "${pendingBuildingLabel}" is still waiting for editor review. You can add rooms in that building after it is approved and appears on the map.`;
+      return `Your building suggestion "${pendingBuildingLabel}" is still waiting for editor review. You can add rooms in that building after it's approved and appears on the map.`;
     }
     if (buildings.length === 0) {
-      return "Rooms must belong to a building that is already on the map. Suggest a building first, then come back to add rooms after editors approve it.";
+      return "Rooms must belong to a building that's already on the map. Suggest a building first, then come back to add rooms after editors approve it.";
     }
-    return "Rooms must belong to a building that is already on the map. Pick one below, or open a building in the side panel and use Suggest an edit on an existing room.";
+    return "Rooms must belong to a building that's already on the map. Pick one below, or open a building in the side panel and use Suggest an edit on an existing room.";
   });
 
   const needsPin = $derived(
@@ -579,7 +579,7 @@
       if (isPublish) {
         const result = await publishEntityCreate(kind, patch);
         if (!result.ok) {
-          error = result.error ?? "Could not create entry.";
+          error = result.error ?? "Couldn't create entry.";
           return;
         }
         toastStore.show(
@@ -603,7 +603,7 @@
           pendingCreate?.status === "needs_changes" ? pendingCreate.id : null,
       });
       if (!result.ok) {
-        error = result.error ?? "Could not submit proposal.";
+        error = result.error ?? "Couldn't submit proposal.";
         return;
       }
       if (kind === "create_building") {
@@ -611,7 +611,7 @@
         toastStore.show(
           hasBundledRooms
             ? "Thanks. We'll review your building and room suggestions together."
-            : "Thanks. We will review your building suggestion soon. You can add rooms in that building after editors approve it.",
+            : "Thanks. We'll review your building suggestion soon. You can add rooms in that building after editors approve it.",
           "success",
         );
         await refreshPendingCreateProposal();
@@ -722,7 +722,7 @@
         <div class="bundled-rooms">
           <p class="bundled-rooms__lead">
             Rooms in this building (optional). Add them here if the building is
-            not on the map yet — they go live when editors approve the building.
+            not on the map yet. They go live when editors approve the building.
           </p>
           {#each bundledRooms as room, index (index)}
             <div class="bundled-rooms__row">
@@ -850,7 +850,7 @@
       <EntityEditorFormField
         label="Who can live here?"
         inputId="addition-dorm-gender"
-        hint="Coed, women only, men only. Leave blank if you are not sure."
+        hint="Coed, women only, men only. Leave blank if you're not sure."
       >
         {#snippet control()}
           <input
@@ -885,13 +885,13 @@
           <select id="addition-place-category" bind:value={placeCategory}>
             {#each PLACE_CATEGORIES as category}
               <option value={category}>{category === "food"
-                ? "Service / establishment — food"
+                ? "Service / establishment (food)"
                 : category === "service"
                   ? "Service / establishment"
                   : category === "transport"
-                    ? "Service / establishment — transport"
+                    ? "Service / establishment (transport)"
                     : category === "tourist-spot"
-                      ? "Landmark — tourist spot"
+                      ? "Landmark (tourist spot)"
                       : "Landmark"}</option>
             {/each}
           </select>
@@ -950,7 +950,7 @@
       <EntityEditorFormField
         label="Host building"
         inputId="addition-organization-building"
-        hint="Optional; choose the building where it is based."
+        hint="Optional. Choose the building where it's based."
       >
         {#snippet control()}
           <select
@@ -1019,7 +1019,7 @@
       <EntityEditorFormField
         label="How do you get there?"
         inputId="addition-room-directions"
-        hint="Optional: stairs, wing, or landmarks."
+        hint="Optional. Add stairs, wing, or landmarks."
       >
         {#snippet control()}
           <textarea
@@ -1081,7 +1081,7 @@
     <EntityEditorFormField
       label="Note to reviewer (optional)"
       inputId="suggest-addition-note"
-      hint="Goes to the editor who reviews this, and is never shown on the map. Use it for context, sources, or anything that is not part of the entry itself."
+      hint="It goes to the editor who reviews this and is never shown on the map. Use it for context, sources, or anything that isn't part of the entry itself."
     >
       {#snippet control()}
         <textarea

@@ -28,7 +28,7 @@
     aria-live="polite"
   >
     <WifiOff size={16} aria-hidden="true" />
-    <span class="offline-banner__text">You’re offline — showing saved data</span>
+    <span class="offline-banner__text">You’re offline and seeing saved data</span>
     <button
       type="button"
       class="offline-banner__close"

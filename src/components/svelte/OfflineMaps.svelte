@@ -181,7 +181,7 @@
           </button>
         {:else if offlineStore.status === "done"}
           <p class="map-chrome-popover-sub">
-            Saved: {offlineStore.tilesTotal} tiles, {fmtBytes(
+            {offlineStore.tilesTotal} tiles saved, {fmtBytes(
               offlineStore.bytesDownloaded,
             )}
           </p>
@@ -193,7 +193,7 @@
           </button>
         {:else}
           <p class="map-chrome-popover-sub">
-            Map tiles for campus bounds ({offlineStore.tilesTotal} tiles).
+            This downloads {offlineStore.tilesTotal} map tiles for the campus bounds.
           </p>
           {#if offlineStore.status === "error" && offlineStore.error}
             <p class="offline-error">{offlineStore.error}</p>
@@ -235,7 +235,7 @@
         {:else if offlineStore.directoryStatus === "done"}
           <p class="map-chrome-popover-sub">
             Buildings, rooms, dorms, colleges, divisions, orgs &amp; offices,
-            landmarks &amp; establishments, and events saved for offline
+            landmarks &amp; establishments, and events are saved for offline
             search.
           </p>
           <button
@@ -252,8 +252,8 @@
           </button>
         {:else}
           <p class="map-chrome-popover-sub">
-            Buildings, rooms, dorms, colleges, divisions, orgs &amp; offices,
-            landmarks &amp; establishments, and events.
+            This covers buildings, rooms, dorms, colleges, divisions, orgs &amp;
+            offices, landmarks &amp; establishments, and events.
           </p>
           {#if offlineStore.directoryStatus === "error" && offlineStore.directoryError}
             <p class="offline-error">{offlineStore.directoryError}</p>
@@ -303,7 +303,7 @@
           </button>
         {:else}
           <p class="map-chrome-popover-sub">
-            Active-term class list for offline class search.
+            Saves the active term's class list for offline class search.
           </p>
           {#if offlineStore.schedulesStatus === "error" && offlineStore.schedulesError}
             <p class="offline-error">{offlineStore.schedulesError}</p>

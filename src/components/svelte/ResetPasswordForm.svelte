@@ -45,7 +45,7 @@
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        error = data.error ?? "Could not reset password.";
+        error = data.error ?? "Couldn't reset password.";
         if (res.status === 400 && /invalid or has expired/i.test(error)) {
           tokenRejected = true;
         }
@@ -133,7 +133,7 @@
       </EntityEditorFormField>
       {#if mismatch}
         <p class="reset-password-mismatch" id="reset-password-mismatch">
-          Passwords do not match.
+          Passwords don't match.
         </p>
       {/if}
       {#if error}

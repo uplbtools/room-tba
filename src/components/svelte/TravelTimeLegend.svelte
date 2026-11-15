@@ -36,7 +36,7 @@
     <p class="travel-time-legend__hint">Computing walking times…</p>
   {:else if travelTimeStore.status === "error"}
     <p class="travel-time-legend__hint">
-      Could not load the path network. Check your connection and tap again.
+      Couldn't load the path network. Check your connection and tap again.
     </p>
   {:else}
     <div

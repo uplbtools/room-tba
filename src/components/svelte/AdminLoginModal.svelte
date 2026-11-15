@@ -34,7 +34,7 @@
     missing_code: "Google sign-in was cancelled or incomplete. Try again.",
     oauth_failed: "Google sign-in failed. Try again.",
     account_unavailable:
-      "This Google account cannot be used to sign in. Contact the maintainers.",
+      "This Google account can't be used to sign in. Contact the maintainers.",
   };
 
   type Mode = "signin" | "signup";
@@ -182,7 +182,7 @@
         return;
       }
       if (password !== confirmPassword) {
-        error = "Passwords do not match.";
+        error = "Passwords don't match.";
         return;
       }
       const err = await adminAuthStore.signup({
@@ -223,7 +223,7 @@
       adminAuthStore.displayName ?? adminAuthStore.username ?? "contributor";
     toastStore.show(
       adminAuthStore.mfaEnrollmentSuggested
-        ? `Logged in as ${label}. Admins need two-step verification: turn it on in Account settings.`
+        ? `Logged in as ${label}. Admins need two-step verification, so turn it on in Account settings.`
         : `Logged in as ${label}.`,
       "success",
     );
@@ -269,7 +269,7 @@
           inputId="admin-login-username"
           hint={isSignup
             ? (signupUsernameProblem ??
-              `${USERNAME_MIN_LENGTH} to ${USERNAME_MAX_LENGTH} characters: lowercase letters, numbers, and . _ -`)
+              `${USERNAME_MIN_LENGTH} to ${USERNAME_MAX_LENGTH} characters. Use lowercase letters, numbers, and . _ -`)
             : undefined}
         >
           {#snippet control()}
@@ -349,7 +349,7 @@
             {/snippet}
           </EntityEditorFormField>
           {#if signupMismatch}
-            <p class="login-inline-problem">Passwords do not match.</p>
+            <p class="login-inline-problem">Passwords don't match.</p>
           {/if}
           <EntityEditorFormField
             label="Email (needed to reset your password)"
@@ -441,13 +441,13 @@
             </button>
           {:else}
             <p class="login-lead">
-              Enter your username or email and we will send a reset link to the
+              Enter your username or email and we'll send a reset link to the
               email on the account.
             </p>
             <ul class="forgot-password-notes">
               <li>
-                Signed up with Google? Use Continue with Google instead; your
-                password is managed by Google.
+                Signed up with Google? Use Continue with Google instead.
+                Google manages your password.
               </li>
               <li>
                 No email on your account? An admin has to reset it for you.

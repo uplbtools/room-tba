@@ -43,12 +43,12 @@
     if (!isOnline) return TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE;
     if (terrainStore.status === "loading") return "Loading elevation tiles...";
     if (terrainStore.status === "active") {
-      return "Contextual relief, not survey-grade elevation.";
+      return "This is contextual relief, not survey-grade elevation.";
     }
     if (terrainStore.status === "unavailable") {
       return terrainStore.message ?? "Terrain is unavailable right now.";
     }
-    if (lowDataConnection) return "Uses online tiles. Keep it off on low data.";
+    if (lowDataConnection) return "It uses online tiles. Keep it off on low data.";
     return "";
   });
 
@@ -169,7 +169,7 @@
           aria-checked={terrainStore.enabled}
           aria-labelledby="terrain-toggle-label"
           onclick={handleToggle}
-          title="Mt. Makiling in 3D. Loads elevation tiles over the network."
+          title="Shows Mt. Makiling in 3D. It loads elevation tiles over the network."
         ></button>
       </div>
 

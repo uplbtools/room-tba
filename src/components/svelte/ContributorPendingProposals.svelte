@@ -29,7 +29,7 @@
         preferServer: adminAuthStore.isLoggedIn,
       });
     } catch {
-      error = "Could not load your pending suggestions.";
+      error = "Couldn't load your pending suggestions.";
       rows = [];
     } finally {
       loading = false;
@@ -46,7 +46,7 @@
     try {
       const result = await withdrawEntityProposal({ proposalId: row.id });
       if (!result.ok) {
-        error = result.error ?? "Could not withdraw suggestion.";
+        error = result.error ?? "Couldn't withdraw suggestion.";
         return;
       }
       toastStore.show("Suggestion withdrawn.", "success");

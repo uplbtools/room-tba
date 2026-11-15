@@ -440,7 +440,7 @@
       .catch((error) => {
         console.error("Failed to load campus map style", error);
         toastStore.show(
-          "Campus map tiles could not load. Check MapTiler configuration.",
+          "Campus map tiles couldn't load. Check MapTiler configuration.",
           "error",
         );
       });
@@ -1233,7 +1233,7 @@
       };
 
       if (!res.ok || !data.event) {
-        throw new Error(data.error ?? `Create failed (${res.status})`);
+        throw new Error(data.error ?? `Couldn't create the event (${res.status})`);
       }
 
       appActions.replaceEvent(data.event);
@@ -1261,7 +1261,7 @@
     } catch (error) {
       eventPlacementStore.failCreate();
       toastStore.show(
-        error instanceof Error ? error.message : "Failed to create event.",
+        error instanceof Error ? error.message : "Couldn't create the event.",
         "error",
       );
     }
@@ -1307,7 +1307,7 @@
       });
 
       if (!result.ok) {
-        throw new Error(result.error ?? "Failed to submit event proposal.");
+        throw new Error(result.error ?? "Couldn't submit the event proposal.");
       }
 
       eventPlacementStore.cancel();
@@ -1318,7 +1318,7 @@
     } catch (error) {
       eventPlacementStore.failCreate();
       toastStore.show(
-        error instanceof Error ? error.message : "Failed to propose event.",
+        error instanceof Error ? error.message : "Couldn't propose the event.",
         "error",
       );
     }
@@ -2040,7 +2040,7 @@
       }
       setLocalPosition("building", id, previous);
       toastStore.show(
-        editErrorMessage(name, "Failed to save building position.", error),
+        editErrorMessage(name, "Couldn't save the building position.", error),
         "error",
       );
     } finally {
@@ -2088,7 +2088,7 @@
       }
       setLocalPosition("dorm", id, previous);
       toastStore.show(
-        editErrorMessage(name, "Failed to save dorm position.", error),
+        editErrorMessage(name, "Couldn't save the dorm position.", error),
         "error",
       );
     } finally {
@@ -2152,7 +2152,7 @@
       }
       setLocalEvent(previousEvent);
       toastStore.show(
-        editErrorMessage(event.title, "Failed to save event location.", error),
+        editErrorMessage(event.title, "Couldn't save the event location.", error),
         "error",
       );
     } finally {
@@ -2196,7 +2196,7 @@
         input.rollback();
         toastStore.show(
           result.error ??
-            `${input.entityLabel} pin suggestion could not be submitted.`,
+            `${input.entityLabel} pin suggestion couldn't be submitted.`,
           "error",
         );
         return;
@@ -2368,12 +2368,12 @@
     try {
       const version = await applyRecordedMove(move, "undo");
       markSaved(move.key);
-      setEditStatus(`Undid move for ${move.name}.`);
+      setEditStatus(`Move for ${move.name} undone.`);
       const next = completeMapMoveUndo(undoStack, redoStack, move, version);
       undoStack = next.undoStack;
       redoStack = next.redoStack;
     } catch (error) {
-      handleRecordedMoveError(move, error, "Failed to undo last move.");
+      handleRecordedMoveError(move, error, "Couldn't undo the last move.");
     } finally {
       if (savingEditKey === move.key) savingEditKey = null;
       if (undoingEditKey === move.key) undoingEditKey = null;
@@ -2391,12 +2391,12 @@
     try {
       const version = await applyRecordedMove(move, "redo");
       markSaved(move.key);
-      setEditStatus(`Redid move for ${move.name}.`);
+      setEditStatus(`Move for ${move.name} redone.`);
       const next = completeMapMoveRedo(undoStack, redoStack, move, version);
       undoStack = next.undoStack;
       redoStack = next.redoStack;
     } catch (error) {
-      handleRecordedMoveError(move, error, "Failed to redo move.");
+      handleRecordedMoveError(move, error, "Couldn't redo the move.");
     } finally {
       if (savingEditKey === move.key) savingEditKey = null;
       if (undoingEditKey === move.key) undoingEditKey = null;
@@ -4726,7 +4726,7 @@
           <strong>Choose event location on the map</strong>
           <span>
             {eventPlacementStore.creating
-              ? "Creating the event at the selected map point..."
+              ? "We're creating the event at the selected map point..."
               : "Click or tap the map point where this event should appear."}
           </span>
         </div>
