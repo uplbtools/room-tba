@@ -1,0 +1,914 @@
+<script lang="ts">
+	import WikiProvenance from '../WikiProvenance.svelte';
+	import type { PageData } from './$types';
+	import {
+		JEEPNEY_ROUTES,
+		ROUTE_DIRECTIONS,
+		TOWN_JEEPNEY_MINIMUM_FARE
+	} from '#lib/constants/map/jeepney-routes.js';
+	import { UPCAT_EXAM_LAST_DAY, formatLongDay, hasDayPassed } from '#lib/utils/wiki-freshness.js';
+
+	const { data }: { data: PageData } = $props();
+
+	const permitFields = [
+		{
+			field: 'Identification number',
+			note: 'Your examinee number. Bring it written down somewhere else too.'
+		},
+		{ field: 'Place', note: 'The test center. At UPLB this is a campus, not a room.' },
+		{
+			field: 'Date',
+			note: 'Which of the two exam days is yours. Check it now, not on the morning.'
+		},
+		{
+			field: 'Time',
+			note: 'Your session, either the 6:30 am morning session or the 12:30 pm afternoon session.'
+		},
+		{ field: 'PIN', note: 'Used with your identification number.' },
+		{ field: 'Name', note: 'Must match the ID you bring.' },
+		{ field: 'High school', note: "The school you're testing from." }
+	] as const;
+
+	const bringItems = [
+		'Your test permit, printed. You present it and hand it in to test personnel.',
+		'Your school ID, or any valid government-issued ID.',
+		'At least two good quality pencils.',
+		'A sharpener.',
+		'A rubber eraser.',
+		'Water.',
+		'Snacks.'
+	] as const;
+
+	const bannedItems = ['Cellphones', 'Smartwatches', 'Calculating devices', 'Cameras'] as const;
+
+	const lastCycleBuildings = [
+		'IBS',
+		'CAS (two locations)',
+		'CDC',
+		'IMS (New Math building)',
+		'PHYSCI',
+		'CEAT',
+		'ASI',
+		'EE',
+		'IAS',
+		'CVM'
+	] as const;
+
+	const lastCycleGates = [
+		'Main Gate',
+		'Jamboree Gate',
+		'Central Experiment Station (CES) Gate',
+		'Institute of Animal Science (IAS) Gate'
+	] as const;
+
+	const permitOmissions = [
+		'Your room.',
+		'Your building.',
+		'Your seat.',
+		'Which entrance or gate to use.'
+	] as const;
+
+	const campusRoutes = JEEPNEY_ROUTES;
+	const kaliwaKanan = campusRoutes.find((route) => route.id === 'kaliwa-kanan');
+	const forestry = campusRoutes.find((route) => route.id === 'forestry');
+	const directions = ROUTE_DIRECTIONS['kaliwa-kanan'];
+	const routeStopCount = campusRoutes.reduce((total, route) => total + route.stops.length, 0);
+	const fare = kaliwaKanan?.fare ?? TOWN_JEEPNEY_MINIMUM_FARE;
+
+	const examPassed = hasDayPassed(UPCAT_EXAM_LAST_DAY);
+	const examLastDayLabel = formatLongDay(UPCAT_EXAM_LAST_DAY);
+
+	const placeCategories = [
+		{
+			category: 'Landmark',
+			count: 19,
+			useful: 'Meeting points. Easier to name over the phone than a building code.'
+		},
+		{
+			category: 'Tourist spot',
+			count: 15,
+			useful: 'Mostly Makiling and the Forestry campus. Not where you want to be on exam morning.'
+		},
+		{
+			category: 'Food',
+			count: 11,
+			useful: 'Split between on-campus canteens and the strip just outside Raymundo Gate.'
+		},
+		{ category: 'Transport', count: 2, useful: 'Parking and a campus stop.' },
+		{ category: 'Service', count: 2, useful: 'Chapels near the campus core.' }
+	] as const;
+
+	const foodOnCampus = [
+		{
+			name: 'Student Union Canteen',
+			where: 'Student Union Building, central main campus',
+			what: 'Food stalls inside the student center.'
+		},
+		{
+			name: 'DTRI Dairy Bar',
+			where: 'DTRI complex, southeastern main campus',
+			what: 'Fresh milk, cheese, and ice cream from the dairy institute.'
+		},
+		{
+			name: 'SEARCA Canteen',
+			where: 'SEARCA building, central main campus',
+			what: 'Canteen in the SEARCA building.'
+		},
+		{
+			name: 'IRRI Cafeteria',
+			where: 'IRRI headquarters campus',
+			what: "Open to visitors, but it's a separate campus from the academic core."
+		}
+	] as const;
+
+	const foodOutside = [
+		{
+			name: "R.M. Cadapan's Canteen",
+			where: 'Raymundo Gate area, Batong Malake',
+			what: 'Long-standing budget canteen near campus.'
+		},
+		{
+			name: "Aling Glo's Restaurant",
+			where: 'Grove area, Batong Malake',
+			what: 'Budget eatery popular with students.'
+		},
+		{
+			name: 'But First, Coffee',
+			where: 'Grove area, Batong Malake',
+			what: 'Cafe just outside campus.'
+		},
+		{
+			name: 'Black And Brew Cafe',
+			where: 'Grove area, Batong Malake',
+			what: 'Coffee shop near the Vega Centre strip.'
+		},
+		{
+			name: 'Vega Centre',
+			where: 'Grove area, Batong Malake',
+			what: 'Commercial arcade with food stalls and services.'
+		},
+		{
+			name: 'Vraja Cuisine',
+			where: 'Campus oval area near UPLB Alumni Plaza',
+			what: 'Vegetarian and vegan cafe.'
+		}
+	] as const;
+
+	const waitingSpots = [
+		{
+			name: 'Carabao Park (UPCA Alumni Plaza)',
+			why: 'Plaza with the carabao head sculptures. The first thing most people recognise coming in, and a jeepney stop in both loop directions.'
+		},
+		{
+			name: 'Freedom Park and the UPLB Grandstand',
+			why: 'Open ground along the campus oval with the grandstand for seating.'
+		},
+		{
+			name: "Seniors' Social Garden",
+			why: 'Garden between Freedom Park and the Mathematics Building. Also a Kaliwa / Kanan stop.'
+		},
+		{
+			name: 'Oblation Park',
+			why: 'Fronts B.M. Gonzalez Hall, the main administration building. Unmistakable over the phone.'
+		},
+		{
+			name: 'UPLB Alumni Plaza and the Carillon Tower',
+			why: 'Campus oval area. Visible landmark to steer someone toward.'
+		}
+	] as const;
+
+	const cannotAnswer = [
+		{
+			question: 'Which room am I in?',
+			answer:
+				"Nobody can tell you in advance. The examiner assigns seats on the day. Room TBA holds 530 room records for UPLB and not one of them is your UPCAT room, because that assignment doesn't exist in any public data until an examiner reads it out."
+		},
+		{
+			question: 'Where exactly do I report on the UPLB campus?',
+			answer:
+				'Not published as of the date on this page. See the section above for who publishes it and where to watch.'
+		},
+		{
+			question: 'Which buildings are being used?',
+			answer:
+				"Not published for this cycle. Last cycle UPLB used ten scattered locations, so expect to be sent to one of many buildings rather than to a single hall. Which one is yours isn't knowable in advance."
+		},
+		{
+			question: 'Is that canteen open on exam day?',
+			answer:
+				'Unknown. Room TBA stores no opening hours for any of its 49 places, and both exam days fall on a weekend.'
+		},
+		{
+			question: 'Where can I park?',
+			answer:
+				'Not published for exam day. The app records two transport entries and neither is an exam-day parking arrangement.'
+		}
+	] as const;
+</script>
+
+<article class="wiki-article">
+	<header class="article-hero">
+		<h1 class="wiki-title">Taking the UPCAT at UP Los Baños</h1>
+		<p class="wiki-lede">
+			You have a test permit, a date and a campus you’ve never walked. This page covers the part
+			Room TBA is good for, which is getting a stranger from a gate to a building, and it’s blunt
+			about the parts nobody has published yet. It’s written for the examinee and for the parent
+			doing the driving and the waiting.
+		</p>
+		<p class="article-meta">
+			UPCAT for AY 2027 to 2028 {examPassed ? 'was held on' : 'is on'}
+			<strong>August 1 and 2, 2026</strong>, a Saturday and a Sunday. Campus figures on this page
+			are a census of the Room TBA production database on July 27, 2026, with 52 buildings, 530
+			rooms, 49 places and 79 name aliases (jeepney figures are read live from the route data). Exam
+			details come from the UP General Information Bulletin. UPLB campus-specific instructions
+			(venue, gates, reporting point) were
+			<strong>not published</strong> at the time of writing. Last cycle they appeared one day before the
+			exam.
+		</p>
+		<WikiProvenance {data} />
+	</header>
+
+	{#if examPassed}
+		<aside class="article-callout article-callout--stale" role="note" aria-labelledby="exam-passed">
+			<h2 id="exam-passed">This guide is for an exam that has passed</h2>
+			<p>
+				The exam this page was written for ended on {examLastDayLabel}. The permit, bring-list and
+				campus-map advice still describes how the UPCAT works at UPLB, but every date, time and “not
+				published yet” note below refers to that cycle. Venue, gates and reporting times for the
+				next cycle aren’t on this page. Check
+				<a href="https://upcat.up.edu.ph" target="_blank" rel="noopener noreferrer"
+					>upcat.up.edu.ph</a
+				>
+				for the current announcement.
+			</p>
+		</aside>
+	{/if}
+
+	<section aria-labelledby="start-here">
+		<h2 id="start-here">The short version</h2>
+		<ul class="break-list">
+			<li>
+				<strong>Your permit has no room on it.</strong> It never did. The examiner assigns your seat on
+				the day and you don’t get to choose it.
+			</li>
+			<li>
+				<strong>Download the campus map tonight, on wifi.</strong> Don’t wait until you’re at the gate,
+				because thousands of people will be sharing the same cell towers on the same morning.
+			</li>
+			<li>
+				<strong>Check which day and which session is yours.</strong> The permit carries both. There’s
+				a 6:30 am morning session and a 12:30 pm afternoon session. August 1 is a Saturday, August 2 is
+				a Sunday.
+			</li>
+			<li>
+				<strong>The test runs about five hours.</strong> Bring water and snacks, which UP explicitly tells
+				you to bring. Leave your phone and your smartwatch with your parent, because both are banned during
+				the test.
+			</li>
+			<li>
+				<strong>Watch for the UPLB advisory.</strong> The campus-specific instructions (where to report,
+				what time, gates) come from the UPLB Office of the University Registrar and the UP Office of Admissions,
+				usually only days before. They weren’t out when this page was written.
+			</li>
+			<li>
+				<strong>Arrive early enough to be lost and still be fine.</strong>
+				UPLB is a large, spread-out campus. Walking from one end of the academic core to the other isn’t
+				a five-minute thing.
+			</li>
+		</ul>
+	</section>
+
+	<aside class="article-callout article-callout--action" aria-labelledby="offline">
+		<h2 id="offline">Load the campus map before you arrive</h2>
+		<p>
+			This is the single most useful thing this site can do for you, and it only works if you do it <em
+				>before</em
+			> exam morning. Room TBA stores the campus map and directory on your device, so it keeps working
+			with no signal. Mobile data around a test center with thousands of examinees and their families
+			is congested at exactly the moment you need it.
+		</p>
+		<p><strong>Do this the night before, on home wifi.</strong></p>
+		<ol class="steps">
+			<li>Open the map at <code>room-tba.uplb.tools</code>.</li>
+			<li>
+				In the sidebar, open <strong>Offline maps</strong> (the cloud with the down arrow).
+			</li>
+			<li>
+				Tap <strong>Download campus map</strong>. This saves the map tiles covering the campus so
+				the map still draws with no connection.
+			</li>
+			<li>
+				Tap <strong>Download campus directory</strong>. This saves the buildings, rooms, and places,
+				so search and walking directions still work offline.
+			</li>
+		</ol>
+		<p>
+			The panel shows how many tiles were saved and how much space they took, so you can confirm it
+			actually finished rather than hoping. If you’re installing Room TBA to your home screen, do
+			that first, then download.
+		</p>
+		<p class="figure-note">
+			There are two limits. The offline copy is the <em>map app</em>. This wiki page is served fresh
+			from the network and isn’t part of the offline bundle, so read it or screenshot it now rather
+			than planning to open it from the queue. And cellphones are banned during the test itself, so
+			the map helps you get there and helps whoever is waiting for you, not you inside the room.
+		</p>
+	</aside>
+
+	<section aria-labelledby="permit">
+		<h2 id="permit">What the permit says, and what it doesn’t</h2>
+		<p>
+			Test permits went out in July. Most of the panic on the morning comes from people expecting
+			the permit to be more specific than it is. It isn’t a seat assignment. It’s proof you’re
+			expected somewhere.
+		</p>
+		<p class="table-hint">Scroll sideways for the full table.</p>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col">On the permit</th>
+						<th scope="col">What to do with it</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each permitFields as row}
+						<tr>
+							<td><strong>{row.field}</strong></td>
+							<td>{row.note}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+
+		<h3 id="permit-omissions">Not on the permit</h3>
+		<ul class="break-list">
+			{#each permitOmissions as item}
+				<li>{item}</li>
+			{/each}
+		</ul>
+		<p>
+			The UP Office of Admissions is explicit about this. At test centers that use several rooms or
+			several buildings, the address on the permit is a
+			<strong> centralized reporting location</strong>. You go there first, and you’re directed to
+			your room from there on the day. The examiner assigns seats. Examinees may not choose their
+			seat, their room, or their building.
+		</p>
+		<p>
+			UPLB is exactly that kind of center. It’s a whole campus, so treat the permit as telling you
+			which campus and which morning, and nothing finer.
+		</p>
+		<p class="figure-note">
+			On the UP Office of Admissions list of UPCAT test centers, the entire entry under Region 4-A
+			(CALABARZON) reads
+			<strong>"UP Los Baños, LAGUNA"</strong>. That’s all of it. It has no street and no building.
+			It’s also the only Laguna entry on the list. That page carries no year, so read it as a
+			standing list of centers rather than a confirmed roster for this particular cycle. For scale,
+			the previous cycle used 117 testing centers nationwide.
+		</p>
+
+		<h3 id="reporting-time">What time to be there</h3>
+		<p>
+			Read your permit first and follow it over anything on this page. If you need a number to plan
+			around before then, note that the two official UP pages currently disagree with each other.
+		</p>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col">Source</th>
+						<th scope="col">Says to be there by</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td
+							><strong>General Information Bulletin</strong>, which names the August 2026 dates
+							directly</td
+						>
+						<td>6:00 am (morning), 12:00 nn (afternoon)</td>
+					</tr>
+					<tr>
+						<td><strong>upcat.up.edu.ph homepage</strong>, older generic copy</td>
+						<td>6:30 am (morning), 12:00 nn (afternoon)</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<p>
+			The sessions themselves start at 6:30 am and 12:30 pm. The bulletin is the page written for
+			this cycle, so plan for
+			<strong>6:00 am or 12:00 nn</strong> and treat the earlier arrival as the safe one. Arriving early
+			costs you nothing. Arriving late can cost you the exam.
+		</p>
+	</section>
+
+	<section aria-labelledby="bring">
+		<h2 id="bring">What to bring, and what’s banned</h2>
+		<p>
+			This list comes from the UP General Information Bulletin. The test runs about five hours,
+			which is why water and snacks are on the list rather than optional extras.
+		</p>
+		<h3 id="bring-list">Bring</h3>
+		<ul class="break-list">
+			{#each bringItems as item}
+				<li>{item}</li>
+			{/each}
+		</ul>
+		<h3 id="banned-list">Not allowed during the test</h3>
+		<ul class="break-list">
+			{#each bannedItems as item}
+				<li>{item}</li>
+			{/each}
+		</ul>
+		<p>
+			Plan for the phone rule in advance. Decide before you leave the house who holds the phone
+			during the exam, and agree on a meeting landmark with whoever brought you, because you won’t
+			be able to call them when you come out.
+		</p>
+	</section>
+
+	<aside class="article-callout" aria-labelledby="not-published">
+		<h2 id="not-published">What UPLB hasn’t published yet</h2>
+		<p>
+			We’re not going to guess this part. A confident guess about where to report could send a
+			teenager to the wrong side of a large campus on the morning of the exam, and there’s no
+			recovering from that at 6am.
+		</p>
+		<p>As of the date on this page, we couldn’t establish any of the following.</p>
+		<ul class="break-list">
+			<li>The reporting venue or assembly area on the UPLB campus.</li>
+			<li>Which buildings or rooms are being used.</li>
+			<li>Gate arrangements, or which gate examinees should enter through.</li>
+			<li>The reporting time UPLB itself is asking examinees to follow.</li>
+			<li>Parking, drop-off arrangements, or a designated waiting area for parents.</li>
+			<li>Any shuttle service between a drop-off point and the venue.</li>
+		</ul>
+		<p>
+			One caveat on that list matters. The UPLB websites sit behind a bot check that refused every
+			automated attempt we made to read them, so "we couldn’t find it" here means we couldn’t find
+			it through search, not that we read the pages and saw nothing.
+			<strong>Open them yourself in a normal browser.</strong> That isn’t a formality. It’s the next step.
+		</p>
+		<p><strong>Who publishes this, and where to watch</strong></p>
+		<ul class="break-list">
+			<li>
+				<strong>UPLB Office of the University Registrar</strong>, at
+				<a
+					class="wiki-link"
+					href="https://our.uplb.edu.ph"
+					target="_blank"
+					rel="noopener noreferrer">our.uplb.edu.ph</a
+				>
+				and on its Facebook page. Campus-specific instructions usually appear only days before the exam.
+			</li>
+			<li>
+				<strong>UPLB Office of the Vice Chancellor for Community Affairs (OVCCA)</strong>, which is
+				who published the campus traffic and gate advisory last cycle.
+			</li>
+			<li>
+				<strong>UP Office of Admissions</strong>, at
+				<a
+					class="wiki-link"
+					href="https://upcat.up.edu.ph"
+					target="_blank"
+					rel="noopener noreferrer">upcat.up.edu.ph</a
+				>
+				and on its Facebook page, for system-wide instructions.
+			</li>
+		</ul>
+		<p>
+			<strong>Expect this late.</strong> Last cycle the UPLB traffic advisory went out on August 1, 2025
+			for an exam on August 2. That’s one day. So keep checking right up to the night before, and don’t
+			read silence today as a sign that nothing is coming.
+		</p>
+		<p>
+			If someone hands you a screenshot naming a venue, check it against one of those sources before
+			you act on it. Last year's advisory circulates again every year, and it looks exactly as
+			official as this year's.
+		</p>
+		<p class="figure-note">
+			Are you a UPLB student, staff member, or volunteer holding the official advisory? This page
+			has an <strong>Edit on GitHub</strong> link in the byline above. Adding the sourced venue and reporting
+			time here, with the link to the official post, is a useful ten minutes.
+		</p>
+	</aside>
+
+	<section aria-labelledby="last-cycle">
+		<h2 id="last-cycle">What last cycle looked like at UPLB</h2>
+		<p class="warning-line">
+			Everything in this section describes the <strong>previous</strong> exam, held August 2 and 3,
+			2025. It’s here to set your expectations about the shape of the day. It’s <strong>not</strong> a
+			prediction, and none of these buildings or gates is confirmed for 2026. Don’t go to any of them
+			because you read it here.
+		</p>
+		<p>
+			UPLB published a campus traffic advisory for that exam. The useful thing it reveals is
+			structural, and it’s very likely to hold again.
+			<strong>UPLB doesn’t run the UPCAT in one hall.</strong> The advisory marked testing centers at
+			ten separate locations spread across the campus.
+		</p>
+		<ul class="chip-list">
+			{#each lastCycleBuildings as b}
+				<li>{b}</li>
+			{/each}
+		</ul>
+		<p>
+			It also named four gates as entrances and exits, and closed a list of interior campus roads
+			for the weekend.
+		</p>
+		<ul class="chip-list">
+			{#each lastCycleGates as g}
+				<li>{g}</li>
+			{/each}
+		</ul>
+		<p>
+			UPLB reported welcoming close to <strong>10,000 examinees</strong> over those two days. That’s the
+			number to keep in mind when you think about traffic at the gate, queues, and whether mobile data
+			will work.
+		</p>
+		<p>
+			Assume you’ll be told a building name and sent walking, possibly a long way, and that the road
+			you expected to drive down may be closed. That’s the situation this app is for. It’s also why
+			the building name you’re given is worth typing into the search bar the moment you hear it.
+		</p>
+	</section>
+
+	<section aria-labelledby="getting-there">
+		<h2 id="getting-there">Getting to campus and moving around it</h2>
+		<p>
+			Room TBA records {campusRoutes.length} campus jeepney routes with
+			{routeStopCount} stops between them. These are the ordinary campus routes, not exam-day arrangements.
+			The full stop lists, fares, and boarding tips are in the
+			<a href="/wiki/jeepney-guide">jeepney guide</a>, which reads the same route data as the map.
+		</p>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col">Route</th>
+						<th scope="col">What it links</th>
+						<th scope="col">Stops</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each campusRoutes as route}
+						<tr>
+							<td><strong>{route.name}</strong></td>
+							<td>{route.description}</td>
+							<td class="num">{route.stops.length}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+		<p class="figure-note">
+			The recorded fare on the campus routes is {fare.regular} pesos regular and{' '}{fare.discounted}
+			pesos discounted. Fares change and the app isn’t the authority on them. Carry coins and small bills.
+		</p>
+
+		<h3 id="kaliwa-kanan">Kaliwa and Kanan are the same loop</h3>
+		<p>
+			This confuses first-timers more than anything else on campus.
+			<strong> Kaliwa</strong> and <strong>Kanan</strong> aren’t two different destinations. They’re
+			one loop, and the name tells you which way the jeep turns after it enters the UPLB gate.
+			{directions.reverse.label}: {directions.reverse.summary}
+			{' '}{directions.forward.label}: {directions.forward.summary}
+		</p>
+		<p>
+			Practically: if the building you want comes early after the gate on one direction, take that
+			direction. If it’s near the end, the other direction gets you there in a few stops instead of
+			most of the loop. If you get it wrong you still arrive, just the long way around, which on
+			exam morning is the difference that matters.
+		</p>
+		<p class="figure-note">
+			The loop opens and closes at Olivarez Plaza Mall ({kaliwaKanan?.stops.length ?? 0} stops counting
+			it twice). The Forestry route ({forestry?.stops.length ?? 0} stops) climbs to the upper Forestry
+			campus. It’s worth knowing mostly so you don’t board it by accident, and because the University
+			Health Service sits on it.
+		</p>
+	</section>
+
+	<section aria-labelledby="finding-the-building">
+		<h2 id="finding-the-building">Finding a building once someone names it</h2>
+		<p>
+			This is the moment Room TBA is built for. A proctor, a marshal, or a sheet on a wall says a
+			building name. You’ve never heard it before. You have a few minutes.
+		</p>
+		<p>
+			Type the name into the search bar. All 52 UPLB buildings in the app carry written walking
+			directions from a person who knows the campus, not generated text. They read like this.
+		</p>
+		<blockquote class="quote">
+			<p>
+				"In front of CAS Annex 1, to the left of SEARCA. Has multiple wings housing the Institute of
+				Biological Sciences and the Institute of Weed Science, Entomology, and Plant Pathology."
+			</p>
+			<footer>Biological Sciences Building</footer>
+		</blockquote>
+		<blockquote class="quote">
+			<p>
+				"From the main gate, walk towards the Oblation statue. The Physical Sciences Building is the
+				wide building to the right of Oble."
+			</p>
+			<footer>Francisco O. Santos Hall</footer>
+		</blockquote>
+		<p>
+			The app also holds 79 name aliases, so the nickname or acronym you were given resolves to the
+			real building. Searching <code>BioSci</code>,
+			<code>AMPED</code>, or <code>Catambay Hall</code> lands on the right pin. That matters when the
+			person giving you directions uses campus slang and you’re hearing it for the first time.
+		</p>
+		<p>
+			Tap the result and the map centres on the building with its pin, so you get both the words and
+			the picture. Both work with no signal if you downloaded the directory.
+		</p>
+	</section>
+
+	<section aria-labelledby="parent">
+		<h2 id="parent">For the parent who waits</h2>
+		<p>
+			You’ll be here for hours, on a campus built for 4,000 hectares of agriculture research rather
+			than for waiting. Two things shape the day. It’s a weekend, and UPLB is spread out.
+		</p>
+		<p>
+			<strong>Weekend hours are the thing to plan around.</strong> August 1 is a Saturday and August 2
+			is a Sunday. Campus canteens and offices generally keep weekday hours. Room TBA records 49 places
+			but stores no opening hours for any of them, so treat every canteen below as "might be closed" and
+			bring water, food, and something to sit on. Don’t build your morning around a specific canteen being
+			open.
+		</p>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col">Category</th>
+						<th scope="col">Entries</th>
+						<th scope="col">Useful on exam day?</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each placeCategories as row}
+						<tr>
+							<td><strong>{row.category}</strong></td>
+							<td class="num">{row.count}</td>
+							<td>{row.useful}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+
+		<h3 id="food-on-campus">Food on campus</h3>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col">Place</th>
+						<th scope="col">Where</th>
+						<th scope="col">What it is</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each foodOnCampus as row}
+						<tr>
+							<td><strong>{row.name}</strong></td>
+							<td>{row.where}</td>
+							<td>{row.what}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+
+		<h3 id="food-outside">Food just outside, near Raymundo Gate</h3>
+		<p>
+			The strip in Batong Malake (locals call the area the Grove) is outside the campus but close to
+			Raymundo Gate, which is a named jeepney stop. More of it is likely to be open on a weekend
+			than the campus canteens are.
+		</p>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col">Place</th>
+						<th scope="col">Where</th>
+						<th scope="col">What it is</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each foodOutside as row}
+						<tr>
+							<td><strong>{row.name}</strong></td>
+							<td>{row.where}</td>
+							<td>{row.what}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+
+		<h3 id="waiting-spots">Places to wait, and to name over the phone</h3>
+		<p>
+			Pick one landmark and agree on it before your examinee walks off. Building names all sound
+			alike to someone who has never been here. Landmarks don’t.
+		</p>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col">Landmark</th>
+						<th scope="col">Why it works</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each waitingSpots as row}
+						<tr>
+							<td><strong>{row.name}</strong></td>
+							<td>{row.why}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+		<p>
+			The University Health Service is on the Forestry jeepney route if anyone needs it. Don’t plan
+			to walk back and forth across campus during the exam, because the distances are larger than
+			they look on a phone screen. And download the map on your own phone too, not just your
+			examinee's, since you’re the one who will be navigating while they’re inside.
+		</p>
+	</section>
+
+	<section aria-labelledby="cannot">
+		<h2 id="cannot">What no app can tell you, including this one</h2>
+		<p>Being clear about the gaps is more useful than filling them with confident guesses.</p>
+		<p class="table-hint">Scroll sideways for the full table.</p>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col">Question</th>
+						<th scope="col">Honest answer</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each cannotAnswer as row}
+						<tr>
+							<td><strong>{row.question}</strong></td>
+							<td>{row.answer}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+		<p>
+			Room TBA is a map of a campus, kept by volunteers. It’s good at "where is that building and
+			how do I walk there". It isn’t the registrar, it isn’t the UP Office of Admissions and it
+			isn’t official. For anything about the exam itself, those two offices are the only sources
+			that count.
+		</p>
+	</section>
+
+	<section aria-labelledby="sources">
+		<h2 id="sources">Sources</h2>
+		<ul class="break-list">
+			<li>
+				<a
+					class="wiki-link"
+					href="https://upcat.up.edu.ph/htmls/aboutupcat.html"
+					target="_blank"
+					rel="noopener noreferrer">UP General Information Bulletin</a
+				>
+				for the permit contents, the session times, the arrival times, what to bring, the prohibited items,
+				and the five-hour duration. This is the page that names the August 2026 dates directly, so prefer
+				it over the homepage where the two disagree.
+			</li>
+			<li>
+				<a
+					class="wiki-link"
+					href="https://upcat.up.edu.ph"
+					target="_blank"
+					rel="noopener noreferrer">upcat.up.edu.ph</a
+				>
+				for the centralized reporting location rule and seat assignment.
+			</li>
+			<li>
+				<a
+					class="wiki-link"
+					href="https://upcat.up.edu.ph/htmls/upcat_testcenters.html"
+					target="_blank"
+					rel="noopener noreferrer">UPCAT test centers list</a
+				>, where UP Los Baños appears under Region 4-A. It’s undated, so treat it as a standing
+				list.
+			</li>
+			<li>
+				<a
+					class="wiki-link"
+					href="https://newsinfo.inquirer.net/2164711"
+					target="_blank"
+					rel="noopener noreferrer">Inquirer</a
+				>
+				and
+				<a
+					class="wiki-link"
+					href="https://www.gmanetwork.com/news/topstories/nation/978774"
+					target="_blank"
+					rel="noopener noreferrer">GMA News</a
+				>
+				for the August 1 and 2, 2026 exam dates.
+			</li>
+			<li>
+				<a
+					class="wiki-link"
+					href="https://our.uplb.edu.ph"
+					target="_blank"
+					rel="noopener noreferrer">UPLB Office of the University Registrar</a
+				>
+				for UPLB campus instructions, when they’re published.
+			</li>
+			<li>
+				The UPLB OVCCA traffic advisory for the previous cycle (exam of August 2 and 3, 2025) for
+				the last-cycle testing locations, gates, and road closures, and
+				<a
+					class="wiki-link"
+					href="https://uplb.edu.ph/all-news/pahinungod-spearheads-pencil-donation-drive-at-upcat-2026-in-uplb/"
+					target="_blank"
+					rel="noopener noreferrer">UPLB news</a
+				>
+				for the roughly 10,000 examinees figure. Both describe last cycle, not this one.
+			</li>
+			<li>
+				<a
+					class="wiki-link"
+					href="https://www.philstar.com/nation/2025/08/02/2462559/lists-117-upcat-testing-centers-nationwide"
+					target="_blank"
+					rel="noopener noreferrer">Philstar</a
+				>
+				for the 117 testing centers used in the previous cycle.
+			</li>
+			<li>
+				Campus figures on this page come from the Room TBA production database, read on July 27,
+				2026.
+			</li>
+		</ul>
+	</section>
+</article>
+
+<style>
+	.wiki-article .warning-line {
+		max-width: var(--wiki-measure);
+		padding: 0.7rem 0.85rem;
+		border: 1px solid var(--wiki-rule-strong);
+		background: var(--wiki-accent-soft);
+		color: var(--wiki-ink);
+		font-size: var(--wiki-text-md);
+	}
+
+	.chip-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		max-width: var(--wiki-measure);
+		margin: 0.85rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.chip-list li {
+		margin: 0;
+		padding: 0.2rem 0.5rem;
+		border: 1px solid var(--wiki-rule);
+		background: var(--wiki-paper-2);
+		color: var(--wiki-ink);
+		font-size: var(--wiki-text-md);
+	}
+
+	.quote {
+		max-width: var(--wiki-measure);
+		margin: 1rem 0 0;
+		padding: 0.4rem 0 0.4rem 1rem;
+		border-left: 2px solid var(--wiki-rule-strong);
+	}
+
+	.quote p {
+		margin: 0;
+		font-size: var(--wiki-text-md);
+	}
+
+	.quote footer {
+		margin-top: 0.35rem;
+		color: var(--wiki-ink-2);
+		font-size: var(--wiki-text-sm);
+		font-weight: 600;
+	}
+
+	.article-callout--stale {
+		border-color: var(--wiki-accent);
+		background: var(--wiki-accent-soft);
+	}
+
+	.article-callout--action {
+		border-color: var(--wiki-ink);
+	}
+</style>

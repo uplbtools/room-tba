@@ -1,0 +1,189 @@
+<script lang="ts">
+	import WikiProvenance from '../WikiProvenance.svelte';
+	import type { PageData } from './$types';
+	import {
+		BUNDLED_BUS_ROUTES,
+		FARES_VERIFIED_ON,
+		JEEPNEY_RIDING_NOTES,
+		JEEPNEY_ROUTES,
+		ROUTE_BOARDING_NOTES,
+		ROUTE_DIRECTIONS,
+		TOWN_JEEPNEY_MINIMUM_FARE,
+		TOWN_JEEPNEY_RIDING_NOTES,
+		TRANSIT_DATA_CREDIT,
+		routeSchedule,
+		routeTicketing
+	} from '#lib/constants/map/jeepney-routes.js';
+	import { getTransitRoutePath } from '#lib/utils/transit-urls.js';
+	import { campusTransit } from '#lib/campus.config.js';
+
+	const { data }: { data: PageData } = $props();
+
+	const campusFare = JEEPNEY_ROUTES[0]?.fare ?? TOWN_JEEPNEY_MINIMUM_FARE;
+	const kanan = ROUTE_DIRECTIONS['kaliwa-kanan'];
+</script>
+
+<article class="wiki-article">
+	<header class="article-hero">
+		<h1 class="wiki-title">Jeepneys and buses around UPLB</h1>
+		<p class="wiki-lede">
+			This page shows which jeep goes where inside the campus, what it costs and where to board.
+			Everything below is read from the route data bundled with Room TBA, so this page and the map
+			can’t disagree.
+		</p>
+		<p class="article-meta">
+			The maintainer last confirmed fares on <strong>{FARES_VERIFIED_ON}</strong>. Fares change, so
+			the driver and the operator are the authority.
+		</p>
+		<WikiProvenance {data} />
+	</header>
+
+	<section aria-labelledby="quick-answers">
+		<h2 id="quick-answers">Quick answers</h2>
+		<ul class="break-list">
+			<li>
+				The campus fare is {campusFare.regular} pesos regular and
+				{campusFare.discounted} pesos for students, seniors and PWDs. It’s the same on every campus route.
+				Pay the driver as you ride.
+			</li>
+			<li>
+				<strong>Kaliwa and Kanan are one loop.</strong>
+				{kanan.reverse.label}: {kanan.reverse.summary}
+				{kanan.forward.label}: {kanan.forward.summary}
+			</li>
+			<li>
+				<strong>Board and get off only at the designated stops</strong>, marked in yellow.
+			</li>
+			<li>
+				<strong>Check the windshield signboard.</strong> UP GATE means the jeep stops at Grove and doesn’t
+				enter campus.
+			</li>
+		</ul>
+	</section>
+
+	<section aria-labelledby="campus-routes">
+		<h2 id="campus-routes">Campus routes at a glance</h2>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col">Route</th>
+						<th scope="col">What it links</th>
+						<th scope="col">Stops</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each JEEPNEY_ROUTES as route}
+						<tr>
+							<td><strong>{route.name}</strong></td>
+							<td>{route.description}</td>
+							<td class="num">{route.stops.length}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<section aria-labelledby="route-details">
+		<h2 id="route-details">Stop by stop</h2>
+		{#each JEEPNEY_ROUTES as route}
+			<h3 id={`route-${route.id}`}>{route.name}</h3>
+			<p>{route.directionNote}</p>
+			{#if ROUTE_BOARDING_NOTES[route.id]}
+				<p>{ROUTE_BOARDING_NOTES[route.id]}</p>
+			{/if}
+			<ol class="stop-list">
+				{#each route.stops as stop}
+					<li>{stop.name}</li>
+				{/each}
+			</ol>
+			{#if campusTransit.enabled}
+				<p class="figure-note">
+					<a href={getTransitRoutePath(route.id)}
+						>See {route.name} on the map and in the stop directory</a
+					>
+				</p>
+			{/if}
+		{/each}
+	</section>
+
+	<section aria-labelledby="leaving-campus">
+		<h2 id="leaving-campus">Leaving campus</h2>
+		<p>
+			Jeeps to and from Los Baños town charge by distance. The minimum is
+			{TOWN_JEEPNEY_MINIMUM_FARE.regular} pesos regular and
+			{TOWN_JEEPNEY_MINIMUM_FARE.discounted} pesos discounted.
+		</p>
+		<ul class="break-list">
+			{#each TOWN_JEEPNEY_RIDING_NOTES as note}<li>{note}</li>{/each}
+			{#each JEEPNEY_RIDING_NOTES as note}<li>{note}</li>{/each}
+		</ul>
+
+		<h3 id="buses">Buses to Metro Manila</h3>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col">Trip</th>
+						<th scope="col">When</th>
+						<th scope="col">Tickets</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each BUNDLED_BUS_ROUTES as route}
+						{@const schedule = routeSchedule(route.id)}
+						{@const ticketing = routeTicketing(route.id)}
+						<tr>
+							<td><strong>{route.name}</strong></td>
+							<td>
+								{schedule
+									? `${schedule.days}${schedule.departures ? `, ${schedule.departures.join(', ')}` : ''}`
+									: 'Not published'}
+							</td>
+							<td>
+								{#if ticketing}
+									<a href={ticketing.url} target="_blank" rel="noopener noreferrer">
+										{ticketing.operator}
+									</a>
+								{:else}
+									Pay on board
+								{/if}
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+		<p class="figure-note">
+			Bus fares are set by the operator and aren’t quoted here. Departure times are what the
+			operator has published to the maintainer and can change.
+		</p>
+	</section>
+
+	<section aria-labelledby="credits">
+		<h2 id="credits">Sources</h2>
+		<p>{TRANSIT_DATA_CREDIT}</p>
+		<p>
+			The app can hold newer edits than this page, because route edits made by volunteers reach the
+			map before the next site build. If a stop or fare here looks wrong, use “Report a correction”
+			above.
+		</p>
+	</section>
+</article>
+
+<style>
+	.stop-list {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.2rem 1.5rem;
+		font-size: var(--wiki-text-md);
+		line-height: 1.55;
+	}
+
+	@media (max-width: 36rem) {
+		.stop-list {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
