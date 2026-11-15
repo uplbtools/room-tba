@@ -349,6 +349,16 @@ export function hallOfFame(
 	return entries;
 }
 
+const BADGES = [
+	{ id: 'first', label: 'First edit', threshold: 1 },
+	{ id: 'ten', label: '10 edits', threshold: 10 },
+	{ id: 'fifty', label: '50 edits', threshold: 50 }
+] as const;
+
+export function badgesFor(contributions: number) {
+	return BADGES.map((badge) => ({ ...badge, earned: contributions >= badge.threshold }));
+}
+
 export function pointsLabel(points: number): string {
 	return `${points} ${points === 1 ? 'point' : 'points'}`;
 }

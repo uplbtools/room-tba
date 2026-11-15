@@ -45,9 +45,13 @@ const rows = [
 
 const mocks = vi.hoisted(() => ({
 	getLeaderboard: vi.fn(),
-	getMyStanding: vi.fn()
+	getMyStanding: vi.fn(),
+	getContributorProfile: vi.fn()
 }));
 vi.mock('#lib/functions/leaderboard.remote.js', () => mocks);
+vi.mock('#lib/utils/context.js', () => ({
+	getAdminAuthStore: () => ({ openAccountSettings: vi.fn() })
+}));
 
 beforeEach(() => {
 	mocks.getLeaderboard.mockImplementation(async ({ window }: { window: string }) => ({
@@ -58,6 +62,7 @@ beforeEach(() => {
 		]
 	}));
 	mocks.getMyStanding.mockResolvedValue(null);
+	mocks.getContributorProfile.mockResolvedValue(null);
 });
 
 describe('LeaderboardPanel', () => {
@@ -145,5 +150,20 @@ describe('LeaderboardPanel', () => {
 		render(LeaderboardPanel);
 
 		expect(await screen.findByText("Couldn't load the leaderboard.")).toBeTruthy();
+	});
+
+	test('a name opens that profile and Back returns to the board', async () => {
+		render(LeaderboardPanel);
+
+		await fireEvent.click(await screen.findByRole('button', { name: 'View profile of Ben Cruz' }));
+		await waitFor(() =>
+			expect(mocks.getContributorProfile).toHaveBeenCalledWith({ key: 'u2', board: 'community' })
+		);
+		expect(await screen.findByText("This contributor's profile isn't public.")).toBeTruthy();
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Back to leaderboard' }));
+		await waitFor(() =>
+			expect(screen.queryByRole('region', { name: 'Contributor profile' })).toBeNull()
+		);
 	});
 });
