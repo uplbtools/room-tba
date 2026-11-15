@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -11,6 +12,7 @@
 	const plannerStore = getPlannerStore();
 	const termStore = getTermStore();
 	const toastStore = getToast();
+	const ready = browser ? termStore.init().then(plannerStore.init) : null;
 
 	// Import a plan from a share link (?plan=).
 	onMount(async () => {
@@ -38,4 +40,6 @@
 	<title>Class Planner | Room TBA</title>
 </svelte:head>
 
-<PlannerScreen />
+{#await ready then}
+	<PlannerScreen />
+{/await}
