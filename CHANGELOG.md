@@ -1,3 +1,10 @@
+# [2.39.0](https://github.com/uplbtools/room-tba/compare/v2.38.4...v2.39.0) (2026-11-15)
+
+
+### Features
+
+* **mobile:** a place opens full screen on phones ([#1389](https://github.com/uplbtools/room-tba/issues/1389)) ([56e9e28](https://github.com/uplbtools/room-tba/commit/56e9e28d84c37eab8a352726d604fde01c5a28f2)), closes [#1289](https://github.com/uplbtools/room-tba/issues/1289) [#1290](https://github.com/uplbtools/room-tba/issues/1290) [#1307](https://github.com/uplbtools/room-tba/issues/1307) [#1298](https://github.com/uplbtools/room-tba/issues/1298) [#1295](https://github.com/uplbtools/room-tba/issues/1295) [#1296](https://github.com/uplbtools/room-tba/issues/1296) [#1301](https://github.com/uplbtools/room-tba/issues/1301) [#1303](https://github.com/uplbtools/room-tba/issues/1303) [#1300](https://github.com/uplbtools/room-tba/issues/1300) [#1298](https://github.com/uplbtools/room-tba/issues/1298) [#1300](https://github.com/uplbtools/room-tba/issues/1300) [#1305](https://github.com/uplbtools/room-tba/issues/1305)
+
 ## [2.38.4](https://github.com/uplbtools/room-tba/compare/v2.38.3...v2.38.4) (2026-11-12)
 
 
