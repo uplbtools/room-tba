@@ -77,12 +77,13 @@ const DLTB_TICKETING: RouteTicketing = {
 };
 
 /**
- * The UPLB <-> UP Diliman bus is booked on DLTB's website, which also has the
+ * The UPLB <-> UP Diliman and UPLB -> Buendia buses are booked on DLTB's website, which also has the
  * current fare, so the app links there instead of quoting a price.
  */
 const ROUTE_TICKETING: Readonly<Record<string, RouteTicketing>> = {
   "uplb-to-upd": DLTB_TICKETING,
   "upd-to-uplb": DLTB_TICKETING,
+  "uplb-to-buendia": DLTB_TICKETING,
 };
 
 /**
@@ -160,14 +161,14 @@ export type RouteSchedule = {
 
 /**
  * Keyed by route id, like the boarding notes, because database rows replace
- * the bundled route objects and carry no schedule column. Sources: the DLTB
- * Buendia note below and the UPD bus times in scripts/seed-transit-routes.ts.
+ * the bundled route objects and carry no schedule column. Sources: DLTB's
+ * booking site (dltb.ph, read 2026-11-16) for the UPLB trips, and the
+ * maintainer (2026-10-07) for the Buendia return.
  */
 export const ROUTE_SCHEDULES: Readonly<Record<string, RouteSchedule>> = {
   "uplb-to-buendia": {
-    days: "Daily",
-    departures: ["5:00 AM"],
-    note: "More trips may be added when demand is high.",
+    days: "Monday to Saturday",
+    departures: ["5:30 AM"],
   },
   "buendia-to-uplb": {
     days: "Daily",
@@ -802,30 +803,34 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
 ];
 
 /**
- * DLTB's daily UPLB <-> LRT Buendia trips (UPLB OVCCA, "DLTB returns to
- * UPLB", Oct 2022; schedule confirmed by the maintainer 2026-10-07). Bundled
- * so they show before anyone adds them to the database; database rows win.
+ * DLTB's UPLB <-> LRT Buendia trips. The outbound trip is from dltb.ph
+ * (2026-11-16); the return is from the maintainer (2026-10-07). Bundled so
+ * they show before anyone adds them to the database; database rows win.
  */
 const DLTB_BUENDIA_NOTE =
-  "It runs daily. It leaves UPLB at 5:00 AM, and the return trip leaves Buendia at 6:00 PM. Each way takes about 1.5 to 2 hours. More trips may be added when demand is high.";
+  "It runs Monday to Saturday and leaves Carabao Park at 5:30 AM. Book a seat on dltb.ph. After Buendia it goes on to Magallanes and Pasay Road. The trip takes about 1.5 to 2 hours.";
+const DLTB_BUENDIA_RETURN_NOTE =
+  "It leaves the Buendia terminal at 6:00 PM and takes about 1.5 to 2 hours.";
+
+const CPARK_STOP = {
+  name: "Carabao Park (CPark), UPLB main gate",
+  description:
+    "DLTB's UPLB loading point at Carabao Park by the main gate, across from the College of Development Communication.",
+  lat: 14.16716,
+  lon: 121.24288,
+};
 
 export const BUNDLED_BUS_ROUTES: JeepneyRoute[] = [
   {
     id: "uplb-to-buendia",
     name: "UPLB → LRT Buendia (DLTB bus)",
     description:
-      "Daily DLTB bus from the UPLB main gate to the Buendia bus terminal under LRT-1 Gil Puyat station, via SLEX.",
+      "DLTB bus from Carabao Park at the UPLB main gate to the Buendia bus terminal under LRT-1 Gil Puyat station, via SLEX.",
     directionNote: DLTB_BUENDIA_NOTE,
     color: "#0f766e",
     fare: { regular: 0, discounted: 0 },
     stops: [
-      {
-        name: "UPLB main gate (opposite CDC)",
-        description:
-          "Loading and unloading point near the UPLB main gate, across from the College of Development Communication.",
-        lat: 14.16716,
-        lon: 121.24288,
-      },
+      CPARK_STOP,
       {
         name: "Buendia bus terminal (LRT-1 Gil Puyat)",
         description:
@@ -839,8 +844,8 @@ export const BUNDLED_BUS_ROUTES: JeepneyRoute[] = [
     id: "buendia-to-uplb",
     name: "LRT Buendia → UPLB (DLTB bus)",
     description:
-      "Daily DLTB bus from the Buendia bus terminal under LRT-1 Gil Puyat station to the UPLB main gate, via SLEX.",
-    directionNote: DLTB_BUENDIA_NOTE,
+      "DLTB bus from the Buendia bus terminal under LRT-1 Gil Puyat station to Carabao Park at the UPLB main gate, via SLEX.",
+    directionNote: DLTB_BUENDIA_RETURN_NOTE,
     color: "#0f766e",
     fare: { regular: 0, discounted: 0 },
     stops: [
@@ -851,13 +856,7 @@ export const BUNDLED_BUS_ROUTES: JeepneyRoute[] = [
         lat: 14.5541,
         lon: 120.9972,
       },
-      {
-        name: "UPLB main gate (opposite CDC)",
-        description:
-          "Loading and unloading point near the UPLB main gate, across from the College of Development Communication.",
-        lat: 14.16716,
-        lon: 121.24288,
-      },
+      CPARK_STOP,
     ],
   },
 ];
