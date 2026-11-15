@@ -1,3 +1,10 @@
+## [2.40.6](https://github.com/uplbtools/room-tba/compare/v2.40.5...v2.40.6) (2026-11-15)
+
+
+### Bug Fixes
+
+* **transit-map:** key and bus lines on the printable sheet ([#1437](https://github.com/uplbtools/room-tba/issues/1437)) ([0a350b3](https://github.com/uplbtools/room-tba/commit/0a350b3a415caf276a054ea369ad3f487b2be6fc))
+
 ## [2.38.4](https://github.com/uplbtools/room-tba/compare/v2.38.3...v2.38.4) (2026-11-12)
 
 
