@@ -195,12 +195,14 @@
     {/if}
     {#if onback || onclose}
       <header class="jeepney-modal__header">
-        <span
-          class="jeepney-modal__swatch"
-          style:background-color={route.color}
-          aria-hidden="true"
-        ></span>
-        <h2 class="jeepney-modal__title">{route.name} {transitRouteNoun(route)}</h2>
+        <h2 class="jeepney-modal__title">
+          <span
+            class="jeepney-modal__board"
+            class:jeepney-modal__board--bus={transitRouteKind(route) === "bus"}
+            style:--line-color={route.color}>{route.name}</span
+          >
+          <span class="jeepney-modal__noun">{transitRouteNoun(route)}</span>
+        </h2>
       </header>
     {:else}
       <!-- Opened as a modal: the standard top app bar (X at the top-left). -->
@@ -468,18 +470,43 @@
     border-radius: 0.25rem;
   }
 
-  .jeepney-modal__swatch {
-    width: 0.875rem;
-    height: 0.875rem;
-    border-radius: 999px;
-    flex-shrink: 0;
-  }
-
   .jeepney-modal__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem 0.625rem;
     margin: 0;
     font-size: 1.0625rem;
     font-weight: 700;
     color: var(--theme-text, hsl(0, 0%, 15%));
+  }
+
+  /* Styled after the black acrylic route signs on campus jeeps. */
+  .jeepney-modal__board {
+    padding: 0.375rem 0.75rem 0.3125rem;
+    border: 1px solid #c9c3b6;
+    border-bottom: 4px solid var(--line-color);
+    border-radius: 0.25rem;
+    background: #12110f;
+    box-shadow: inset 0 0 0 2px #12110f, inset 0 0 0 3px #3a3631;
+    color: #70e500;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1.15;
+    text-transform: uppercase;
+    text-shadow: 1px 1px 0 #2a5400;
+  }
+
+  .jeepney-modal__board--bus {
+    color: #e5e500;
+    text-shadow: 1px 1px 0 #5a5a00;
+  }
+
+  .jeepney-modal__noun {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--theme-text-2, hsl(0, 0%, 40%));
   }
 
   .jeepney-modal__scroll {

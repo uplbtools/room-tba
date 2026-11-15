@@ -54,6 +54,18 @@ describe("TransitRouteLifecycle clears a route its panel no longer shows", () =>
     expect(jeepneyStore.selectedRouteId).toBeNull();
   });
 
+  test("closing the search (X) from an open stop removes stop and route", async () => {
+    render(TransitRouteLifecycle);
+    openRoutePanel("snodlob");
+    jeepneyStore.openStop(2);
+    await tick();
+
+    queryStore.clearQuery();
+    await tick();
+    expect(jeepneyStore.selectedStopIndex).toBeNull();
+    expect(jeepneyStore.selectedRouteId).toBeNull();
+  });
+
   test("a route pinned from Map tools stays over other lists", async () => {
     render(TransitRouteLifecycle);
     jeepneyStore.selectRoute("snodlob");
