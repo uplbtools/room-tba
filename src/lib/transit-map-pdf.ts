@@ -1291,7 +1291,7 @@ function drawStopStrips(
         ? wrapText(stop.name, f, NAME, nameW)
         : [fitText(shortStopLabel(stop.name, 2), f, NAME, nameW)];
       // A wrapped name is set a little smaller so two in a row stay apart.
-      const size = text.length > 1 ? 8.8 : NAME;
+      const size = text.length > 1 ? 9 : NAME;
       if (text.length > 1) text = wrapText(stop.name, f, size, nameW);
       if (text.length > 2)
         text = wrapText(shortStopLabel(stop.name), f, size, nameW).slice(0, 2);
