@@ -1,5 +1,6 @@
 import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
 import { sharedRateLimit } from '#lib/api/rate-limit-db.js';
+import { recordAudit } from '#lib/services/admin/audit-log.js';
 import { requestPasswordReset } from '#lib/services/admin/user.js';
 import type { RequestHandler } from './$types';
 
@@ -26,13 +27,21 @@ export const POST: RequestHandler = async ({ request }) => {
 		return json({ error: 'login is required.' }, 400);
 	}
 
+	let sendFailed = false;
 	try {
 		await requestPasswordReset(body.login);
 	} catch (error) {
+		sendFailed = true;
 		console.error('Request password reset failed:', error);
 		// Still report success to the client — avoid leaking whether the
 		// account exists or the email send failed.
 	}
+	await recordAudit({
+		action: 'password.reset_requested',
+		actorLabel: body.login.trim().toLowerCase().slice(0, 100),
+		detail: sendFailed ? { emailFailed: true } : null,
+		ip: clientIp(request)
+	});
 	return json({ success: true });
 };
 

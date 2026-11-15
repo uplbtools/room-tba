@@ -1,3 +1,5 @@
+import { clientIp } from '#lib/api/rate-limit.js';
+import { recordAudit } from '#lib/services/admin/audit-log.js';
 import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import {
 	AccountActionError,
@@ -53,6 +55,14 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 			role
 		});
 		if (user.email) await sendEmailVerification(user.id);
+		await recordAudit({
+			action: 'user.created',
+			actor: auth.session,
+			targetUserId: user.id,
+			targetLabel: user.username,
+			detail: { role, via: 'temporary-password' },
+			ip: clientIp(request)
+		});
 		return json({ success: true, user }, 201);
 	} catch (error) {
 		if (error instanceof AccountActionError) {

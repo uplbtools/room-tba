@@ -68,7 +68,9 @@ export const termsTable = pgTable(
 	},
 	(table) => [
 		// At most one term may be the default for anonymous visitors.
-		uniqueIndex('terms_single_default').on(table.isDefault).where(sql`${table.isDefault}`)
+		uniqueIndex('terms_single_default')
+			.on(table.isDefault)
+			.where(sql`${table.isDefault}`)
 	]
 );
 
@@ -543,6 +545,19 @@ export const adminUserAuthTable = pgTable(
 	},
 	(table) => [index('admin_user_auth_verified_email_idx').on(table.verifiedEmail)]
 );
+
+/** Append-only account and review audit trail (0063). Server-only. */
+export const adminAuditLogTable = pgTable('admin_audit_log', {
+	id: bigserial({ mode: 'number' }).primaryKey(),
+	actorUserId: integer('actor_user_id'),
+	actorLabel: text('actor_label'),
+	action: varchar({ length: 48 }).notNull(),
+	targetUserId: integer('target_user_id'),
+	targetLabel: text('target_label'),
+	detail: jsonb(),
+	ip: text(),
+	createdAt: timestamp('created_at', { mode: 'string' }).defaultNow().notNull()
+});
 
 /** SHA-256 of each proposal's owner token (0057). Server-only. */
 export const proposalOwnerTokensTable = pgTable('proposal_owner_tokens', {

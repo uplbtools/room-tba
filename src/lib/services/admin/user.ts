@@ -533,7 +533,7 @@ export async function requestPasswordReset(login: string): Promise<void> {
 	});
 }
 
-export async function confirmPasswordReset(token: string, newPassword: string): Promise<void> {
+export async function confirmPasswordReset(token: string, newPassword: string): Promise<number> {
 	if (newPassword.length < MIN_PASSWORD_LENGTH) {
 		throw new AccountActionError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
 	}
@@ -563,6 +563,7 @@ export async function confirmPasswordReset(token: string, newPassword: string): 
 		.set({ passwordHash, updatedAt: sql`now()` })
 		.where(eq(adminUsersTable.id, payload.userId));
 	await bumpSessionVersion(payload.userId);
+	return payload.userId;
 }
 
 export async function confirmEmailChange(token: string): Promise<void> {
@@ -853,7 +854,7 @@ export type UpdateManagedUserInput = {
 export async function updateManagedUser(
 	targetUserId: number,
 	input: UpdateManagedUserInput
-): Promise<AdminManagedUser> {
+): Promise<AdminManagedUser & { previous: { role: AdminManagedUser['role']; isActive: boolean } }> {
 	// Transaction + advisory lock serializes admin role/active changes so two
 	// concurrent demotions can't both pass the last-admin check and leave
 	// zero active admins. Lock is xact-scoped: released on commit/rollback.
@@ -908,7 +909,8 @@ export async function updateManagedUser(
 		return {
 			...updated,
 			displayName: updated.displayName ?? updated.username,
-			role: updated.role ?? 'editor'
+			role: updated.role ?? 'editor',
+			previous: { role: target.role ?? 'editor', isActive: target.isActive }
 		};
 	});
 	if (revoke) await bumpSessionVersion(targetUserId);

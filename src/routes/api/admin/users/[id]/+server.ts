@@ -1,3 +1,5 @@
+import { clientIp } from '#lib/api/rate-limit.js';
+import { recordAudit } from '#lib/services/admin/audit-log.js';
 import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import { AccountActionError, updateManagedUser } from '#lib/services/admin/user.js';
 import type { RequestHandler } from './$types';
@@ -30,6 +32,25 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 			role: body.role,
 			isActive: body.isActive
 		});
+		const base = {
+			actor: auth.session,
+			targetUserId: user.id,
+			targetLabel: user.username,
+			ip: clientIp(request)
+		};
+		if (body.role !== undefined && body.role !== user.previous.role) {
+			await recordAudit({
+				...base,
+				action: 'user.role_changed',
+				detail: { from: user.previous.role, to: user.role }
+			});
+		}
+		if (body.isActive !== undefined && body.isActive !== user.previous.isActive) {
+			await recordAudit({
+				...base,
+				action: body.isActive ? 'user.activated' : 'user.deactivated'
+			});
+		}
 		return json({ success: true, user });
 	} catch (error) {
 		if (error instanceof AccountActionError) {
