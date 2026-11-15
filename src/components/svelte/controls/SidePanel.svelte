@@ -47,11 +47,10 @@
   let sheetBody = $state<HTMLElement | null>(null);
 
   // Back to a place left from its full-screen view reopens it at the same
-  // scroll. Silent overlay backs never reach this listener.
+  // scroll.
   const fullScreenScroll = new Map<string, number>();
   let sheetScroll = 0;
-  let poppedAt = Number.NEGATIVE_INFINITY;
-  $effect(() => on(window, "popstate", () => (poppedAt = performance.now())));
+  let historyIdx = 0;
   $effect(() => {
     const body = sheetBody;
     if (body) return on(body, "scroll", () => (sheetScroll = body.scrollTop));
@@ -174,6 +173,9 @@
       fullScreenScroll.set(lastPanelIdentity, sheetScroll);
     }
     sheetScroll = 0;
+    const idx = (history.state as { rtbaIdx?: number } | null)?.rtbaIdx ?? 0;
+    const wentBack = idx < historyIdx;
+    historyIdx = idx;
 
     if (identity !== null) {
       // Navigating to another entity drops the metadata the previous view was
@@ -184,10 +186,7 @@
       if (detailsEl) detailsEl.scrollTop = 0;
       // Peek on mobile, except a place link opened cold or a place reached
       // by Back after leaving it from full screen.
-      const backTo =
-        performance.now() - poppedAt < 1000
-          ? fullScreenScroll.get(identity)
-          : undefined;
+      const backTo = wentBack ? fullScreenScroll.get(identity) : undefined;
       mobileSnap =
         (openedFromPlaceUrl || backTo !== undefined) && entitySheet
           ? "expanded"

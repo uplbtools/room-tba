@@ -71,18 +71,17 @@ test.describe("place full-screen view @mobile", () => {
     page,
   }) => {
     await openFullScreen(page);
-    const body = page.locator(".bottom-sheet__body");
+    const room = fullScreen(page).getByText(E2E_FIXTURES.roomCode).first();
     await page.getByRole("tab", { name: "Rooms" }).click();
-    await page.waitForTimeout(600);
-    const top = await body.evaluate((el) => el.scrollTop);
+    await expect(room).toBeInViewport();
 
-    await fullScreen(page).getByText(E2E_FIXTURES.roomCode).first().click();
+    await room.click();
     await expect(page).toHaveURL(/\/room\//);
     await page.goBack();
 
     await expect(fullScreen(page)).toBeVisible();
     await expect(title(page)).toHaveText(name);
-    await expect.poll(() => body.evaluate((el) => el.scrollTop)).toBe(top);
+    await expect(room).toBeInViewport();
   });
 
   test("a place link opened cold shows the full-screen view", async ({
