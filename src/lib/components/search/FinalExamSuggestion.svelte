@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { searchInfo, termStore } from '#lib/stores.svelte.js';
-	import { fetchFinalExams, looksLikeCourseCode } from '#lib/utils/final-exams/final-exams.js';
+	import { getFinalExams } from '#lib/functions/final-exams.remote.js';
+	import { getSearchInfo, getTermStore } from '#lib/utils/context.js';
+	import { looksLikeCourseCode } from '#lib/utils/final-exams/final-exams.js';
 	import { normalizeCourseCode } from '#lib/utils/final-exams/normalize.js';
 
 	interface Props {
@@ -8,70 +9,57 @@
 	}
 
 	const { onSelect }: Props = $props();
+	const searchInfo = getSearchInfo();
+	const termStore = getTermStore();
 
-	let matchCount = $state<number | null>(null);
-	let checking = $state(false);
-
-	$effect(() => {
-		const trimmed = searchInfo.inputValue.trim();
-		const termId = termStore.activeTermId;
-		const code = normalizeCourseCode(trimmed);
-
-		if (!code || termId == null || !looksLikeCourseCode(code)) {
-			matchCount = null;
-			checking = false;
-			return;
-		}
-
-		let cancelled = false;
-		checking = true;
-		void fetchFinalExams({ courseCode: code, termId }).then((rows) => {
-			if (cancelled) return;
-			matchCount = rows.length;
-			checking = false;
-		});
-
-		return () => {
-			cancelled = true;
-		};
-	});
+	const query = $derived(searchInfo.queryValue.trim());
+	const courseCode = $derived(normalizeCourseCode(query));
+	const termId = $derived(termStore.activeTermId);
 
 	function openFinalExams() {
 		searchInfo.updateQuery({
 			category: 'class',
 			type: 'result',
-			value: searchInfo.inputValue.trim()
+			value: query
 		});
 		onSelect();
 	}
 </script>
 
-{#if looksLikeCourseCode(searchInfo.inputValue) && (checking || (matchCount ?? 0) > 0)}
-	<button type="button" class="final-exam-suggestion" onclick={openFinalExams}>
-		<div>
-			{#if checking}
-				Checking final exams for <strong>{searchInfo.inputValue}</strong>…
-			{:else}
-				View final exam for <strong>{searchInfo.inputValue}</strong>
-				{#if matchCount && matchCount > 1}
-					({matchCount} sections)
-				{/if}
-			{/if}
-		</div>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="20"
-			height="20"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			aria-hidden="true"
-			><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg
-		>
-	</button>
+{#if courseCode && termId != null && looksLikeCourseCode(courseCode)}
+	<svelte:boundary>
+		{#snippet pending()}
+			<div class="final-exam-suggestion">
+				<div>Checking final exams for <strong>{query}</strong>…</div>
+			</div>
+		{/snippet}
+		{#snippet failed()}{/snippet}
+		{@const matchCount = (await getFinalExams({ termId, courseCode })).length}
+		{#if matchCount > 0}
+			<button type="button" class="final-exam-suggestion" onclick={openFinalExams}>
+				<div>
+					View final exam for <strong>{query}</strong>
+					{#if matchCount > 1}
+						({matchCount} sections)
+					{/if}
+				</div>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true"
+					><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"
+					></polyline></svg
+				>
+			</button>
+		{/if}
+	</svelte:boundary>
 {/if}
 
 <style>
