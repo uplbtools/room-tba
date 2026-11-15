@@ -867,9 +867,15 @@
 			{/if}
 		</svelte:boundary>
 		<button
+			class="self-start rounded-full border border-neutral-300 px-3 py-1 text-sm hover:bg-neutral-100"
 			onclick={() => {
-				modalStore.openModal('modify-suggestion', building);
-			}}>Suggest Edit</button
+				modalStore.openModal('modify-suggestion', {
+					id: building.id,
+					version: building.version,
+					buildingName: building.buildingName,
+					directions: building.directions ?? ''
+				});
+			}}>Suggest an edit</button
 		>
 	</div>
 {/key}

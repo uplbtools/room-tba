@@ -45,8 +45,8 @@ export const ProposalMetaSchema = v.object({
 export const BuildingProposalSchema = v.object({
 	meta: ProposalMetaSchema,
 	body: v.object({
-		buildingName: v.pipe(v.string(), v.nonEmpty()),
-		directions: v.pipe(v.string(), v.nonEmpty()),
+		buildingName: v.pipe(v.string(), v.trim(), v.nonEmpty('Building name is empty')),
+		directions: v.pipe(v.string(), v.trim()),
 		lon: v.optional(v.number()),
 		lat: v.optional(v.number()),
 		buildingType: v.optional(v.union([v.literal('non-admin'), v.literal('admin')]))

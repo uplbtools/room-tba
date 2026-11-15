@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { addBuildingSuggestion } from '#lib/functions/buildings.remote.js';
 	import { BuildingProposalSchema } from '#lib/schema/functions.js';
-	import { getEscapeActions, getToast } from '#lib/utils/context.js';
+	import { getAdminAuthStore, getEscapeActions, getToast } from '#lib/utils/context.js';
+	import { isHttpError } from '@sveltejs/kit';
 	import * as v from 'valibot';
 	import Input from './Input.svelte';
 	import Form from './Form.svelte';
@@ -15,12 +16,13 @@
 
 	const toastStore = getToast();
 	const escapedActions = getEscapeActions();
+	const adminAuthStore = getAdminAuthStore();
 
-	const { id, ...buildingInitData } = $derived(
+	const { id, version, ...buildingInitData } = $derived(
 		v.parse(
 			v.intersect([
 				BuildingProposalSchema.entries.body,
-				v.object({ id: v.pipe(v.number(), v.integer()) })
+				v.object({ id: v.pipe(v.number(), v.integer()), version: v.number() })
 			]),
 			rawProps
 		)
@@ -30,9 +32,9 @@
 		addBuildingSuggestion.fields.set({
 			body: buildingInitData,
 			meta: {
-				baseVersion: 1,
+				baseVersion: version,
 				entityId: id,
-				submitterName: '  '
+				submitterName: adminAuthStore.displayName ?? ''
 			}
 		});
 		addBuildingSuggestion.validate();
@@ -44,22 +46,38 @@
 		try {
 			if (await form.submit()) {
 				escapedActions.trigger();
-				toastStore.show('Contribution submitted, thank you!!!', 'success');
+				toastStore.show(
+					addBuildingSuggestion.result?.published
+						? 'Saved.'
+						: 'Contribution submitted, thank you!!!',
+					'success'
+				);
 			} else {
 				toastStore.show('Contribution has some validation errors', 'error');
 			}
 		} catch (e) {
-			toastStore.show('An error occrred while parsing', 'error');
-			console.error(e);
+			toastStore.show(isHttpError(e) ? e.body.message : "Couldn't send your edit.", 'error');
 		}
 	})}
 	oninput={() => addBuildingSuggestion.validate()}
 >
-	<InputField>
-		<label for="contributor-name">What is your name?</label>
-		<Input {...addBuildingSuggestion.fields.meta.submitterName.as('text')} id="contributor-name" />
-		<InputIssues issues={addBuildingSuggestion.fields.meta.submitterName.issues()} />
-	</InputField>
+	{#if adminAuthStore.isLoggedIn}
+		<Input
+			{...addBuildingSuggestion.fields.meta.submitterName.as(
+				'hidden',
+				adminAuthStore.displayName ?? ''
+			)}
+		/>
+	{:else}
+		<InputField>
+			<label for="contributor-name">What is your name?</label>
+			<Input
+				{...addBuildingSuggestion.fields.meta.submitterName.as('text')}
+				id="contributor-name"
+			/>
+			<InputIssues issues={addBuildingSuggestion.fields.meta.submitterName.issues()} />
+		</InputField>
+	{/if}
 	<InputField>
 		<label for="building-name">Building name</label>
 		<Input {...addBuildingSuggestion.fields.body.buildingName.as('text')} id="building-name" />
@@ -73,7 +91,7 @@
 		/>
 	</InputField>
 	<Input {...addBuildingSuggestion.fields.meta.entityId.as('hidden', id)} />
-	<Input {...addBuildingSuggestion.fields.meta.baseVersion.as('hidden', 1)} />
+	<Input {...addBuildingSuggestion.fields.meta.baseVersion.as('hidden', version)} />
 </Form>
 
 <style>
