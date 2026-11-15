@@ -29,6 +29,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.25rem;
   width: max-content;
   min-height: 2rem;
   padding: 0.4375rem 0.625rem;

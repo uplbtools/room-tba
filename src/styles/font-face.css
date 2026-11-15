@@ -1,9 +1,9 @@
 /* src/styles/font-face.css */
 
 @font-face {
-  font-family: "Inter";
-  src:
-    url("/InterVariable.ttf") format("truetype"),
-    url("/InterVariable-Italic.ttf") format("truetype");
+  font-family: "Figtree";
+  src: url("/fonts/FigtreeVariable.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
   font-display: swap;
 }

@@ -271,15 +271,28 @@ export function scoreEntities(
   ];
 }
 
-/** Building aliases ("PS" → Physical Sciences Building): exact alias = exact. */
+/** Building and place aliases ("PS" → Physical Sciences Building): exact alias = exact. */
 export function scoreAliases(
   searchString: string,
-  aliases: { alias: string; value: string }[],
+  aliases: { alias: string; value: string; targetType?: string }[],
   buildings: BuildingData[],
+  places: { name: string; lat?: number | null; lon?: number | null }[] = [],
 ): Suggestion[] {
   const needle = compact(searchString);
   if (needle === "") return [];
-  return aliases.map(({ alias, value }) => {
+  return aliases.map(({ alias, value, targetType }) => {
+    const score = compact(alias) === needle ? MATCH.exact : MATCH.prefix;
+    if (targetType === "place") {
+      const place = places.find((p) => p.name === value);
+      return {
+        value,
+        category: "place",
+        lat: place?.lat ?? undefined,
+        lon: place?.lon ?? undefined,
+        secondary: alias,
+        score,
+      };
+    }
     const building = buildings.find((b) => b.buildingName === value);
     return {
       value,
@@ -288,7 +301,7 @@ export function scoreAliases(
       lat: building?.lat,
       lon: building?.lon,
       secondary: alias,
-      score: compact(alias) === needle ? MATCH.exact : MATCH.prefix,
+      score,
     };
   });
 }

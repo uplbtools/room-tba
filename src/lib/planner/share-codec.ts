@@ -1,4 +1,6 @@
-import type { PlannerPlan } from "./types.js";
+import { groupClassesByOffering } from "@lib/class-offering-groups";
+import type { ClassMapValue } from "@lib/types";
+import { sectionNaturalKey, type PlannerPlan } from "./types.js";
 
 export type SharedSectionRef = {
   courseCode: string;
@@ -62,4 +64,43 @@ export function decodeSharePlan(raw: string | null): DecodedSharePlan | null {
   } catch {
     return null;
   }
+}
+
+/** GradeSim pins these courses to the term in the student's own plan. */
+export function gradesimTakeUrl(plan: PlannerPlan): string | null {
+  const codes = [
+    ...new Set(plan.sections.filter((s) => !s.stale).map((s) => s.courseCode)),
+  ];
+  if (codes.length === 0) return null;
+  const take = codes.map(encodeURIComponent).join(",");
+  return `https://gradesim.uplb.tools/?take=${take}&term=${plan.termId}#planner`;
+}
+
+/**
+ * Refs from another app (GradeSim reading AMIS) may leave out the type, or
+ * the section too. A ref with no type takes every class in its section, and
+ * a ref with no section takes the course's first offering.
+ */
+export function expandSharedRefs(
+  refs: SharedSectionRef[],
+  rows: ClassMapValue[],
+): SharedSectionRef[] {
+  const out = new Map<string, SharedSectionRef>();
+  for (const ref of refs) {
+    const course = rows.filter((row) => row.courseCode === ref.courseCode);
+    const matches = ref.type
+      ? [ref]
+      : (ref.section
+          ? course.filter((row) => row.section === ref.section)
+          : (groupClassesByOffering(course)[0]?.sections ?? [])
+        ).map((row) => ({
+          courseCode: ref.courseCode,
+          section: row.section ?? "",
+          type: row.type ?? "",
+        }));
+    for (const match of matches.length > 0 ? matches : [ref]) {
+      out.set(sectionNaturalKey(match), match);
+    }
+  }
+  return [...out.values()];
 }

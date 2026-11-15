@@ -83,7 +83,7 @@
 
   const query = $derived(queryStore.inputValue.trim());
 
-  type AliasHit = { alias: string; value: string };
+  type AliasHit = { alias: string; value: string; targetType: string };
   type RoomHit = { value: string; fullName?: string | null };
 
   // Each async source remembers which query its results belong to, so "still
@@ -108,14 +108,18 @@
       let hits: AliasHit[];
       try {
         const res = await getJSONFetch<{
-          data: { alias: string; value: string | null }[];
+          data: { alias: string; value: string | null; targetType: string }[];
         }>(
           `/api/aliases?q=${encodeURIComponent(trimmed)}`,
           SEARCH_FETCH_TIMEOUT_MS,
         );
         hits = (res.data ?? [])
           .filter((entry): entry is AliasHit => Boolean(entry.value))
-          .map((entry) => ({ alias: entry.alias, value: entry.value }));
+          .map((entry) => ({
+            alias: entry.alias,
+            value: entry.value,
+            targetType: entry.targetType,
+          }));
       } catch {
         // Offline: only ask the local cache if it is already up; booting it
         // here is what kept search spinning on a cold second tab.
@@ -223,7 +227,7 @@
           places,
         }),
         ...(aliasFor === query
-          ? scoreAliases(query, aliasResults, filteredBuildings)
+          ? scoreAliases(query, aliasResults, filteredBuildings, places)
           : []),
         ...(roomFor === query ? scoreRooms(query, roomResults) : []),
         ...(classFor === query ? scoreClasses(query, classResults) : []),
@@ -474,7 +478,7 @@
   .suggestions-header {
     margin: 0;
     padding: 8px;
-    font-family: Inter, system-ui, sans-serif;
+    font-family: Figtree, system-ui, sans-serif;
     font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.02em;

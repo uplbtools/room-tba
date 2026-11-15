@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Pencil from "@lucide/svelte/icons/pencil";
   import { editorToggleLabel } from "@lib/editor/field-action-label";
   import { trackOverlay } from "@lib/track-overlay.svelte";
   import "./entity-editor.css";
@@ -47,5 +48,8 @@
   aria-expanded={expanded}
   {onclick}
 >
+  {#if variant === "toolbar" && !expanded}
+    <Pencil size={14} aria-hidden="true" />
+  {/if}
   {label}
 </button>

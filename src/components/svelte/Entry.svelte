@@ -309,27 +309,32 @@
 
     const planParam = urlParams.get("plan");
     if (planParam) {
-      window.history.replaceState({}, "", window.location.pathname);
       const decoded = decodeSharePlan(planParam);
       if (!decoded) {
+        window.history.replaceState({}, "", window.location.pathname);
         toastStore.show("That plan link is invalid.", "error");
       } else {
-        void termStore
-          .init()
-          .then(() => resolveSharedPlan(decoded))
-          .then(({ sections, missing }) => {
-            plannerStore.importShared(decoded.termId, sections);
-            if (termStore.terms.some((term) => term.id === decoded.termId)) {
-              termStore.setTerm(decoded.termId);
-            }
-            sidebarStore.changeOpened("planner");
-            if (missing > 0) {
-              toastStore.show(
-                `${missing} shared ${missing === 1 ? "section is" : "sections are"} no longer offered.`,
-                "info",
-              );
-            }
-          });
+        void termStore.init().then(async () => {
+          const term = termStore.terms.find((t) => t.id === decoded.termId);
+          if (!term?.classCount) {
+            toastStore.show(
+              "The class schedule for that term isn't out yet. Open this link again once it is.",
+              "info",
+            );
+            return;
+          }
+          window.history.replaceState({}, "", window.location.pathname);
+          const { sections, missing } = await resolveSharedPlan(decoded);
+          plannerStore.importShared(decoded.termId, sections);
+          termStore.setTerm(decoded.termId);
+          sidebarStore.changeOpened("planner");
+          if (missing > 0) {
+            toastStore.show(
+              `${missing} ${missing === 1 ? "class isn't" : "classes aren't"} offered this term.`,
+              "info",
+            );
+          }
+        });
       }
     }
   });

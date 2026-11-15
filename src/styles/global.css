@@ -14,3 +14,24 @@ mark {
   /* The UA default is black text, invisible on the dark accent tint. */
   color: inherit;
 }
+
+/* Touch screens show no hover, so a press gives the only feedback. */
+@media (hover: none) {
+  :where(button, [role="button"], summary) {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :where(button, [role="button"], summary) {
+      transition: scale 90ms ease-out;
+    }
+
+    :where(
+        button:not(:disabled):active,
+        [role="button"]:not([aria-disabled="true"]):active,
+        summary:active
+      ) {
+      scale: 0.96;
+    }
+  }
+}
