@@ -1,3 +1,10 @@
+## [2.40.3](https://github.com/uplbtools/room-tba/compare/v2.40.2...v2.40.3) (2026-11-15)
+
+
+### Bug Fixes
+
+* **copy:** plain sentences on the static pages ([#1422](https://github.com/uplbtools/room-tba/issues/1422)) ([43fbfdf](https://github.com/uplbtools/room-tba/commit/43fbfdfe728779332678fb618393767088da96b3))
+
 ## [2.38.4](https://github.com/uplbtools/room-tba/compare/v2.38.3...v2.38.4) (2026-11-12)
 
 
