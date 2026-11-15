@@ -6,7 +6,9 @@ import {
 	setSessionCookie
 } from '#lib/admin/auth.js';
 import { getEditorSession } from '#lib/admin/require-editor.js';
-import { checkRateLimit, clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
+import { accountBackoff, sharedRateLimit } from '#lib/api/rate-limit-db.js';
+import { accountKey } from '#lib/api/rate-limit-shared.js';
 import {
 	authenticateAdminUser,
 	authenticateLegacyAdminPassword,
@@ -20,6 +22,8 @@ const LOGIN_RATE_LIMIT_WINDOW_MS = 30 * 1000;
 const LOGIN_IP_LIMIT = { max: 12, windowMs: LOGIN_RATE_LIMIT_WINDOW_MS };
 const LOGIN_USER_LIMIT = { max: 8, windowMs: LOGIN_RATE_LIMIT_WINDOW_MS };
 const LOGIN_RATE_LIMIT_MESSAGE = 'Too many sign-in attempts. Wait about 30 seconds and try again.';
+const LOGIN_BACKOFF_MESSAGE =
+	'Too many failed sign-ins for this account. Wait a few minutes, or reset your password.';
 
 export const GET: RequestHandler = async ({ cookies }) => {
 	const session = getEditorSession(cookies);
@@ -45,7 +49,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		const skipLoginRateLimit = process.env.ASTRO_E2E_SKIP_LOGIN_RATE_LIMIT === '1';
 		const ip = clientIp(request);
 		if (!skipLoginRateLimit) {
-			const ipRate = checkRateLimit(
+			const ipRate = await sharedRateLimit(
 				`admin-login:ip:${ip}`,
 				LOGIN_IP_LIMIT.max,
 				LOGIN_IP_LIMIT.windowMs
@@ -61,14 +65,21 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		const username = typeof usernameRaw === 'string' ? usernameRaw.trim() : '';
 		const password = typeof passwordRaw === 'string' ? passwordRaw : '';
 
-		if (username && !skipLoginRateLimit) {
-			const userRate = checkRateLimit(
-				`admin-login:user:${username.toLowerCase()}`,
+		const backoffKey = username
+			? accountKey('login-backoff', username)
+			: 'login-backoff:break-glass';
+		if (!skipLoginRateLimit) {
+			const userRate = await sharedRateLimit(
+				`admin-login:user:${username ? username.toLowerCase() : '(break-glass)'}`,
 				LOGIN_USER_LIMIT.max,
 				LOGIN_USER_LIMIT.windowMs
 			);
 			if (!userRate.allowed) {
 				return rateLimitResponse(userRate.resetAt, LOGIN_RATE_LIMIT_MESSAGE);
+			}
+			const lockedUntil = await accountBackoff.check(backoffKey);
+			if (lockedUntil !== null) {
+				return rateLimitResponse(lockedUntil, LOGIN_BACKOFF_MESSAGE);
 			}
 		}
 
@@ -129,8 +140,10 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		}
 
 		if (!user) {
+			if (!skipLoginRateLimit) await accountBackoff.fail(backoffKey);
 			return json({ error: 'Invalid username or password' }, 401);
 		}
+		if (!skipLoginRateLimit) await accountBackoff.succeed(backoffKey);
 
 		let token: string;
 		try {

@@ -9,6 +9,9 @@ const { uploadImageToR2, editorSessionOrUnauthorized } = vi.hoisted(() => ({
 }));
 
 vi.mock('$app/env/private', () => ({ R2_PUBLIC_URL: 'https://cdn.example.test' }));
+vi.mock('#lib/api/rate-limit-db.js', async () => ({
+	sharedRateLimit: (await import('#lib/api/rate-limit.js')).checkRateLimit
+}));
 vi.mock('#lib/admin/require-editor.js', () => ({ editorSessionOrUnauthorized }));
 vi.mock('#lib/utils/r2-upload.js', () => ({
 	UPLOAD_MAX_BYTES: 5 * 1024 * 1024,
