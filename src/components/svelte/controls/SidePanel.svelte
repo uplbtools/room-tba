@@ -6,6 +6,7 @@
     sidePanelStore,
     jeepneyStore,
     directionsStore,
+    mapEditStore,
   } from "@lib/store.svelte";
   import JeepneyStopPanel from "./JeepneyStopPanel.svelte";
   import JeepneyRouteModal from "@ui/modal/JeepneyRouteModal.svelte";
@@ -16,6 +17,9 @@
   import { resolvePanelContent } from "@lib/side-panel-content";
   import type { BottomSheetSnap } from "@lib/bottom-sheet-snap";
   import TransitRouteLifecycle from "./TransitRouteLifecycle.svelte";
+  import { trackOverlay } from "@lib/track-overlay.svelte";
+  import { parseEntityPathname } from "@lib/entity-urls";
+  import { on } from "svelte/events";
 
   const mobile = new MediaQuery("max-width:48rem");
   // Entity detail views only, never list/browse panels (docs/ad-policy.md).
@@ -40,6 +44,31 @@
   let detailsEl = $state<HTMLElement | null>(null);
   /** Mobile sheet snap, independent of sidePanelStore.collapsed (Map.expand race). */
   let mobileSnap = $state<BottomSheetSnap>("peek");
+  let openedFromPlaceUrl = parseEntityPathname(location.pathname) !== null;
+  let sheetBody = $state<HTMLElement | null>(null);
+
+  // Back to a place left from its full-screen view reopens it at the same
+  // scroll.
+  const fullScreenScroll = new Map<string, number>();
+  let sheetScroll = 0;
+  let historyIdx = 0;
+  $effect(() => {
+    const body = sheetBody;
+    if (body) return on(body, "scroll", () => (sheetScroll = body.scrollTop));
+  });
+
+  function scrollSheetTo(top: number) {
+    // The place may still be loading, so retry for up to a second.
+    let frames = 0;
+    const step = () => {
+      if (!sheetBody) return;
+      sheetBody.scrollTop = top;
+      if (sheetBody.scrollTop < top - 1 && ++frames < 60) {
+        requestAnimationFrame(step);
+      }
+    };
+    requestAnimationFrame(step);
+  }
 
   /** Navigation is a map-first view: the bar takes a strip, the map the rest. */
   const navPeek = $derived(directionsStore.navigating);
@@ -65,10 +94,9 @@
     navPeek ? 0.22 : directionsPeek ? 0.44 : listPeek ? 0.68 : 0.48,
   );
 
-  // Entering follow mode from an expanded sheet would otherwise leave the map
-  // hidden behind the very panel that is meant to be guiding it.
+  // Follow mode and map edit both need the map, so the sheet drops to peek.
   $effect(() => {
-    if (directionsStore.navigating) mobileSnap = "peek";
+    if (directionsStore.navigating || mapEditStore.enabled) mobileSnap = "peek";
   });
 
   // Opening Get Directions starts at peek so the map + search stay usable;
@@ -108,7 +136,7 @@
   const sheetBottomInset =
     "calc(var(--mobile-bottom-nav-height, 4.5rem) + 0.25rem)";
 
-  /** Place sheets get a middle stop (peek, half, full) like GMaps. */
+  /** Place sheets are a preview card that opens full screen, like GMaps. */
   const entitySheet = $derived(
     !directionsStore.active &&
       jeepneyStore.selectedStopIndex === null &&
@@ -122,6 +150,16 @@
       directionsStore.active,
   );
 
+  // Back leaves the full-screen view for the preview card.
+  trackOverlay(
+    "place-detail",
+    () =>
+      mobile.current && panelOpen && entitySheet && mobileSnap === "expanded",
+    () => {
+      mobileSnap = "peek";
+    },
+  );
+
   const toggleLabel = $derived(
     sidePanelStore.collapsed
       ? "Expand details panel"
@@ -131,6 +169,13 @@
   $effect(() => {
     const identity = panelIdentity;
     if (identity === lastPanelIdentity) return;
+    if (lastPanelIdentity !== null && mobileSnap === "expanded") {
+      fullScreenScroll.set(lastPanelIdentity, sheetScroll);
+    }
+    sheetScroll = 0;
+    const idx = (history.state as { rtbaIdx?: number } | null)?.rtbaIdx ?? 0;
+    const wentBack = idx < historyIdx;
+    historyIdx = idx;
 
     if (identity !== null) {
       // Navigating to another entity drops the metadata the previous view was
@@ -139,8 +184,15 @@
       sidePanelStore.state = null;
       // A new entity starts at its own header, not the previous scroll offset.
       if (detailsEl) detailsEl.scrollTop = 0;
-      // Always open at peek on mobile, ignoring Map.expand() full-screen.
-      mobileSnap = "peek";
+      // Peek on mobile, except a place link opened cold or a place reached
+      // by Back after leaving it from full screen.
+      const backTo = wentBack ? fullScreenScroll.get(identity) : undefined;
+      mobileSnap =
+        (openedFromPlaceUrl || backTo !== undefined) && entitySheet
+          ? "expanded"
+          : "peek";
+      openedFromPlaceUrl = false;
+      if (backTo) scrollSheetTo(backTo);
       if (mobile.current) sidePanelStore.collapse();
       else sidePanelStore.expand();
     }
@@ -153,7 +205,7 @@
     if (!request) return;
     sidePanelStore.sheetSnapRequest = null;
     if (!mobile.current || !panelOpen) return;
-    if (request === "expanded" || mobileSnap === "peek") mobileSnap = request;
+    mobileSnap = request;
   });
 
   // Drive map-control visibility in Entry (hide locate/3D/zoom while sheet open).
@@ -162,11 +214,7 @@
       sidePanelStore.setMobileSheetSnap("closed");
       return;
     }
-    // Map controls only care whether the sheet leaves room for them, and the
-    // half stop does not.
-    sidePanelStore.setMobileSheetSnap(
-      mobileSnap === "peek" ? "peek" : "expanded",
-    );
+    sidePanelStore.setMobileSheetSnap(mobileSnap);
   });
 
   function togglePanel() {
@@ -217,7 +265,7 @@
     open={panelOpen}
     bind:snap={mobileSnap}
     peekRatio={sheetPeekRatio}
-    halfRatio={entitySheet ? 0.62 : undefined}
+    fullScreen={entitySheet}
     peekFitTo={navPeek
       ? ".nav__bar"
       : directionsPeek
@@ -226,6 +274,7 @@
     topInset="var(--mobile-detail-sheet-top-inset, 0px)"
     bottomInset={sheetBottomInset}
     scrollResetKey={panelIdentity}
+    bind:contentEl={sheetBody}
     onDismiss={dismissMobileSheet}
   >
     {@render panelBody()}

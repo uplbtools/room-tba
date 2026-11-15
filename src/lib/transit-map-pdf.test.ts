@@ -1,7 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { PDFDocument } from "pdf-lib";
 import basemap from "@constants/transit-basemap.json";
-import { PRINT_MAP_QR, RALEWAY_BOLD_HEADINGS } from "@constants/print-brand";
+import {
+  PRINT_MAP_QR,
+  RALEWAY_BOLD_HEADINGS,
+  SIGNBOARD_GLYPHS,
+} from "@constants/print-brand";
 import { getTransitMapPath } from "./route-links";
 import {
   findNearestStop,
@@ -10,6 +14,7 @@ import {
   isCampusScopeRoute,
   isLoopRoute,
   shortStopLabel,
+  signboardWords,
   labelCandidates,
   placeLabels,
   pointsAlong,
@@ -526,10 +531,26 @@ describe("print branding", () => {
       expect(row).toMatch(/^[01]+$/);
       expect(row.length).toBe(PRINT_MAP_QR.length);
     }
-    expect(
-      RALEWAY_BOLD_HEADINGS["UPLB Jeepney Routes"].d.length,
-    ).toBeGreaterThan(100);
     expect(RALEWAY_BOLD_HEADINGS["Room TBA"].width).toBeGreaterThan(0);
+  });
+});
+
+describe("signboardWords", () => {
+  test("splits a route name into the board's two colours", () => {
+    expect(signboardWords("UP Rural / Jubileeville")).toEqual([
+      "UP RURAL",
+      "JUBILEEVILLE",
+    ]);
+    expect(signboardWords("UPLB Loop (SNODLOB e-jeep)")).toEqual([
+      "UPLB LOOP",
+      "SNODLOB E-JEEP",
+    ]);
+    expect(signboardWords("Kaliwa")).toEqual(["KALIWA", ""]);
+  });
+
+  test("every board letter has an outline", () => {
+    for (const ch of "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+      expect(SIGNBOARD_GLYPHS[ch]?.d.length).toBeGreaterThan(10);
   });
 });
 

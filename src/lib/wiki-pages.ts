@@ -22,7 +22,7 @@ export const WIKI_PAGES: readonly WikiPage[] = [
     title: "Finding a room, a class, or a way across campus",
     kicker: "How-to",
     blurb:
-      "Step by step: look up a room or class, plan a week, save the map for offline, and where the official sources for enrollment, grades, and the academic calendar are.",
+      "Look up a room or class, plan a week and save the map for offline use, step by step. It also points to the official sources for enrollment, grades and the academic calendar.",
     sourcePath: "src/pages/wiki/using-room-tba.astro",
   },
   {
@@ -30,7 +30,7 @@ export const WIKI_PAGES: readonly WikiPage[] = [
     title: "UPLB glossary: TBA, LH, AB, CAS and more",
     kicker: "Glossary",
     blurb:
-      "The abbreviations on schedules, room signs, and building names, from AMIS and CRS to the college acronyms and room-code prefixes.",
+      "These are the abbreviations on schedules, room signs and building names, from AMIS and CRS to the college acronyms and room-code prefixes.",
     sourcePath: "src/pages/wiki/glossary.astro",
   },
   {
@@ -38,7 +38,7 @@ export const WIKI_PAGES: readonly WikiPage[] = [
     title: "Jeepneys and buses around UPLB",
     kicker: "Getting around",
     blurb:
-      "The campus routes, their stops, fares, and boarding tips, read straight from the same data the map uses.",
+      "This covers the campus routes, their stops, fares and boarding tips, read from the same data the map uses.",
     sourcePath: "src/pages/wiki/jeepney-guide.astro",
   },
   {
@@ -46,7 +46,7 @@ export const WIKI_PAGES: readonly WikiPage[] = [
     title: "Emergency hotlines around UPLB",
     kicker: "Emergency contacts",
     blurb:
-      "Offline-ready contacts for campus security, local responders, and nearby medical services.",
+      "These contacts for campus security, local responders and nearby medical services work offline.",
     sourcePath: "src/pages/wiki/emergency-hotlines.astro",
   },
   {
@@ -54,7 +54,7 @@ export const WIKI_PAGES: readonly WikiPage[] = [
     title: "Campus curfew and dorm permits",
     kicker: "Dorm guide",
     blurb:
-      "Curfew hours and return-permit guidance for residents of UP-managed dormitories.",
+      "This gives curfew hours and return-permit guidance for residents of UP-managed dormitories.",
     sourcePath: "src/pages/wiki/campus-curfew.astro",
   },
   {
@@ -62,7 +62,7 @@ export const WIKI_PAGES: readonly WikiPage[] = [
     title: "What times do UPLB section names correspond to?",
     kicker: "Class schedules",
     blurb:
-      "Exhaustive glossary: letter ladders, NSTP/HK/GI/residency, MS/PhD numbers, every AMIS type, plus oldest to newest term trends (what moved vs what only looks bigger in Room TBA).",
+      "This glossary covers letter ladders, NSTP/HK/GI/residency, MS/PhD numbers and every AMIS type. It also shows term trends from oldest to newest (what moved and what only looks bigger in Room TBA).",
     sourcePath: "src/pages/wiki/section-times.astro",
   },
   {
@@ -70,7 +70,7 @@ export const WIKI_PAGES: readonly WikiPage[] = [
     title: "Taking the UPCAT at UP Los Baños",
     kicker: "UPCAT at UPLB",
     blurb:
-      "A first-timer's guide to the UPCAT at UPLB: what the test permit does and does not tell you, what to bring, and how to save the campus map before mobile data gets congested. Written for the August 2026 exam.",
+      "This first-timer's guide to the UPCAT at UPLB covers what the test permit does and doesn't tell you, what to bring and how to save the campus map before mobile data gets congested. It was written for the August 2026 exam.",
     sourcePath: "src/pages/wiki/upcat-at-uplb.astro",
   },
   {
@@ -78,7 +78,7 @@ export const WIKI_PAGES: readonly WikiPage[] = [
     title: "Fork this for your campus",
     kicker: "For other campuses",
     blurb:
-      "Room TBA is built for UPLB. Here is what you actually replace to run it for a different campus: the UPLB data and glue to rip out, the config to repoint, and the write-your-own parts (class import).",
+      "Room TBA is built for UPLB. This is what you replace to run it for a different campus, from the UPLB data and glue to rip out and the config to repoint to the parts you write yourself (class import).",
     sourcePath: "src/pages/wiki/fork-for-your-campus.astro",
   },
 ] as const;

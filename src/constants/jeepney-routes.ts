@@ -94,7 +94,8 @@ export const ROUTE_BOARDING_NOTES: Readonly<Record<string, string>> = {
 /** The same advice, short enough for a route card on the printable map. */
 export const ROUTE_PRINT_NOTES: Readonly<Record<string, string>> = {
   forestry:
-    "Board at a terminal: Forestry Jeep Terminal (up), Upper Forestry Jeep Terminal (down).",
+    "Sumakay sa Forestry Jeep Terminal malapit sa Big Belly's pag paakyat, at sa Upper Forestry Jeep Terminal pag pababa.",
+  "kaliwa-kanan": "Kumakaliwa sa gate ang Kaliwa at kumakanan ang Kanan.",
 };
 
 /** Forestry's two trips; also written to the database by scripts/fix-transit-data.ts. */

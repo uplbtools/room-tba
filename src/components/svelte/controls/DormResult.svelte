@@ -419,7 +419,7 @@
     if (field === "dormName") {
       const trimmedName = nameDraft.trim();
       if (trimmedName.length === 0) {
-        fieldError = `${current.dormName} name cannot be empty.`;
+        fieldError = `${current.dormName} name can't be empty.`;
         return;
       }
       body.dormName = trimmedName;
@@ -482,7 +482,7 @@
 
       const outcome = handlePersistEntityResult<DormData>(result, {
         syncFromServer: syncDormFromServer,
-        fallbackError: `${current.dormName} ${fieldLabel(field)} could not be saved.`,
+        fallbackError: `${current.dormName} ${fieldLabel(field)} couldn't be saved.`,
       });
 
       if (outcome.error) {
@@ -514,7 +514,7 @@
       }, 1800);
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.dormName} ${fieldLabel(field)} failed to save: ${reason}`;
+      fieldError = `${current.dormName} ${fieldLabel(field)} failed to save (${reason}).`;
     } finally {
       savingField = null;
     }
@@ -546,7 +546,7 @@
         if (result.latest) syncDormFromServer(result.latest as DormData);
         fieldError =
           result.error ??
-          `${current.dormName} could not be merged into ${mergePrompt.candidate.dormName}.`;
+          `${current.dormName} couldn't be merged into ${mergePrompt.candidate.dormName}.`;
         return;
       }
 
@@ -561,7 +561,7 @@
       editing = false;
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `Merge failed: ${reason}`;
+      fieldError = `Merge failed (${reason}).`;
     } finally {
       mergingEntity = false;
     }
@@ -598,7 +598,7 @@
     if (!fieldIsUnchanged("dormName", current)) {
       const trimmedName = nameDraft.trim();
       if (trimmedName.length === 0) {
-        fieldError = `${current.dormName} name cannot be empty.`;
+        fieldError = `${current.dormName} name can't be empty.`;
         return;
       }
       patch.dormName = trimmedName;
@@ -650,7 +650,7 @@
 
       const outcome = handlePersistEntityResult<DormData>(result, {
         syncFromServer: syncDormFromServer,
-        fallbackError: `${current.dormName} could not be saved.`,
+        fallbackError: `${current.dormName} couldn't be saved.`,
       });
 
       if (outcome.error) {
@@ -673,7 +673,7 @@
       }, 1800);
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.dormName} failed to save: ${reason}`;
+      fieldError = `${current.dormName} failed to save (${reason}).`;
     } finally {
       savingField = null;
     }
@@ -850,7 +850,7 @@
             entityKind="dorm"
             sourceLabel={dorm.dormName}
             candidateLabel={mergePrompt.candidate.dormName}
-            detail="Merge event links and metadata into the kept dorm;"
+            detail="Event links and metadata move to the kept dorm. Merge"
             merging={mergingEntity}
             disabled={savingField !== null}
             onconfirm={confirmDormMerge}
