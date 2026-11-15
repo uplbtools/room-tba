@@ -710,6 +710,7 @@ function wrapText(
 }
 
 const MAX_LABEL_CHARS = 30;
+const LEADER_GAP = 3;
 
 /**
  * A stop name short enough for a map label: merged names ("CEAT Lecture
@@ -1766,21 +1767,20 @@ export async function renderTransitMapPdf(input: {
     for (const spec of specs) {
       const box = placed.get(spec.id);
       if (!box) continue;
-      if (box.leader) {
+      if (!spec.spots) {
         const cx = Math.min(Math.max(spec.ax, box.x), box.x + box.w);
         const cy = Math.min(Math.max(spec.ay, box.y), box.y + box.h);
         const dx = cx - spec.ax;
         const dy = cy - spec.ay;
         const len = Math.hypot(dx, dy) || 1;
-        page.drawLine({
-          start: {
-            x: spec.ax + (dx / len) * spec.gap,
-            y: spec.ay + (dy / len) * spec.gap,
-          },
-          end: { x: cx, y: cy },
-          thickness: 0.7,
-          color: spec.color,
-        });
+        const from = Math.min(Math.max(spec.gap - LEADER_GAP, 3.5), len);
+        const start = {
+          x: spec.ax + (dx / len) * from,
+          y: spec.ay + (dy / len) * from,
+        };
+        const end = { x: cx, y: cy };
+        page.drawLine({ start, end, thickness: 2.6, color: WHITE });
+        page.drawLine({ start, end, thickness: 0.9, color: spec.color });
       }
       const lines = spec.text.split("\n");
       lines.forEach((line, li) => {
