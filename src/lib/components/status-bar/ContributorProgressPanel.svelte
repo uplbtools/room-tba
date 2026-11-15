@@ -1,7 +1,8 @@
 <script lang="ts">
 	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	import { onMount } from 'svelte';
-	import { getAdminAuthStore, getAppData } from '#lib/utils/context.js';
+	import { getAdminAuthStore } from '#lib/utils/context.js';
+	import { getMapBuildingsData } from '#lib/functions/buildings.remote.js';
 	import {
 		ROOM_FIELD_CATEGORIES,
 		ROOM_FIELD_LABELS,
@@ -23,12 +24,11 @@
 
 	const { defaultBuildingId = null }: Props = $props();
 
-	const appData = getAppData();
 	const adminAuthStore = getAdminAuthStore();
-	const buildings = $derived(appData().buildings ?? []);
+	const buildings = await getMapBuildingsData();
 
 	let activeScope = $state<ScopeTab>('campus');
-	let selectedBuildingId = $state<number | null>(defaultBuildingId);
+	let selectedBuildingId = $state<number | null>(defaultBuildingId ?? buildings[0]?.id ?? null);
 	let campusData = $state<CampusContributorProgress | null>(null);
 	let buildingData = $state<BuildingContributorProgress | null>(null);
 	let mineData = $state<MineContributorProgress | null>(null);
@@ -36,12 +36,6 @@
 	let error = $state<string | null>(null);
 
 	const showMineTab = $derived(adminAuthStore.isLoggedIn);
-
-	$effect(() => {
-		if (selectedBuildingId == null && buildings.length > 0) {
-			selectedBuildingId = buildings[0]?.id ?? null;
-		}
-	});
 
 	onMount(() => {
 		void loadScope('campus');

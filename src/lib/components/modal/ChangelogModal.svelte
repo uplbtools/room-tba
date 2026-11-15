@@ -1,22 +1,13 @@
 <script lang="ts">
-	import { RefreshCw } from '@lucide/svelte';
-	import { syncToastStore, modalStore } from '#lib/stores.svelte.js';
+	import { getModalStore } from '#lib/utils/context.js';
 	import { APP_VERSION_LABEL } from '#lib/constants/versioning/version.js';
 	import { parseChangelogEntries } from '#lib/utils/changelog-highlights.js';
 	import { releaseTimestampLabel } from '#lib/utils/release-timestamps.js';
 	import changelogRaw from '../../../../CHANGELOG.md?raw';
 	import FollowUpdates from '#lib/components/community/FollowUpdates.svelte';
 
-	const entries = $derived(parseChangelogEntries(changelogRaw));
-	const hasUpdate = $derived(syncToastStore.needRefresh);
-
-	let reloading = $state(false);
-
-	function confirmReload() {
-		reloading = true;
-		// Applies the waiting service worker and reloads to the new version.
-		syncToastStore.reload();
-	}
+	const modalStore = getModalStore();
+	const entries = parseChangelogEntries(changelogRaw);
 </script>
 
 <div class="changelog-modal">
@@ -24,11 +15,6 @@
 		<p class="changelog-modal__version">
 			Room TBA {APP_VERSION_LABEL}
 		</p>
-		{#if hasUpdate}
-			<p class="changelog-modal__lead">
-				A new version is ready. Review what changed, then reload to update.
-			</p>
-		{/if}
 	</header>
 
 	<div class="changelog-modal__scroll">
@@ -68,32 +54,13 @@
 	</div>
 
 	<div class="changelog-modal__actions">
-		{#if hasUpdate}
-			<button
-				type="button"
-				class="changelog-modal__btn changelog-modal__btn--secondary"
-				onclick={() => modalStore.closeModal()}
-			>
-				Later
-			</button>
-			<button
-				type="button"
-				class="changelog-modal__btn changelog-modal__btn--primary"
-				onclick={confirmReload}
-				disabled={reloading}
-			>
-				<RefreshCw size={14} class={reloading ? 'loading-icon' : ''} aria-hidden="true" />
-				{reloading ? 'Reloading…' : 'Reload to update'}
-			</button>
-		{:else}
-			<button
-				type="button"
-				class="changelog-modal__btn changelog-modal__btn--primary"
-				onclick={() => modalStore.closeModal()}
-			>
-				Close
-			</button>
-		{/if}
+		<button
+			type="button"
+			class="changelog-modal__btn changelog-modal__btn--primary"
+			onclick={() => modalStore.closeModal()}
+		>
+			Close
+		</button>
 	</div>
 </div>
 
@@ -219,41 +186,7 @@
 		color: white;
 	}
 
-	.changelog-modal__btn--primary:hover:not(:disabled) {
+	.changelog-modal__btn--primary:hover {
 		background: hsl(5, 53%, 38%);
-	}
-
-	.changelog-modal__btn--primary:disabled {
-		cursor: progress;
-		opacity: 0.7;
-	}
-
-	.changelog-modal__btn--secondary {
-		border: 1px solid hsl(0, 0%, 80%);
-		background: transparent;
-		color: hsl(0, 0%, 30%);
-	}
-
-	.changelog-modal__btn--secondary:hover {
-		background: hsl(0, 0%, 96%);
-	}
-
-	:global(.loading-icon) {
-		animation: changelog-spin 0.75s linear infinite;
-	}
-
-	@keyframes changelog-spin {
-		from {
-			rotate: 0deg;
-		}
-		to {
-			rotate: 360deg;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		:global(.loading-icon) {
-			animation: none;
-		}
 	}
 </style>

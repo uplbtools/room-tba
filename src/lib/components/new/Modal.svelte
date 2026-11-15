@@ -23,6 +23,11 @@
 	// import ModalContent from './ModalContent.svelte';
 	// import { circIn, circOut } from 'svelte/easing';
 	import ModifySuggestionModal from './ModifySuggestionModal.svelte';
+	import LandingModal from './LandingModal.svelte';
+	import ModalContent from './ModalContent.svelte';
+	import CoverageModal from '../modal/CoverageModal.svelte';
+	import LeaderboardModal from '../modal/LeaderboardModal.svelte';
+	import ChangelogModal from '../modal/ChangelogModal.svelte';
 
 	// const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 
@@ -128,6 +133,14 @@
 		> -->
 		{#if modalStore.type === 'modify-suggestion'}
 			<ModifySuggestionModal />
+		{:else if modalStore.type === 'landing'}
+			<LandingModal />
+		{:else if modalStore.type === 'coverage'}
+			<ModalContent className="max-w-2xl"><CoverageModal /></ModalContent>
+		{:else if modalStore.type === 'changelog'}
+			<ModalContent className="flex max-w-2xl flex-col p-6"><ChangelogModal /></ModalContent>
+		{:else if modalStore.type === 'leaderboard'}
+			<ModalContent className="max-w-2xl"><LeaderboardModal /></ModalContent>
 			<!-- <ModalContent>Lorem ipsums dolor</ModalContent> -->
 		{/if}
 	</div>
