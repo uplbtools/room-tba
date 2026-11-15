@@ -98,6 +98,26 @@ test.describe("place full-screen view @mobile", () => {
     await expect(page).toHaveURL(/\/building\//);
   });
 
+  test("the on-screen keyboard shrinking the viewport does not move the view (#1305)", async ({
+    page,
+  }) => {
+    await openFullScreen(page);
+    const portrait = page.viewportSize();
+    if (!portrait) throw new Error("no viewport");
+
+    await page.setViewportSize({ width: portrait.width, height: 480 });
+    await expect(fullScreen(page)).toBeVisible();
+    await expect
+      .poll(async () => (await fullScreen(page).boundingBox())?.height ?? 0)
+      .toBeGreaterThanOrEqual(479);
+    expect((await fullScreen(page).boundingBox())?.y ?? 99).toBeLessThanOrEqual(
+      1,
+    );
+
+    await page.setViewportSize(portrait);
+    await expect(fullScreen(page)).toBeVisible();
+  });
+
   test("rotating to landscape and back keeps the place full screen", async ({
     page,
   }) => {
