@@ -5,6 +5,7 @@
 	import DormModifyForm from './forms/DormModifyForm.svelte';
 	import OrgModifyForm from './forms/OrgModifyForm.svelte';
 	import PlaceModifyForm from './forms/PlaceModifyForm.svelte';
+	import RoomModifyForm from './forms/RoomModifyForm.svelte';
 
 	// script code
 	const searchInfo = getSearchInfo();
@@ -22,6 +23,8 @@
 			<OrgModifyForm {...dataRecord} />
 		{:else if searchInfo.category === 'place'}
 			<PlaceModifyForm {...dataRecord} />
+		{:else if searchInfo.category === 'room'}
+			<RoomModifyForm {...dataRecord} />
 		{/if}
 	{/if}
 </ModalContent>

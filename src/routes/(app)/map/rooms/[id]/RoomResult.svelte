@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import ResultActions from '#lib/components/new/ResultActions.svelte';
+	import SuggestEditButton from '#lib/components/new/SuggestEditButton.svelte';
 	import Classes from '#lib/components/room/Classes.svelte';
 	import FinalExamsList from '#lib/components/room/FinalExamsList.svelte';
 	import { getClassesByRoomId } from '#lib/functions/classes.remote.js';
@@ -28,6 +29,9 @@
 		{/if}
 	</header>
 	<ResultActions data={room} name={room.buildingName ?? room.code} label={room.code} />
+	<SuggestEditButton
+		data={{ id: room.id, version: room.version, directions: room.directions ?? '' }}
+	/>
 
 	{#if room.directions}
 		<p class="text-sm text-neutral-800">{room.directions}</p>

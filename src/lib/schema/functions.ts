@@ -105,7 +105,7 @@ export const RoomProposalSchema = v.object({
 	meta: ProposalMetaSchema,
 	body: v.object({
 		fullName: v.optional(v.string()),
-		directions: v.optional(v.string()),
+		directions: v.optional(v.pipe(v.string(), v.trim())),
 		buildingId: v.optional(v.pipe(v.number(), v.integer())),
 		collegeId: v.optional(v.pipe(v.number(), v.integer())),
 		divisionId: v.optional(v.pipe(v.number(), v.integer())),
