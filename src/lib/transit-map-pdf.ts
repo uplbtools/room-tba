@@ -866,7 +866,7 @@ function drawSignboard(
 /** Ordinal list "A", "A and B", "A, B and C". */
 function joinNames(names: string[]): string {
   if (names.length <= 1) return names[0] ?? "";
-  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+  return `${names.slice(0, -1).join(", ")} at ${names[names.length - 1]}`;
 }
 
 type MapStop = {
@@ -1111,25 +1111,30 @@ export async function renderTransitMapPdf(input: {
         .map((r) => r.name),
     );
     intro = [
-      { text: "You are at " },
-      { text: here.name ?? "the star on this map", bold: true },
-      { text: ". The nearest jeepney stop is " },
+      { text: "Nandito ka sa " },
+      { text: here.name ?? "star sa map na ito", bold: true },
+      { text: ". Pinakamalapit na jeepney stop ang " },
       { text: nearest.stop.name, bold: true },
-      { text: `, about ${formatDistance(nearest.walkM)} on foot. ` },
-      { text: servedBy, bold: true },
       {
-        text: ` ${nearest.stop.routeIds.length > 1 ? "stop" : "stops"} there.`,
+        text: `, mga ${formatDistance(nearest.walkM)} na lakad lang. Dumadaan dito ang `,
       },
+      { text: servedBy, bold: true },
+      { text: "." },
     ];
   } else if (here) {
     intro = [
-      { text: here.name ?? "This spot", bold: true },
       {
-        text: ` is about ${formatDistance(haversineMeters(here, center))} from campus, outside this map. The routes below still show how to reach UPLB.`,
+        text: `Mga ${formatDistance(haversineMeters(here, center))} from campus ang `,
+      },
+      { text: here.name ?? "spot na ito", bold: true },
+      {
+        text: ", kaya wala ito sa map. Nasa routes pa rin kung paano pumunta ng UPLB.",
       },
     ];
   } else {
-    intro = [{ text: "Campus jeepney routes and their stops." }];
+    intro = [
+      { text: "Mga jeepney route sa campus at kung saan sila humihinto." },
+    ];
   }
   const INTRO_SIZE = 11;
   const INTRO_LEAD = 13.5;
@@ -1794,7 +1799,7 @@ export async function renderTransitMapPdf(input: {
       });
     }
   } else {
-    page.drawText("No active routes to map yet.", {
+    page.drawText("Wala pang active na route na pwedeng i-map.", {
       x: frame.x + frame.w / 2 - 70,
       y: frame.y + frame.h / 2,
       size: 10,
@@ -1879,14 +1884,14 @@ export async function renderTransitMapPdf(input: {
   };
   const fareText = (r: { fareRegular: number; fareDiscounted: number }) =>
     Number.isFinite(r.fareRegular)
-      ? `PHP ${r.fareRegular} a ride, PHP ${r.fareDiscounted} discounted`
-      : "Fare not verified yet, ask the driver";
+      ? `PHP ${r.fareRegular} ang pamasahe, PHP ${r.fareDiscounted} pag discounted`
+      : "Di pa verified ang pamasahe, tanong muna sa driver";
   const textX = px + 34;
   const textW = PANEL_W - 34;
   const BOARD_H = 19;
 
   if (drawnRoutes.length > 0) {
-    heading("Campus jeepneys");
+    heading("Jeeps sa campus");
     // The QR tag hangs into the top of the panel.
     py = Math.min(py, tagBottom - 5);
     const fares = new Set(drawnRoutes.map((r) => fareText(r)));
@@ -1897,7 +1902,7 @@ export async function renderTransitMapPdf(input: {
         : null;
     if (sharedFare) {
       line(`${sharedFare}.`);
-      line("Board and alight at yellow stops only.");
+      line("Sa yellow stops lang pwedeng sumakay at bumaba.");
       py -= 6;
     }
     for (const route of drawnRoutes) {
@@ -1915,7 +1920,7 @@ export async function renderTransitMapPdf(input: {
       });
       const fare = sharedFare ? "" : `${fareText(route)}.`;
       const note = [
-        loop ? "Both run the same loop." : "",
+        loop ? "Iisa ang loop nila." : "",
         fare,
         route.boardingNote ?? "",
       ]
@@ -2025,21 +2030,21 @@ export async function renderTransitMapPdf(input: {
   // Town jeeps and buses are not drawn on the map, so they are listed.
   const townJeeps = [
     { to: "Calamba", fare: "PHP 30", note: "25 discounted" },
-    { to: "San Pablo", fare: "From PHP 14", note: "by distance" },
-    { to: "Sta. Cruz", fare: "From PHP 14", note: "by distance" },
+    { to: "San Pablo", fare: "Mula PHP 14", note: "depende sa layo" },
+    { to: "Sta. Cruz", fare: "Mula PHP 14", note: "depende sa layo" },
   ];
   const busLines = [
-    "DLTB leaves the main gate for Buendia at 5 AM daily.",
-    "It leaves Buendia for the main gate at 6 PM daily.",
-    "Flag down other Buendia buses at the Junction.",
-    "For UP Diliman, book DLTB at dltbbus.com.ph.",
+    "5 AM umaalis ang DLTB sa main gate pa-Buendia.",
+    "6 PM naman ito bumabalik galing Buendia, daily.",
+    "May ibang bus pa-Buendia sa Olivarez Plaza Mall.",
+    "Mag-book sa dltbbus.com.ph kung pa-UP Diliman ka.",
   ].flatMap((text) => wrapText(text, font, BODY, PANEL_W));
   const TOWN_BOARD_H = 15;
   const townH =
     9 + 21 + TOWN_BOARD_H + 4 + 3 * LEAD + 8 + 20 + busLines.length * LEAD;
   if (py - townH >= panelFloor) {
     rule();
-    heading("Jeeps from the Junction (Olivarez)");
+    heading("Jeeps sa Olivarez Plaza Mall");
     py -= 3;
     const col = PANEL_W / townJeeps.length;
     const top = py;
@@ -2062,7 +2067,7 @@ export async function renderTransitMapPdf(input: {
       line(j.note, x);
     });
     py -= 8;
-    heading("Buses to Manila");
+    heading("Bus pa-Manila");
     py -= 2;
     for (const l of busLines) line(l);
   }
@@ -2070,12 +2075,12 @@ export async function renderTransitMapPdf(input: {
   // ── Footer ────────────────────────────────────────────────────────────
   const FOOT = 9;
   page.drawText(
-    `Room TBA by UPLB Tools. Printed ${dateLabel}. Prices verified Oct 7, 2026.`,
+    `Na-print noong ${dateLabel}. Na-verify ang presyo noong Oct 7, 2026.`,
     { x: MARGIN, y: SAFE + 2, size: FOOT, font, color: INK },
   );
   const footRight = input.basemap
-    ? "Map data from OpenStreetMap contributors, ODbL. Lines and distances are approximate."
-    : "Lines and distances are approximate.";
+    ? "Map data from OpenStreetMap contributors, ODbL. Approximate lang ang mga linya at layo."
+    : "Approximate lang ang mga linya at layo.";
   page.drawText(footRight, {
     x: pageW - MARGIN - font.widthOfTextAtSize(footRight, FOOT),
     y: SAFE + 2,
