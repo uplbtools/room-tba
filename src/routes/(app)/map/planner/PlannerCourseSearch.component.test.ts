@@ -67,6 +67,14 @@ describe('PlannerCourseSearch', () => {
 		plannerStore.activePlanIdByTerm = {};
 	});
 
+	test('starts with a search hint and chips for courses in the plan', async () => {
+		plannerStore.addOffering([rows[0]]);
+		render(PlannerCourseSearch);
+		expect(screen.getByText(/Type a course code/)).toBeVisible();
+		await fireEvent.click(screen.getByRole('button', { name: 'CMSC 12' }));
+		expect(await screen.findByRole('button', { name: /CMSC 12.*sections?/ })).toBeVisible();
+	});
+
 	test('finds a course by code and adds an offering to the plan', async () => {
 		render(PlannerCourseSearch);
 		await fireEvent.input(screen.getByPlaceholderText(/Search courses/), {
@@ -86,6 +94,11 @@ describe('PlannerCourseSearch', () => {
 			expect(plannerStore.activePlan?.sections).toHaveLength(2);
 		});
 		expect(plannerStore.activePlan?.label).toBe('Untitled Plan 1');
-		expect(await screen.findByRole('button', { name: '✓' })).toBeVisible();
+		const added = await screen.findByRole('button', {
+			name: /^Remove CMSC 12 \S+ from plan$/
+		});
+		expect(added).toHaveTextContent('✓ Added');
+		expect(added).toHaveAttribute('aria-pressed', 'true');
+		expect(screen.getAllByText('Lec WF 4–5 PM · EAA LH')[0]).toBeVisible();
 	});
 });
