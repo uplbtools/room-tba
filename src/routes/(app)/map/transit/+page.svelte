@@ -1,30 +1,22 @@
 <script lang="ts">
-	import type { PageData } from './$types';
-
-	const { data }: { data: PageData } = $props();
+	import InfoPanel from '#lib/components/new/InfoPanel.svelte';
+	import MapBrowseList from '#lib/components/map/MapBrowseList.svelte';
+	import { getTransitRoutes } from '#lib/functions/transit.remote.js';
+	import { transitRouteNoun } from '#lib/utils/transit/transit-route-kind.js';
 </script>
 
-<!-- The map layout renders the app; this copy is what crawlers read. -->
-<article class="sr-only">
-	<h1>UPLB jeepney routes</h1>
-	<p>{data.description}</p>
-	<ul>
-		{#each data.routes as route (route.name)}
-			<li>{route.name}: {route.description}</li>
-		{/each}
-	</ul>
-</article>
-
-<style>
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		white-space: nowrap;
-		border: 0;
-	}
-</style>
+<InfoPanel>
+	<svelte:boundary>
+		{#snippet failed()}
+			<p class="p-3 text-sm">Couldn't load the routes. Try again.</p>
+		{/snippet}
+		<MapBrowseList
+			heading="Jeepney and bus routes"
+			entries={(await getTransitRoutes()).map((route) => ({
+				href: `/map/transit/${encodeURIComponent(route.id)}`,
+				label: `${route.name} ${transitRouteNoun(route)}`,
+				description: route.description
+			}))}
+		/>
+	</svelte:boundary>
+</InfoPanel>
