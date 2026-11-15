@@ -40,7 +40,7 @@
 
 	let loginFrameEl = $state<HTMLDivElement | null>(null);
 	let mode = $state<Mode>('signin');
-	let username = $state('admin');
+	let username = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
 	let signupEmail = $state('');

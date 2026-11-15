@@ -146,13 +146,13 @@
 </script>
 
 <div
-	class="transition-color transparent pointer-events-auto relative flex w-full"
+	class="transition-color transparent pointer-events-none relative flex w-full"
 	class:mobile-shell={mobile.current}
 	class:search-input-focused={searchFocused}
 	class:search-mobile-active={mobileSearchActive}
 	class:search-query-active={searchInfo.queryValue.trim() !== ''}
 >
-	<label class="relative flex basis-96 gap-3 bg-white px-4 py-3" for="search">
+	<label class="pointer-events-auto relative flex basis-96 gap-3 bg-white px-4 py-3" for="search">
 		<SearchIcon size={20} />
 		<label class="sr-only" for="search">Search campus</label>
 		<input
