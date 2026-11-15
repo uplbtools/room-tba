@@ -34,10 +34,6 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{(await dorm).dormName} | Room TBA Dorm</title>
-</svelte:head>
-
 <InfoPanel>
 	<svelte:boundary>
 		{#snippet failed()}

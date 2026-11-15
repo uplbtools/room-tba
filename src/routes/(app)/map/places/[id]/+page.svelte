@@ -34,10 +34,6 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{(await place).name} | Room TBA Place</title>
-</svelte:head>
-
 <InfoPanel>
 	<svelte:boundary>
 		{#snippet failed()}

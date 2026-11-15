@@ -36,10 +36,6 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Class Planner | Room TBA</title>
-</svelte:head>
-
 {#await ready then}
 	<PlannerScreen />
 {/await}
