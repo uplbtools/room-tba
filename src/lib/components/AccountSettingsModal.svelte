@@ -13,6 +13,7 @@
 	import './editor/entity-editor.css';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { getAdminAuthStore, getToast } from '#lib/utils/context.js';
+	import { getDigestEnabled, setDigestEnabled } from '#lib/functions/email.remote.js';
 
 	const adminAuthStore = getAdminAuthStore();
 	const toastStore = getToast();
@@ -70,6 +71,21 @@
 	let unlinkingGoogle = $state(false);
 	let signingOutEverywhere = $state(false);
 	let signOutError = $state<string | null>(null);
+	let digestError = $state<string | null>(null);
+	let savingDigest = $state(false);
+
+	async function toggleDigest(enabled: boolean) {
+		savingDigest = true;
+		digestError = null;
+		try {
+			await setDigestEnabled(enabled);
+		} catch {
+			digestError = "Couldn't save. Try again.";
+			await getDigestEnabled().refresh();
+		} finally {
+			savingDigest = false;
+		}
+	}
 	let identityError = $state<string | null>(null);
 
 	let showDeleteConfirm = $state(false);
@@ -607,6 +623,36 @@
 					<section class="settings-section entity-editor-form">
 						<h3>Editor access</h3>
 						<AccessRequestForm />
+					</section>
+				{/if}
+
+				{#if profile.role !== 'contributor'}
+					<section class="settings-section entity-editor-form">
+						<h3>Email notifications</h3>
+						<svelte:boundary>
+							{#snippet pending()}
+								<LoadingIndicator />
+							{/snippet}
+							{#snippet failed()}
+								<EntityEditorMessage
+									variant="error"
+									message="Couldn't load your email preferences."
+								/>
+							{/snippet}
+							<label class="credits-visibility">
+								<input
+									type="checkbox"
+									checked={await getDigestEnabled()}
+									disabled={savingDigest}
+									onchange={(event) => toggleDigest(event.currentTarget.checked)}
+								/>
+								Daily review digest
+							</label>
+						</svelte:boundary>
+						<p class="field-hint">A morning summary of suggestions waiting for review.</p>
+						{#if digestError}
+							<EntityEditorMessage variant="error" message={digestError} />
+						{/if}
 					</section>
 				{/if}
 
