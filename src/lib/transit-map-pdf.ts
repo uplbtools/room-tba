@@ -1556,9 +1556,7 @@ export async function renderTransitMapPdf(input: {
       },
     ];
   } else {
-    intro = [
-      { text: "Mga jeep at bus sa UPLB at kung saan sila humihinto." },
-    ];
+    intro = [{ text: "Mga jeep at bus sa UPLB at kung saan sila humihinto." }];
   }
   const INTRO_SIZE = 11;
   const INTRO_LEAD = 13.5;
