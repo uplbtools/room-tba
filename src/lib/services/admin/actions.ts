@@ -35,7 +35,7 @@ import {
 	roomsTable,
 	updateTable
 } from '#lib/server/db/schema.js';
-import type { EventData, PlaceData, Room } from '#lib/utils/types';
+import type { EventData, PlaceData, Room } from '#lib/utils/types.js';
 import { recordEditorContribution } from '../contribution/contributor-action';
 import { EditConflictError } from '../contribution/edit-conflict-error';
 import { getEventById } from '../entity/event';

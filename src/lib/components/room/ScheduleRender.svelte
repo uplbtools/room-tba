@@ -5,7 +5,7 @@
 		ScheduleRenderer
 	} from '#lib/utils/schedule-renderer.js';
 	import { offeringGroupKey } from '#lib/utils/class-offering-groups.js';
-	import type { ClassMapValue } from '#lib/utils/types';
+	import type { ClassMapValue } from '#lib/utils/types.js';
 
 	interface Props {
 		roomCode: string;

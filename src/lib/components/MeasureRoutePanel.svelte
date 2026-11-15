@@ -5,8 +5,11 @@
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Undo2 from '@lucide/svelte/icons/undo-2';
 	import X from '@lucide/svelte/icons/x';
-	import { measureRouteStore, type MeasureLeg } from '#lib/stores.svelte.js';
+	import type { MeasureLeg } from '#lib/stores/new/map/map-stores.svelte.js';
+	import { getMeasureRouteStore } from '#lib/utils/context.js';
 	import { formatDistance, formatDuration } from '#lib/utils/campus/campus-route.js';
+
+	const measureRouteStore = getMeasureRouteStore();
 
 	const modes = [
 		{ id: 'walk', label: 'Walk', icon: Footprints },

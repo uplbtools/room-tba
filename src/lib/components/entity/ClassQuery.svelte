@@ -13,7 +13,7 @@
 	} from '#lib/utils/final-exams/final-exams.js';
 	import { normalizeCourseCode } from '#lib/utils/final-exams/normalize.js';
 	import { searchInfo, sidePanelStore, termStore } from '#lib/stores.svelte.js';
-	import type { ClassMapValue, FinalExamRow } from '#lib/utils/types';
+	import type { ClassMapValue, FinalExamRow } from '#lib/utils/types.js';
 
 	const PAGE_SIZE = 25;
 
