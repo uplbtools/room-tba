@@ -731,7 +731,7 @@
 				{#if dorm.description}
 					<p class="entity-directions__text">{dorm.description}</p>
 				{/if}
-				<EntityLastUpdated updatedAt={dorm.updatedAt} entityType="dorm" entityId={dorm.id} />
+				<EntityLastUpdated updatedAt={dorm.updatedAt} />
 			</div>
 		{/if}
 

@@ -307,7 +307,7 @@
 				</div>
 			{/if}
 
-			<EntityLastUpdated updatedAt={org.updatedAt} entityType="organization" entityId={org.id} />
+			<EntityLastUpdated updatedAt={org.updatedAt} />
 		</div>
 
 		<img
