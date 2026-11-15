@@ -1,6 +1,10 @@
 import { CAMPUS_BOUNDS } from '#lib/constants/map/terrain.js';
 import { getToast } from '#lib/utils/context.js';
-import { describeLocationFix } from '#lib/utils/geolocation.js';
+import {
+	compassHeading,
+	describeLocationFix,
+	type OrientationReading
+} from '#lib/utils/geolocation.js';
 import type ToastStore from '../ui/ToastStore.svelte.js';
 import type { MapStore } from './map-stores.svelte.js';
 
@@ -9,13 +13,18 @@ export default class UserLocation {
 	/** Horizontal accuracy from the browser GPS fix, meters. */
 	accuracyMeters: number | null = $state(null);
 	bearing: number | null = $state(null);
+	deviceHeading: number | null = $state(null);
+	heading: number | null = $derived(this.deviceHeading ?? this.bearing);
 	isTracking: boolean = $state(false);
+	followMode: 'off' | 'follow' | 'heading' = $state('off');
 	destination: [number, number] | null = $state(null);
 	routeOrigin: [number, number] | null = $state(null);
 	/** Multi-stop foot route (schedule import or 2-point fallback). */
 	routeWaypoints: [number, number][] | null = $state(null);
 	private toastStore: ToastStore;
 	private watchId: number | null = null;
+	private flyOnFix = false;
+	private stopHeading: (() => void) | null = null;
 	/** Avoid re-toasting every watch tick; still toast once when accuracy improves. */
 	private announcedGoodFix = false;
 	private announcedApproximateFix = false;
@@ -47,6 +56,7 @@ export default class UserLocation {
 		}
 
 		this.isTracking = true;
+		this.startHeading();
 		this.announcedGoodFix = false;
 		this.announcedApproximateFix = false;
 		this.toastStore.show('Requesting location access...', 'info');
@@ -109,33 +119,99 @@ export default class UserLocation {
 		);
 	}
 
-	recenter(map: MapStore) {
+	cycleFollow(map: MapStore) {
 		if (!this.coords) {
+			this.flyOnFix = true;
+			this.followMode = 'follow';
 			this.requestLocation();
 			return;
 		}
-		if (map.isMapReady()) {
+		const mapInstance = map.getRawInstance();
+		if (!mapInstance) {
 			this.toastStore.show('Map component is still initializing', 'info');
 			return;
 		}
-		map.flyTo({
+		if (this.followMode === 'off') {
+			this.followMode = 'follow';
+			mapInstance.flyTo({
+				center: this.coords,
+				zoom: Math.max(mapInstance.getZoom(), 17),
+				duration: 1200
+			});
+			return;
+		}
+		if (this.followMode === 'follow' && this.heading !== null) {
+			this.followMode = 'heading';
+			mapInstance.easeTo({ center: this.coords, bearing: this.heading, duration: 600 });
+			return;
+		}
+		const bearing = this.followMode === 'heading' ? 0 : mapInstance.getBearing();
+		this.followMode = 'follow';
+		mapInstance.easeTo({ center: this.coords, bearing, duration: 600 });
+	}
+
+	follow(map: MapStore) {
+		const mapInstance = map.getRawInstance();
+		if (!mapInstance || !this.coords || this.followMode === 'off') return;
+		if (this.flyOnFix) {
+			this.flyOnFix = false;
+			mapInstance.flyTo({
+				center: this.coords,
+				zoom: Math.max(mapInstance.getZoom(), 17),
+				duration: 1200
+			});
+			return;
+		}
+		mapInstance.easeTo({
 			center: this.coords,
-			zoom: 17,
-			offset: [0, -24],
-			bearing: this.bearing ?? 0,
-			duration: 1500
+			...(this.followMode === 'heading' && this.heading !== null ? { bearing: this.heading } : {}),
+			duration: 300
 		});
 	}
 
-	isCentered(map: MapStore) {
-		const mapInstance = map.getRawInstance();
-		if (!mapInstance || this.coords === null) return false;
-		const mapCenter = mapInstance.getCenter();
-		return mapCenter.lng === this.coords[0] && mapCenter.lat === this.coords[1];
+	// iOS only grants the compass inside a tap, so this runs from requestLocation.
+	private startHeading() {
+		if (this.stopHeading || typeof DeviceOrientationEvent === 'undefined') return;
+		const eventName =
+			'ondeviceorientationabsolute' in window ? 'deviceorientationabsolute' : 'deviceorientation';
+		const onOrientation = (event: Event) => {
+			const next = compassHeading(
+				event as unknown as OrientationReading,
+				screen.orientation?.angle ?? 0
+			);
+			if (next === null) return;
+			const rounded = Math.round(next);
+			const previous = this.deviceHeading;
+			if (previous !== null && Math.abs(((rounded - previous + 540) % 360) - 180) < 2) return;
+			this.deviceHeading = rounded;
+		};
+		const listen = () => window.addEventListener(eventName, onOrientation);
+		this.stopHeading = () => {
+			window.removeEventListener(eventName, onOrientation);
+			this.deviceHeading = null;
+		};
+		const requestPermission = (
+			DeviceOrientationEvent as unknown as {
+				requestPermission?: () => Promise<'granted' | 'denied'>;
+			}
+		).requestPermission;
+		if (typeof requestPermission !== 'function') {
+			listen();
+			return;
+		}
+		requestPermission()
+			.then((state) => {
+				if (state === 'granted' && this.stopHeading) listen();
+			})
+			.catch(() => {});
 	}
 
 	private stopTracking() {
 		this.isTracking = false;
+		this.followMode = 'off';
+		this.flyOnFix = false;
+		this.stopHeading?.();
+		this.stopHeading = null;
 		this.coords = null;
 		this.accuracyMeters = null;
 		this.routeOrigin = null;

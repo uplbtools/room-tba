@@ -63,3 +63,24 @@ export function metersToLngLatCircle(
 
 	return { type: 'Polygon', coordinates: [ring] };
 }
+
+export type OrientationReading = {
+	alpha: number | null;
+	absolute: boolean;
+	webkitCompassHeading?: number;
+};
+
+/** Degrees clockwise from north, or null when the reading is not a compass. */
+export function compassHeading(reading: OrientationReading, screenAngle = 0): number | null {
+	let heading: number | null = null;
+	if (
+		typeof reading.webkitCompassHeading === 'number' &&
+		Number.isFinite(reading.webkitCompassHeading)
+	) {
+		heading = reading.webkitCompassHeading;
+	} else if (reading.absolute && typeof reading.alpha === 'number') {
+		heading = 360 - reading.alpha;
+	}
+	if (heading === null || !Number.isFinite(heading)) return null;
+	return (((heading + screenAngle) % 360) + 360) % 360;
+}

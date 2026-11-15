@@ -1,7 +1,7 @@
 <script lang="ts">
 	import EntityEmptyState from './EntityEmptyState.svelte';
 	import EntityPagination from './EntityPagination.svelte';
-	import type { Room } from '#lib/utils/types';
+	import type { Room } from '#lib/utils/types.js';
 	import RoomDisplay from './RoomDisplay.svelte';
 	// import TermSelector from '#lib/components/TermSelector.svelte';
 
