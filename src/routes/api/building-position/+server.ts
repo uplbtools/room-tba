@@ -22,13 +22,13 @@ function jsonOk<T>(data: T, status = 200): Response {
 	});
 }
 
-function canPublish(cookies: Cookies): boolean {
+async function canPublish(cookies: Cookies): Promise<boolean> {
 	const session = await optionalEditorSession(cookies);
 	return session !== null && canPublishDirectly(session.role);
 }
 
 export const PUT: RequestHandler = async ({ request, cookies, url }) => {
-	if (!canPublish(cookies)) return jsonError(401, 'Not authorized');
+	if (!(await canPublish(cookies))) return jsonError(401, 'Not authorized');
 
 	const buildingName = url.searchParams.get('building');
 	if (!buildingName) {
