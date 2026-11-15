@@ -1,6 +1,6 @@
 import { error, type Cookies } from '@sveltejs/kit';
 import { and, eq } from 'drizzle-orm';
-import { adminUsersTable } from '#lib/server/db/schema.js';
+import { adminUserAuthTable, adminUsersTable } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
 import {
 	ADMIN_COOKIE_NAME,
@@ -12,9 +12,13 @@ import {
 	type SessionUser
 } from './auth';
 
-export function getEditorSession(cookies: Cookies): SessionUser | null {
-	const cookie = cookies.get(ADMIN_COOKIE_NAME);
-	return getSessionUser(cookie);
+function readCookieSession(cookies: Cookies): SessionUser | null {
+	return getSessionUser(cookies.get(ADMIN_COOKIE_NAME));
+}
+
+export async function optionalEditorSession(cookies: Cookies): Promise<SessionUser | null> {
+	const cookieSession = readCookieSession(cookies);
+	return cookieSession ? revalidateSession(cookieSession) : null;
 }
 
 type EditorSessionOptions = {
@@ -33,16 +37,20 @@ async function revalidateSession(session: SessionUser): Promise<SessionUser | nu
 		const [row] = await db
 			.select({
 				role: adminUsersTable.role,
-				displayName: adminUsersTable.displayName
+				displayName: adminUsersTable.displayName,
+				sessionVersion: adminUserAuthTable.sessionVersion
 			})
 			.from(adminUsersTable)
+			.leftJoin(adminUserAuthTable, eq(adminUserAuthTable.userId, adminUsersTable.id))
 			.where(and(eq(adminUsersTable.id, session.id), eq(adminUsersTable.isActive, true)))
 			.limit(1);
-		if (!row) return null;
+		const sessionVersion = row?.sessionVersion ?? 0;
+		if (!row || (session.sessionVersion ?? 0) !== sessionVersion) return null;
 		return {
 			...session,
 			displayName: row.displayName ?? session.displayName,
-			role: row.role ?? session.role
+			role: row.role ?? session.role,
+			sessionVersion
 		};
 	} catch (error) {
 		// DB down: fail closed for privileged routes.
@@ -55,22 +63,22 @@ export async function editorSessionOrUnauthorized(
 	cookies: Cookies,
 	options: EditorSessionOptions = {}
 ) {
-	const cookieSession = getEditorSession(cookies);
+	const cookieSession = readCookieSession(cookies);
 	if (!cookieSession) {
-		error(401, "Unauthorized");
+		error(401, 'Unauthorized');
 	}
 	const session = await revalidateSession(cookieSession);
 	if (!session) {
-		error(401, "Unauthorized");
+		error(401, 'Unauthorized');
 	}
 	if (options.requirePublish && !canPublishDirectly(session.role)) {
-		error(403, "Your account can suggest edits but cannot publish directly.")
+		error(403, 'Your account can suggest edits but cannot publish directly.');
 	}
 	if (options.requireReview && !canReviewProposals(session.role)) {
-		error(403, "Your account cannot review edit proposals.")
+		error(403, 'Your account cannot review edit proposals.');
 	}
 	if (options.requireAdmin && session.role !== 'admin') {
-		error(403, "Your account cannot manage other users.")
+		error(403, 'Your account cannot manage other users.');
 	}
 	return {
 		session,

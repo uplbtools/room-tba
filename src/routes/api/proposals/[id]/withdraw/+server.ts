@@ -1,4 +1,4 @@
-import { getEditorSession } from '#lib/admin/require-editor.js';
+import { optionalEditorSession } from '#lib/admin/require-editor.js';
 import { enforceProposalWithdrawLimits } from '#lib/api/proposal-rate-limit.js';
 import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
 import { validateSubmitterName } from '#lib/constants/contribute/proposals.js';
@@ -12,7 +12,7 @@ import type { RequestHandler } from './$types';
 type WithdrawBody = { submitterName?: string };
 
 export const POST: RequestHandler = async ({ cookies, params, request }) => {
-	const session = getEditorSession(cookies);
+	const session = await optionalEditorSession(cookies);
 	const ip = clientIp(request);
 	const denied = enforceProposalWithdrawLimits(session, ip);
 	if (denied) {

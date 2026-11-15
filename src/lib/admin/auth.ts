@@ -10,9 +10,10 @@ export type SessionUser = {
 	username: string;
 	displayName: string;
 	role: AdminRole;
+	sessionVersion?: number;
 };
 
-type SessionPayload = SessionUser & { exp: number };
+type SessionPayload = Omit<SessionUser, 'sessionVersion'> & { exp: number; sv?: number };
 
 const COOKIE_NAME = 'admin_session';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
@@ -39,7 +40,11 @@ function safeEqual(a: string, b: string): boolean {
 /** Per-user signed session token (v2). */
 export function createSessionToken(user: SessionUser): string {
 	const payload: SessionPayload = {
-		...user,
+		id: user.id,
+		username: user.username,
+		displayName: user.displayName,
+		role: user.role,
+		sv: user.sessionVersion ?? 0,
 		exp: Math.floor(Date.now() / 1000) + COOKIE_MAX_AGE
 	};
 	const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
@@ -74,7 +79,8 @@ export function getSessionUser(cookieValue: string | undefined): SessionUser | n
 			role:
 				payload.role === 'admin' || payload.role === 'editor' || payload.role === 'contributor'
 					? payload.role
-					: 'contributor'
+					: 'contributor',
+			sessionVersion: Number.isInteger(payload.sv) ? payload.sv : 0
 		};
 	} catch {
 		return null;

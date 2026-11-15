@@ -1,3 +1,4 @@
+import { createSessionToken, setSessionCookie } from '#lib/admin/auth.js';
 import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
 import { clientIp, rateLimitResponse } from '#lib/api/rate-limit.js';
 import { sharedRateLimit } from '#lib/api/rate-limit-db.js';
@@ -29,12 +30,18 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	}
 
 	try {
-		await changePassword(
+		const sessionVersion = await changePassword(
 			auth.session.id,
 			typeof body.currentPassword === 'string' ? body.currentPassword : null,
 			body.newPassword
 		);
-		return json({ success: true });
+		return new Response(JSON.stringify({ success: true }), {
+			status: 200,
+			headers: {
+				'Content-Type': 'application/json',
+				'Set-Cookie': setSessionCookie(createSessionToken({ ...auth.session, sessionVersion }))
+			}
+		});
 	} catch (error) {
 		if (error instanceof AccountActionError) {
 			return json({ error: error.message }, error.status);

@@ -1,7 +1,7 @@
 import type { Cookies } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { canPublishDirectly } from '#lib/admin/auth.js';
-import { getEditorSession } from '#lib/admin/require-editor.js';
+import { optionalEditorSession } from '#lib/admin/require-editor.js';
 import { CAMPUS_BOUNDS } from '#lib/constants/map/terrain.js';
 import { db } from '#lib/utils/db.js';
 import { buildingsTable } from '#lib/server/db/schema.js';
@@ -23,7 +23,7 @@ function jsonOk<T>(data: T, status = 200): Response {
 }
 
 function canPublish(cookies: Cookies): boolean {
-	const session = getEditorSession(cookies);
+	const session = await optionalEditorSession(cookies);
 	return session !== null && canPublishDirectly(session.role);
 }
 

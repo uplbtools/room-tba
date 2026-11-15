@@ -1,4 +1,4 @@
-import { getEditorSession } from '#lib/admin/require-editor.js';
+import { optionalEditorSession } from '#lib/admin/require-editor.js';
 import {
 	enforceProposalSubmitLimits,
 	isProposalHoneypotTripped
@@ -27,7 +27,7 @@ type ProposalBody = {
 };
 
 export const POST: RequestHandler = async ({ cookies, request }) => {
-	const session = getEditorSession(cookies);
+	const session = await optionalEditorSession(cookies);
 	const ip = clientIp(request);
 	const denied = enforceProposalSubmitLimits(session, ip);
 	if (denied) {
