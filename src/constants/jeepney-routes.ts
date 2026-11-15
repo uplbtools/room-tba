@@ -94,7 +94,7 @@ export const ROUTE_BOARDING_NOTES: Readonly<Record<string, string>> = {
 /** The same advice, short enough for a route card on the printable map. */
 export const ROUTE_PRINT_NOTES: Readonly<Record<string, string>> = {
   forestry:
-    "Board at a terminal: Forestry Jeep Terminal (up), Upper Forestry Jeep Terminal (down).",
+    "Board at the Forestry Jeep Terminal going up and at the Upper Forestry Jeep Terminal going down.",
   "kaliwa-kanan": "Kaliwa turns left at the gate and Kanan turns right.",
 };
 
