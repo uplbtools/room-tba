@@ -1,3 +1,10 @@
+## [2.40.4](https://github.com/uplbtools/room-tba/compare/v2.40.3...v2.40.4) (2026-11-15)
+
+
+### Bug Fixes
+
+* **copy:** plain sentences in modals, planner, status bar, editor and admin ([#1423](https://github.com/uplbtools/room-tba/issues/1423)) ([83e55c6](https://github.com/uplbtools/room-tba/commit/83e55c621d72041386e441951c47c35c580baaf9))
+
 ## [2.38.4](https://github.com/uplbtools/room-tba/compare/v2.38.3...v2.38.4) (2026-11-12)
 
 
