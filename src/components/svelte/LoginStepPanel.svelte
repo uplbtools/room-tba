@@ -53,7 +53,7 @@
       void run(step.secret ? "enroll_confirm" : "enroll_start");
     } else if (step.step === "change_password") {
       if (newPassword !== confirmPassword) {
-        error = "Passwords do not match.";
+        error = "Passwords don't match.";
         return;
       }
       void run("change_password");
@@ -75,7 +75,7 @@
   <div class="login-step">
     <p class="login-step-lead">
       Two-step verification is on. Save these recovery codes somewhere safe.
-      Each one signs you in once if you lose your phone. They will not be shown
+      Each one signs you in once if you lose your phone. They won't be shown
       again.
     </p>
     <ul class="login-recovery-codes" aria-label="Recovery codes">
@@ -132,7 +132,7 @@
     {:else if step.step === "enroll_mfa"}
       {#if !step.secret}
         <p class="login-step-lead">
-          Admin accounts need two-step verification. You will need an
+          Admin accounts need two-step verification. You'll need an
           authenticator app such as Google Authenticator, Microsoft
           Authenticator, or 1Password. Signing in with Google also counts.
         </p>
@@ -143,7 +143,7 @@
         </p>
         <a class="login-step-link" href={step.otpauthUri}>Open in authenticator app</a>
         <p class="login-step-secret">
-          Or enter this key by hand:
+          Or enter this key by hand.
           <code>{step.secret.replace(/(.{4})/g, "$1 ").trim()}</code>
         </p>
         <EntityEditorFormField label="Verification code" inputId="login-step-code">

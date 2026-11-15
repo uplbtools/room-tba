@@ -19,7 +19,7 @@ describe("OfflineBanner", () => {
     onlineStatus.online = false;
     render(OfflineBanner);
     expect(screen.getByRole("status")).toHaveTextContent(
-      "You’re offline — showing saved data",
+      "You’re offline and seeing saved data",
     );
   });
 

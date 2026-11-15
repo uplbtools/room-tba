@@ -43,7 +43,7 @@
     aria-live="polite"
   >
     <p class="staging-banner__title">
-      Staging — changes here are not on production
+      This is staging. Changes here aren't on production
     </p>
     <p class="staging-banner__sub">
       Edits, contributor sign-ups, and proposals on staging stay in the staging

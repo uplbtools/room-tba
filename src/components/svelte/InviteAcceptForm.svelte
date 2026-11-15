@@ -57,7 +57,7 @@
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        error = data.error ?? "Could not finish the invite.";
+        error = data.error ?? "Couldn't finish the invite.";
         return;
       }
       done = true;
@@ -79,7 +79,7 @@
   {:else if done}
     <EntityEditorMessage
       variant="success"
-      message="Your account is ready and you are signed in."
+      message="Your account is ready and you're signed in."
     />
     <a class="invite-link" href="/admin">Open the editor dashboard</a>
   {:else}
@@ -92,7 +92,7 @@
         label="Username"
         inputId="invite-username"
         hint={usernameProblem ??
-          `${USERNAME_MIN_LENGTH} to ${USERNAME_MAX_LENGTH} characters: lowercase letters, numbers, and . _ -`}
+          `${USERNAME_MIN_LENGTH} to ${USERNAME_MAX_LENGTH} characters. Use lowercase letters, numbers, and . _ -`}
       >
         {#snippet control()}
           <input
@@ -171,7 +171,7 @@
         {/snippet}
       </EntityEditorFormField>
       {#if mismatch}
-        <p class="invite-mismatch">Passwords do not match.</p>
+        <p class="invite-mismatch">Passwords don't match.</p>
       {/if}
       {#if error}
         <EntityEditorMessage variant="error" message={error} />

@@ -79,7 +79,7 @@
       aria-live="polite"
     >
       {#if optional}
-        Shown as the credit. Leave blank to send it anonymously.
+        We show it as your credit. Leave blank to send it anonymously.
       {:else}
         {value.length}/{MAX_SUBMITTER_NAME_LENGTH}
         (at least {MIN_SUBMITTER_NAME_LENGTH} characters so editors can follow up)

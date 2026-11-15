@@ -11,7 +11,7 @@
     label = "Copy link",
     ariaLabel = label,
     successMessage = "Link copied.",
-    errorMessage = "Could not copy link.",
+    errorMessage = "Couldn't copy link.",
     feedback = "none",
     block = false,
     toolbar = false,

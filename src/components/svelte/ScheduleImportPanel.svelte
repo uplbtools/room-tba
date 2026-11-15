@@ -101,7 +101,7 @@
     </p>
   {:else if !scheduleRouteStore.matching}
     <p class="schedule-import-panel__empty">
-      No plan for this term yet. Build one in the
+      You don't have a plan for this term yet. Build one in the
       <a class="schedule-import-panel__planner-link" href="/planner">Planner</a>
       and your class stops will show up here.
     </p>
@@ -169,7 +169,7 @@
           </li>
         {:else}
           <li class="schedule-import-panel__empty">
-            No routable classes this day.
+            You have no routable classes this day.
           </li>
         {/each}
       </ul>

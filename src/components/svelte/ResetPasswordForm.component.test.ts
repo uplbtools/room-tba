@@ -26,10 +26,10 @@ describe("ResetPasswordForm", () => {
     const confirm = screen.getByLabelText("Confirm new password");
     await fireEvent.input(pw, { target: { value: "long-enough-pass" } });
     await fireEvent.input(confirm, { target: { value: "long-enough-pas" } });
-    expect(screen.getByText("Passwords do not match.")).toBeTruthy();
+    expect(screen.getByText("Passwords don't match.")).toBeTruthy();
     expect((submit as HTMLButtonElement).disabled).toBe(true);
     await fireEvent.input(confirm, { target: { value: "long-enough-pass" } });
-    expect(screen.queryByText("Passwords do not match.")).toBeNull();
+    expect(screen.queryByText("Passwords don't match.")).toBeNull();
     expect((submit as HTMLButtonElement).disabled).toBe(false);
   });
 

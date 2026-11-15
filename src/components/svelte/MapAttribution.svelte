@@ -117,7 +117,7 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          © Esri World Imagery Wayback — release {mapViewStore.waybackSnapshot.releaseDate}{#if mapViewStore.waybackSnapshot.acquisitionDate}, imagery acquired {mapViewStore.waybackSnapshot.acquisitionDate}{/if}
+          © Esri World Imagery Wayback, release {mapViewStore.waybackSnapshot.releaseDate}{#if mapViewStore.waybackSnapshot.acquisitionDate}, imagery acquired {mapViewStore.waybackSnapshot.acquisitionDate}{/if}
         </a>
       {/if}
       <a href={DATA_LICENSE_FAQ_PATH}>Campus data license</a>
