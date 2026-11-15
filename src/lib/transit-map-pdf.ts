@@ -13,14 +13,20 @@
  */
 
 import {
+  LineJoinStyle,
   PDFDocument,
   StandardFonts,
+  TextRenderingMode,
   clip,
   endPath,
   popGraphicsState,
   pushGraphicsState,
   rectangle,
   rgb,
+  setLineJoin,
+  setLineWidth,
+  setStrokingColor,
+  setTextRenderingMode,
   type PDFFont,
   type PDFPage,
   type RGB,
@@ -29,6 +35,7 @@ import {
   LOGO_PNG_BASE64,
   PRINT_MAP_QR,
   RALEWAY_BOLD_HEADINGS,
+  SIGNBOARD_GLYPHS,
 } from "@constants/print-brand";
 
 export type TransitMapStop = { name: string; lat: number; lon: number };
@@ -67,15 +74,19 @@ const PAGE_SIZES: Record<TransitMapFormat, { w: number; h: number }> = {
 };
 
 const BRAND = rgb(0.49, 0.179, 0.15); // hsl(5, 53%, 32%), the Room TBA maroon
-const INK = rgb(0.102, 0.102, 0.102);
+// Pure black prints as solid toner; a dark grey comes out as halftone dots.
+const INK = rgb(0, 0, 0);
 const MUTED = rgb(0.4, 0.4, 0.4);
 const HAIRLINE = rgb(0.8, 0.8, 0.8);
 const WHITE = rgb(1, 1, 1);
-// Highlight on the maroon band: #FFD54F on BRAND is 6.5:1, past WCAG AA
-// (4.5:1) for small text; SOFT_ON_BRAND (#F6E3E0) is 7.4:1, white 9.2:1.
-const SUNNY = rgb(1, 0.835, 0.31);
+// On the maroon band SOFT_ON_BRAND (#F6E3E0) is 7.4:1 and white is 9.2:1.
 const SOFT_ON_BRAND = rgb(0.965, 0.89, 0.878);
-const PAPER_TINT = rgb(0.98, 0.965, 0.955);
+// A jeepney signboard: black acrylic with a pale cut edge and painted capitals.
+const BOARD = rgb(0.071, 0.067, 0.059);
+const BOARD_EDGE = rgb(0.95, 0.8, 0.65);
+const SIGN_GREEN = rgb(0.33, 0.76, 0.17);
+const SIGN_YELLOW = rgb(0.94, 0.84, 0.12);
+const SIGN_RED = rgb(0.94, 0.31, 0.18);
 /**
  * Print palettes. The sheet is taped to walls and photocopied, so the base
  * map stays pale and the routes carry the colour. `routes` overrides a
@@ -130,10 +141,13 @@ export const TRANSIT_MAP_PALETTES: Record<TransitMapPalette, PaletteSpec> = {
 };
 
 const MARGIN = 32;
-const HEADER_H = 86;
+const HEADER_H = 84;
 const FOOTER_H = 30;
-const PANEL_W = 222;
+const PANEL_W = 250;
 const PANEL_GAP = 14;
+// Most printers cannot ink the outer 6 mm, so no text or art sits there.
+const SAFE = 18;
+const KEY_H = 18;
 
 /** Straight-line distance times this is the printed walking estimate. */
 export const WALK_DETOUR_FACTOR = 1.3;
@@ -466,8 +480,10 @@ export function placeLabels(
     let spot: Box | undefined = pick(r.spots ?? labelCandidates(r));
     let leader = false;
     if (!spot && r.keep) {
+      // An edge-exit label stays by its arrow, over a line if it must.
+      spot = r.spots?.find(free);
       // Dense core: walk outward ring by ring and tie back with a leader.
-      for (const ring of [2.2, 3.4, 4.6, 6, 7.5, 9]) {
+      for (const ring of spot ? [] : [2.2, 3.4, 4.6, 6, 7.5, 9]) {
         spot = pick(labelCandidates(r, r.gap * ring + 6), true);
         if (spot) {
           leader = true;
@@ -619,98 +635,6 @@ function roundRectPath(
 }
 
 /**
- * A little side-on jeepney, about 40 x 22 pt at scale 1, with its
- * bottom-left at (x, y): body, roof rack, windows, wheels.
- */
-function drawJeep(
-  page: PDFPage,
-  pageH: number,
-  x: number,
-  y: number,
-  scale: number,
-  body: RGB,
-) {
-  const s = scale;
-  const anchor = { x: 0, y: pageH };
-  page.drawSvgPath(roundRectPath(x, y + 4 * s, 40 * s, 14 * s, 4 * s, pageH), {
-    ...anchor,
-    color: body,
-    borderColor: INK,
-    borderWidth: 1.2 * s,
-  });
-  page.drawSvgPath(
-    roundRectPath(x + 4 * s, y + 18 * s, 30 * s, 3 * s, 1.5 * s, pageH),
-    {
-      ...anchor,
-      color: INK,
-    },
-  );
-  for (let i = 0; i < 4; i++) {
-    page.drawSvgPath(
-      roundRectPath(
-        x + (5 + i * 8) * s,
-        y + 11 * s,
-        6 * s,
-        5 * s,
-        1.2 * s,
-        pageH,
-      ),
-      { ...anchor, color: WHITE, borderColor: INK, borderWidth: 0.8 * s },
-    );
-  }
-  for (const wx of [10, 31]) {
-    page.drawCircle({
-      x: x + wx * s,
-      y: y + 4 * s,
-      size: 4 * s,
-      color: INK,
-      borderColor: WHITE,
-      borderWidth: 1 * s,
-    });
-  }
-}
-
-/**
- * A little side-on bus, about 40 x 20 pt at scale 1, with its bottom-left
- * at (x, y): long body, a band of windows, door, wheels.
- */
-function drawBus(
-  page: PDFPage,
-  pageH: number,
-  x: number,
-  y: number,
-  scale: number,
-  body: RGB,
-) {
-  const s = scale;
-  const anchor = { x: 0, y: pageH };
-  page.drawSvgPath(roundRectPath(x, y + 4 * s, 40 * s, 16 * s, 3 * s, pageH), {
-    ...anchor,
-    color: body,
-    borderColor: INK,
-    borderWidth: 1.2 * s,
-  });
-  page.drawSvgPath(
-    roundRectPath(x + 3 * s, y + 12 * s, 28 * s, 5.5 * s, 1.2 * s, pageH),
-    { ...anchor, color: WHITE, borderColor: INK, borderWidth: 0.8 * s },
-  );
-  page.drawSvgPath(
-    roundRectPath(x + 33 * s, y + 6 * s, 4.5 * s, 11.5 * s, 1 * s, pageH),
-    { ...anchor, color: WHITE, borderColor: INK, borderWidth: 0.8 * s },
-  );
-  for (const wx of [9, 29]) {
-    page.drawCircle({
-      x: x + wx * s,
-      y: y + 4 * s,
-      size: 4 * s,
-      color: INK,
-      borderColor: WHITE,
-      borderWidth: 1 * s,
-    });
-  }
-}
-
-/**
  * Draw mixed regular/bold text, wrapping on spaces across runs. Lines past
  * `maxLines` are dropped.
  */
@@ -758,7 +682,8 @@ function drawRuns(
         font: word.font,
         color: word.color,
       });
-      cx += word.font.widthOfTextAtSize(word.text, size);
+      // Per character: widthOfTextAtSize kerns pairs that drawText does not.
+      for (const ch of word.text) cx += word.font.widthOfTextAtSize(ch, size);
     }
   });
 }
@@ -813,25 +738,135 @@ function haloText(
   font: PDFFont,
   color = INK,
 ) {
-  for (const [dx, dy] of [
-    [0.6, 0],
-    [-0.6, 0],
-    [0, 0.6],
-    [0, -0.6],
-    [0.45, 0.45],
-    [-0.45, -0.45],
-    [0.45, -0.45],
-    [-0.45, 0.45],
-  ]) {
-    page.drawText(text, { x: x + dx, y: y + dy, size, font, color: WHITE });
-  }
+  page.pushOperators(
+    pushGraphicsState(),
+    setTextRenderingMode(TextRenderingMode.Outline),
+    setStrokingColor(WHITE),
+    setLineWidth(2.6),
+    setLineJoin(LineJoinStyle.Round),
+  );
+  page.drawText(text, { x, y, size, font, color: WHITE });
+  page.pushOperators(popGraphicsState());
   page.drawText(text, { x, y, size, font, color });
+}
+
+const SIGNBOARD_CAP = 0.628;
+const SIGNBOARD_TRACKING = 30;
+
+/** Splits a route name into the board's two paint colours. */
+export function signboardWords(name: string): [string, string] {
+  const [first = "", ...rest] = name
+    .toUpperCase()
+    .split(/\s*[/(]\s*/)
+    .map((part) => part.replace(/[^A-Z0-9&.\-' ]/g, "").trim())
+    .filter(Boolean);
+  return [first, rest.join(" ")];
+}
+
+/** Lettering size and board width for `words` on a board `h` tall. */
+function signboardLayout(words: [string, string], h: number, maxW: number) {
+  const pad = h * 0.32;
+  const texts = words.filter(Boolean);
+  const units = (text: string) =>
+    [...text].reduce(
+      (sum, ch) =>
+        sum + (SIGNBOARD_GLYPHS[ch]?.width ?? 0) + SIGNBOARD_TRACKING,
+      0,
+    );
+  const gap = SIGNBOARD_GLYPHS[" "].width * 1.4;
+  const total =
+    texts.reduce((sum, text) => sum + units(text), 0) +
+    gap * (texts.length - 1);
+  const size = Math.min(
+    (h * 0.58) / SIGNBOARD_CAP,
+    ((maxW - pad * 2) * 1000) / total,
+  );
+  return { pad, gap, size, w: (total * size) / 1000 + pad * 2 };
+}
+
+/**
+ * A jeepney signboard, `h` tall with its top-left corner at (x, top): shadowed
+ * capitals on a black board. With `cup` it hangs from a windshield suction
+ * cup. Returns the board's width.
+ */
+function drawSignboard(
+  page: PDFPage,
+  pageH: number,
+  words: [string, string],
+  x: number,
+  top: number,
+  h: number,
+  maxW: number,
+  paint: [RGB, RGB] = [SIGN_GREEN, SIGN_YELLOW],
+  cup = false,
+): number {
+  const { pad, gap, size, w } = signboardLayout(words, h, maxW);
+  const runs = words
+    .map((text, i) => ({ text, color: paint[i] }))
+    .filter((run) => run.text);
+  const edge = Math.max(0.7, h * 0.045);
+  page.drawSvgPath(roundRectPath(x, top - h, w, h, h * 0.09, pageH), {
+    x: 0,
+    y: pageH,
+    color: BOARD,
+    borderColor: BOARD_EDGE,
+    borderWidth: edge,
+  });
+  const hole = { x: x + w / 2, y: top - h * 0.13 };
+  if (cup) {
+    const r = h * 0.3;
+    const cy = top + r * 0.75;
+    page.drawCircle({
+      x: hole.x,
+      y: cy,
+      size: r,
+      color: rgb(0.93, 0.95, 0.93),
+      opacity: 0.55,
+      borderColor: WHITE,
+      borderWidth: 0.6,
+      borderOpacity: 0.9,
+    });
+    page.drawCircle({ x: hole.x, y: cy, size: r * 0.3, color: INK });
+    page.drawLine({
+      start: { x: hole.x, y: cy },
+      end: hole,
+      thickness: 0.8,
+      color: INK,
+    });
+    page.drawCircle({ ...hole, size: h * 0.045, color: BOARD_EDGE });
+  }
+  const baseline = top - h / 2 - (size * SIGNBOARD_CAP) / 2 - h * 0.03;
+  const depth = size * 0.055;
+  let cx = x + pad;
+  for (const run of runs) {
+    for (const ch of run.text) {
+      const glyph = SIGNBOARD_GLYPHS[ch];
+      if (!glyph) continue;
+      if (glyph.d) {
+        page.drawSvgPath(glyph.d, {
+          x: cx + depth,
+          y: baseline - depth,
+          scale: size / 1000,
+          color: darken(run.color, 0.38),
+        });
+        page.drawSvgPath(glyph.d, {
+          x: cx,
+          y: baseline,
+          scale: size / 1000,
+          color: run.color,
+        });
+      }
+      cx += ((glyph.width + SIGNBOARD_TRACKING) * size) / 1000;
+    }
+    cx += (gap * size) / 1000;
+  }
+  return w;
 }
 
 /** Ordinal list "A", "A and B", "A, B and C". */
 function joinNames(names: string[]): string {
   if (names.length <= 1) return names[0] ?? "";
-  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+  return `${names.slice(0, -1).join(", ")} at ${names[names.length - 1]}`;
 }
 
 type MapStop = {
@@ -963,54 +998,49 @@ export async function renderTransitMapPdf(input: {
       scale: size / 1000,
       color,
     });
-  // A maroon band with a wavy hem: the sheet is taped up around campus, so
-  // the top should read as a poster, not a printout.
-  const bandBottom = pageH - HEADER_H + 10;
-  let wave = `M 0 0 L ${pageW} 0 L ${pageW} ${pageH - bandBottom}`;
-  const waveStep = 18;
-  for (let x = pageW; x > 0; x -= waveStep) {
-    const nx = Math.max(0, x - waveStep);
-    wave += ` Q ${(x + nx) / 2} ${pageH - bandBottom + 7} ${nx} ${pageH - bandBottom}`;
-  }
-  page.drawSvgPath(`${wave} Z`, { x: 0, y: pageH, color: BRAND });
+  page.drawRectangle({
+    x: 0,
+    y: pageH - HEADER_H + 10,
+    width: pageW,
+    height: HEADER_H - 10,
+    color: BRAND,
+  });
 
-  raleway("UPLB Jeepney Routes", MARGIN, pageH - 36, 23, WHITE);
-  const titleW =
-    (RALEWAY_BOLD_HEADINGS["UPLB Jeepney Routes"].width * 23) / 1000;
-  drawJeep(page, pageH, MARGIN + titleW + 14, pageH - 38, 0.62, SUNNY);
+  const titleW = drawSignboard(
+    page,
+    pageH,
+    ["UPLB", "JEEPNEY ROUTES"],
+    MARGIN,
+    pageH - SAFE - 14,
+    26,
+    pageW,
+    [SIGN_YELLOW, SIGN_GREEN],
+    true,
+  );
 
-  // Brand block, top right. The QR is a white tag hanging past the hem,
-  // about 3 cm wide so it scans from a step back on a wall; it leads back
-  // to the app, and the ref param lets prints be counted.
+  // The QR is about 3 cm wide so it scans from a step back on a wall. Its
+  // ref param lets prints be counted.
   const qrSize = 88;
   const qrX = pageW - MARGIN - 6 - qrSize;
-  const qrTop = pageH - 8;
-  const tagBottom = qrTop - qrSize - 18;
+  const qrTop = pageH - SAFE - 2;
+  const tagBottom = qrTop - qrSize - 6;
   page.drawSvgPath(
     roundRectPath(
       qrX - 6,
       tagBottom,
       qrSize + 12,
-      pageH - 2 - tagBottom,
-      8,
+      qrTop + 6 - tagBottom,
+      3,
       pageH,
     ),
     {
       x: 0,
       y: pageH,
       color: WHITE,
-      borderColor: INK,
-      borderWidth: 1.2,
+      borderColor: MUTED,
+      borderWidth: 0.6,
     },
   );
-  const cta = "SCAN ME";
-  page.drawText(cta, {
-    x: qrX + (qrSize - bold.widthOfTextAtSize(cta, 10)) / 2,
-    y: tagBottom + 5,
-    size: 10,
-    font: bold,
-    color: BRAND,
-  });
   const cell = qrSize / PRINT_MAP_QR.length;
   PRINT_MAP_QR.forEach((row, r) => {
     for (const run of row.matchAll(/1+/g)) {
@@ -1027,9 +1057,9 @@ export async function renderTransitMapPdf(input: {
   const logo = await pdf.embedPng(LOGO_PNG_BASE64);
   const wordSize = 15;
   const wordW = (RALEWAY_BOLD_HEADINGS["Room TBA"].width * wordSize) / 1000;
-  raleway("Room TBA", brandRight - wordW, pageH - 27, wordSize, WHITE);
+  raleway("Room TBA", brandRight - wordW, pageH - 37, wordSize, WHITE);
   page.drawSvgPath(
-    roundRectPath(brandRight - wordW - 28, pageH - 32, 24, 24, 6, pageH),
+    roundRectPath(brandRight - wordW - 28, pageH - 42, 24, 24, 6, pageH),
     {
       x: 0,
       y: pageH,
@@ -1038,19 +1068,18 @@ export async function renderTransitMapPdf(input: {
   );
   page.drawImage(logo, {
     x: brandRight - wordW - 27,
-    y: pageH - 31,
+    y: pageH - 41,
     width: 22,
     height: 22,
   });
   const brandLines: [string, PDFFont, number, RGB][] = [
-    ["by UPLB Tools", bold, 9, WHITE],
-    ["Find any room or jeep route.", font, 9, SOFT_ON_BRAND],
-    ["room-tba.uplb.tools", bold, 9, SUNNY],
+    ["by UPLB Tools", font, 10, WHITE],
+    ["room-tba.uplb.tools", bold, 10, WHITE],
   ];
   brandLines.forEach(([text, fnt, size, color], i) => {
     page.drawText(text, {
       x: brandRight - fnt.widthOfTextAtSize(text, size),
-      y: pageH - 43 - i * 11.5,
+      y: pageH - 53 - i * 12.5,
       size,
       font: fnt,
       color,
@@ -1060,7 +1089,8 @@ export async function renderTransitMapPdf(input: {
     wordW + 25,
     ...brandLines.map(([text, fnt, size]) => fnt.widthOfTextAtSize(text, size)),
   );
-  const introW = brandRight - brandW - 16 - MARGIN;
+  const introX = MARGIN + titleW + 16;
+  const introW = brandRight - brandW - 16 - introX;
 
   // Vercel runs in UTC; without the zone, sheets printed before 8 AM in
   // Los Baños carry yesterday's date.
@@ -1081,48 +1111,55 @@ export async function renderTransitMapPdf(input: {
         .map((r) => r.name),
     );
     intro = [
-      { text: "You're at " },
-      { text: here.name ?? "the star on this map", bold: true },
-      { text: ". The nearest jeepney stop is " },
+      { text: "Nandito ka sa " },
+      { text: here.name ?? "star sa map na ito", bold: true },
+      { text: ". Pinakamalapit na jeepney stop ang " },
       { text: nearest.stop.name, bold: true },
-      { text: `, about ${formatDistance(nearest.walkM)} on foot. ` },
-      { text: servedBy, bold: true },
       {
-        text: ` ${nearest.stop.routeIds.length > 1 ? "stop" : "stops"} there.`,
+        text: `, mga ${formatDistance(nearest.walkM)} na lakad lang. Dumadaan dito ang `,
       },
+      { text: servedBy, bold: true },
+      { text: "." },
     ];
   } else if (here) {
     intro = [
-      { text: here.name ?? "This spot", bold: true },
       {
-        text: ` is about ${formatDistance(haversineMeters(here, center))} from campus, outside this map. The routes below still show how to reach UPLB.`,
+        text: `Mga ${formatDistance(haversineMeters(here, center))} from campus ang `,
+      },
+      { text: here.name ?? "spot na ito", bold: true },
+      {
+        text: ", kaya wala ito sa map. Nasa routes pa rin kung paano pumunta ng UPLB.",
       },
     ];
   } else {
-    intro = [{ text: "These are the campus jeepney routes and their stops." }];
+    intro = [
+      { text: "Mga jeepney route sa campus at kung saan sila humihinto." },
+    ];
   }
   const INTRO_SIZE = 11;
-  drawRuns(page, intro, MARGIN, pageH - 56, introW, INTRO_SIZE, 14, 2, {
+  const INTRO_LEAD = 13.5;
+  const introLines = Math.min(
+    4,
+    wrapText(intro.map((r) => r.text).join(""), bold, INTRO_SIZE, introW)
+      .length,
+  );
+  // Centred on the title board, which hangs below its suction cup.
+  const introY =
+    pageH - SAFE - 26 + ((introLines - 1) * INTRO_LEAD) / 2 - INTRO_SIZE * 0.36;
+  drawRuns(page, intro, introX, introY, introW, INTRO_SIZE, INTRO_LEAD, 4, {
     regular: font,
     bold,
-    color: WHITE,
-    boldColor: SUNNY,
+    color: SOFT_ON_BRAND,
+    boldColor: WHITE,
   });
 
   // ── Map frame ─────────────────────────────────────────────────────────
   const frame: Box = {
     x: MARGIN,
-    y: FOOTER_H + 8,
+    y: FOOTER_H + 8 + KEY_H,
     w: pageW - MARGIN * 2 - PANEL_W - PANEL_GAP,
-    h: pageH - HEADER_H - 10 - FOOTER_H - 8,
+    h: pageH - HEADER_H - 10 - FOOTER_H - 8 - KEY_H,
   };
-  page.drawRectangle({
-    x: frame.x + 4,
-    y: frame.y - 4,
-    width: frame.w,
-    height: frame.h,
-    color: BRAND,
-  });
   page.drawRectangle({
     x: frame.x,
     y: frame.y,
@@ -1350,13 +1387,13 @@ export async function renderTransitMapPdf(input: {
     }
     for (const g of gateMarks) {
       page.drawRectangle({
-        x: g.p.x - 2.2,
-        y: g.p.y - 2.2,
-        width: 4.4,
-        height: 4.4,
-        color: MUTED,
+        x: g.p.x - 3.5,
+        y: g.p.y - 3.5,
+        width: 7,
+        height: 7,
+        color: INK,
         borderColor: WHITE,
-        borderWidth: 0.6,
+        borderWidth: 1,
       });
     }
     if (nearestP) {
@@ -1475,7 +1512,7 @@ export async function renderTransitMapPdf(input: {
     const barMaxPt = 90;
     const meters = niceScaleBarMeters(barMaxPt / ptPerMeter);
     const barPt = meters * ptPerMeter;
-    const barBoxW = barPt + 40;
+    const barBoxW = barPt + 46;
     const linePts = [...routeLines.values()].flat();
     const corners = [
       { x: frame.x + 12, y: frame.y + 12 },
@@ -1517,8 +1554,8 @@ export async function renderTransitMapPdf(input: {
     }
     page.drawText(meters >= 1000 ? `${meters / 1000} km` : `${meters} m`, {
       x: barX + barPt + 5,
-      y: barY - 3,
-      size: 8.5,
+      y: barY - 3.5,
+      size: 9.5,
       font,
       color: INK,
     });
@@ -1531,9 +1568,9 @@ export async function renderTransitMapPdf(input: {
       { ...svgAnchor, color: INK },
     );
     page.drawText("N", {
-      x: nx - 2.5,
+      x: nx - 3.4,
       y: ny + 12,
-      size: 8,
+      size: 9.5,
       font: bold,
       color: INK,
     });
@@ -1585,7 +1622,7 @@ export async function renderTransitMapPdf(input: {
         here.name ? `You are here\n${here.name}` : "You are here",
         hereP,
         12,
-        11,
+        11.5,
         bold,
         BRAND,
         100,
@@ -1614,7 +1651,7 @@ export async function renderTransitMapPdf(input: {
       };
       while (
         picked.length > 1 &&
-        bold.widthOfTextAtSize(textOf(picked), 9) > 250
+        bold.widthOfTextAtSize(textOf(picked), 10) > 270
       )
         picked.pop();
       const spec = add(
@@ -1622,10 +1659,11 @@ export async function renderTransitMapPdf(input: {
         textOf(picked),
         exit.p,
         10,
-        9,
+        10,
         bold,
         INK,
-        95,
+        // Top and bottom exits have fewer spots, so they pick first.
+        exit.side === "n" || exit.side === "s" ? 96 : 95,
         true,
         true,
       );
@@ -1637,12 +1675,15 @@ export async function renderTransitMapPdf(input: {
       for (let k = 0; k <= 6; k++) {
         const off = 10 + k * 12;
         const pairs: [number, number][] = vertical
-          ? [y - h / 2, exit.side === "n" ? y - 12 - h : y + 12].flatMap(
-              (by): [number, number][] => [
-                [x + off, by],
-                [x - off - w, by],
-              ],
-            )
+          ? [
+              y - h / 2,
+              exit.side === "n" ? y - 12 - h : y + 12,
+              // One row further in, for when two exits share a corner.
+              exit.side === "n" ? y - 15 - 2 * h : y + 15 + h,
+            ].flatMap((by): [number, number][] => [
+              [x + off, by],
+              [x - off - w, by],
+            ])
           : [y + off, y - off - h].map((by): [number, number] => [
               exit.side === "e" ? x - 12 - w : x + 12,
               by,
@@ -1678,16 +1719,16 @@ export async function renderTransitMapPdf(input: {
       const isNearest = nearest?.stop.key === stop.key;
       const label = labelFor(stop.name);
       if (isNearest)
-        add(stop.key, label, p, 10, 10.5, bold, BRAND, 90, true, true);
+        add(stop.key, label, p, 10, 11, bold, BRAND, 90, true, true);
       else if (stop.terminal)
-        add(stop.key, label, p, markerR(stop) + 2.5, 10, bold, INK, 80, true);
+        add(stop.key, label, p, markerR(stop) + 4, 10.5, bold, INK, 80, true);
       else
         add(
           stop.key,
           label,
           p,
-          markerR(stop) + 2.5,
-          9.5,
+          markerR(stop) + 4,
+          10,
           font,
           INK,
           // Shared stops (transfers) before single-route ones, nearest first.
@@ -1704,9 +1745,9 @@ export async function renderTransitMapPdf(input: {
           g.name,
           g.p,
           5,
-          8,
+          9,
           italic,
-          MUTED,
+          INK,
           10 - i * 0.01,
           false,
           true,
@@ -1758,7 +1799,7 @@ export async function renderTransitMapPdf(input: {
       });
     }
   } else {
-    page.drawText("No active routes to map yet.", {
+    page.drawText("Wala pang active na route na pwedeng i-map.", {
       x: frame.x + frame.w / 2 - 70,
       y: frame.y + frame.h / 2,
       size: 10,
@@ -1766,53 +1807,44 @@ export async function renderTransitMapPdf(input: {
       color: MUTED,
     });
   }
-  // Sticker-style frame: a firm ink outline over the offset shadow drawn
-  // behind the map.
   page.drawRectangle({
     x: frame.x,
     y: frame.y,
     width: frame.w,
     height: frame.h,
-    borderColor: INK,
-    borderWidth: 1.6,
+    borderColor: MUTED,
+    borderWidth: 0.6,
   });
 
   // ── Side panel ────────────────────────────────────────────────────────
-  // Cards on a soft tint, a maroon pill per section. Body text is INK or
-  // BODY_TEXT (#4A4A4A, 7.6:1 or better on every route tint); no text sits
-  // below WCAG AA's 4.5:1, and route lines keep 3:1 against white.
-  const BODY_TEXT = rgb(0.29, 0.29, 0.29);
   const anchor = { x: 0, y: pageH };
   const px = pageW - MARGIN - PANEL_W;
-  const panelFloor = FOOTER_H + 3;
+  const panelFloor = FOOTER_H + 6;
+  const BODY = 10.5;
+  const LEAD = 13;
   let py = pageH - HEADER_H - 8;
-  const pill = (text: string) => {
-    const w = bold.widthOfTextAtSize(text, 9.5) + 18;
-    page.drawSvgPath(roundRectPath(px, py - 17, w, 17, 8.5, pageH), {
-      ...anchor,
-      color: BRAND,
-    });
+  const heading = (text: string) => {
     page.drawText(text, {
-      x: px + 9,
+      x: px,
       y: py - 12,
-      size: 9.5,
+      size: 13,
       font: bold,
-      color: WHITE,
+      color: INK,
     });
-    return w;
+    py -= 18;
   };
-  const card = (h: number, fill: RGB, stripe?: RGB) => {
-    page.drawSvgPath(roundRectPath(px, py - h, PANEL_W, h, 8, pageH), {
-      ...anchor,
-      color: fill,
-      borderColor: HAIRLINE,
-      borderWidth: 0.8,
+  const line = (text: string, x = px, fnt = font) => {
+    page.drawText(text, { x, y: py - 8.5, size: BODY, font: fnt, color: INK });
+    py -= LEAD;
+  };
+  const rule = () => {
+    page.drawLine({
+      start: { x: px, y: py },
+      end: { x: px + PANEL_W, y: py },
+      thickness: 0.6,
+      color: HAIRLINE,
     });
-    if (stripe)
-      page.drawSvgPath(roundRectPath(px, py - h, 6, h, 3, pageH), {
-        ...anchor,
-        color: stripe,
-      });
+    py -= 9;
   };
   const sample = (
     color: RGB,
@@ -1852,25 +1884,16 @@ export async function renderTransitMapPdf(input: {
   };
   const fareText = (r: { fareRegular: number; fareDiscounted: number }) =>
     Number.isFinite(r.fareRegular)
-      ? `PHP ${r.fareRegular} a ride, PHP ${r.fareDiscounted} discounted`
-      : "Fare not verified yet. Ask the driver.";
-  const tint = (c: RGB) =>
-    rgb(
-      1 - (1 - c.red) * 0.09,
-      1 - (1 - c.green) * 0.09,
-      1 - (1 - c.blue) * 0.09,
-    );
-  const textX = px + 46;
-  const textW = PANEL_W - 54;
-  const BODY = 10;
-  const LEAD = 11.5;
+      ? `PHP ${r.fareRegular} ang pamasahe, PHP ${r.fareDiscounted} pag discounted`
+      : "Di pa verified ang pamasahe, tanong muna sa driver";
+  const textX = px + 34;
+  const textW = PANEL_W - 34;
+  const BOARD_H = 19;
 
   if (drawnRoutes.length > 0) {
-    // The QR tag hangs over the right of this row, so the pill sits alone.
-    pill("Campus jeepneys");
-    py -= 22;
-    // When every route charges the same, the fare is said once on a sunny
-    // badge (ink on yellow, 12.3:1) instead of on every card.
+    heading("Jeeps sa campus");
+    // The QR tag hangs into the top of the panel.
+    py = Math.min(py, tagBottom - 5);
     const fares = new Set(drawnRoutes.map((r) => fareText(r)));
     const sharedFare =
       fares.size === 1 &&
@@ -1878,81 +1901,70 @@ export async function renderTransitMapPdf(input: {
         ? [...fares][0]
         : null;
     if (sharedFare) {
-      const bw = bold.widthOfTextAtSize(sharedFare, BODY) + 14;
-      page.drawSvgPath(roundRectPath(px, py - 16, bw, 16, 8, pageH), {
-        ...anchor,
-        color: SUNNY,
-      });
-      page.drawText(sharedFare, {
-        x: px + 7,
-        y: py - 11.5,
-        size: BODY,
-        font: bold,
-        color: INK,
-      });
-      py -= 20;
+      line(`${sharedFare}.`);
+      line("Sa yellow stops lang pwedeng sumakay at bumaba.");
+      py -= 6;
     }
     for (const route of drawnRoutes) {
       const color = hexToRgb(route.color);
       const style = styles.get(route.id);
       const loop = isLoopRoute(route);
-      const [fwdName, revName] = loop
-        ? route.name.split(/\s*\/\s*/)
-        : [route.name, undefined];
+      const names = loop ? route.name.split(/\s*\/\s*/) : [route.name];
+      if (loop && names.length < 2) names.push(`${route.name} reverse`);
+      // Each board has its name in plain type too, beside it when it fits.
+      const boards = names.slice(0, 2).map((name) => {
+        const words = signboardWords(name);
+        const w = signboardLayout(words, BOARD_H, textW).w;
+        const beside = w + 8 + bold.widthOfTextAtSize(name, BODY) <= textW;
+        return { name, words, w, beside };
+      });
       const fare = sharedFare ? "" : `${fareText(route)}.`;
-      const fullNote = [
-        loop ? "Same loop, opposite ways." : "",
+      const note = [
+        loop ? "Iisa ang loop nila." : "",
         fare,
         route.boardingNote ?? "",
       ]
         .filter(Boolean)
         .join(" ");
-      const lines = wrapText(fullNote, font, BODY, textW);
-      const h = 17 + (loop ? 14 : 0) + lines.length * LEAD + 7;
+      const lines = wrapText(note, font, BODY, textW);
+      const h =
+        boards.reduce(
+          (sum, b) => sum + BOARD_H + 3 + (b.beside ? 0 : LEAD),
+          0,
+        ) +
+        lines.length * LEAD;
       if (py - h < panelFloor) break;
-      card(h, tint(color), color);
-      let cy = py - 17;
-      sample(color, loop ? null : (style?.dash ?? null), loop, px + 14, cy);
-      page.drawText(fwdName ?? route.name, {
-        x: textX,
-        y: cy,
-        size: 11,
-        font: bold,
-        color: INK,
-      });
-      if (loop) {
-        cy -= 14;
+      boards.forEach((b, i) => {
+        const reverse = i === 1;
         sample(
-          reverseColorOf(route),
-          style?.reverseDash ?? LOOP_REVERSE_DASH,
-          true,
-          px + 14,
-          cy,
-          true,
+          reverse ? reverseColorOf(route) : color,
+          reverse
+            ? (style?.reverseDash ?? LOOP_REVERSE_DASH)
+            : loop
+              ? null
+              : (style?.dash ?? null),
+          loop,
+          px,
+          py - BOARD_H / 2 - 3,
+          reverse,
         );
-        page.drawText(revName ?? `${route.name}, reverse`, {
-          x: textX,
-          y: cy,
-          size: 11,
-          font: bold,
-          color: INK,
-        });
-      }
-      cy -= 13;
-      for (const line of lines) {
-        page.drawText(line, {
-          x: textX,
-          y: cy,
-          size: BODY,
-          font,
-          color: BODY_TEXT,
-        });
-        cy -= LEAD;
-      }
-      py -= h + 4;
+        drawSignboard(page, pageH, b.words, textX, py, BOARD_H, textW);
+        if (b.beside)
+          page.drawText(b.name, {
+            x: textX + b.w + 8,
+            y: py - BOARD_H / 2 - 3.6,
+            size: BODY,
+            font: bold,
+            color: INK,
+          });
+        py -= BOARD_H + 3;
+        if (!b.beside) line(b.name, textX, bold);
+      });
+      for (const l of lines) line(l, textX);
+      py -= 7;
     }
 
-    // Map key.
+    // Map key, in one row under the map.
     const keys: [string, (x: number, y: number) => void][] = [];
     if (here && hereOnMap) {
       keys.push([
@@ -1977,7 +1989,7 @@ export async function renderTransitMapPdf(input: {
     }
     if (stops.some((st) => st.routeIds.length > 1))
       keys.push([
-        "Transfer stop",
+        "Pwede lumipat ng jeep",
         (x, y) =>
           page.drawCircle({
             x: x + 12,
@@ -1993,250 +2005,94 @@ export async function renderTransitMapPdf(input: {
         "Campus gate",
         (x, y) =>
           page.drawRectangle({
-            x: x + 9.8,
-            y: y + 0.8,
-            width: 4.4,
-            height: 4.4,
-            color: MUTED,
+            x: x + 8.5,
+            y: y - 0.5,
+            width: 7,
+            height: 7,
+            color: INK,
           }),
       ]);
-    // Two columns: the panel is short on height, not width.
-    const keyRows = Math.ceil(keys.length / 2);
-    const keyH = 8 + keyRows * 15;
-    if (keys.length > 0 && py - keyH >= panelFloor) {
-      card(keyH, WHITE);
-      keys.forEach(([label, icon], i) => {
-        const kx = px + 10 + (i % 2) * (PANEL_W / 2);
-        const ky = py - 17 - Math.floor(i / 2) * 15;
-        icon(kx, ky);
-        page.drawText(label, {
-          x: kx + 30,
-          y: ky,
-          size: BODY,
-          font,
-          color: INK,
-        });
-      });
-      py -= keyH + 8;
-    }
-  }
-
-  // Town jeeps and buses are not drawn on the map, so they get designed
-  // tiles: jeeps as a row of destination tiles with a fare chip, buses as
-  // rows with an operator badge, the destination and when or where to board.
-  const BUS_TEAL = rgb(0.059, 0.463, 0.431); // #0f766e, white on it 5.5:1
-  const townJeeps = [
-    { to: "Calamba", fare: "PHP 30", note: "25 discounted" },
-    { to: "San Pablo", fare: "PHP 14+", note: "by distance" },
-    { to: "Sta. Cruz", fare: "PHP 14+", note: "by distance" },
-  ];
-  const townBuses = [
-    {
-      tag: "DLTB",
-      to: "Buendia",
-      via: "LRT-1 Gil Puyat",
-      detail: "Main gate 5 AM, back 6 PM daily",
-    },
-    {
-      tag: "OTHERS",
-      to: "Buendia",
-      via: "",
-      detail: "Flag down at the Junction, pay on board",
-    },
-    {
-      tag: "DLTB",
-      to: "UP Diliman",
-      via: "",
-      detail: "Book at dltbbus.com.ph",
-    },
-  ];
-  const SUB_H = 14;
-  const TILE_H = 39;
-  const ROW_H = 24;
-  const GAP = 3;
-  const townH =
-    4 + SUB_H + TILE_H + 4 + SUB_H + townBuses.length * (ROW_H + GAP);
-  // No pill: the jeep and bus sub-heads label the card, and A4 has no
-  // height to spare for one.
-  if (py - townH >= panelFloor) {
-    card(townH, PAPER_TINT);
-    let ty = py - 4;
-    const inX = px + 8;
-    const inW = PANEL_W - 16;
-    const subhead = (icon: () => void, text: string) => {
-      icon();
-      page.drawText(text, {
-        x: inX + 24,
-        y: ty - 10,
-        size: 9,
-        font: bold,
-        color: INK,
-      });
-      ty -= SUB_H;
-    };
-    subhead(
-      () => drawJeep(page, pageH, inX, ty - 12, 0.5, SUNNY),
-      "Jeeps: board at the Junction (Olivarez)",
-    );
-    const tileW = (inW - GAP * (townJeeps.length - 1)) / townJeeps.length;
-    townJeeps.forEach((j, i) => {
-      const tx = inX + i * (tileW + GAP);
-      page.drawSvgPath(
-        roundRectPath(tx, ty - TILE_H, tileW, TILE_H, 6, pageH),
-        {
-          ...anchor,
-          color: WHITE,
-          borderColor: HAIRLINE,
-          borderWidth: 0.8,
-        },
-      );
-      page.drawText(j.to, {
-        x: tx + 6,
-        y: ty - 12,
+    let kx = frame.x;
+    const ky = frame.y - KEY_H + 5;
+    for (const [label, icon] of keys) {
+      icon(kx, ky);
+      page.drawText(label, {
+        x: kx + 30,
+        y: ky,
         size: BODY,
-        font: bold,
-        color: INK,
-      });
-      const chipW = bold.widthOfTextAtSize(j.fare, 8.5) + 10;
-      page.drawSvgPath(roundRectPath(tx + 5, ty - 28, chipW, 12, 6, pageH), {
-        ...anchor,
-        color: SUNNY,
-      });
-      page.drawText(j.fare, {
-        x: tx + 10,
-        y: ty - 24.5,
-        size: 8.5,
-        font: bold,
-        color: INK,
-      });
-      if (font.widthOfTextAtSize(j.note, 7.5) <= tileW - 10)
-        page.drawText(j.note, {
-          x: tx + 6,
-          y: ty - 35.5,
-          size: 7.5,
-          font,
-          color: BODY_TEXT,
-        });
-    });
-    ty -= TILE_H + 4;
-    subhead(
-      () => drawBus(page, pageH, inX, ty - 12, 0.5, BUS_TEAL),
-      "Buses to Manila",
-    );
-    for (const b of townBuses) {
-      page.drawSvgPath(roundRectPath(inX, ty - ROW_H, inW, ROW_H, 6, pageH), {
-        ...anchor,
-        color: WHITE,
-        borderColor: HAIRLINE,
-        borderWidth: 0.8,
-      });
-      const badgeW = 40;
-      page.drawSvgPath(
-        roundRectPath(inX + 5, ty - ROW_H + 5, badgeW, ROW_H - 10, 4, pageH),
-        { ...anchor, color: BUS_TEAL },
-      );
-      const tagSize = b.tag.length > 4 ? 6.5 : 8;
-      page.drawText(b.tag, {
-        x: inX + 5 + (badgeW - bold.widthOfTextAtSize(b.tag, tagSize)) / 2,
-        y: ty - ROW_H / 2 - tagSize * 0.35,
-        size: tagSize,
-        font: bold,
-        color: WHITE,
-      });
-      const rx = inX + badgeW + 11;
-      page.drawText(b.to, {
-        x: rx,
-        y: ty - 10,
-        size: BODY,
-        font: bold,
-        color: INK,
-      });
-      if (b.via)
-        page.drawText(b.via, {
-          x: rx + bold.widthOfTextAtSize(b.to, BODY) + 5,
-          y: ty - 10,
-          size: 8,
-          font,
-          color: BODY_TEXT,
-        });
-      page.drawText(b.detail, {
-        x: rx,
-        y: ty - 19.5,
-        size: 8,
         font,
-        color: BODY_TEXT,
-      });
-      ty -= ROW_H + GAP;
-    }
-    py -= townH + 6;
-  }
-
-  // Riding tips, for first-years and visitors reading the sheet on a wall.
-  const tips = [
-    "Kaliwa turns left at the gate, and Kanan turns right.",
-    "Board and alight at yellow stops only.",
-  ];
-  const tipLines = tips.map((t) => wrapText(t, font, BODY, PANEL_W - 36));
-  const tipsH = 6 + tipLines.reduce((n, l) => n + l.length * LEAD + 3, 0);
-  // Numbered sunny dots read as tips on their own, without a pill.
-  if (py - tipsH >= panelFloor) {
-    card(tipsH, WHITE);
-    let ty = py - 14;
-    tipLines.forEach((lines, i) => {
-      page.drawCircle({
-        x: px + 15,
-        y: ty + 3,
-        size: 6.5,
-        color: SUNNY,
-        borderColor: INK,
-        borderWidth: 0.8,
-      });
-      page.drawText(String(i + 1), {
-        x: px + 12.4,
-        y: ty,
-        size: 8.5,
-        font: bold,
         color: INK,
       });
-      for (const line of lines) {
-        page.drawText(line, {
-          x: px + 28,
-          y: ty,
-          size: BODY,
-          font,
-          color: INK,
-        });
-        ty -= LEAD;
-      }
-      ty -= 3;
+      kx += 30 + font.widthOfTextAtSize(label, BODY) + 24;
+    }
+  }
+
+  // Town jeeps and buses are not drawn on the map, so they are listed.
+  const townJeeps = ["Calamba", "San Pablo", "Sta. Cruz"];
+  const townLines = [
+    "Mula PHP 14 ang pamasahe, depende sa layo.",
+    "PHP 30 ang pa-Calamba Crossing, 25 discounted.",
+  ].flatMap((text) => wrapText(text, font, BODY, PANEL_W));
+  const busLines = [
+    "5 AM umaalis ang DLTB sa main gate pa-Buendia.",
+    "6 PM naman ito bumabalik galing Buendia, daily.",
+    "May ibang bus pa-Buendia sa Olivarez Plaza Mall.",
+    "Mag-book sa dltbbus.com.ph kung pa-UP Diliman ka.",
+  ].flatMap((text) => wrapText(text, font, BODY, PANEL_W));
+  const TOWN_BOARD_H = 15;
+  const townH =
+    9 +
+    21 +
+    TOWN_BOARD_H +
+    4 +
+    (1 + townLines.length) * LEAD +
+    8 +
+    20 +
+    busLines.length * LEAD;
+  if (py - townH >= panelFloor) {
+    rule();
+    heading("Jeeps sa Olivarez Plaza Mall");
+    py -= 3;
+    const col = PANEL_W / townJeeps.length;
+    const top = py;
+    townJeeps.forEach((to, i) => {
+      const x = px + i * col;
+      py = top;
+      drawSignboard(
+        page,
+        pageH,
+        signboardWords(to),
+        x,
+        py,
+        TOWN_BOARD_H,
+        col - 6,
+        [SIGN_RED, SIGN_RED],
+      );
+      py -= TOWN_BOARD_H + 4;
+      line(to, x, bold);
     });
-    py -= tipsH + 12;
+    for (const l of townLines) line(l);
+    py -= 8;
+    heading("Bus pa-Manila");
+    py -= 2;
+    for (const l of busLines) line(l);
   }
 
   // ── Footer ────────────────────────────────────────────────────────────
-  // A little road with a jeep on it, then the credits.
-  const roadY = FOOTER_H - 4;
-  page.drawLine({
-    start: { x: MARGIN + 34, y: roadY },
-    end: { x: pageW - MARGIN, y: roadY },
-    thickness: 1.2,
-    color: HAIRLINE,
-    dashArray: [6, 4],
-  });
-  drawJeep(page, pageH, MARGIN, roadY - 2, 0.7, SUNNY);
+  const FOOT = 9;
   page.drawText(
-    `Room TBA by UPLB Tools, room-tba.uplb.tools. Printed ${dateLabel}. We verified prices on Oct 7, 2026.`,
-    { x: MARGIN + 34, y: 9, size: 7.5, font, color: MUTED },
+    `Na-print noong ${dateLabel}. Na-verify ang presyo noong Oct 7, 2026.`,
+    { x: MARGIN, y: SAFE + 2, size: FOOT, font, color: INK },
   );
   const footRight = input.basemap
-    ? "Map data from OpenStreetMap contributors, ODbL. Route lines and walking distances are approximate."
-    : "Route lines and walking distances are approximate.";
+    ? "Map data from OpenStreetMap contributors, ODbL. Approximate lang ang mga linya at layo."
+    : "Approximate lang ang mga linya at layo.";
   page.drawText(footRight, {
-    x: pageW - MARGIN - font.widthOfTextAtSize(footRight, 7.5),
-    y: 9,
-    size: 7.5,
+    x: pageW - MARGIN - font.widthOfTextAtSize(footRight, FOOT),
+    y: SAFE + 2,
+    size: FOOT,
     font,
-    color: MUTED,
+    color: INK,
   });
 
   return pdf.save();

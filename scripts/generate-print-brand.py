@@ -1,10 +1,13 @@
 """Regenerate src/constants/print-brand.ts for the printable jeepney map.
 
 pdf-lib only ships the 14 standard fonts and has no QR encoder, so the brand
-pieces are baked once: Raleway Bold outlines for the fixed headings, the QR
-module grid for the print link, and a small copy of public/logo.png.
+pieces are baked once: Raleway Bold outlines for the fixed headings, Cubao
+Free Narrow capitals for the signboards, the QR module grid for the print
+link, and a small copy of public/logo.png.
 
-    python3 scripts/generate-print-brand.py path/to/Raleway[wght].ttf
+    python3 scripts/generate-print-brand.py path/to/Raleway[wght].ttf path/to/cubao-free-narrow.otf
+
+Cubao Free is by Aaron Amar, under the SIL Open Font License 1.1.
 
 Needs fontTools, Pillow and qrcode (pip install fonttools pillow qrcode).
 Run `bunx biome format --write src/constants/print-brand.ts` afterwards.
@@ -23,7 +26,8 @@ from fontTools.varLib.instancer import instantiateVariableFont
 from PIL import Image
 
 PRINT_URL = "https://room-tba.uplb.tools/?ref=print-map"
-HEADINGS = ["UPLB Jeepney Routes", "Room TBA"]
+HEADINGS = ["Room TBA"]
+SIGNBOARD_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789&./-' "
 
 font = instantiateVariableFont(TTFont(sys.argv[1]), {"wght": 700})
 scale = 1000 / font["head"].unitsPerEm
@@ -40,6 +44,16 @@ for text in HEADINGS:
         glyphs[name].draw(TransformPen(pen, (scale, 0, 0, -scale, x, 0)))
         x += glyphs[name].width * scale
     paths[text] = {"d": pen.getCommands(), "width": round(x)}
+
+cubao = TTFont(sys.argv[2])
+cubao_cmap = cubao.getBestCmap()
+cubao_glyphs = cubao.getGlyphSet()
+signboard = {}
+for ch in SIGNBOARD_CHARS:
+    glyph = cubao_glyphs[cubao_cmap[ord(ch)]]
+    pen = SVGPathPen(cubao_glyphs, ntos=lambda n: f"{n:.0f}")
+    glyph.draw(TransformPen(pen, (1, 0, 0, -1, 0, 0)))
+    signboard[ch] = {"d": pen.getCommands(), "width": round(glyph.width)}
 
 qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, border=0)
 qr.add_data(PRINT_URL)
@@ -59,5 +73,7 @@ with open("src/constants/print-brand.ts", "w") as out:
     out.write("/** Raleway Bold outlines, 1000 units per em, y-down, baseline at 0. */\n")
     keys = " | ".join(json.dumps(t) for t in HEADINGS)
     out.write(f"export const RALEWAY_BOLD_HEADINGS: Record<{keys}, {{ d: string; width: number }}> = {json.dumps(paths, indent=2)};\n\n")
+    out.write("/** Cubao Free Narrow capitals (Aaron Amar, SIL OFL 1.1), same units as above. */\n")
+    out.write(f"export const SIGNBOARD_GLYPHS: Record<string, {{ d: string; width: number }}> = {json.dumps(signboard, indent=2)};\n\n")
     out.write("/** public/logo.png at 160 px, for pdf-lib embedPng. */\n")
     out.write(f"export const LOGO_PNG_BASE64 =\n  {json.dumps(logo_b64)};\n")

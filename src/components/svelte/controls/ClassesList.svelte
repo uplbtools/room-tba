@@ -73,7 +73,7 @@
         nextCursor = null;
         hasMore = false;
         loadError =
-          "Could not load classes. Check your connection and try again.";
+          "Couldn't load classes. Check your connection and try again.";
       })
       .finally(() => {
         loading = false;

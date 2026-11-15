@@ -33,7 +33,7 @@
     <div class="nav__bar">
       <div class="nav__summary" role="status" aria-live="polite">
         {#if nav.arrived}
-          <p class="nav__time">You have arrived</p>
+          <p class="nav__time">You've arrived</p>
           <p class="nav__meta">{directionsStore.destination?.label ?? ""}</p>
         {:else}
           <p class="nav__time">
@@ -71,7 +71,7 @@
 
     {#if !locationStore.coords}
       <p class="nav__off" role="status">
-        Waiting for your location — showing the planned time until then.
+        Waiting for your location. The planned time shows until it comes in.
       </p>
     {/if}
 

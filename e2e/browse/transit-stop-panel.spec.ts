@@ -45,7 +45,9 @@ test.describe("transit stop deep link", () => {
     await reports
       .getByRole("button", { name: "Jeep is here: E2E Route" })
       .click();
-    await expect(reports.getByText("Thanks, reported.")).toBeVisible();
+    await expect(
+      reports.getByText("Thanks, we got your report."),
+    ).toBeVisible();
     await expect(
       reports.getByText("Last jeep reported just now"),
     ).toBeVisible();
