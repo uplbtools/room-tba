@@ -148,7 +148,7 @@
     <NavigationBar />
   {:else if !directionsStore.destination}
     <p class="directions__note" role="status">
-      Search for a place or tap the map to choose where you are going.
+      Search for a place or tap the map to choose where you're going.
     </p>
   {:else if directionsStore.phase === "planning" && directionsStore.origin}
     <p class="directions__note" role="status">Finding the best ways there…</p>
@@ -158,11 +158,11 @@
          start point instead (search or tap the map, as for any stop). -->
     {#if locationStore.failure}
       <p class="directions__note directions__note--warn" role="status">
-        {locationStore.failure} Choose where you are starting from instead.
+        {locationStore.failure} Choose where you're starting from instead.
       </p>
     {:else}
       <p class="directions__note" role="status">
-        Waiting for your location… or choose where you are starting from.
+        Waiting for your location. You can also choose where you're starting from.
       </p>
     {/if}
     <!-- "Use my location" (the retry) sits under the From field. -->
@@ -310,11 +310,11 @@
     <p class="directions__caveat">
       Estimated from campus path data at {WALK_KPH} km/h walking. Jeep times
       assume a {Math.round(JEEPNEY_WAIT_SECONDS / 60)} min wait and a {JEEPNEY_KPH}
-      km/h average — there is no live tracking.
+      km/h average. There's no live tracking.
       {#if selected && rideLeg(selected)}
         {selected.fare
           ? JEEPNEY_FARE_NOTE
-          : "Town jeep fares depend on distance; ask the driver."}
+          : "Town jeep fares depend on distance, so ask the driver."}
       {/if}
     </p>
   {/if}

@@ -143,10 +143,10 @@
         editing = false;
         additionProposalStore.clearDraftPin();
       } else {
-        toastStore.show(result.error ?? "Could not save changes.", "error");
+        toastStore.show(result.error ?? "Couldn't save changes.", "error");
       }
     } catch {
-      toastStore.show("Could not save changes.", "error");
+      toastStore.show("Couldn't save changes.", "error");
     } finally {
       submitting = false;
     }

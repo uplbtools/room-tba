@@ -221,7 +221,8 @@ export const MAKILING_TRAIL_STOPS: readonly TrailStop[] = [
     id: "station-21",
     station: 21,
     name: "Viewpoint (Station 21)",
-    description: "You get partial views of Laguna de Bay when it's clear, but it's often fogged in.",
+    description:
+      "You get partial views of Laguna de Bay when it's clear, but it's often fogged in.",
     lon: 121.1988728,
     lat: 14.1388782,
     osmNode: 2764005767,

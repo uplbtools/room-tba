@@ -6,7 +6,7 @@ import WikiProvenance from "../../components/wiki/WikiProvenance.astro";
 
 const title = "UPLB glossary: TBA, LH, AB, CAS and more | Room TBA Wiki";
 const description =
-  "What the abbreviations on UPLB class schedules, room signs, and building names stand for: TBA, AMIS, LH, LR, AB, WF, CAS, CEAT, and the rest.";
+  "This page explains what the abbreviations on UPLB class schedules, room signs and building names stand for, including TBA, AMIS, LH, LR, AB, WF, CAS, CEAT and the rest.";
 
 type Term = { term: string; meaning: string; seen?: string; href?: string };
 
@@ -14,7 +14,7 @@ const schedule: Term[] = [
   {
     term: "TBA",
     meaning:
-      "To be announced. A class whose room or time shows TBA in AMIS has not been assigned one yet. It is also where Room TBA gets its name.",
+      "To be announced. A class whose room or time shows TBA in AMIS hasn’t been assigned one yet. It’s also where Room TBA gets its name.",
     seen: "A schedule or room cell that reads TBA",
   },
   {
@@ -26,7 +26,7 @@ const schedule: Term[] = [
   {
     term: "LEC, LAB, RCT, SEM",
     meaning:
-      "Activity types: lecture, laboratory, recitation, seminar. The full list of twelve is explained in the section-times guide.",
+      "The activity types are lecture, laboratory, recitation and seminar. The full list of twelve is explained in the section-times guide.",
     seen: "The type of a class",
     href: "/wiki/section-times#activity-types",
   },
@@ -74,12 +74,12 @@ const schedule: Term[] = [
 const rooms: Term[] = [
   {
     term: "LH",
-    meaning: "Lecture hall: a large room used for lectures.",
+    meaning: "Lecture hall, a large room used for lectures.",
     seen: "ANSC LH2",
   },
   {
     term: "LR",
-    meaning: "Lecture room: a smaller classroom.",
+    meaning: "Lecture room, a smaller classroom.",
     seen: "CVM LR1, AFBED LR1",
   },
   {
@@ -199,15 +199,14 @@ const groups = [
 >
   <article class="wiki-article">
     <header class="article-hero">
-      <p class="wiki-eyebrow">Glossary</p>
       <h1 class="wiki-title">UPLB glossary: TBA, LH, AB, CAS and more</h1>
       <p class="wiki-lede">
-        The short forms you meet on a class schedule, a room sign, or a
-        building directory, each with where you will see it.
+        This page explains the short forms you meet on a class schedule, a room
+        sign or a building directory, and where you’ll see each one.
       </p>
       <p class="article-meta">
         These meanings are how Room TBA’s own data and pages use each term. They
-        are not an official university glossary. If one is wrong or missing, use
+        aren’t an official university glossary. If one is wrong or missing, use
         “Report a correction” below.
       </p>
       <WikiProvenance sourcePath="src/pages/wiki/glossary.astro" />

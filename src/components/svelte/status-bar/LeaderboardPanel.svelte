@@ -278,6 +278,27 @@
           <span class="lb-period__ends">{endsInLabel(period.daysLeft)}</span>
         </p>
       {/if}
+
+      <details class="lb-how">
+        <summary>How points work</summary>
+        {#if board === "community"}
+          <p>You get points when an editor approves an edit you suggested.</p>
+        {:else}
+          <p>This board counts edits that editors publish themselves.</p>
+        {/if}
+        <ul class="lb-how__points">
+          {#each CONTRIBUTION_KINDS as kind (kind)}
+            <li>
+              <span>{KIND_LABELS[kind]}</span>
+              <span>{pointsLabel(KIND_POINTS[kind])}</span>
+            </li>
+          {/each}
+        </ul>
+        <p>
+          The monthly board starts over on the 1st of every month. Each month's top
+          contributor goes to the hall of fame.
+        </p>
+      </details>
     </div>
 
     {#if loading && !data}
@@ -286,7 +307,12 @@
       <p class="lb-status lb-status--error">{error}</p>
     {:else}
       {#if rows.length === 0}
-        <p class="lb-status">No approved edits yet {WINDOW_PHRASE[timeWindow]}.</p>
+        <div class="lb-empty">
+          <p class="lb-empty__title">No approved edits yet {WINDOW_PHRASE[timeWindow]}</p>
+          {#if !me && board === "community"}
+            <p>Suggest an edit on any place to get on the board.</p>
+          {/if}
+        </div>
       {:else}
         <ol class="lb-list" aria-busy={loading}>
           {#each rows as row (row.key)}
@@ -358,7 +384,7 @@
             {@render breakdownBlock(`me-${me.key}`, me.breakdown)}
           </div>
         </div>
-      {:else if board === "community"}
+      {:else if board === "community" && rows.length > 0}
         <p class="lb-hint">Suggest an edit on any place to join the board.</p>
       {/if}
 
@@ -462,9 +488,10 @@
   .lb-segmented {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    border: 1px solid var(--theme-border-strong, hsl(0, 0%, 60%));
+    gap: 0.125rem;
+    padding: 0.1875rem;
     border-radius: 999px;
-    overflow: hidden;
+    background: var(--theme-surface-2, hsl(0, 0%, 94%));
   }
 
   .lb-segment {
@@ -479,18 +506,29 @@
     font-weight: 500;
     text-align: center;
     line-height: 1.15;
-    color: var(--theme-text, hsl(0, 0%, 15%));
+    border-radius: 999px;
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
     cursor: pointer;
+    transition:
+      background-color 150ms ease-out,
+      color 150ms ease-out;
   }
 
-  .lb-segment + .lb-segment {
-    border-left: 1px solid var(--theme-border-strong, hsl(0, 0%, 60%));
+  .lb-segment:hover {
+    color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
   .lb-segment[aria-checked="true"] {
-    background: var(--theme-accent-soft, hsl(358, 60%, 94%));
-    color: var(--theme-accent-text, hsl(358, 76%, 27%));
+    background: var(--theme-surface-3, hsl(0, 0%, 100%));
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.14);
+    color: var(--theme-text, hsl(0, 0%, 12%));
     font-weight: 600;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lb-segment {
+      transition: none;
+    }
   }
 
   .lb-period {
@@ -503,9 +541,54 @@
     color: var(--theme-text-2, hsl(0, 0%, 38%));
   }
 
-  .lb-period__ends {
+
+
+  .lb-how {
+    padding: 0 0.25rem;
+    font-size: 0.875rem;
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
+  }
+
+  .lb-how summary {
+    width: fit-content;
+    min-height: 2.25rem;
+    display: flex;
+    align-items: center;
     font-weight: 600;
-    color: var(--theme-text, hsl(0, 0%, 20%));
+    color: var(--theme-accent-text, hsl(358, 76%, 27%));
+    cursor: pointer;
+  }
+
+  .lb-how summary:focus-visible {
+    outline: 2px solid var(--theme-accent-text, hsl(358, 76%, 27%));
+    outline-offset: 2px;
+  }
+
+  .lb-how p {
+    margin: 0.25rem 0 0.5rem;
+  }
+
+  .lb-how__points {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0 0 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--theme-surface-2, hsl(0, 0%, 96%));
+    list-style: none;
+    color: var(--theme-text, hsl(0, 0%, 15%));
+  }
+
+  .lb-how__points li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .lb-how__points li > :last-child {
+    font-variant-numeric: tabular-nums;
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
   }
 
   .lb-status,
@@ -514,6 +597,25 @@
     padding: 0.5rem 0.25rem;
     font-size: 0.875rem;
     color: var(--theme-text-2, hsl(0, 0%, 38%));
+  }
+
+  .lb-empty {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1.25rem 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--theme-text-2, hsl(0, 0%, 38%));
+  }
+
+  .lb-empty p {
+    margin: 0;
+  }
+
+  .lb-empty__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .lb-status--error {
@@ -688,16 +790,15 @@
   .lb-section {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    margin-top: 0.5rem;
+    margin-top: 1rem;
   }
 
   .lb-section__title {
     margin: 0;
-    padding: 0.5rem 0.25rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--theme-accent-text, hsl(358, 76%, 27%));
+    padding: 0.25rem 0.25rem 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--theme-text, hsl(0, 0%, 12%));
   }
 
   .lb-fame,
@@ -708,12 +809,12 @@
   }
 
   .lb-fame__row {
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-    min-height: 3.5rem;
-    justify-content: center;
-    padding: 0.25rem;
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: 0.75rem;
+    padding: 0.625rem 0.25rem;
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 90%));
   }
 
   .lb-fame__period {
@@ -738,9 +839,15 @@
   }
 
   .lb-fame__points {
+    float: right;
     margin-left: 0.5rem;
+    font-variant-numeric: tabular-nums;
     font-size: 0.8125rem;
     color: var(--theme-text-2, hsl(0, 0%, 38%));
+  }
+
+  .lb-suggest > li {
+    border-top: 1px solid var(--theme-border, hsl(0, 0%, 90%));
   }
 
   .lb-suggest__row {
@@ -750,7 +857,7 @@
     align-items: center;
     gap: 0.75rem;
     width: 100%;
-    min-height: 4.5rem;
+    min-height: 3.5rem;
     padding: 0 0.25rem;
     border-radius: 0.5rem;
     color: var(--theme-text-2, hsl(0, 0%, 38%));
@@ -776,6 +883,6 @@
   }
 
   .lb-suggest__meta {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
 </style>

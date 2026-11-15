@@ -188,7 +188,9 @@ describe("JeepneyStopPanel jeep reports", () => {
     });
     button.click();
 
-    expect(await screen.findByText("Thanks, reported.")).toBeVisible();
+    expect(
+      await screen.findByText("Thanks, we got your report."),
+    ).toBeVisible();
     expect(button).toBeDisabled();
     expect(button).toHaveTextContent("Reported");
     const post = fetchMock.mock.calls.find(

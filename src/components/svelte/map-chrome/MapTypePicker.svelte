@@ -99,7 +99,7 @@
   </div>
   {#if !satelliteAvailable}
     <p id="map-type-satellite-reason" class="map-type-picker__reason">
-      Satellite is not available right now.
+      Satellite isn't available right now.
     </p>
   {/if}
 </div>

@@ -23,10 +23,10 @@
   {toolbar}
   ariaLabel={`Copy link to ${entityLabel}`}
   successMessage={`Copied link for ${entityLabel}.`}
-  errorMessage={`Could not copy link for ${entityLabel}.`}
+  errorMessage={`Couldn't copy link for ${entityLabel}.`}
   feedback="none"
   onsuccess={() =>
     toastStore.show(`Copied link for ${entityLabel}.`, "success")}
   onerror={() =>
-    toastStore.show(`Could not copy link for ${entityLabel}.`, "error")}
+    toastStore.show(`Couldn't copy link for ${entityLabel}.`, "error")}
 />

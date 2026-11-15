@@ -27,7 +27,7 @@ export const KIND_LABELS: Record<ContributionKind, string> = {
   place: "New places",
   rooms: "Rooms and schedules",
   photo: "Photos",
-  position: "Position fixes",
+  position: "Map pin fixes",
   text: "Text edits",
 };
 

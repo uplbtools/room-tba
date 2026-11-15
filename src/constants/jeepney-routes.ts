@@ -94,7 +94,8 @@ export const ROUTE_BOARDING_NOTES: Readonly<Record<string, string>> = {
 /** The same advice, short enough for a route card on the printable map. */
 export const ROUTE_PRINT_NOTES: Readonly<Record<string, string>> = {
   forestry:
-    "Board at the Forestry Jeep Terminal (up) or the Upper Forestry Jeep Terminal (down).",
+    "Sumakay sa Forestry Jeep Terminal malapit sa Big Belly's pag paakyat, at sa Upper Forestry Jeep Terminal pag pababa.",
+  "kaliwa-kanan": "Kumakaliwa sa gate ang Kaliwa at kumakanan ang Kanan.",
 };
 
 /** Forestry's two trips; also written to the database by scripts/fix-transit-data.ts. */
@@ -166,11 +167,13 @@ export const ROUTE_DIRECTIONS: Readonly<
   "kaliwa-kanan": {
     forward: {
       label: "Kanan",
-      summary: "It turns right after the gate and serves Carabao Park / DevCom first.",
+      summary:
+        "It turns right after the gate and serves Carabao Park / DevCom first.",
     },
     reverse: {
       label: "Kaliwa",
-      summary: "It turns left after the gate and serves Carabao Park / Landbank first.",
+      summary:
+        "It turns left after the gate and serves Carabao Park / Landbank first.",
     },
   },
   "up-rural": {
@@ -620,7 +623,8 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
     stops: [
       {
         name: "EB Copeland Gymnasium (temporary e-jeep terminal)",
-        description: "This temporary e-jeep terminal is where the loop starts and ends.",
+        description:
+          "This temporary e-jeep terminal is where the loop starts and ends.",
         lat: 14.1566,
         lon: 121.24276,
       },

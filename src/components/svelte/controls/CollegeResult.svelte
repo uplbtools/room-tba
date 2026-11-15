@@ -202,7 +202,7 @@
 
     const trimmedName = nameDraft.trim();
     if (trimmedName.length === 0) {
-      fieldError = `${current.collegeName} name cannot be empty.`;
+      fieldError = `${current.collegeName} name can't be empty.`;
       return;
     }
 
@@ -227,7 +227,7 @@
 
       const outcome = handlePersistEntityResult<CollegeData>(result, {
         syncFromServer: syncCollegeFromServer,
-        fallbackError: `${current.collegeName} could not be saved.`,
+        fallbackError: `${current.collegeName} couldn't be saved.`,
       });
 
       if (outcome.error) {
@@ -261,7 +261,7 @@
       }
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.collegeName} failed to save: ${reason}`;
+      fieldError = `${current.collegeName} failed to save (${reason}).`;
     } finally {
       saving = false;
     }
@@ -293,7 +293,7 @@
         if (result.latest) syncCollegeFromServer(result.latest as CollegeData);
         fieldError =
           result.error ??
-          `${current.collegeName} could not be merged into ${mergePrompt.candidate.collegeName}.`;
+          `${current.collegeName} couldn't be merged into ${mergePrompt.candidate.collegeName}.`;
         return;
       }
 
@@ -308,7 +308,7 @@
       editing = false;
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Network error";
-      fieldError = `${current.collegeName} merge failed: ${reason}`;
+      fieldError = `${current.collegeName} merge failed (${reason}).`;
     } finally {
       mergingEntity = false;
     }
@@ -418,7 +418,7 @@
               entityKind="college"
               sourceLabel={college.collegeName}
               candidateLabel={mergePrompt.candidate.collegeName}
-              detail="Merge divisions and room links into the kept college;"
+              detail="Divisions and room links move to the kept college. Merge"
               merging={mergingEntity}
               disabled={saving}
               onconfirm={confirmCollegeMerge}
