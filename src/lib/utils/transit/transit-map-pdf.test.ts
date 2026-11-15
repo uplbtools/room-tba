@@ -18,6 +18,7 @@ import {
 	labelCandidates,
 	placeLabels,
 	pointsAlong,
+	sideLaneLines,
 	routeLineStyles,
 	WALK_DETOUR_FACTOR,
 	type TransitBasemap,
@@ -536,5 +537,35 @@ describe('shortStopLabel', () => {
 		const label = shortStopLabel('UPLB Landscape Horticulture Research and Development Facility');
 		expect(label.length).toBeLessThanOrEqual(30);
 		expect(label).toMatch(/^UPLB Landscape Horticulture.*\.\.\.$/);
+	});
+});
+
+describe('sideLaneLines', () => {
+	const loop = [
+		{ x: 0, y: 0 },
+		{ x: 100, y: 0 }
+	];
+
+	test("two lines on a loop's road take lanes on opposite sides", () => {
+		const [a, b, c] = sideLaneLines(
+			[
+				[
+					{ x: 0, y: 1 },
+					{ x: 100, y: 1 }
+				],
+				[
+					{ x: 100, y: -1 },
+					{ x: 0, y: -1 }
+				],
+				[
+					{ x: 0, y: 50 },
+					{ x: 100, y: 50 }
+				]
+			],
+			[loop]
+		);
+		expect(a.every((p) => p.y === 7.5)).toBe(true);
+		expect(b.every((p) => p.y === -7)).toBe(true);
+		expect(c.every((p) => p.y === 50)).toBe(true);
 	});
 });
