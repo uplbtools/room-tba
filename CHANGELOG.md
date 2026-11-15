@@ -1,3 +1,10 @@
+# [2.41.0](https://github.com/uplbtools/room-tba/compare/v2.40.8...v2.41.0) (2026-11-15)
+
+
+### Features
+
+* **planner:** plan links can leave out the class type or the section ([#1482](https://github.com/uplbtools/room-tba/issues/1482)) ([dbbd738](https://github.com/uplbtools/room-tba/commit/dbbd73813da739b74f6db918f7c06ff59aa3a2ae))
+
 ## [2.40.7](https://github.com/uplbtools/room-tba/compare/v2.40.6...v2.40.7) (2026-11-15)
 
 
