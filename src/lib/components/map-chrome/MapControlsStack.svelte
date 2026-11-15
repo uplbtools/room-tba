@@ -208,7 +208,7 @@
 	}
 
 	.map-ctrl--label {
-		font-family: Inter, system-ui, sans-serif;
+		font-family: Figtree, system-ui, sans-serif;
 		font-size: 0.75rem;
 		font-weight: 700;
 		color: #111;
