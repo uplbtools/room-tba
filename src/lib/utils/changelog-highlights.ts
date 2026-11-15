@@ -117,6 +117,76 @@ export function isChangelogCurrent(changelogVersion: string, appVersion: string)
 	return compareVersions(changelogVersion, appVersion) >= 0;
 }
 
+const INTERNAL_SCOPES = new Set([
+	'agent-tooling',
+	'backup',
+	'batch',
+	'build',
+	'chore',
+	'ci',
+	'db',
+	'deps',
+	'docs',
+	'e2e',
+	'e2e-reset',
+	'infra',
+	'lint',
+	'ops',
+	'refactor',
+	'scripts',
+	'store',
+	'test',
+	'tests',
+	'tsconfig'
+]);
+
+const JARGON =
+	/(?<![\w-])(e2e|specs?|(test )?suite|lint|biome|tsc|typecheck|refactor|chore|ci|vitest|playwright|(pixel|ui) pass|flaky|fixtures?|deps|jakob('s)?(-law)?|audit|heuristics?|\d+ items)\b/i;
+
+const PROCESS_PREFIX = /^[^:]{0,40}\bpass:\s+/i;
+
+const SECTION_TITLES: Record<string, string> = {
+	'Bug Fixes': 'Fixes',
+	Features: 'New',
+	'Performance Improvements': 'Faster'
+};
+
+export function userFacingItem(item: string): string | null {
+	const scoped = item.match(/^([\w.,+/-]+):\s+(.+)$/);
+	let text = item;
+	if (scoped?.[1] && scoped[2]) {
+		const scopes = scoped[1].split(/[+,/]/);
+		if (scopes.every((scope) => INTERNAL_SCOPES.has(scope))) return null;
+		text = scoped[2];
+	}
+	const clauses = text
+		.replace(/\s*,\s*closes$/i, '')
+		.replace(/\s*\(([^)]*)\)/g, (match, inner: string) => (JARGON.test(inner) ? '' : match))
+		.replace(PROCESS_PREFIX, '')
+		.split(/(?<=[,;])\s+/);
+	if (!clauses[0] || JARGON.test(clauses[0])) return null;
+	const kept = clauses
+		.filter((clause) => !JARGON.test(clause))
+		.join(' ')
+		.replace(/[,;]\s*$/, '')
+		.trim();
+	return kept.charAt(0).toUpperCase() + kept.slice(1);
+}
+
+export function userFacingEntries(entries: ChangelogEntry[]): ChangelogEntry[] {
+	return entries
+		.map((entry) => ({
+			...entry,
+			sections: entry.sections
+				.map((section) => ({
+					title: SECTION_TITLES[section.title] ?? section.title,
+					items: section.items.map(userFacingItem).filter((item): item is string => item !== null)
+				}))
+				.filter((section) => section.items.length > 0)
+		}))
+		.filter((entry) => entry.sections.length > 0);
+}
+
 function sanitizeBullet(raw: string): string {
 	return raw
 		.replace(/\(\[[^\]]+\]\([^)]+\)\)/g, '')
