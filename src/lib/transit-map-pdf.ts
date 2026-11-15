@@ -1078,7 +1078,7 @@ function drawStopStrips(
   );
   const introX = MARGIN + titleW + 20;
   wrapText(
-    "Pababa ang basa ng bawat linya. Ang code sa tabi ng stop ay ibang jeep na pwedeng sakyan doon.",
+    "Top to bottom ang order ng stops. Yung code sa tabi ng stop, ibang jeep na pwede mong sakyan dun.",
     font,
     11,
     pageW - MARGIN - introX,
@@ -1134,12 +1134,12 @@ function drawStopStrips(
     [
       Number.isFinite(route.fareRegular)
         ? `PHP ${route.fareRegular}, PHP ${route.fareDiscounted} pag discounted`
-        : "Tanong muna ang pamasahe sa driver",
+        : "Itanong sa driver ang pamasahe",
       reverse
-        ? `${names[0]} pababa, ${names[1]} pataas.`
+        ? `${names[0]} top to bottom, ${names[1]} bottom to top.`
         : oneWay
-          ? "Paikot, isang direksyon lang."
-          : "Pabalik, ganito rin ang stops pataas.",
+          ? "One way lang, paikot."
+          : "Same stops pabalik.",
     ].forEach((text, i) =>
       page.drawText(text, {
         x,
@@ -1255,7 +1255,7 @@ function drawStopStrips(
     color: INK,
   });
   if (o.nearest) {
-    const text = "Nasa box ang stop na pinakamalapit sa'yo.";
+    const text = "Naka-box yung stop na pinakamalapit sa'yo.";
     page.drawText(text, {
       x: pageW - MARGIN - font.widthOfTextAtSize(text, 9),
       y: SAFE + 2,
