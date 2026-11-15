@@ -4,7 +4,7 @@ import PlannerCourseSearch from './PlannerCourseSearch.svelte';
 import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
 import TermStore from '#lib/stores/new/data/TermStore.svelte.js';
 import ToastStore from '#lib/stores/new/ui/ToastStore.svelte.js';
-import type { ClassMapValue } from '#lib/utils/types';
+import type { ClassMapValue } from '#lib/utils/types.js';
 
 vi.mock('#lib/functions/terms.remote.js', () => ({ getTerms: vi.fn() }));
 vi.mock('#lib/functions/classes.remote.js', () => ({

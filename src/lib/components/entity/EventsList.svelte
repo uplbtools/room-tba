@@ -9,7 +9,7 @@
 	import { getAppData } from '#lib/utils/context.js';
 	import { getEventImage } from '#lib/utils/event/event-images.js';
 	import { formatCampusRange } from '#lib/utils/event/event-time.js';
-	import type { EventData } from '#lib/utils/types';
+	import type { EventData } from '#lib/utils/types.js';
 	import EventResult from './EventResult.svelte';
 
 	type EventTab = 'upcoming' | 'past';
