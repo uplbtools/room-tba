@@ -54,7 +54,7 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
       return json({ error: err.message }, err.status);
     }
     console.error("Failed to request proposal changes:", err);
-    return json({ error: "Failed to update proposal" }, 500);
+    return json({ error: "Couldn't update proposal" }, 500);
   }
 };
 

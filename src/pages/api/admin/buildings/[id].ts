@@ -45,7 +45,7 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     body.buildingName !== undefined &&
     body.buildingName.trim().length === 0
   ) {
-    return errorResponse("Building name cannot be empty", 400);
+    return errorResponse("Building name can't be empty", 400);
   }
 
   if (
@@ -114,6 +114,6 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
     }
 
     console.error("Failed to update building:", err);
-    return errorResponse("Failed to save building", 500);
+    return errorResponse("Couldn't save building", 500);
   }
 };

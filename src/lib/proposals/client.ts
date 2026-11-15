@@ -261,7 +261,7 @@ export async function persistEntityChange(
       ok: false,
       error:
         result.error ??
-        `Proposal for ${input.entityLabel} could not be submitted.`,
+        `Proposal for ${input.entityLabel} couldn't be submitted.`,
     };
   }
 

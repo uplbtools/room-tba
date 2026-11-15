@@ -109,7 +109,7 @@ export function crowdingHint(input: {
   fullReports: number;
 }): CrowdingHint | null {
   if (input.fullReports >= FULL_REPORTS_FOR_BUSY) {
-    return { text: "Busy: many jeeps reported full", source: "reports" };
+    return { text: "Busy since many jeeps reported full", source: "reports" };
   }
 
   const { day, minute } = campusClock(input.now);
@@ -126,7 +126,7 @@ export function crowdingHint(input: {
     );
     if (ended) {
       return {
-        text: "Likely busy now: classes just ended nearby",
+        text: "Likely busy now since classes just ended nearby",
         source: "estimate",
       };
     }
@@ -138,7 +138,7 @@ export function crowdingHint(input: {
     );
     if (starting) {
       return {
-        text: "Likely busy now: classes start soon nearby",
+        text: "Likely busy now since classes start soon nearby",
         source: "estimate",
       };
     }

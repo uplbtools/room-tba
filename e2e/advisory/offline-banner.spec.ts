@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { suppressLandingModal, waitForAppBoot } from "../helpers/app";
 
-const OFFLINE_TEXT = "You’re offline — showing saved data";
+const OFFLINE_TEXT = "You’re offline and seeing saved data";
 
 test.describe("offline banner @advisory", () => {
   test("shows while offline, dismisses, and comes back on the next drop", async ({

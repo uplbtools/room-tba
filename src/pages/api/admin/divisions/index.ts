@@ -44,11 +44,11 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       auth.editedBy,
     );
     if (!division) {
-      return json({ error: "Failed to create division" }, 500);
+      return json({ error: "Couldn't create division" }, 500);
     }
     return json({ success: true, division }, 201);
   } catch (err) {
     console.error("Failed to create division:", err);
-    return json({ error: "Failed to create division" }, 500);
+    return json({ error: "Couldn't create division" }, 500);
   }
 };

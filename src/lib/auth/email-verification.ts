@@ -75,7 +75,7 @@ export function buildEmailInUseNotice(input: { siteUrl: string }): {
   return {
     subject: "Someone tried to use your email on Room TBA",
     text: [
-      "Someone just tried to add this email address to a Room TBA account, but it is already confirmed on an existing account.",
+      "Someone just tried to add this email address to a Room TBA account, but it's already confirmed on an existing account.",
       "",
       "If it was you, sign in with your existing account instead, or reset your password from the sign-in screen:",
       `${input.siteUrl.replace(/\/$/, "")}/?editor=login`,

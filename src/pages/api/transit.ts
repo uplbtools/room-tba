@@ -16,7 +16,7 @@ export const GET = (async () => {
     });
   } catch (error) {
     console.error("Failed to load jeepney routes:", error);
-    return new Response(JSON.stringify({ error: "Failed to load transit." }), {
+    return new Response(JSON.stringify({ error: "Couldn't load transit." }), {
       status: 503,
       headers: { "Content-Type": "application/json" },
     });

@@ -65,7 +65,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       return json({ error: error.message }, error.status);
     }
     console.error("Create access request failed:", error);
-    return json({ error: "Could not send the request. Try again." }, 500);
+    return json({ error: "Couldn't send the request. Try again." }, 500);
   }
 };
 

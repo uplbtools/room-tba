@@ -72,7 +72,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       auth.editedBy,
     );
     if (!room) {
-      return json({ error: "Failed to create room" }, 500);
+      return json({ error: "Couldn't create room" }, 500);
     }
     return json({ success: true, room }, 201);
   } catch (err) {
@@ -89,6 +89,6 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       );
     }
     console.error("Failed to create room:", err);
-    return json({ error: "Failed to create room" }, 500);
+    return json({ error: "Couldn't create room" }, 500);
   }
 };

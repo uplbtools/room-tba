@@ -98,8 +98,7 @@ export async function createStaffInvite(input: {
       expiresAt: expiresAt.toISOString(),
     })
     .returning(pendingColumns);
-  if (!invite)
-    throw new AccountActionError("Could not create the invite.", 500);
+  if (!invite) throw new AccountActionError("Couldn't create the invite.", 500);
 
   const link = inviteUrl(token);
   let emailed = false;

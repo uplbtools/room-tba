@@ -22,7 +22,7 @@ export const GET = (async ({ url }) => {
   } catch (error) {
     console.error("Could not load public entity history:", error);
     return Response.json(
-      { error: "Could not load edit history." },
+      { error: "Couldn't load edit history." },
       { status: 500 },
     );
   }

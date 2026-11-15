@@ -19,7 +19,7 @@ export const POST: APIRoute = async ({ cookies }) => {
       return json({ error: error.message }, error.status);
     }
     console.error("Unlink Google failed:", error);
-    return json({ error: "Failed to disconnect Google." }, 500);
+    return json({ error: "Couldn't disconnect Google." }, 500);
   }
 };
 

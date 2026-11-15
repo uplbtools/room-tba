@@ -282,7 +282,7 @@ function pickRevertInput(
   const fields = REVERTABLE_FIELDS[entityType];
   if (!fields) {
     throw new HistoryRevertError(
-      `History restore is not supported for ${entityType} entries.`,
+      `History restore isn't supported for ${entityType} entries.`,
     );
   }
   return Object.fromEntries(
@@ -318,7 +318,7 @@ export async function revertToHistoryEntry({
   const snapshot = (entry.after ?? null) as Record<string, unknown> | null;
   if (!snapshot) {
     throw new HistoryRevertError(
-      "This entry has no restorable snapshot (deleted entries cannot be restored yet).",
+      "This entry has no restorable snapshot (deleted entries can't be restored yet).",
     );
   }
 
@@ -433,7 +433,7 @@ function restoreSnapshot(
       );
     default:
       throw new HistoryRevertError(
-        `History restore is not supported for ${entry.entityType} entries.`,
+        `History restore isn't supported for ${entry.entityType} entries.`,
       );
   }
 }

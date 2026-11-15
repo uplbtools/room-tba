@@ -88,6 +88,6 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
       );
     }
     console.error("Failed to update jeepney stop:", error);
-    return json({ error: "Failed to save stop." }, 500);
+    return json({ error: "Couldn't save stop." }, 500);
   }
 };

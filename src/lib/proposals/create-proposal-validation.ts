@@ -39,7 +39,7 @@ export function validateBundledRooms(
     const key = room.roomCode.toLowerCase();
     if (codes.has(key)) {
       throw new ProposalValidationError(
-        `Duplicate room code in this suggestion: ${room.roomCode}`,
+        `This suggestion lists room code ${room.roomCode} twice.`,
       );
     }
     codes.add(key);

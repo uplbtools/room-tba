@@ -12,7 +12,7 @@ const RANGE_URL = "https://api.pwnedpasswords.com/range/";
 const HIBP_TIMEOUT_MS = 2500;
 
 export const BREACHED_PASSWORD_MESSAGE =
-  "This password has appeared in a known data breach, so it is easy to guess. Choose a different one.";
+  "This password has appeared in a known data breach, so it's easy to guess. Choose a different one.";
 
 /**
  * The Pwned Passwords range API is keyed on SHA-1, so that is the one digest

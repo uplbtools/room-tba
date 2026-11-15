@@ -40,7 +40,7 @@ export class AppBootstrapStore {
       case "sync":
         return "Writing to offline cache";
       case "error":
-        return this.errorMessage ?? "Could not load campus data";
+        return this.errorMessage ?? "Couldn't load campus data";
       default:
         return null;
     }
@@ -198,7 +198,7 @@ export class SyncToastStore {
     // just repeat it.
     if (this.syncError) return null;
     if (this.allSynced && !this.needRefresh) {
-      return "Campus directory cached; room lists load when you open a building";
+      return "Campus directory is cached. Room lists load when you open a building.";
     }
     if (this.needRefresh) return "Reload to get the latest updates.";
     if (this.activity === "checking") {
@@ -453,7 +453,7 @@ export class OfflineStore {
     const source = await getTileTemplate();
     if (!source) {
       this.status = "error";
-      this.error = "Could not resolve the map tile source.";
+      this.error = "Couldn't resolve the map tile source.";
       return;
     }
 

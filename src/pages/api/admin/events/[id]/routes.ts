@@ -57,7 +57,7 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
       );
     }
     console.error("Failed to update event routes:", err);
-    return json({ error: "Failed to save event routes" }, 500);
+    return json({ error: "Couldn't save event routes" }, 500);
   }
 };
 

@@ -45,6 +45,6 @@ export const GET = (async ({ url }) => {
       "Access-Control-Allow-Origin": "*",
     });
   } catch {
-    return json({ error: "Failed to fetch class counts", success: false }, 500);
+    return json({ error: "Couldn't fetch class counts", success: false }, 500);
   }
 }) satisfies APIRoute;

@@ -75,7 +75,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       return json({ error: error.message }, error.status);
     }
     console.error("Change password failed:", error);
-    return json({ error: "Failed to change password." }, 500);
+    return json({ error: "Couldn't change password." }, 500);
   }
 };
 

@@ -32,7 +32,7 @@ export const prerender = false;
 const UPLOAD_LIMIT = { max: 30, windowMs: 10 * 60 * 1000 };
 
 const NEEDS_PROPOSAL_MESSAGE =
-  "Send your suggestion first, then add a photo while it is waiting for review.";
+  "Send your suggestion first, then add a photo while it's waiting for review.";
 
 /** Capability probe for the editor's photo field. Public: it only reports
  * whether uploads work and whether this caller can publish directly. */
@@ -111,7 +111,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
     return json(
       {
         error:
-          "Image uploads are not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_BUCKET_NAME.",
+          "Image uploads aren't configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_BUCKET_NAME.",
       },
       503,
     );
@@ -165,7 +165,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
     });
   } catch (error) {
     console.error("Failed to upload image:", error);
-    return json({ error: "Failed to upload image" }, 500);
+    return json({ error: "Couldn't upload image" }, 500);
   }
 };
 

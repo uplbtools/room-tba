@@ -357,7 +357,7 @@ export async function updateAccountProfile(
 ): Promise<void> {
   const displayName = input.displayName.trim();
   if (!displayName)
-    throw new AccountActionError("Display name cannot be empty.");
+    throw new AccountActionError("Display name can't be empty.");
   if (
     (input.avatarUrl !== undefined &&
       input.avatarUrl !== null &&
@@ -412,7 +412,7 @@ export async function updateDisplayName(
 ): Promise<void> {
   const trimmed = displayName.trim();
   if (!trimmed) {
-    throw new AccountActionError("Display name cannot be empty.");
+    throw new AccountActionError("Display name can't be empty.");
   }
   await db
     .update(adminUsersTable)
@@ -966,7 +966,7 @@ export async function updateManagedUser(
       const remaining = await countActiveAdmins(tx, targetUserId);
       if (remaining < 1) {
         throw new AccountActionError(
-          "Cannot remove the last remaining admin.",
+          "Can't remove the last remaining admin.",
           400,
         );
       }
@@ -1067,7 +1067,7 @@ export async function verifyEmailToken(token: string): Promise<void> {
   } catch (error) {
     if (!isMissingSchemaError(error)) throw error;
     throw new AccountActionError(
-      "Email confirmation is not available yet. Try the link again in a few minutes.",
+      "Email confirmation isn't available yet. Try the link again in a few minutes.",
       503,
     );
   }

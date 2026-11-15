@@ -253,13 +253,13 @@ class LocationStore {
 
   requestLocation = () => {
     if (!navigator.geolocation) {
-      toastStore.show("Geolocation is not supported by your browser.", "error");
+      toastStore.show("Geolocation isn't supported by your browser.", "error");
       return;
     }
 
     if (this.isTracking) {
       if (!this.coords) {
-        toastStore.show("Still getting your location...", "info");
+        toastStore.show("We're still getting your location...", "info");
       }
       return;
     }
@@ -694,7 +694,7 @@ class AdminAuthStore {
               ? "Too many sign-in attempts. Wait about 30 seconds and try again."
               : res.status >= 500
                 ? "Sign-in failed on our side. Try again later."
-                : "Could not sign in. Check your username and password.")
+                : "Couldn't sign in. Check your username and password.")
         );
       }
       const stepData = data as unknown as Partial<LoginStepState>;
@@ -787,7 +787,7 @@ class AdminAuthStore {
       };
       if (!res.ok) {
         if (res.status === 401) this.cancelLoginStep();
-        return data.error ?? "That did not work. Try again.";
+        return data.error ?? "That didn't work. Try again.";
       }
       if (data.success) {
         this.finishLogin(data, data.username ?? "");
@@ -869,7 +869,7 @@ class AdminAuthStore {
               ? "Too many sign-up attempts. Wait about a minute and try again."
               : res.status >= 500
                 ? "Sign-up failed on our side. Try again later."
-                : "Could not create your account. Check the form and try again.")
+                : "Couldn't create your account. Check the form and try again.")
         );
       }
       this.applySession({
@@ -898,7 +898,7 @@ class AdminAuthStore {
           import("@lib/supabase/client"),
         ]);
       if (!isSupabaseConfigured()) {
-        return "Google sign-in is not configured on this server.";
+        return "Google sign-in isn't configured on this server.";
       }
       const supabase = createBrowserSupabaseClient();
       const { error } = await supabase.auth.signInWithOAuth({
@@ -925,7 +925,7 @@ class AdminAuthStore {
           import("@lib/supabase/client"),
         ]);
       if (!isSupabaseConfigured()) {
-        return "Google sign-in is not configured on this server.";
+        return "Google sign-in isn't configured on this server.";
       }
       const supabase = createBrowserSupabaseClient();
       const { error } = await supabase.auth.signInWithOAuth({
@@ -1253,7 +1253,7 @@ class ScheduleRouteStore {
       );
     } catch (e) {
       console.error("Schedule match failed:", e);
-      this.importError = "Could not load classes for matching. Try again.";
+      this.importError = "Couldn't load classes for matching. Try again.";
       this.matches = [];
     } finally {
       this.matching = false;
@@ -1315,7 +1315,7 @@ class ScheduleRouteStore {
 
     if (stopCoords.length === 0) {
       this.clearRoute();
-      toastStore.show("No routable classes on this day.", "info");
+      toastStore.show("You have no routable classes on this day.", "info");
       return;
     }
 
@@ -1328,7 +1328,7 @@ class ScheduleRouteStore {
     if (waypoints.length < 2) {
       this.clearRoute();
       toastStore.show(
-        "Need at least two stops. Enable location or add more classes.",
+        "You need at least two stops. Enable location or add more classes.",
         "error",
       );
       return;
@@ -1337,7 +1337,7 @@ class ScheduleRouteStore {
     locationStore.setRouteWaypoints(waypoints);
     this.routedWeekday = weekday;
     toastStore.show(
-      `Routing ${stops.length} class stop${stops.length === 1 ? "" : "s"}.`,
+      `We're routing ${stops.length} class stop${stops.length === 1 ? "" : "s"}.`,
       "success",
     );
   };

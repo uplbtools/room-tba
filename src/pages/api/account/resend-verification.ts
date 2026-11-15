@@ -31,7 +31,7 @@ export const POST: APIRoute = async ({ cookies }) => {
     return json(
       {
         error:
-          "Could not send a confirmation link. Your email may already be confirmed, or mail is unavailable right now.",
+          "Couldn't send a confirmation link. Your email may already be confirmed, or mail is unavailable right now.",
       },
       409,
     );

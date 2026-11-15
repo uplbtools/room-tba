@@ -97,6 +97,6 @@ export const PATCH: APIRoute = async ({ cookies, params, request }) => {
       );
     }
     console.error("Failed to update place:", error);
-    return json({ error: "Failed to save place" }, 500);
+    return json({ error: "Couldn't save place" }, 500);
   }
 };

@@ -29,7 +29,7 @@ export const GET: APIRoute = async ({ url }) => {
     });
   } catch (error) {
     console.error("Failed to load events:", error);
-    return new Response(JSON.stringify({ error: "Failed to load events" }), {
+    return new Response(JSON.stringify({ error: "Couldn't load events" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

@@ -50,7 +50,7 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
       return json({ error: err.message }, err.status);
     }
     console.error("Failed to reject proposal:", err);
-    return json({ error: "Failed to reject proposal" }, 500);
+    return json({ error: "Couldn't reject proposal" }, 500);
   }
 };
 

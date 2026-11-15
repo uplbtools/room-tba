@@ -86,7 +86,7 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       return json({ error: error.message }, error.status);
     }
     console.error("Create admin user failed:", error);
-    return json({ error: "Failed to create account." }, 500);
+    return json({ error: "Couldn't create account." }, 500);
   }
 };
 

@@ -60,10 +60,10 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       },
       auth.editedBy,
     );
-    if (!place) return json({ error: "Failed to create place" }, 500);
+    if (!place) return json({ error: "Couldn't create place" }, 500);
     return json({ success: true, place }, 201);
   } catch (error) {
     console.error("Failed to create place:", error);
-    return json({ error: "Failed to create place" }, 500);
+    return json({ error: "Couldn't create place" }, 500);
   }
 };

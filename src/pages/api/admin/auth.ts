@@ -208,7 +208,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       return json(
         {
           error:
-            "Editor sign-in is not configured on this server. Contact the site maintainer.",
+            "Editor sign-in isn't configured on this server. Contact the site maintainer.",
         },
         503,
       );
@@ -279,7 +279,7 @@ async function sessionResponse(user: SessionUser): Promise<Response> {
     return json(
       {
         error:
-          "Editor sign-in is not configured on this server. Contact the site maintainer.",
+          "Editor sign-in isn't configured on this server. Contact the site maintainer.",
       },
       503,
     );

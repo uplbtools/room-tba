@@ -55,7 +55,7 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
       return json({ error: error.message }, error.status);
     }
     console.error("Decide access request failed:", error);
-    return json({ error: "Could not update the request." }, 500);
+    return json({ error: "Couldn't update the request." }, 500);
   }
 };
 

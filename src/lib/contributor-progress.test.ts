@@ -36,7 +36,7 @@ describe("contributor-progress", () => {
     });
     expect(row.missingFields).toEqual(["position"]);
     expect(missingFieldLabel("PSLH 4", "position")).toBe(
-      "PSLH 4 — floor plan pin missing",
+      "PSLH 4 is missing its floor plan pin",
     );
   });
 

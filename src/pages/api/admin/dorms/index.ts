@@ -62,11 +62,11 @@ export const POST: APIRoute = async ({ cookies, request }) => {
       auth.editedBy,
     );
     if (!dorm) {
-      return json({ error: "Failed to create dorm" }, 500);
+      return json({ error: "Couldn't create dorm" }, 500);
     }
     return json({ success: true, dorm }, 201);
   } catch (err) {
     console.error("Failed to create dorm:", err);
-    return json({ error: "Failed to create dorm" }, 500);
+    return json({ error: "Couldn't create dorm" }, 500);
   }
 };

@@ -586,9 +586,9 @@ export function planJourneys(input: PlanJourneysInput): JourneyPlan {
 export const PLAN_STATUS_NOTES: Record<PlanStatus, string | null> = {
   ok: null,
   "origin-off-network":
-    "Your starting point is outside the mapped campus paths, so we cannot plan this trip yet.",
+    "Your starting point is outside the mapped campus paths, so we can't plan this trip yet.",
   "destination-off-network":
-    "That destination is outside the mapped campus paths, so we cannot plan this trip yet.",
+    "That destination is outside the mapped campus paths, so we can't plan this trip yet.",
   "no-route":
     "No campus path connects these two points in our map. It may still be walkable.",
 };

@@ -101,14 +101,14 @@ export async function editorSessionOrUnauthorized(
   }
   if (options.requirePublish && !canPublishDirectly(session.role)) {
     return forbidden(
-      "Your account can suggest edits but cannot publish directly.",
+      "Your account can suggest edits but can't publish directly.",
     );
   }
   if (options.requireReview && !canReviewProposals(session.role)) {
-    return forbidden("Your account cannot review edit proposals.");
+    return forbidden("Your account can't review edit proposals.");
   }
   if (options.requireAdmin && session.role !== "admin") {
-    return forbidden("Your account cannot manage other users.");
+    return forbidden("Your account can't manage other users.");
   }
   return {
     session,

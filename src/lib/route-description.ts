@@ -29,7 +29,7 @@ export function describeRoute(
   route: CampusRoute,
 ): string {
   const lines: string[] = [
-    `Walk from ${from.name} to ${to.name}: ${formatDistance(route.meters)}, about ${formatDuration(route.seconds)} on foot.`,
+    `Walk from ${from.name} to ${to.name} for ${formatDistance(route.meters)}, about ${formatDuration(route.seconds)} on foot.`,
   ];
 
   // Consecutive turns often sit near the same building, and "by CEM Building"

@@ -135,6 +135,6 @@ export const GET: APIRoute = async ({ url }) => {
     });
   } catch (error) {
     console.error("transit-map PDF failed:", error);
-    return json({ error: "Could not render the transit map PDF." }, 500);
+    return json({ error: "Couldn't render the transit map PDF." }, 500);
   }
 };
