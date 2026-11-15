@@ -51,6 +51,8 @@ export const GET: RequestHandler = async () => {
 		'/changelog',
 		'/privacy',
 		'/terms',
+		'/donate',
+		'/sponsors',
 		entityIndexPath('rooms'),
 		entityIndexPath('buildings'),
 		entityIndexPath('divisions'),
