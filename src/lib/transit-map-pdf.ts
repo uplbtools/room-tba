@@ -1056,7 +1056,7 @@ function mergeStops(routes: TransitMapRoute[]): MapStop[] {
 const LINE_CODES: Record<string, string[]> = {
   "kaliwa-kanan": ["KN", "KL"],
   forestry: ["FR"],
-  snodlob: ["ELB"],
+  snodlob: ["LOOP"],
   "up-rural": ["RURAL"],
 };
 
@@ -2661,42 +2661,49 @@ export async function renderTransitMapPdf(input: {
       box: { x: MARGIN, top: stripsTop, w: pageW - MARGIN * 2, bottom: floor },
     });
     // The rest of the guide fills the space under the shorter stop lists.
-    const blocks = [
+    type Section = { title: string; texts: string[]; towns: string[] };
+    type Block = { prefer: number; band?: string; sections: Section[] };
+    const blocks: Block[] = [
       ...drawnRoutes.flatMap((route, i) =>
         route.boardingNote
           ? [
               {
                 prefer: i,
-                title: isLoopRoute(route)
-                  ? "Kanan o Kaliwa"
-                  : `Saan sasakay ng ${route.name.replace(/\s*(\/|\().*$/, "")}`,
-                texts: [route.boardingNote],
-                towns: [] as string[],
+                sections: [
+                  {
+                    title: isLoopRoute(route)
+                      ? "Kanan o Kaliwa"
+                      : `Saan sasakay ng ${route.name.replace(/\s*(\/|\().*$/, "")}`,
+                    texts: [route.boardingNote],
+                    towns: [],
+                  },
+                ],
               },
             ]
           : [],
       ),
       {
         prefer: -1,
-        title: "Bus pa-Manila",
-        texts: busTexts,
-        towns: [] as string[],
-      },
-      {
-        prefer: -1,
-        title: "Jeeps sa Olivarez Plaza Mall",
-        texts: townTexts,
-        towns: townJeeps,
+        band: "Palabas ng campus",
+        sections: [
+          {
+            title: "Jeeps sa Olivarez Plaza Mall",
+            texts: townTexts,
+            towns: townJeeps,
+          },
+          { title: "Bus pa-Manila", texts: busTexts, towns: [] },
+        ],
       },
     ];
     const HEAD = 11.5;
+    const BAND = HEAD * 2;
     const BOARD_GAP = 6;
-    const layout = (block: (typeof blocks)[number], w: number) => {
-      const lines = block.texts.flatMap((t) => wrapText(t, font, BODY, w));
+    const layoutSection = (sec: Section, w: number) => {
+      const lines = sec.texts.flatMap((t) => wrapText(t, font, BODY, w));
       // Boards flow left to right and wrap to a new row.
       let bx = 0;
-      let rows = block.towns.length ? 1 : 0;
-      const at = block.towns.map((t) => {
+      let rows = sec.towns.length ? 1 : 0;
+      const at = sec.towns.map((t) => {
         const bw = signboardLayout(signboardWords(t), TOWN_BOARD_H, w).w;
         if (bx > 0 && bx + bw > w) {
           bx = 0;
@@ -2707,7 +2714,7 @@ export async function renderTransitMapPdf(input: {
         return pos;
       });
       const boardsH = rows * (TOWN_BOARD_H + 4);
-      const titles = wrapText(block.title, bold, HEAD, w);
+      const titles = wrapText(sec.title, bold, HEAD, w);
       return {
         lines,
         titles,
@@ -2716,50 +2723,82 @@ export async function renderTransitMapPdf(input: {
         h: titles.length * 14 + 2 + boardsH + lines.length * LEAD,
       };
     };
+    const blockH = (block: Block, w: number) =>
+      (block.band ? BAND + 8 : 0) +
+      block.sections.reduce(
+        (sum, sec, i) => sum + layoutSection(sec, w).h + (i > 0 ? 8 : 0),
+        0,
+      );
     const place = (
       pg: PDFPage,
-      list: typeof blocks,
+      list: Block[],
       columns: { x: number; w: number; bottom: number }[],
     ) =>
       list.filter((block) => {
         const fits = (c: (typeof columns)[number]) =>
-          c.bottom - 12 - layout(block, c.w).h >= floor;
+          c.bottom - 12 - blockH(block, c.w) >= floor;
         const own = columns[block.prefer];
         const col =
           own && fits(own)
             ? own
             : columns.filter(fits).sort((p, q) => q.bottom - p.bottom)[0];
         if (!col) return true;
-        const { lines, titles, at, boardsH } = layout(block, col.w);
         let y = col.bottom - 12;
-        for (const t of titles) {
-          pg.drawText(t, {
+        if (block.band) {
+          pg.drawRectangle({
             x: col.x,
-            y: y - HEAD,
+            y: y - BAND,
+            width: col.w,
+            height: BAND,
+            color: BOARD,
+          });
+          pg.drawText(block.band, {
+            x: col.x + 5,
+            y: y - BAND / 2 - HEAD * 0.36,
             size: HEAD,
             font: bold,
-            color: INK,
+            color: WHITE,
           });
-          y -= 14;
+          y -= BAND + 8;
         }
-        y -= 2;
-        block.towns.forEach((town, i) =>
-          drawSignboard(
-            pg,
-            pageH,
-            signboardWords(town),
-            col.x + at[i]!.x,
-            y - at[i]!.row * (TOWN_BOARD_H + 4),
-            TOWN_BOARD_H,
-            col.w,
-            [SIGN_RED, SIGN_RED],
-          ),
-        );
-        y -= boardsH;
-        for (const l of lines) {
-          pg.drawText(l, { x: col.x, y: y - 9, size: BODY, font, color: INK });
-          y -= LEAD;
-        }
+        block.sections.forEach((sec, si) => {
+          if (si > 0) y -= 8;
+          const { lines, titles, at, boardsH } = layoutSection(sec, col.w);
+          for (const t of titles) {
+            pg.drawText(t, {
+              x: col.x,
+              y: y - HEAD,
+              size: HEAD,
+              font: bold,
+              color: INK,
+            });
+            y -= 14;
+          }
+          y -= 2;
+          sec.towns.forEach((town, i) =>
+            drawSignboard(
+              pg,
+              pageH,
+              signboardWords(town),
+              col.x + at[i]!.x,
+              y - at[i]!.row * (TOWN_BOARD_H + 4),
+              TOWN_BOARD_H,
+              col.w,
+              [SIGN_RED, SIGN_RED],
+            ),
+          );
+          y -= boardsH;
+          for (const l of lines) {
+            pg.drawText(l, {
+              x: col.x,
+              y: y - 9,
+              size: BODY,
+              font,
+              color: INK,
+            });
+            y -= LEAD;
+          }
+        });
         col.bottom = y;
         return false;
       });
