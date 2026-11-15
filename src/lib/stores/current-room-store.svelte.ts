@@ -1,5 +1,5 @@
 import { getJSONFetch, getLocalRoomByCode } from '#lib/utils/local/data/utils.js';
-import type { Room } from '#lib/utils/types';
+import type { Room } from '#lib/utils/types.js';
 
 let _currentRoom = $state<Room | null>(null);
 let _currentRoomNotFound = $state(false);

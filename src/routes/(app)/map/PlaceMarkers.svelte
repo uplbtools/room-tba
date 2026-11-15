@@ -6,7 +6,7 @@
 	import { isPlaceLandmark } from '#lib/constants/content/categories/place.js';
 	import { getMapPlacesData } from '#lib/functions/places.remote.js';
 	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
-	import { hasLocation } from '#lib/utils/map/marker.ts';
+	import { hasLocation } from '#lib/utils/map/marker.js';
 
 	interface Props {
 		placePinFilter: 'all' | 'landmark' | 'establishment' | 'none';

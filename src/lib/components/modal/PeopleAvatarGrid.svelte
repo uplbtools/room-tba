@@ -35,7 +35,7 @@
 		const parts = [person.name];
 		if (person.login) parts.push(`@${person.login}`);
 		if (person.subtitle) parts.push(person.subtitle);
-		return parts.join(' · ');
+		return parts.join(', ');
 	}
 </script>
 
@@ -118,10 +118,10 @@
 	.person-card img {
 		width: 2.75rem;
 		height: 2.75rem;
-		border: 1px solid hsl(0, 0%, 82%);
+		border: 1px solid var(--theme-border, hsl(0, 0%, 82%));
 		border-radius: 50%;
 		object-fit: cover;
-		background-color: hsl(0, 0%, 96%);
+		background-color: var(--theme-surface-2, hsl(0, 0%, 96%));
 	}
 
 	.person-name {
@@ -138,7 +138,7 @@
 
 	.person-login {
 		font-size: 0.625rem;
-		color: hsl(0, 0%, 32%);
+		color: var(--theme-text-2, hsl(0, 0%, 32%));
 		line-height: 1.2;
 		text-align: center;
 		max-width: 100%;
@@ -150,7 +150,7 @@
 	.person-subtitle {
 		font-size: 0.625rem;
 		font-weight: 600;
-		color: hsl(5, 60%, 26%);
+		color: var(--theme-accent-text, hsl(5, 60%, 26%));
 		line-height: 1.2;
 		text-align: center;
 	}

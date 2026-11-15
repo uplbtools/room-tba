@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test } from 'vitest';
 import AnnouncementBar from './AnnouncementBar.svelte';
 import { announcementsStore } from '#lib/stores.svelte.js';
-import type { AnnouncementData } from '#lib/utils/types';
+import type { AnnouncementData } from '#lib/utils/types.js';
 
 const row = (id: number, severity: string, title: string): AnnouncementData =>
 	({
