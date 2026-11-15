@@ -2569,8 +2569,9 @@ export async function renderTransitMapPdf(input: {
   const busTexts = [
     "May DLTB bus papuntang UP Diliman.",
     "5 AM, 9 AM at 6 PM ang alis nito galing UP Diliman.",
-    "May ibang bus pa-Buendia sa Olivarez Plaza Mall.",
-    "Mag-book sa dltb.ph.",
+    "May DLTB bus din pa-Buendia sa CPark.",
+    "Mag-book ng dalawang ito sa dltb.ph.",
+    "Sa Olivarez Plaza Mall, abangan lang ang bus pa-Buendia sa bus stop.",
   ];
   const townLines = townTexts.flatMap((t) => wrapText(t, font, BODY, PANEL_W));
   const busLines = busTexts.flatMap((t) => wrapText(t, font, BODY, PANEL_W));
@@ -2789,10 +2790,22 @@ export async function renderTransitMapPdf(input: {
             });
             cx += cw + 5;
           }
-          y -= 24;
-          board("Buendia", SIGN_YELLOW, "Sa Olivarez Plaza Mall");
+          y -= 18 + LEAD;
+          text("Mag-book sa dltb.ph.", x, BODY, font);
+          y -= 10;
+          board("Buendia", SIGN_YELLOW, "DLTB sa CPark");
           y -= LEAD - 3;
           text("Mag-book sa dltb.ph.", x, BODY, font);
+          y -= 4;
+          for (const l of wrapText(
+            "Sa Olivarez Plaza Mall, abangan lang ang bus pa-Buendia sa bus stop.",
+            font,
+            BODY,
+            w,
+          )) {
+            y -= LEAD;
+            text(l, x, BODY, font);
+          }
           y -= 4;
           return top - y;
         },
