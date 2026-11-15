@@ -1,3 +1,11 @@
+# [2.43.0](https://github.com/uplbtools/room-tba/compare/v2.42.0...v2.43.0) (2026-11-15)
+
+
+### Features
+
+* **planner:** open the plan's courses in GradeSim ([#1485](https://github.com/uplbtools/room-tba/issues/1485)) ([36bbf06](https://github.com/uplbtools/room-tba/commit/36bbf06207270c5d08808e329c0428c3386fde13)), closes [#planner](https://github.com/uplbtools/room-tba/issues/planner)
+* **theme:** shared UPLB Tools tokens and Figtree ([#1478](https://github.com/uplbtools/room-tba/issues/1478)) ([4a47ebf](https://github.com/uplbtools/room-tba/commit/4a47ebf74923b65a7a89137ea4ee1275e108c719))
+
 ## [2.40.7](https://github.com/uplbtools/room-tba/compare/v2.40.6...v2.40.7) (2026-11-15)
 
 
