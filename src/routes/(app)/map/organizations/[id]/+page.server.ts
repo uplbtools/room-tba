@@ -1,4 +1,4 @@
-// import { loadOrganizationPage } from '#lib/services/seo/organization-page.js';
-// import type { PageServerLoad } from './$types';
+import { loadEntitySeo } from '#lib/services/seo/entity-seo.js';
+import type { PageServerLoad } from './$types';
 
-// export const load: PageServerLoad = async ({ params }) => loadOrganizationPage(params.slug);
+export const load: PageServerLoad = ({ params }) => loadEntitySeo('organizations', params.id);

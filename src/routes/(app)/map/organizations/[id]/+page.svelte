@@ -34,10 +34,6 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{(await org).name} | Room TBA Organization</title>
-</svelte:head>
-
 <InfoPanel>
 	<svelte:boundary>
 		{#snippet failed()}
