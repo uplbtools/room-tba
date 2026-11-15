@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { CopyIcon, CornerRightUp, MapPin } from '@lucide/svelte';
+	import { CopyIcon, CornerRightUp, MapPin, Printer } from '@lucide/svelte';
 	import ResultAction from './ResultAction.svelte';
 	import { copyTextToClipboard } from '#lib/utils/clipboard.js';
 	import { page } from '$app/state';
 	import { getToast, getUserLocation } from '#lib/utils/context.js';
 	import { getGoogleMapsPinUrl } from '#lib/utils/google-maps-links.js';
 	import { hasLocation } from '#lib/utils/map/marker.js';
+	import { getTransitMapPath } from '#lib/utils/route/route-links.js';
 
 	interface Props {
 		data: { lon: number | null; lat: number | null } & Record<string, unknown>;
@@ -39,6 +40,16 @@
 				<MapPin size={18} />
 			{/snippet}
 			Google Maps
+		</ResultAction>
+		<ResultAction
+			onclick={() => {
+				window.open(getTransitMapPath({ lat, lon, name: props.name }), '_blank', 'noopener');
+			}}
+		>
+			{#snippet icon()}
+				<Printer size={18} />
+			{/snippet}
+			Jeep map
 		</ResultAction>
 	{/if}
 

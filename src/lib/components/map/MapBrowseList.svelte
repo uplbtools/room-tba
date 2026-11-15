@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import InfoPanel from '#lib/components/new/InfoPanel.svelte';
 
 	type BrowseEntry = { href: string; label: string; description?: string | null };
 
@@ -14,29 +15,31 @@
 	} = $props();
 </script>
 
-<section class="map-browse">
-	<h2 class="map-browse__heading">{heading}</h2>
-	{#if entries.length === 0}
-		{#if empty}
-			{@render empty()}
+<InfoPanel>
+	<section class="map-browse">
+		<h2 class="map-browse__heading">{heading}</h2>
+		{#if entries.length === 0}
+			{#if empty}
+				{@render empty()}
+			{:else}
+				<p class="map-browse__empty">
+					Campus data is still syncing. This list fills in once the offline cache has caught up.
+				</p>
+			{/if}
 		{:else}
-			<p class="map-browse__empty">
-				Campus data is still syncing. This list fills in once the offline cache has caught up.
-			</p>
+			<ul class="map-browse__list">
+				{#each entries as entry (entry.href)}
+					<li>
+						<a href={entry.href}>{entry.label}</a>
+						{#if entry.description}
+							<span class="map-browse__description">{entry.description}</span>
+						{/if}
+					</li>
+				{/each}
+			</ul>
 		{/if}
-	{:else}
-		<ul class="map-browse__list">
-			{#each entries as entry (entry.href)}
-				<li>
-					<a href={entry.href}>{entry.label}</a>
-					{#if entry.description}
-						<span class="map-browse__description">{entry.description}</span>
-					{/if}
-				</li>
-			{/each}
-		</ul>
-	{/if}
-</section>
+	</section>
+</InfoPanel>
 
 <style>
 	.map-browse {

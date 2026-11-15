@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { JeepneyRoute } from '#lib/constants/map/jeepney-routes.js';
 	import type { RouteAtStop } from '#lib/utils/transit/transit-direction.js';
+	import { getTransitMapPath } from '#lib/utils/route/route-links.js';
 	import { transitRouteNoun } from '#lib/utils/transit/transit-route-kind.js';
 	import JeepStopReports from './JeepStopReports.svelte';
 
@@ -59,4 +60,11 @@
 	{/if}
 
 	<JeepStopReports entries={ordered} />
+
+	<a
+		class="text-sm underline"
+		href={getTransitMapPath({ lat: stop.lat, lon: stop.lon, name: stop.name })}
+		target="_blank"
+		rel="noopener">Printable jeepney map from this stop</a
+	>
 </div>

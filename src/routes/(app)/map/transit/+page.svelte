@@ -5,18 +5,18 @@
 	import { transitRouteNoun } from '#lib/utils/transit/transit-route-kind.js';
 </script>
 
-<InfoPanel>
-	<svelte:boundary>
-		{#snippet failed()}
+<svelte:boundary>
+	{#snippet failed()}
+		<InfoPanel>
 			<p class="p-3 text-sm">Couldn't load the routes. Try again.</p>
-		{/snippet}
-		<MapBrowseList
-			heading="Jeepney and bus routes"
-			entries={(await getTransitRoutes()).map((route) => ({
-				href: `/map/transit/${encodeURIComponent(route.id)}`,
-				label: `${route.name} ${transitRouteNoun(route)}`,
-				description: route.description
-			}))}
-		/>
-	</svelte:boundary>
-</InfoPanel>
+		</InfoPanel>
+	{/snippet}
+	<MapBrowseList
+		heading="Jeepney and bus routes"
+		entries={(await getTransitRoutes()).map((route) => ({
+			href: `/map/transit/${encodeURIComponent(route.id)}`,
+			label: `${route.name} ${transitRouteNoun(route)}`,
+			description: route.description
+		}))}
+	/>
+</svelte:boundary>

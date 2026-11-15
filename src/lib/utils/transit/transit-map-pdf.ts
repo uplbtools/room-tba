@@ -688,6 +688,8 @@ function wrapText(text: string, font: PDFFont, size: number, maxW: number): stri
 }
 
 const MAX_LABEL_CHARS = 30;
+const LEADER_GAP = 3;
+const EXIT_TAG_PAD = 2.5;
 
 /**
  * A stop name short enough for a map label: merged names ("CEAT Lecture
@@ -1591,6 +1593,8 @@ export async function renderTransitMapPdf(input: {
 				true,
 				true
 			);
+			spec.w += 4 * EXIT_TAG_PAD;
+			spec.h += 2 * EXIT_TAG_PAD;
 			// Beside the arrow along its edge, sliding away until clear of lines.
 			const { x, y } = exit.p;
 			const { w, h } = spec;
@@ -1672,30 +1676,45 @@ export async function renderTransitMapPdf(input: {
 		for (const spec of specs) {
 			const box = placed.get(spec.id);
 			if (!box) continue;
-			if (box.leader) {
-				const cx = Math.min(Math.max(spec.ax, box.x), box.x + box.w);
-				const cy = Math.min(Math.max(spec.ay, box.y), box.y + box.h);
-				const dx = cx - spec.ax;
-				const dy = cy - spec.ay;
-				const len = Math.hypot(dx, dy) || 1;
-				page.drawLine({
-					start: {
-						x: spec.ax + (dx / len) * spec.gap,
-						y: spec.ay + (dy / len) * spec.gap
-					},
-					end: { x: cx, y: cy },
-					thickness: 0.7,
-					color: spec.color
+			const cx = Math.min(Math.max(spec.ax, box.x), box.x + box.w);
+			const cy = Math.min(Math.max(spec.ay, box.y), box.y + box.h);
+			const dx = cx - spec.ax;
+			const dy = cy - spec.ay;
+			const len = Math.hypot(dx, dy) || 1;
+			const from = Math.min(Math.max(spec.gap - LEADER_GAP, 3.5), len);
+			const start = {
+				x: spec.ax + (dx / len) * from,
+				y: spec.ay + (dy / len) * from
+			};
+			const end = { x: cx, y: cy };
+			page.drawLine({ start, end, thickness: 2.6, color: WHITE });
+			page.drawLine({ start, end, thickness: 0.9, color: spec.color });
+			if (spec.spots)
+				page.drawRectangle({
+					x: box.x,
+					y: box.y,
+					width: box.w,
+					height: box.h,
+					color: WHITE,
+					borderColor: spec.color,
+					borderWidth: 0.8
 				});
-			}
 			const lines = spec.text.split('\n');
 			lines.forEach((line, li) => {
 				haloText(
 					page,
 					line,
 					// Two-line labels left of their anchor read right-aligned.
-					box.x + (box.x < spec.ax ? box.w - spec.font.widthOfTextAtSize(line, spec.size) : 0),
-					box.y + spec.size * 0.2 + (lines.length - 1 - li) * spec.size * 1.15,
+					box.x +
+						(spec.spots
+							? 2 * EXIT_TAG_PAD
+							: box.x < spec.ax
+								? box.w - spec.font.widthOfTextAtSize(line, spec.size)
+								: 0),
+					box.y +
+						(spec.spots ? EXIT_TAG_PAD : 0) +
+						spec.size * 0.2 +
+						(lines.length - 1 - li) * spec.size * 1.15,
 					spec.size,
 					spec.font,
 					spec.color
