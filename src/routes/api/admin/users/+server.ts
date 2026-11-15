@@ -1,4 +1,5 @@
 import { clientIp } from '#lib/api/rate-limit.js';
+import { listPendingAccessRequests } from '#lib/services/admin/access-request.js';
 import { recordAudit } from '#lib/services/admin/audit-log.js';
 import { listPendingInvites } from '#lib/services/admin/staff-invite.js';
 import { editorSessionOrUnauthorized } from '#lib/admin/require-editor.js';
@@ -16,8 +17,12 @@ export const GET: RequestHandler = async ({ cookies }) => {
 	});
 	if (auth instanceof Response) return auth;
 
-	const [users, invites] = await Promise.all([listAllAdminUsers(), listPendingInvites()]);
-	return json({ users, invites });
+	const [users, invites, accessRequests] = await Promise.all([
+		listAllAdminUsers(),
+		listPendingInvites(),
+		listPendingAccessRequests()
+	]);
+	return json({ users, invites, accessRequests });
 };
 
 export const POST: RequestHandler = async ({ cookies, request }) => {
