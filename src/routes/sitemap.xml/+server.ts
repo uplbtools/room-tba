@@ -60,6 +60,7 @@ export const GET: RequestHandler = async () => {
 		entityIndexPath('units'),
 		entityIndexPath('places'),
 		'/map/planner',
+		'/map/today',
 		'/map/calendar',
 		'/map/final-exams',
 		...(campusTransit.enabled ? [TRANSIT_INDEX_PATH] : []),
