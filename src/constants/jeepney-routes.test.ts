@@ -112,7 +112,7 @@ describe("resolveRouteGeometry", () => {
   test("only inferred sources carry a rider-facing caveat", () => {
     expect(ROUTE_GEOMETRY_NOTES["osm-relation"]).toBeNull();
     expect(ROUTE_GEOMETRY_NOTES.routed).toContain("road-routed");
-    expect(ROUTE_GEOMETRY_NOTES["stops-only"]).toContain("not mapped");
+    expect(ROUTE_GEOMETRY_NOTES["stops-only"]).toContain("isn't mapped");
   });
 });
 

@@ -60,4 +60,4 @@ export const TERRAIN_UNAVAILABLE_OFFLINE_MESSAGE =
   "Terrain needs an internet connection for hosted elevation tiles.";
 
 export const TERRAIN_TILE_FAILURE_MESSAGE =
-  "Terrain tiles could not load. The flat map is still available.";
+  "Terrain tiles couldn't load. The flat map is still available.";

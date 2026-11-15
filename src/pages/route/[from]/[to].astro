@@ -43,8 +43,8 @@ const factual = route ? describeRoute(from, to, route) : null;
 const canonicalPath = getRoutePath(from.name, to.name);
 const title = `${from.name} to ${to.name} | Walking route at UPLB | Room TBA`;
 const summary = route
-  ? `${formatDistance(route.meters)}, about ${formatDuration(route.seconds)} walking.`
-  : `Walking route between ${from.name} and ${to.name} at UPLB.`;
+  ? `The walk is ${formatDistance(route.meters)}, about ${formatDuration(route.seconds)}.`
+  : `This is a walking route between ${from.name} and ${to.name} at UPLB.`;
 const description = `How to walk from ${from.name} to ${to.name} at UP Los Banos. ${summary}`;
 
 const structuredData = jsonLd(
@@ -81,7 +81,6 @@ const contextLinks = [from, to]
     </nav>
 
     <header class="route-head">
-      <p class="route-kicker">Walking route</p>
       <h1>{from.name} to {to.name}</h1>
       {
         route ? (
@@ -127,14 +126,14 @@ const contextLinks = [from, to]
             <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer"
               >OpenStreetMap</a
             > footpaths and assume an unhurried walk. Campus shortcuts and closed
-            gates are not accounted for.
+            gates aren't accounted for.
           </p>
         </section>
       ) : (
         <section class="route-body">
           <p class="route-lede">
             {from.slug === to.slug
-              ? "That is the same place twice. Pick a different destination."
+              ? "That's the same place twice. Pick a different destination."
               : "No walking route could be worked out between these two right now. The routing service may be unavailable."}
           </p>
           <div class="route-actions">

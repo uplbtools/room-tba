@@ -82,13 +82,13 @@ const ROUTE_TICKETING: Readonly<Record<string, RouteTicketing>> = {
  * list; kept in code so it does not wait on a database edit.
  */
 const JUNCTION_BOARDING_NOTE =
-  "Comes from Calamba and does not enter the UPLB campus. Board at the Junction on the national highway by Olivarez Plaza; from campus, ride a Kaliwa or Kanan jeep there first.";
+  "It comes from Calamba and doesn't enter the UPLB campus. Board at the Junction on the national highway by Olivarez Plaza. From campus, ride a Kaliwa or Kanan jeep there first.";
 
 export const ROUTE_BOARDING_NOTES: Readonly<Record<string, string>> = {
   "lb-to-san-pablo": JUNCTION_BOARDING_NOTE,
   "lb-to-sta-cruz": JUNCTION_BOARDING_NOTE,
   forestry:
-    "Board at a terminal. Forestry jeeps fill up at their first stop and rarely have room further along: going up, board at the Forestry Jeep Terminal; going down, at the Upper Forestry Jeep Terminal.",
+    "Board at a terminal. Forestry jeeps fill up at their first stop and rarely have room further along. Going up, board at the Forestry Jeep Terminal. Going down, board at the Upper Forestry Jeep Terminal.",
 };
 
 /** The same advice, short enough for a route card on the printable map. */
@@ -100,7 +100,7 @@ export const ROUTE_PRINT_NOTES: Readonly<Record<string, string>> = {
 
 /** Forestry's two trips; also written to the database by scripts/fix-transit-data.ts. */
 export const FORESTRY_DIRECTION_NOTE =
-  "Uphill trips start at the Forestry Jeep Terminal and serve the stops as listed. Past New FOREHA the jeep loops down Makiling Road, east along Valentin Sajor and back up Felix O. Chinte Sr. through MAREHA and FOREHA. Downhill trips start at the Upper Forestry Jeep Terminal and run back down to the Forestry Jeep Terminal, serving the same stops in reverse; going down, the jeep stays on Makiling Road instead of turning at the Admin Building.";
+  "Uphill trips start at the Forestry Jeep Terminal and serve the stops as listed. Past New FOREHA the jeep loops down Makiling Road, east along Valentin Sajor and back up Felix O. Chinte Sr. through MAREHA and FOREHA. Downhill trips start at the Upper Forestry Jeep Terminal and run back down to the Forestry Jeep Terminal, serving the same stops in reverse. Going down, the jeep stays on Makiling Road instead of turning at the Admin Building.";
 
 /**
  * When a route runs. Only what an operator or the maintainer has stated is
@@ -167,11 +167,13 @@ export const ROUTE_DIRECTIONS: Readonly<
   "kaliwa-kanan": {
     forward: {
       label: "Kanan",
-      summary: "Turns right after the gate: Carabao Park / DevCom first.",
+      summary:
+        "It turns right after the gate and serves Carabao Park / DevCom first.",
     },
     reverse: {
       label: "Kaliwa",
-      summary: "Turns left after the gate: Carabao Park / Landbank first.",
+      summary:
+        "It turns left after the gate and serves Carabao Park / Landbank first.",
     },
   },
   "up-rural": {
@@ -257,7 +259,7 @@ export const ROUTE_GEOMETRY_NOTES: Record<RouteGeometrySource, string | null> =
     routed:
       "This line is road-routed between the stops, not traced from the operator's published route. Expect the real trip to differ in places.",
     "stops-only":
-      "The exact path of this route is not mapped yet. The dashed line just joins the stops in order — it is not the road the vehicle takes.",
+      "The exact path of this route isn't mapped yet. The dashed line joins the stops in order and isn't the road the vehicle takes.",
   };
 
 /**
@@ -293,7 +295,7 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
     description:
       "Loop between Olivarez Plaza in Los Baños town and the UPLB academic core, passing Raymundo Gate, the Main Library, the dormitories, and CEAT.",
     directionNote:
-      "Kaliwa and Kanan are the same loop; the name says which way the jeep turns after entering the UPLB gate. Kanan follows the stops as listed (Carabao Park / DevCom first); Kaliwa serves the same stops in reverse (Carabao Park / Landbank first). Across Freedom Park a jeep may pass either the Student Union or the Dormitories; ask the driver which way it goes.",
+      "Kaliwa and Kanan are the same loop. The name says which way the jeep turns after entering the UPLB gate. Kanan follows the stops as listed (Carabao Park / DevCom first), and Kaliwa serves the same stops in reverse (Carabao Park / Landbank first). Across Freedom Park a jeep may pass either the Student Union or the Dormitories, so ask the driver which way it goes.",
     color: "#dc2626",
     fare: STANDARD_CAMPUS_FARE,
     stops: [
@@ -435,7 +437,7 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
     id: "forestry",
     name: "Forestry",
     description:
-      "Connects the campus core to the upper Forestry campus: from the Forestry jeep terminal past Narra Bridge, the University Health Service, and CPAf, climbing past Makiling Botanic Gardens to the College of Forestry and Natural Resources and the FOREHA, New FOREHA, and MAREHA residence halls.",
+      "It connects the campus core to the upper Forestry campus. It runs from the Forestry jeep terminal past Narra Bridge, the University Health Service, and CPAf, then climbs past Makiling Botanic Gardens to the College of Forestry and Natural Resources and the FOREHA, New FOREHA, and MAREHA residence halls.",
     directionNote: FORESTRY_DIRECTION_NOTE,
     color: "#d97706",
     fare: STANDARD_CAMPUS_FARE,
@@ -535,7 +537,7 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
       {
         name: "Forestry Residence Hall (FOREHA)",
         description:
-          "Last uphill stop, at the Forestry Residence Hall; the jeep heads back down campus from here.",
+          "This is the last uphill stop, at the Forestry Residence Hall. The jeep heads back down campus from here.",
         // ponytail: snapped to Felix O. Chinte Sr.
         lat: 14.152521,
         lon: 121.235097,
@@ -548,7 +550,7 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
     description:
       "Runs from the campus core out along Pili Drive and the IPB Road to Paciano Rizal, UP Rural High School, and Jubileeville in Bay.",
     directionNote:
-      "Outbound the jeep serves the stops as listed, ending at Jubileeville; it returns to campus along the same road in reverse.",
+      "Outbound the jeep serves the stops as listed, ending at Jubileeville. It returns to campus along the same road in reverse.",
     color: "#1e3a8a",
     fare: STANDARD_CAMPUS_FARE,
     stops: [
@@ -615,13 +617,14 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
     description:
       "Campus e-jeep loop on the route approved by the Office of the Vice Chancellor for Community Affairs (OVCCA). From the temporary e-jeep terminal at Copeland Gym it runs up Getulio B. Viado past the dormitories, around by the Main Library and OVCRE Annex, down past CAS, Physical Sciences and the Seniors' Social Garden to CEAT, then along Pili Drive past Crop Science and Animal Science to Vet Med and back to Copeland.",
     directionNote:
-      "One way, in stop order. Look for the UPLB LOOP signboard: jeeps without it go straight to Pili Drive and Bay. In practice drivers do not always follow the approved route; some skip Getulio B. Viado and Copeland or detour on request. From Olivarez, ride Kanan and change at OVCRE Annex (stop 9).",
+      "The route runs one way, in stop order. Look for the UPLB LOOP signboard, since jeeps without it go straight to Pili Drive and Bay. In practice drivers don't always follow the approved route, and some skip Getulio B. Viado and Copeland or detour on request. From Olivarez, ride Kanan and change at OVCRE Annex (stop 9).",
     color: "#15803d",
     fare: STANDARD_CAMPUS_FARE,
     stops: [
       {
         name: "EB Copeland Gymnasium (temporary e-jeep terminal)",
-        description: "Temporary e-jeep terminal; start and end of the loop.",
+        description:
+          "This temporary e-jeep terminal is where the loop starts and ends.",
         lat: 14.1566,
         lon: 121.24276,
       },
@@ -750,7 +753,7 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
       },
       {
         name: "EB Copeland Gymnasium (temporary e-jeep terminal)",
-        description: "Back at Copeland Gym: the loop ends where it started.",
+        description: "The loop ends back at Copeland Gym, where it started.",
         lat: 14.1566,
         lon: 121.24276,
       },
@@ -764,7 +767,7 @@ export const JEEPNEY_ROUTES: JeepneyRoute[] = [
  * so they show before anyone adds them to the database; database rows win.
  */
 const DLTB_BUENDIA_NOTE =
-  "Daily: leaves UPLB at 5:00 AM; the return trip leaves Buendia at 6:00 PM. About 1.5 to 2 hours each way. More trips may be added when demand is high.";
+  "It runs daily. It leaves UPLB at 5:00 AM, and the return trip leaves Buendia at 6:00 PM. Each way takes about 1.5 to 2 hours. More trips may be added when demand is high.";
 
 export const BUNDLED_BUS_ROUTES: JeepneyRoute[] = [
   {
@@ -786,7 +789,7 @@ export const BUNDLED_BUS_ROUTES: JeepneyRoute[] = [
       {
         name: "Buendia bus terminal (LRT-1 Gil Puyat)",
         description:
-          "Bus terminal on Gil Puyat Ave., just below LRT-1 Gil Puyat station.",
+          "This bus terminal is on Gil Puyat Ave., just below LRT-1 Gil Puyat station.",
         lat: 14.5541,
         lon: 120.9972,
       },
@@ -804,7 +807,7 @@ export const BUNDLED_BUS_ROUTES: JeepneyRoute[] = [
       {
         name: "Buendia bus terminal (LRT-1 Gil Puyat)",
         description:
-          "Bus terminal on Gil Puyat Ave., just below LRT-1 Gil Puyat station.",
+          "This bus terminal is on Gil Puyat Ave., just below LRT-1 Gil Puyat station.",
         lat: 14.5541,
         lon: 120.9972,
       },
@@ -826,15 +829,15 @@ export const BUNDLED_BUS_ROUTES: JeepneyRoute[] = [
  */
 /** Tips for jeeps leaving Los Baños town (not campus-specific). */
 export const TOWN_JEEPNEY_RIDING_NOTES: string[] = [
-  "Board at Olivarez Plaza (College Junction). Outbound signboards: BAYAN (town proper), SM CROSSING, CROSSING CALAMBA, SAKAY/LALAKAY.",
-  "Tell the driver where you are getting off; stops along the highway are not marked.",
+  "Board at Olivarez Plaza (College Junction). The outbound signboards are BAYAN (town proper), SM CROSSING, CROSSING CALAMBA, SAKAY/LALAKAY.",
+  "Tell the driver where you're getting off, since stops along the highway aren't marked.",
 ];
 
 export const JEEPNEY_RIDING_NOTES: string[] = [
-  "Jeepneys from Calamba Crossing carry a UP COLLEGE or COLLEGE signboard; they may become Kaliwa, Kanan, Forestry, or UP Gate routes near campus. Check the windshield signboard or ask the driver.",
-  "A UP GATE signboard means the jeep stops at Grove and does not enter campus.",
+  "Jeepneys from Calamba Crossing carry a UP COLLEGE or COLLEGE signboard. Near campus they may become Kaliwa, Kanan, Forestry, or UP Gate routes. Check the windshield signboard or ask the driver.",
+  "A UP GATE signboard means the jeep stops at Grove and doesn't enter campus.",
   "Hailing a jeep bound for Forestry or Upper Campus? Point your index finger upwards.",
-  "Outbound signboards: BAYAN (town proper), OLIVAREZ (College Junction), SM CROSSING, CROSSING CALAMBA, SAKAY/LALAKAY.",
+  "The outbound signboards are BAYAN (town proper), OLIVAREZ (College Junction), SM CROSSING, CROSSING CALAMBA, SAKAY/LALAKAY.",
   "Board and get off only at the designated stops, marked in yellow.",
 ];
 

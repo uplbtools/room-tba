@@ -22,7 +22,7 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
 
 <Layout
   title="Help & FAQ | Room TBA"
-  description="Student FAQ for Room TBA: 3D building models, data sources, offline use, and how to report mistakes."
+  description="Answers to student questions about Room TBA, including 3D building models, data sources, offline use and how to report mistakes."
   canonicalPath="/faq"
   showAppLoadingShell={false}
 >
@@ -32,7 +32,6 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
     </a>
 
     <header class="hero">
-      <p class="eyebrow">Help</p>
       <h1>Help &amp; FAQ</h1>
       <p class="lede">
         Short answers to questions students ask often. Room TBA is a
@@ -47,8 +46,8 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
         <summary>Is Room TBA an official UPLB site?</summary>
         <div class="faq-answer">
           <p>
-            No. Room TBA is a student-run community tool under UPLB Tools. It is
-            not affiliated with, endorsed by, or operated by the University of
+            No. Room TBA is a student-run community tool under UPLB Tools. It isn't
+            affiliated with, endorsed by, or operated by the University of
             the Philippines Los Baños. For enrollment, grades, or official
             announcements, use university channels.
           </p>
@@ -91,10 +90,6 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
                 rel="noopener noreferrer">OpenStreetMap contributors</a
               >.
             </li>
-            <li>
-              If OSM has no footprint for a building, the 3D view explains that
-              the building may not be mapped yet.
-            </li>
           </ul>
         </div>
       </details>
@@ -105,10 +100,10 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
           <p>
             Volunteers import class offerings from AMIS/CRS each term. Class
             search can list lecture, lab, recitation, thesis, special problem,
-            and similar sections; sections without a room in AMIS show as
+            and similar sections. Sections without a room in AMIS show as
             unassigned. Room schedules list lecture, lab, and similar sections
             that have an assigned room. Thesis and special-problem style rows
-            usually have no facility in AMIS, so they often do not appear on a
+            usually have no facility in AMIS, so they often don't appear on a
             room timetable.
           </p>
           <p>
@@ -122,18 +117,18 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
       <details class="faq-item" id="missing">
         <summary>Why is my class or room missing?</summary>
         <div class="faq-answer">
-          <p>Common reasons:</p>
+          <p>Here are the common reasons.</p>
           <ul>
             <li>
               The section type is outside what room schedules show (for example
               thesis or special problem with no facility in AMIS).
             </li>
             <li>
-              The AMIS facility string does not match our room codes yet (aliases
+              The AMIS facility string doesn't match our room codes yet (aliases
               and typos). Volunteers track that as data work.
             </li>
             <li>
-              The building or room has not been added to the map database.
+              The building or room hasn't been added to the map database.
             </li>
           </ul>
           <p>
@@ -147,11 +142,10 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
         <summary>How do I report wrong data?</summary>
         <div class="faq-answer">
           <p>
-            Open a GitHub issue with the room code, building name, or class
-            section and what is wrong:
-            <a href={reportIssueUrl} target="_blank" rel="noopener noreferrer"
+            Open a GitHub issue (<a href={reportIssueUrl} target="_blank" rel="noopener noreferrer"
               >Report wrong data</a
-            >. You can also ask in
+            >) with the room code, building name or class section and what's
+            wrong. You can also ask in
             <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
               >Discord</a
             >. Signed-in contributors can use <strong>Suggest an edit</strong> in
@@ -171,7 +165,7 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
           </p>
           <div class="faq-answer__follow">
             <FollowUpdates
-              note="Posted there: new features, corrections to room and class data, and the day each term's schedules land."
+              note="We post new features, corrections to room and class data, and the day each term's schedules land."
             />
           </div>
         </div>
@@ -180,12 +174,12 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
       <details class="faq-item" id="data-license">
         <summary>Can I reuse Room TBA data?</summary>
         <div class="faq-answer">
-          <p>It depends which layer you mean:</p>
+          <p>It depends on which layer you mean.</p>
           <ul>
             <li>
               <strong>App code</strong> is {
                 SOFTWARE_LICENSE
-              }. Fork for another campus is fine; replace the UPLB data.
+              }. You can fork it for another campus, but replace the UPLB data.
             </li>
             <li>
               <strong>Community campus map data</strong> (buildings, rooms,
@@ -203,12 +197,12 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
                 href={OSM_COPYRIGHT_URL}
                 target="_blank"
                 rel="noopener noreferrer">ODbL</a
-              >; keep OSM attribution.
+              >. Keep OSM attribution.
             </li>
             <li>
               <strong>AMIS/CRS class schedules</strong> and similar university
               imports are not offered for bulk redistribution under an open
-              license. Use the app; do not scrape and republish the registrar
+              license. Use the app, but don't scrape and republish the registrar
               feed.
             </li>
           </ul>
@@ -226,7 +220,7 @@ const reportIssueUrl = `${GITHUB_ROOM_TBA_URL}/issues/new/choose`;
             Yes, within limits. Room TBA is a PWA: after you visit online, campus
             data can stay cached in your browser (PGlite). Map tiles work offline
             if you already loaded them or used the offline maps download. A first
-            visit with no signal will not have a full cache yet.
+            visit with no signal won't have a full cache yet.
           </p>
         </div>
       </details>
