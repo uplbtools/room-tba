@@ -197,7 +197,9 @@ function scrubAllExports() {
     }
     const termId = inferTermIdFromPayload(payload, rows);
     saveSanitizedExport(termId, rows, path);
-    console.log(`Scrubbed instructor PII from ${path} (${rows.length} rows).`);
+    console.log(
+      `Scrubbed instructor names from ${path} (${rows.length} rows).`,
+    );
   }
 }
 
@@ -222,7 +224,7 @@ async function resolveRawRows(options: CliOptions) {
     const sanitized = sanitizeAmisRows(fetched);
     saveSanitizedExport(options.termId, sanitized, exportPath);
     console.log(
-      `Saved sanitized export to ${exportPath} (instructor names stripped).`,
+      `Saved sanitized export to ${exportPath} (instructor names reduced to initials).`,
     );
     return sanitized;
   }
@@ -306,6 +308,7 @@ async function main() {
           termId: classesTable.termId,
           acadGroup: classesTable.acadGroup,
           acadOrg: classesTable.acadOrg,
+          instructorInitials: classesTable.instructorInitials,
         })
         .from(classesTable)
         .where(eq(classesTable.termId, options.termId)),
@@ -360,6 +363,7 @@ async function main() {
             termId: row.termId,
             acadGroup: row.acadGroup,
             acadOrg: row.acadOrg,
+            instructorInitials: row.instructorInitials,
           })
           .where(eq(classesTable.id, id));
       }

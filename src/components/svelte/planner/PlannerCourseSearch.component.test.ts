@@ -14,6 +14,7 @@ const rows: ClassMapValue[] = [
     roomCode: "EAA LH",
     directions: null,
     courseTitle: "Foundations of Computer Science",
+    instructorInitials: "JPDC",
     roomId: 1,
     termId: 1253,
   },
@@ -105,5 +106,6 @@ describe("PlannerCourseSearch", () => {
     expect(added).toHaveAttribute("aria-pressed", "true");
     // Times read like people write them, with the room.
     expect(screen.getAllByText("Lec WF 4–5 PM in EAA LH")[0]).toBeVisible();
+    expect(screen.getAllByText("JPDC")[0]).toBeVisible();
   });
 });

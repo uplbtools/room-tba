@@ -23,4 +23,6 @@ export type NormalizedAmisClass = {
   acadGroup: string | null;
   /** AMIS PeopleSoft department code, e.g. "LBICS" (#846). */
   acadOrg: string | null;
+  /** Initials only, e.g. "JPDC, AMB". AMIS names are never stored. */
+  instructorInitials: string | null;
 };

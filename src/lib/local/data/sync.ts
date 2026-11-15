@@ -1213,6 +1213,7 @@ export async function syncClasses(
     schedule: string;
     directions: string | null;
     courseTitle: string;
+    instructorInitials?: string | null;
     termId: number;
     roomId: number | null;
   }[],
@@ -1231,8 +1232,8 @@ export async function syncClasses(
     for (const c of remoteClasses) {
       await localDB.query(
         `
-        INSERT INTO classes (id, course_code, section, type, schedule, directions, course_title, term_id, room_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+        INSERT INTO classes (id, course_code, section, type, schedule, directions, course_title, term_id, room_id, instructor_initials)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
         `,
         [
           c.id,
@@ -1244,6 +1245,7 @@ export async function syncClasses(
           c.courseTitle,
           c.termId,
           c.roomId,
+          c.instructorInitials ?? null,
         ],
       );
       syncToastStore.updateClassesSync();

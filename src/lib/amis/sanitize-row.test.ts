@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
   amisExportContainsInstructorPii,
+  nameToInitials,
   sanitizeAmisRow,
 } from "@lib/amis/sanitize-row";
 
@@ -49,6 +50,72 @@ describe("sanitizeAmisRow", () => {
       facility_id: "PSLH A",
       course: { title: "Physical Education" },
     });
+  });
+});
+
+describe("nameToInitials", () => {
+  it("reads first-last and last-comma-first order the same way", () => {
+    expect(nameToInitials("Juan P. Dela Cruz")).toBe("JPDC");
+    expect(nameToInitials("DELA CRUZ, JUAN P.")).toBe("JPDC");
+    expect(nameToInitials("SANTOS, MARIA DE LOS REYES")).toBe("MDLRS");
+    expect(nameToInitials("RAMOS, ANA SAN JOSE, JR.")).toBe("ASJR");
+  });
+
+  it("gives null for blank or TBA", () => {
+    expect(nameToInitials("")).toBeNull();
+    expect(nameToInitials("  TBA ")).toBeNull();
+  });
+});
+
+describe("sanitizeAmisRow instructor initials", () => {
+  const faculty = (formatted_name: string) => ({
+    faculty: { user: { formatted_name } },
+  });
+
+  it("keeps initials in AMIS order and drops the names", () => {
+    const sanitized = sanitizeAmisRow({
+      course_code: "CMSC 123",
+      section: "A",
+      class_dates: [
+        { date: "MW", ...faculty("BOMBIO, ARIEL MANOPLA.") },
+        { date: "F", ...faculty("DELA CRUZ, JUAN P.") },
+        { date: "Th", ...faculty("BOMBIO, ARIEL MANOPLA.") },
+      ],
+    });
+    expect(sanitized.instructor_initials).toBe("AMB, JPDC");
+    expect(JSON.stringify(sanitized)).not.toMatch(/BOMBIO|CRUZ/);
+  });
+
+  it("reads first, middle and last name fields", () => {
+    const sanitized = sanitizeAmisRow({
+      section: "B",
+      faculty: {
+        user: { first_name: "Juan", middle_name: "P.", last_name: "Dela Cruz" },
+      },
+    });
+    expect(sanitized.instructor_initials).toBe("JPDC");
+  });
+
+  it("sets nothing for a TBA instructor", () => {
+    const sanitized = sanitizeAmisRow({
+      section: "C",
+      class_dates: [{ date: "MW", ...faculty("TBA") }],
+    });
+    expect("instructor_initials" in sanitized).toBe(false);
+  });
+
+  it("sanitizes the embedded parent lecture and survives a second pass", () => {
+    const once = sanitizeAmisRow({
+      section: "A-1L",
+      parent: { id: 1, section: "A", ...faculty("DELA CRUZ, JUAN P.") },
+    });
+    expect(once.parent).toEqual({
+      id: 1,
+      section: "A",
+      instructor_initials: "JPDC",
+    });
+    expect(sanitizeAmisRow(once)).toEqual(once);
+    expect(amisExportContainsInstructorPii(once)).toBe(false);
   });
 });
 

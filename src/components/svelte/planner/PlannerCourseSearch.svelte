@@ -194,6 +194,14 @@
     });
   }
 
+  /** Distinct instructor initials across an offering's lecture and lab rows. */
+  function offeringInstructors(offering: ClassOfferingGroup): string {
+    const all = offering.sections.flatMap(
+      (s) => s.instructorInitials?.split(", ") ?? [],
+    );
+    return [...new Set(all)].join(", ");
+  }
+
   /** Drop shared HK 12 base name + parens; leave the activity (e.g. Badminton). */
   function stripHk12Title(title: string | null | undefined): string {
     if (!title) return "";
@@ -298,6 +306,11 @@
                       {#each offeringParts(offering) as part, i (i)}
                         <span class="section-row__schedule">{part}</span>
                       {/each}
+                      {#if offeringInstructors(offering)}
+                        <span class="section-row__schedule">
+                          {offeringInstructors(offering)}
+                        </span>
+                      {/if}
                     </div>
                     <button
                       type="button"

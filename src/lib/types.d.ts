@@ -82,6 +82,7 @@ type ClassMapValue = {
   schedule: string[] | null;
   directions: string | null;
   courseTitle: string | null;
+  instructorInitials?: string | null;
   roomId: number | null;
   termId: number | null;
   id: number;

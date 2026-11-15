@@ -81,6 +81,7 @@
   type GridBlock = ScheduleBlock & {
     key: string;
     roomCode: string | null;
+    instructorInitials: string | null;
     conflicted: boolean;
     /** Side-by-side lane when blocks overlap (a conflict), else 0 of 1. */
     col: number;
@@ -132,6 +133,7 @@
           ...block,
           key: blockKey(block),
           roomCode: section.roomCode,
+          instructorInitials: section.instructorInitials ?? null,
           conflicted: conflictedKeys.has(blockKey(block)),
           col: 0,
           colCount: 1,
@@ -466,6 +468,11 @@
                   <span class="planner-block__section">
                     {formatSectionType(block.type)} {block.section}
                   </span>
+                  {#if block.instructorInitials}
+                    <span class="planner-block__instructor">
+                      {block.instructorInitials}
+                    </span>
+                  {/if}
                 </button>
                 {#if selectedKey === block.key}
                   <div
@@ -704,7 +711,8 @@
     padding-inline: 0.125rem;
   }
 
-  .planner-block--lane .planner-block__section {
+  .planner-block--lane .planner-block__section,
+  .planner-block--lane .planner-block__instructor {
     display: none;
   }
 
@@ -751,6 +759,14 @@
     line-height: 1.15;
     overflow-wrap: anywhere;
     opacity: 0.9;
+  }
+
+  .planner-block__instructor {
+    display: block;
+    font-size: 0.5rem;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+    opacity: 0.8;
   }
 
   .planner-block__actions {
@@ -921,6 +937,10 @@
 
     .planner-block__section {
       font-size: 0.75rem;
+    }
+
+    .planner-block__instructor {
+      font-size: 0.6875rem;
     }
 
     .planner-block__actions {

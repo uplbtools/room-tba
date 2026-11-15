@@ -373,6 +373,7 @@ const classListSelect = {
   schedule: classesTable.schedule,
   directions: roomsTable.directions,
   courseTitle: classesTable.courseTitle,
+  instructorInitials: classesTable.instructorInitials,
 };
 
 function classListWhere(termId?: number, courseCodePrefix?: string) {

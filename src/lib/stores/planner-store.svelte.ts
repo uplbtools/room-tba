@@ -23,6 +23,7 @@ function rowToPlannedSection(row: ClassMapValue): PlannedSection | null {
     schedule: row.schedule ?? ["TBA"],
     roomCode: row.roomCode ?? null,
     courseTitle: row.courseTitle ?? null,
+    instructorInitials: row.instructorInitials ?? null,
   };
 }
 

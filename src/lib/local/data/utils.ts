@@ -456,6 +456,7 @@ export async function getLocalClasses(): Promise<ClassMapValue[] | undefined> {
         c.schedule,
         c.directions,
         c.course_title as "courseTitle",
+        c.instructor_initials as "instructorInitials",
         c.term_id as "termId",
         c.room_id as "roomId"
       FROM classes AS c
@@ -721,6 +722,7 @@ const CLASS_ROW_SELECT = `
   c.schedule,
   c.directions,
   c.course_title as "courseTitle",
+  c.instructor_initials as "instructorInitials",
   c.term_id as "termId",
   c.room_id as "roomId"
 `;

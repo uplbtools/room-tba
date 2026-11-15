@@ -97,6 +97,7 @@ async function fetchAppData(): Promise<AppPageData> {
       schedule: classesTable.schedule,
       directions: roomsTable.directions,
       courseTitle: classesTable.courseTitle,
+      instructorInitials: classesTable.instructorInitials,
     })
     .from(classesTable)
     .leftJoin(roomsTable, eq(roomsTable.id, classesTable.roomId))
