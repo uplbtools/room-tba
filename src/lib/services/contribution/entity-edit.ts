@@ -12,7 +12,8 @@ import {
 import { ProposalValidationError, submitProposal } from './proposal-action.js';
 
 type EntityEdit = {
-	entityType: 'building' | 'dorm' | 'event' | 'organization' | 'place' | 'room';
+	entityType:
+		'building' | 'college' | 'division' | 'dorm' | 'event' | 'organization' | 'place' | 'room';
 	meta: { entityId: number; baseVersion: number; submitterName: string };
 	body: Record<string, unknown>;
 	current: Record<string, unknown>;
