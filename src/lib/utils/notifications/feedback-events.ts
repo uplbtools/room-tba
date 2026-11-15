@@ -1,4 +1,4 @@
-import { getNotificationAdapter } from './index';
+import { enqueueNotification } from './outbox';
 import type { FeedbackSubmittedPayload } from './types';
 
 /**
@@ -9,8 +9,7 @@ import type { FeedbackSubmittedPayload } from './types';
  * gateway has returned 500 in practice and a submitter must never see that.
  */
 export async function emitFeedbackSubmitted(payload: FeedbackSubmittedPayload): Promise<void> {
-	const notifications = getNotificationAdapter();
-	await notifications.notify({
+	await enqueueNotification({
 		schemaVersion: 1,
 		type: 'feedback.submitted',
 		source: 'room-tba',
