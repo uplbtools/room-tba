@@ -41,6 +41,7 @@
 	import UILayer from './UILayer.svelte';
 	import MapControlsStack from '#lib/components/map-chrome/MapControlsStack.svelte';
 	import Toast from '#lib/components/Toast.svelte';
+	import ContributionReward from './ContributionReward.svelte';
 	import ModalStore from '#lib/stores/new/ui/ModalStore.svelte.js';
 	import TermStore from '#lib/stores/new/data/TermStore.svelte.js';
 	import DesktopTopBar from '#lib/components/map-chrome/DesktopTopBar.svelte';
@@ -653,4 +654,5 @@
 		<ManageUsersModal />
 	{/if}
 	<Toast />
+	<ContributionReward />
 </main>
