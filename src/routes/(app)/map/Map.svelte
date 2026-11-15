@@ -6,6 +6,7 @@
 	import OrgMarkers from './OrgMarkers.svelte';
 	import PlaceMarkers from './PlaceMarkers.svelte';
 	import DormMarkers from './DormMarkers.svelte';
+	import TransitRouteLine from './TransitRouteLine.svelte';
 	// import { getAllBuildings } from '#lib/functions/buildings.remote.js';
 	import * as maplibre from 'maplibre-gl';
 	import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
@@ -69,6 +70,8 @@
 		<!-- Event location details...? with editing -->
 
 		<!-- Entities -->
+
+		<TransitRouteLine />
 
 		<!-- Buildings -->
 		<BuildingMarkers showBuildingPins={true} zoomLevel={15} />

@@ -1,28 +1,44 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import { afterNavigate } from '$app/navigation';
+	import { navigating } from '$app/state';
+	import { onMount } from 'svelte';
+	import InfoPanel from '#lib/components/new/InfoPanel.svelte';
+	import { getTransitRoute } from '#lib/functions/transit.remote.js';
+	import { getMapStore } from '#lib/utils/context.js';
+	import TransitRoute from './TransitRoute.svelte';
 
-	const { data }: { data: PageData } = $props();
+	const { params } = $props();
+	const map = getMapStore();
+
+	const route = $derived(getTransitRoute(params.route));
+
+	afterNavigate(fitRoute);
+
+	onMount(async () => {
+		if (navigating.type) return;
+		await fitRoute();
+	});
+
+	async function fitRoute() {
+		const { stops } = await route;
+		if (stops.length === 0) return;
+		const lons = stops.map((stop) => stop.lon);
+		const lats = stops.map((stop) => stop.lat);
+		map.fitBounds([
+			[Math.min(...lons), Math.min(...lats)],
+			[Math.max(...lons), Math.max(...lats)]
+		]);
+	}
 </script>
 
-<!-- The map layout renders the app; this copy is what crawlers read. -->
-<article class="sr-only">
-	<h1>{data.routeName}</h1>
-	<p>{data.description}</p>
-	{#if data.stopCount !== null}
-		<p>{data.stopCount} stops. Regular fare: ₱{data.regularFare}.</p>
-	{/if}
-</article>
-
-<style>
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		white-space: nowrap;
-		border: 0;
-	}
-</style>
+<InfoPanel>
+	<svelte:boundary>
+		{#snippet failed()}
+			<p class="p-6 text-sm">Couldn't load this route.</p>
+		{/snippet}
+		{#snippet pending()}
+			Loading...
+		{/snippet}
+		<TransitRoute route={await route} />
+	</svelte:boundary>
+</InfoPanel>

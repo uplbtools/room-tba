@@ -72,6 +72,11 @@ export class MapStore {
 		});
 	}
 
+	public fitBounds(bounds: maplibre.LngLatBoundsLike) {
+		if (!this.mapInstance) return;
+		this.mapInstance.fitBounds(bounds, { duration: 1000, padding: this.calculatePadding() });
+	}
+
 	private calculatePadding() {
 		if (this.md.current) {
 			return {
