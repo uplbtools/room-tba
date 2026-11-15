@@ -42,11 +42,13 @@
 			{#snippet pending()}
 				Loading classes...
 			{/snippet}
+			{@const classes = await getClassesByRoomId({ termId, roomId: room.id })}
 			<h3 class="entity-section-heading">Classes</h3>
-			<Classes
-				classes={await getClassesByRoomId({ termId, roomId: room.id })}
-				currentRoomCode={room.code}
-			/>
+			{#if classes.length > 0}
+				<Classes {classes} currentRoomCode={room.code} />
+			{:else}
+				<p class="text-sm text-neutral-700">No classes in this room this term.</p>
+			{/if}
 		</svelte:boundary>
 		<svelte:boundary>
 			{#snippet failed()}
