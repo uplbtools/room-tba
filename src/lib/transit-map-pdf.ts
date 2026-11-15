@@ -193,7 +193,7 @@ const POSTER_STRIPS_H: Record<TransitMapFormat, number> = {
 export const WALK_DETOUR_FACTOR = 1.3;
 /** The frame fits stops this close to the campus center; farther ones (the
  *  malls, the upper Forestry campus, Pili Drive and beyond) become edge arrows. */
-const CORE_RADIUS_M = 1400;
+const CORE_RADIUS_M = 800;
 /** A place farther than this from campus is not pulled into the frame. */
 const HERE_MAX_M = 3000;
 
@@ -570,6 +570,14 @@ function hexToRgb(hex: string) {
   if (!m) return rgb(0.2, 0.2, 0.2);
   const n = Number.parseInt(m[1], 16);
   return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
+}
+
+/** Black or white, whichever reads better on a fill. */
+function textOn(c: RGB): RGB {
+  const lin = (v: number) =>
+    v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  const l = 0.2126 * lin(c.red) + 0.7152 * lin(c.green) + 0.0722 * lin(c.blue);
+  return l > 0.179 ? INK : WHITE;
 }
 
 function darken(c: RGB, f: number): RGB {
@@ -1088,28 +1096,11 @@ function drawStopStrips(
   const maxStops = Math.max(...lines.map((l) => l.route.stops.length));
   // Tight rows set each name on one line; roomy rows let a name wrap.
   const roomy = (box.top - box.bottom - 50) / maxStops >= 19;
-  const HEAD_H = roomy ? 50 : 34;
-  const NAME = roomy ? 9.5 : 9;
+  const HEAD_H = roomy ? 68 : 48;
+  const NAME = roomy ? 10 : 9;
   const HEAD = roomy ? 11.5 : 10;
   const k = roomy ? 1 : 0.8;
   const rowH = Math.min(22, (box.top - box.bottom - HEAD_H) / maxStops);
-  const pillW = (text: string, size: number) =>
-    bold.widthOfTextAtSize(text, size) + size * 0.8;
-  const pill = (text: string, x: number, y: number, size: number, c: RGB) => {
-    const h = size * 1.5;
-    page.drawSvgPath(roundRectPath(x, y, pillW(text, size), h, h / 2, pageH), {
-      ...anchor,
-      color: c,
-    });
-    page.drawText(text, {
-      x: x + size * 0.4,
-      y: y + h / 2 - size * 0.36,
-      size,
-      font: bold,
-      color: WHITE,
-    });
-  };
-
   // Columns share the width by their longest stop name.
   const want = lines.map(
     (l) =>
@@ -1136,49 +1127,76 @@ function drawStopStrips(
     const names = reverse
       ? route.name.split(/\s*\/\s*/).reverse()
       : [route.name.replace(/\s*(\/|\().*$/, "")];
-    let hx = x;
+    const bandH = HEAD * 2;
+    const halfW = colW / names.length;
     names.forEach((name, i) => {
-      const code = codes[i];
-      if (code) {
-        pill(
-          code,
-          hx,
-          top - HEAD * 1.4,
-          HEAD * 0.85,
-          i === 1 && reverse ? reverse : color,
-        );
-        hx += pillW(code, HEAD * 0.85) + 4;
-      }
-      const text = fitText(name, bold, HEAD, x + colW - hx);
-      page.drawText(text, {
-        x: hx,
-        y: top - HEAD * 1.1,
-        size: HEAD,
+      const c = i === 1 && reverse ? reverse : color;
+      const bx = x + i * halfW;
+      page.drawRectangle({
+        x: bx,
+        y: top - bandH,
+        width: halfW - (i < names.length - 1 ? 2 : 0),
+        height: bandH,
+        color: c,
+      });
+      page.drawText(
+        [
+          [codes[i], name].filter(Boolean).join("  "),
+          name,
+          codes[i] ?? name,
+        ].find((t) => bold.widthOfTextAtSize(t, HEAD) <= halfW - 10) ??
+          fitText(name, bold, HEAD, halfW - 10),
+        {
+          x: bx + 5,
+          y: top - bandH / 2 - HEAD * 0.36,
+          size: HEAD,
+          font: bold,
+          color: textOn(c),
+        },
+      );
+    });
+    const oneWay = isOneWayLoop(route);
+    const fareY = top - bandH - HEAD - 4;
+    if (Number.isFinite(route.fareRegular)) {
+      const fare = `PHP ${route.fareRegular}`;
+      page.drawText(fare, {
+        x,
+        y: fareY,
+        size: HEAD + 2,
         font: bold,
         color: INK,
       });
-      hx += bold.widthOfTextAtSize(text, HEAD) + 7;
-    });
-    const oneWay = isOneWayLoop(route);
-    [
-      Number.isFinite(route.fareRegular)
-        ? `PHP ${route.fareRegular}, ${route.fareDiscounted} discounted`
-        : "Itanong sa driver ang pamasahe",
-      reverse
-        ? `${names[0]} down, ${names[1]} up.`
-        : oneWay
-          ? "One way lang, paikot."
-          : "Same stops pabalik.",
-    ]
-      .slice(0, roomy ? 2 : 1)
-      .forEach((text, i) =>
-        page.drawText(fitText(text, font, NAME, colW), {
+      page.drawText(`, ${route.fareDiscounted} discounted`, {
+        x: x + bold.widthOfTextAtSize(fare, HEAD + 2),
+        y: fareY,
+        size: NAME,
+        font,
+        color: INK,
+      });
+    } else
+      page.drawText(
+        fitText("Itanong sa driver ang pamasahe", font, NAME, colW),
+        {
           x,
-          y: top - HEAD * 1.1 - 14 - i * 12,
+          y: fareY,
           size: NAME,
           font,
           color: INK,
-        }),
+        },
+      );
+    if (roomy)
+      page.drawText(
+        fitText(
+          reverse
+            ? `${names[0]} pababa, ${names[1]} pataas.`
+            : oneWay
+              ? "One way lang, paikot."
+              : "Same stops pabalik.",
+          font,
+          NAME,
+          colW,
+        ),
+        { x, y: fareY - 14, size: NAME, font, color: INK },
       );
 
     const last = route.stops.length - 1;
@@ -1540,7 +1558,7 @@ export async function renderTransitMapPdf(input: {
     });
 
   // ── Map frame ─────────────────────────────────────────────────────────
-  const keyH = here && hereOnMap ? KEY_H : 0;
+  const keyH = (here && hereOnMap) || poster ? KEY_H : 0;
   // The poster has no side panel: the stop strips sit under the map.
   const stripsTop = FOOTER_H + 20 + POSTER_STRIPS_H[format];
   const frame: Box = poster
@@ -1747,9 +1765,9 @@ export async function renderTransitMapPdf(input: {
     // Direction chevrons in travel order, offset so the two directions do
     // not stack their arrows at the same spot.
     arrows.forEach(({ pts, color, hollow }, i) => {
-      for (const { p, dir } of pointsAlong(pts, 60, 20 + i * 30)) {
+      for (const { p, dir } of pointsAlong(pts, 48, 20 + i * 24)) {
         if (!inFrame(p, 4)) continue;
-        const s = 4.4;
+        const s = 5.2;
         const nx = -dir.y;
         const ny = dir.x;
         const tip = { x: p.x + dir.x * s, y: p.y + dir.y * s };
@@ -1808,20 +1826,23 @@ export async function renderTransitMapPdf(input: {
     if (hereP && nearestP) sampleLine([hereP, nearestP], 2);
 
     const obstacles: Box[] = [];
-    const markerR = (s: MapStop) => (s.terminal ? 4.6 : 3.4);
+    const markerR = (s: MapStop) => (s.terminal ? 6 : 3.4);
     for (const stop of onMap) {
       const p = stopPos.get(stop.key)!;
       const shared = stop.routeIds.length > 1;
       const route = drawnRoutes.find((r) => r.id === stop.routeIds[0]);
       const r = markerR(stop);
+      const ring = shared ? INK : hexToRgb(route?.color ?? "#333333");
       page.drawCircle({
         x: p.x,
         y: p.y,
         size: r,
-        color: WHITE,
-        borderColor: shared ? INK : hexToRgb(route?.color ?? "#333333"),
-        borderWidth: stop.terminal || shared ? 1.9 : 1.4,
+        color: stop.terminal ? ring : WHITE,
+        borderColor: stop.terminal ? WHITE : ring,
+        borderWidth: stop.terminal ? 1.4 : shared ? 1.9 : 1.4,
       });
+      if (stop.terminal)
+        page.drawCircle({ x: p.x, y: p.y, size: 2.2, color: WHITE });
       obstacles.push({ x: p.x - r, y: p.y - r, w: r * 2, h: r * 2 });
     }
     for (const g of gateMarks) {
@@ -1853,6 +1874,41 @@ export async function renderTransitMapPdf(input: {
         borderWidth: 1.2,
       });
       obstacles.push({ x: hereP.x - 10, y: hereP.y - 10, w: 20, h: 20 });
+    }
+
+    // Line codes on the map, as far from stops and each other as the line allows.
+    const pillAt: ProjectedPoint[] = onMap.map((s) => stopPos.get(s.key)!);
+    const clearance = (p: ProjectedPoint) =>
+      Math.min(...pillAt.map((q) => Math.hypot(p.x - q.x, p.y - q.y)));
+    for (const route of drawnRoutes) {
+      const spots = pointsAlong(routeLines.get(route.id)!, 20, 10)
+        .map(({ p }) => p)
+        .filter((p) => inFrame(p, 24));
+      const codes = (LINE_CODES[route.id] ?? []).slice(
+        0,
+        isLoopRoute(route) ? 2 : 1,
+      );
+      codes.forEach((code, i) => {
+        if (spots.length === 0) return;
+        const p = spots.reduce((a, b) => (clearance(b) > clearance(a) ? b : a));
+        pillAt.push(p);
+        const c = i === 1 ? reverseColorOf(route) : hexToRgb(route.color);
+        const w = bold.widthOfTextAtSize(code, 9) + 9;
+        page.drawSvgPath(roundRectPath(p.x - w / 2, p.y - 7, w, 14, 7, pageH), {
+          ...svgAnchor,
+          color: c,
+          borderColor: WHITE,
+          borderWidth: 1.4,
+        });
+        page.drawText(code, {
+          x: p.x - w / 2 + 4.5,
+          y: p.y - 3.2,
+          size: 9,
+          font: bold,
+          color: textOn(c),
+        });
+        obstacles.push({ x: p.x - w / 2, y: p.y - 7, w, h: 14 });
+      });
     }
 
     page.pushOperators(popGraphicsState());
@@ -2162,7 +2218,7 @@ export async function renderTransitMapPdf(input: {
       if (isNearest)
         add(stop.key, label, p, 10, 11, bold, BRAND, 90, true, true);
       else if (stop.terminal)
-        add(stop.key, label, p, markerR(stop) + 4, 10.5, bold, INK, 80, true);
+        add(stop.key, label, p, markerR(stop) + 4, 11.5, bold, INK, 80, true);
       else
         add(
           stop.key,
@@ -2424,6 +2480,39 @@ export async function renderTransitMapPdf(input: {
 
     // Map key, in one row under the map.
     const keys: [string, (x: number, y: number) => void][] = [];
+    if (poster)
+      for (const route of drawnRoutes) {
+        const loop = isLoopRoute(route);
+        const dash = styles.get(route.id)?.dash ?? null;
+        const codes = LINE_CODES[route.id] ?? [];
+        const names = loop
+          ? route.name.split(/\s*\/\s*/).reverse()
+          : [route.name.replace(/\s*(\/|\().*$/, "")];
+        names
+          .slice(0, loop ? 2 : 1)
+          .forEach((name, i) =>
+            keys.push([
+              [codes[i], name].filter(Boolean).join(" "),
+              (x, y) =>
+                i === 1
+                  ? sample(
+                      reverseColorOf(route),
+                      styles.get(route.id)?.reverseDash ?? LOOP_REVERSE_DASH,
+                      true,
+                      x,
+                      y,
+                      true,
+                    )
+                  : sample(
+                      hexToRgb(route.color),
+                      loop ? null : dash,
+                      loop || isOneWayLoop(route),
+                      x,
+                      y,
+                    ),
+            ]),
+          );
+      }
     if (here && hereOnMap) {
       keys.push([
         "You are here",
@@ -2447,6 +2536,14 @@ export async function renderTransitMapPdf(input: {
     }
     let kx = frame.x;
     const ky = frame.y - KEY_H + 5;
+    const used = keys.reduce(
+      (sum, [label]) => sum + 30 + font.widthOfTextAtSize(label, BODY),
+      0,
+    );
+    const keyGap = Math.min(
+      24,
+      (frame.w - used) / Math.max(1, keys.length - 1),
+    );
     for (const [label, icon] of keys) {
       icon(kx, ky);
       page.drawText(label, {
@@ -2456,7 +2553,7 @@ export async function renderTransitMapPdf(input: {
         font,
         color: INK,
       });
-      kx += 30 + font.widthOfTextAtSize(label, BODY) + 24;
+      kx += 30 + font.widthOfTextAtSize(label, BODY) + keyGap;
     }
   }
 
