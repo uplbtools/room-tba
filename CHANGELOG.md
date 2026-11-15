@@ -1,3 +1,12 @@
+## [2.45.2](https://github.com/uplbtools/room-tba/compare/v2.45.1...v2.45.2) (2026-11-15)
+
+
+### Bug Fixes
+
+* **editor-tools:** divide map tools, pages and sign out ([#1507](https://github.com/uplbtools/room-tba/issues/1507)) ([7914e90](https://github.com/uplbtools/room-tba/commit/7914e90a967facc143c90d786fc2d78065453fa8))
+* **manage-users:** show the role confirm under its user ([#1506](https://github.com/uplbtools/room-tba/issues/1506)) ([ef77431](https://github.com/uplbtools/room-tba/commit/ef77431cbef49e815d0f51e05d703b7a41d9368c))
+* **offline-maps:** group update and clear on one row ([#1508](https://github.com/uplbtools/room-tba/issues/1508)) ([4d060af](https://github.com/uplbtools/room-tba/commit/4d060af9c658968f140c099c0f71bd930c384ff9))
+
 # [2.44.0](https://github.com/uplbtools/room-tba/compare/v2.43.0...v2.44.0) (2026-11-15)
 
 ### Features
