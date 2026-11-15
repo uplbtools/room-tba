@@ -43,6 +43,8 @@
 	import AdminAuthStore from '#lib/stores/new/data/AdminAuthStore.svelte.js';
 	import ProposalsStore from '#lib/stores/new/data/ProposalsStore.svelte.js';
 	import Modal from '#lib/components/new/Modal.svelte';
+	import AdminLoginModal from '#lib/components/AdminLoginModal.svelte';
+	import AccountSettingsModal from '#lib/components/AccountSettingsModal.svelte';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
@@ -595,5 +597,11 @@
 	</UILayer>
 	<UIMap />
 	<Modal />
+	{#if adminAuthStore.loginOpen}
+		<AdminLoginModal />
+	{/if}
+	{#if adminAuthStore.accountSettingsOpen}
+		<AccountSettingsModal />
+	{/if}
 	<Toast />
 </main>
