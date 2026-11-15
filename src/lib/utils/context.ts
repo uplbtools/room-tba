@@ -28,6 +28,7 @@ import type AdminAuthStore from '#lib/stores/new/data/AdminAuthStore.svelte.ts';
 import type ProposalsStore from '#lib/stores/new/data/ProposalsStore.svelte.ts';
 import type OfflineStore from '#lib/stores/new/data/OfflineStore.svelte.ts';
 import type AnnouncementsStore from '#lib/stores/new/data/AnnouncementsStore.svelte.ts';
+import type SavedPlacesStore from '#lib/stores/new/data/SavedPlacesStore.svelte.ts';
 export type AppContextData =
 	| {
 			buildings: Building[];
@@ -87,3 +88,4 @@ export const [getAdminAuthStore, initAdminAuthStore] = createContext<AdminAuthSt
 export const [getProposalsStore, initProposalsStore] = createContext<ProposalsStore>();
 export const [getOfflineStore, initOfflineStore] = createContext<OfflineStore>();
 export const [getAnnouncementsStore, initAnnouncementsStore] = createContext<AnnouncementsStore>();
+export const [getSavedPlacesStore, initSavedPlacesStore] = createContext<SavedPlacesStore>();

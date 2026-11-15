@@ -11,6 +11,7 @@
 	import Inbox from '@lucide/svelte/icons/inbox';
 	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import Siren from '@lucide/svelte/icons/siren';
+	import Star from '@lucide/svelte/icons/star';
 	import BookOpen from '@lucide/svelte/icons/book-open';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import BusFront from '@lucide/svelte/icons/bus-front';
@@ -197,6 +198,11 @@
 		modalStore.openModal('announcements');
 	}
 
+	function handleSaved() {
+		closePanel();
+		modalStore.openModal('saved-places');
+	}
+
 	function handleHotlines() {
 		closePanel();
 		modalStore.openModal('hotlines');
@@ -325,6 +331,10 @@
 
 			<section class="app-menu__section" aria-labelledby="app-menu-data-heading">
 				<h3 id="app-menu-data-heading" class="app-menu__heading">Data</h3>
+				<button type="button" class="app-menu__action map-chrome-chip" onclick={handleSaved}>
+					<Star size={14} aria-hidden="true" />
+					<span>Saved and recently viewed</span>
+				</button>
 				<div class="app-menu__sync"></div>
 				<div class="app-menu__offline">
 					<OfflineMaps compact={false} />

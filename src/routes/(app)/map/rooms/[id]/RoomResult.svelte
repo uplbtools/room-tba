@@ -27,7 +27,7 @@
 			</a>
 		{/if}
 	</header>
-	<ResultActions data={room} name={room.buildingName ?? room.code} />
+	<ResultActions data={room} name={room.buildingName ?? room.code} label={room.code} />
 
 	{#if room.directions}
 		<p class="text-sm text-neutral-800">{room.directions}</p>

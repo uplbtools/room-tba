@@ -31,6 +31,7 @@
 	import AnnouncementsModal from '../modal/AnnouncementsModal.svelte';
 	import FeedbackPanel from '../modal/FeedbackPanel.svelte';
 	import HotlinesModal from '../modal/HotlinesModal.svelte';
+	import SavedPlacesModal from '../modal/SavedPlacesModal.svelte';
 
 	// const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 
@@ -153,6 +154,10 @@
 				<h2 class="text-xl font-semibold">Send feedback</h2>
 				<FeedbackPanel />
 			</ModalContent>
+		{:else if modalStore.type === 'saved-places'}
+			<ModalContent className="flex max-w-xl flex-col gap-4 overflow-y-auto p-6"
+				><SavedPlacesModal /></ModalContent
+			>
 		{:else if modalStore.type === 'hotlines'}
 			<ModalContent className="flex max-w-xl flex-col gap-4 overflow-y-auto p-6"
 				><HotlinesModal /></ModalContent

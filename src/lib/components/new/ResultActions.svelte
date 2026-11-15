@@ -1,9 +1,11 @@
 <script lang="ts">
-	import { CopyIcon, CornerRightUp, MapPin, Printer } from '@lucide/svelte';
+	import { CopyIcon, CornerRightUp, MapPin, Printer, Star } from '@lucide/svelte';
 	import ResultAction from './ResultAction.svelte';
 	import { copyTextToClipboard } from '#lib/utils/clipboard.js';
+	import { onMount } from 'svelte';
+	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
-	import { getToast, getUserLocation } from '#lib/utils/context.js';
+	import { getSavedPlacesStore, getToast, getUserLocation } from '#lib/utils/context.js';
 	import { getGoogleMapsPinUrl } from '#lib/utils/google-maps-links.js';
 	import { hasLocation } from '#lib/utils/map/marker.js';
 	import { getTransitMapPath } from '#lib/utils/route/route-links.js';
@@ -11,10 +13,20 @@
 	interface Props {
 		data: { lon: number | null; lat: number | null } & Record<string, unknown>;
 		name?: string;
+		label?: string;
 	}
 	const toastStore = getToast();
 	const userLocation = getUserLocation();
+	const savedPlaces = getSavedPlacesStore();
 	const props: Props = $props();
+	const label = $derived(props.label ?? props.name);
+	const saved = $derived(savedPlaces.isSaved(page.url.pathname));
+
+	function recordView() {
+		if (label) savedPlaces.record(page.url.pathname, label);
+	}
+	onMount(recordView);
+	afterNavigate(recordView);
 </script>
 
 <div class="flex gap-1 py-3">
@@ -53,6 +65,19 @@
 		</ResultAction>
 	{/if}
 
+	{#if label}
+		<ResultAction
+			onclick={() => {
+				const nowSaved = savedPlaces.toggle(page.url.pathname, label);
+				toastStore.show(nowSaved ? 'Saved' : 'Removed from Saved', 'success');
+			}}
+		>
+			{#snippet icon()}
+				<Star size={18} fill={saved ? 'currentColor' : 'none'} />
+			{/snippet}
+			{saved ? 'Saved' : 'Save'}
+		</ResultAction>
+	{/if}
 	<ResultAction
 		onclick={async () => {
 			try {
