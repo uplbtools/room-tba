@@ -1512,6 +1512,18 @@ export async function renderTransitMapPdf(input: {
     day: "numeric",
     timeZone: "Asia/Manila",
   });
+  const FOOT = 9;
+  const footLeft = `Designed by Simonee Ezekiel Mariquit. Na-print noong ${dateLabel}. Na-verify ang presyo noong Oct 7, 2026.`;
+  const footRight = input.basemap
+    ? "Map data from OpenStreetMap contributors, ODbL. Approximate lang ang mga linya at layo."
+    : "Approximate lang ang mga linya at layo.";
+  // When the two footer lines don't fit side by side they stack.
+  const stacked =
+    font.widthOfTextAtSize(footLeft, FOOT) +
+      font.widthOfTextAtSize(footRight, FOOT) +
+      20 >
+    pageW - MARGIN * 2;
+  const footerH = FOOTER_H + (stacked && !poster ? 11 : 0);
   // The intro is the part that changes per sheet, so its variable words are
   // bold: someone reading a taped-up copy finds "where am I" at a glance.
   type Run = { text: string; bold?: boolean };
@@ -1592,9 +1604,9 @@ export async function renderTransitMapPdf(input: {
       }
     : {
         x: MARGIN,
-        y: FOOTER_H + 8 + keyH,
+        y: footerH + 8 + keyH,
         w: pageW - MARGIN * 2 - PANEL_W - PANEL_GAP,
-        h: pageH - HEADER_H - 10 - FOOTER_H - 8 - keyH,
+        h: pageH - HEADER_H - 10 - footerH - 8 - keyH,
       };
   page.drawRectangle({
     x: frame.x,
@@ -2350,7 +2362,7 @@ export async function renderTransitMapPdf(input: {
   // ── Side panel ────────────────────────────────────────────────────────
   const anchor = { x: 0, y: pageH };
   const px = pageW - MARGIN - PANEL_W;
-  const panelFloor = FOOTER_H + 6;
+  const panelFloor = footerH + 6;
   const BODY = 10.5;
   const LEAD = 13;
   let py = pageH - HEADER_H - 8;
@@ -2656,8 +2668,6 @@ export async function renderTransitMapPdf(input: {
   }
 
   // ── Footer ────────────────────────────────────────────────────────────
-  const FOOT = 9;
-  const footLeft = `Na-print noong ${dateLabel}. Na-verify ang presyo noong Oct 7, 2026.`;
   page.drawText(footLeft, {
     x: MARGIN,
     y: SAFE + 2,
@@ -2665,15 +2675,6 @@ export async function renderTransitMapPdf(input: {
     font,
     color: INK,
   });
-  const footRight = input.basemap
-    ? "Map data from OpenStreetMap contributors, ODbL. Approximate lang ang mga linya at layo."
-    : "Approximate lang ang mga linya at layo.";
-  // On the narrow poster the two footer lines stack.
-  const stacked =
-    font.widthOfTextAtSize(footLeft, FOOT) +
-      font.widthOfTextAtSize(footRight, FOOT) +
-      20 >
-    pageW - MARGIN * 2;
   page.drawText(footRight, {
     x: stacked
       ? MARGIN
