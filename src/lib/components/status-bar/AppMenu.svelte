@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Menu from '@lucide/svelte/icons/menu';
+	import CalendarCheck from '@lucide/svelte/icons/calendar-check';
 	import CalendarDays from '@lucide/svelte/icons/calendar-days';
 	import CalendarX from '@lucide/svelte/icons/calendar-x';
 	import Keyboard from '@lucide/svelte/icons/keyboard';
@@ -267,6 +268,10 @@
 			{/if}
 
 			<section class="app-menu__section" aria-label="Schedules">
+				<a class="app-menu__action map-chrome-chip" href="/map/today" onclick={closePanel}>
+					<CalendarCheck size={14} aria-hidden="true" />
+					<span>Today</span>
+				</a>
 				<a class="app-menu__action map-chrome-chip" href="/map/calendar" onclick={closePanel}>
 					<CalendarDays size={14} aria-hidden="true" />
 					<span>Academic calendar</span>
