@@ -34,22 +34,23 @@
   import DormResult from "./DormResult.svelte";
   import PlaceResult from "./PlaceResult.svelte";
   import { campusTransit } from "../../../campus.config";
-  import { JEEPNEY_ROUTES } from "@constants/jeepney-routes";
+  import {
+    JEEPNEY_ROUTES,
+    ROUTE_LINE_CODES,
+    ROUTE_SIGNBOARDS,
+  } from "@constants/jeepney-routes";
+  import { darkenForWhiteText } from "@lib/color-contrast";
+  import TransitSignboard from "../modal/TransitSignboard.svelte";
   import {
     distinctStopCount,
     transitRouteKind,
     type TransitRouteKind,
   } from "@lib/transit-route-kind";
 
-  // Derived from campusTransit.label so a fork edits one place:
-  // label Jeepney routes → title Jeepney Routes, plural jeepney routes,
-  // noun jeepney route.
-  const transitPlural = campusTransit.label.toLowerCase();
+  // Derived from campusTransit.label so a fork edits one place.
   const transitTitle = campusTransit.label.replace(/(^|\s)\p{L}/gu, (c) =>
     c.toUpperCase(),
   );
-  // ponytail: trailing-s trim; give the label a regular plural or adjust here.
-  const transitNoun = transitPlural.replace(/s$/, "");
 
   const appData = getAppData();
   const { buildings, colleges, divisions, dorms, organizations, places, loaded } =
@@ -91,9 +92,7 @@
       case "services":
         return "Food & stores";
       case "jeepney":
-        return transitStore.routes.some((r) => transitRouteKind(r) === "bus")
-          ? "Jeepney & Bus Routes"
-          : transitTitle;
+        return transitTitle;
       default:
         return "Buildings";
     }
@@ -137,11 +136,7 @@
           plural: "services & establishments",
         };
       case "jeepney":
-        // "route", not "jeepney route": the list holds buses too.
-        return {
-          noun: transitNoun.replace(/^jeepney /, ""),
-          plural: transitPlural.replace(/^jeepney /, ""),
-        };
+        return { noun: "route", plural: "routes" };
       default:
         return {
           noun: "building",
@@ -542,11 +537,31 @@
               title={`Open ${route.name} route details`}
               onclick={() => openJeepneyRoute(route.id)}
             >
-              <span
-                class="jeepney-route-item__dot"
-                style:background-color={route.color}
-                aria-hidden="true"
-              ></span>
+              {#if ROUTE_LINE_CODES[route.id]}
+                <span class="jeepney-route-item__codes" aria-hidden="true">
+                  {#each ROUTE_LINE_CODES[route.id] as code (code)}
+                    <span
+                      class="jeepney-route-item__code"
+                      style:background-color={darkenForWhiteText(route.color)}
+                      >{code}</span
+                    >
+                  {/each}
+                </span>
+              {:else if ROUTE_SIGNBOARDS[route.id]}
+                <span aria-hidden="true">
+                  <TransitSignboard
+                    lines={ROUTE_SIGNBOARDS[route.id]!}
+                    tone={transitRouteKind(route) === "bus" ? "yellow" : "red"}
+                    small
+                  />
+                </span>
+              {:else}
+                <span
+                  class="jeepney-route-item__dot"
+                  style:background-color={route.color}
+                  aria-hidden="true"
+                ></span>
+              {/if}
               <span class="entity-list-row__label">{route.name}</span>
               <span class="entity-list-row__meta"
                 >{distinctStopCount(route)} stops</span
@@ -707,6 +722,21 @@
 
   .jeepney-route-item--active {
     background: var(--theme-accent-soft, hsl(5, 53%, 96%));
+  }
+
+  .jeepney-route-item__codes {
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: 0.1875rem;
+  }
+
+  .jeepney-route-item__code {
+    padding: 0.0625rem 0.3125rem;
+    border-radius: 0.25rem;
+    color: white;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
   }
 
   .jeepney-route-item__dot {

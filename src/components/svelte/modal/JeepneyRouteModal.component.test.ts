@@ -207,7 +207,8 @@ describe("JeepneyRouteModal", () => {
   test("shows published hours and says when a schedule is not published", () => {
     jeepneyStore.modalRouteId = "uplb-to-buendia";
     const { unmount } = render(JeepneyRouteModal);
-    expect(screen.getByText(/Daily, 5:00 AM, 1 trip a day/)).toBeVisible();
+    expect(screen.getByText(/Daily, leaves at/)).toBeVisible();
+    expect(screen.getByText("5:00 AM")).toBeVisible();
     unmount();
 
     jeepneyStore.modalRouteId = "kaliwa-kanan";
@@ -299,5 +300,19 @@ describe("JeepneyRouteModal jeep reports line", () => {
     await tick();
 
     expect(screen.queryByText(/reported|No recent reports/)).toBeNull();
+  });
+
+  test("shows the line code for the picked direction and where jeeps end", async () => {
+    const route = JEEPNEY_ROUTES[0]!;
+    jeepneyStore.modalRouteId = route.id;
+    render(JeepneyRouteModal, { props: { onclose: () => {} } });
+
+    expect(screen.getByText("KN")).toBeVisible();
+    expect(screen.getByText(/Jollibee at the end of Lopez Ave/)).toBeVisible();
+    screen.getByRole("button", { name: "Kaliwa" }).click();
+    await tick();
+    expect(screen.getByText("KL")).toBeVisible();
+    expect(screen.queryByText("KN")).toBeNull();
+    transitStore.setReversed(route.id, false);
   });
 });
