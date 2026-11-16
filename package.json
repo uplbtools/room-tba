@@ -98,7 +98,7 @@
     "svelte": "^5.57.3",
     "svelte-maplibre": "^2.0.1",
     "tailwindcss": "^4.3.3",
-    "three": "^0.186.1",
+    "three": "^0.187.0",
     "typescript": "^7.0.2",
     "which-pm-runs": "^2.0.0"
   },
@@ -120,7 +120,7 @@
     "@types/bun": "^1.4.4",
     "@types/maplibre-gl": "^1.14.0",
     "@types/node": "^26.6.6",
-    "@types/three": "^0.185.4",
+    "@types/three": "^0.187.0",
     "@vercel/otel": "^2.3.0",
     "@vite-pwa/astro": "^1.2.0",
     "@vitest/browser": "^4.1.11",
