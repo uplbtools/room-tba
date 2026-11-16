@@ -91,7 +91,7 @@
     "bcrypt": "^6.0.0",
     "dotenv": "^18.0.9",
     "drizzle-orm": "^0.45.4",
-    "es-toolkit": "^1.53.1",
+    "es-toolkit": "^1.53.2",
     "maplibre-gl": "^6.17.0",
     "pdf-lib": "^1.17.1",
     "pg": "^8.23.1",
