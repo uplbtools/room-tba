@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Download from '@lucide/svelte/icons/download';
-	import { untrack } from 'svelte';
+	import { onMount } from 'svelte';
 	import CommunityPlatformLink from '#lib/components/community/CommunityPlatformLink.svelte';
 	import GithubStarLink from '#lib/components/GithubStarLink.svelte';
 	import VisitorCounter from '#lib/components/VisitorCounter.svelte';
@@ -24,7 +24,7 @@
 
 	type LandingTab = 'welcome' | 'campus';
 
-	let activeTab = $state<LandingTab>('welcome');
+	let activeTab = $state<LandingTab>(modalStore.landingTab ?? 'welcome');
 	let dontShowAgain = $state(false);
 	let installPrompt = $state<
 		| (Event & {
@@ -145,10 +145,8 @@
 		return () => window.removeEventListener('beforeinstallprompt', handler);
 	});
 
-	$effect(() => {
-		if (!modalStore.open) return;
-		activeTab = untrack(() => modalStore.landingTab) ?? 'welcome';
-		if (untrack(() => activeTab) === 'campus') {
+	onMount(() => {
+		if (activeTab === 'campus') {
 			void loadGithubData();
 			void loadCampusCredits();
 		}
