@@ -5,36 +5,27 @@
 	};
 
 	let { lat, lon }: Props = $props();
-	let address = $state<string | null>(null);
 
-	$effect(() => {
-		address = null;
-		const controller = new AbortController();
-		const params = new URLSearchParams({
-			lat: String(lat),
-			lon: String(lon)
-		});
-		void fetch(`/api/geocode/reverse?${params}`, {
-			signal: controller.signal
-		})
-			.then(async (response) => {
-				if (!response.ok) return null;
-				const data = (await response.json()) as { address?: string | null };
-				return typeof data.address === 'string' ? data.address : null;
-			})
-			.then((value) => {
-				if (!controller.signal.aborted) address = value;
-			})
-			.catch(() => {
-				if (!controller.signal.aborted) address = null;
-			});
-		return () => controller.abort();
-	});
+	async function reverseGeocode(lat: number, lon: number) {
+		try {
+			const params = new URLSearchParams({ lat: String(lat), lon: String(lon) });
+			const response = await fetch(`/api/geocode/reverse?${params}`);
+			if (!response.ok) return null;
+			const data = (await response.json()) as { address?: string | null };
+			return typeof data.address === 'string' ? data.address : null;
+		} catch {
+			return null;
+		}
+	}
+
+	const address = $derived(reverseGeocode(lat, lon));
 </script>
 
-{#if address}
-	<p class="entity-street-address">{address}</p>
-{/if}
+{#await address then value}
+	{#if value}
+		<p class="entity-street-address">{value}</p>
+	{/if}
+{/await}
 
 <style>
 	.entity-street-address {

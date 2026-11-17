@@ -1,24 +1,11 @@
 <script lang="ts">
 	import Star from '@lucide/svelte/icons/star';
 	import { GITHUB_ROOM_TBA_URL } from '#lib/constants/content/links/community.js';
-	import { fetchGithubStarCountCached } from '#lib/utils/github-stars.js';
+	import { getGithubStars } from '#lib/functions/analytics.remote.js';
 
-	let stars = $state<number | null>(null);
-	let failed = $state(false);
-
-	$effect(() => {
-		let active = true;
-		fetchGithubStarCountCached()
-			.then((value) => {
-				if (active) stars = value;
-			})
-			.catch(() => {
-				if (active) failed = true;
-			});
-		return () => {
-			active = false;
-		};
-	});
+	const query = getGithubStars();
+	const stars = $derived(query.current?.stars ?? null);
+	const failed = $derived(!!query.error);
 
 	const label = $derived(
 		stars !== null
