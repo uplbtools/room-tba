@@ -3,7 +3,6 @@
 	import { buildFieldDiffs } from '#lib/utils/proposals/diff.js';
 	import { appEntityNameResolver } from '#lib/utils/proposals/entity-names.js';
 	import { afterProposalPublished } from '#lib/utils/proposals/apply-published-entity.js';
-	import { syncOpenEntityQueryAfterPublish } from '#lib/utils/proposals/sync-open-entity-query.js';
 	import type { ProposalEntityType } from '#lib/services/contribution/proposal-action.js';
 	import { getAppActions, getAppData, getToast } from '#lib/utils/context.js';
 	import EntityEditorSubmitButton from './EntityEditorSubmitButton.svelte';
@@ -95,7 +94,6 @@
 				return;
 			}
 			afterProposalPublished(appActions, appData, entityType as ProposalEntityType, data.entity);
-			syncOpenEntityQueryAfterPublish(appData, entityType as ProposalEntityType, data.entity);
 			toastStore.show('Version restored.', 'success');
 			confirmId = null;
 			await load();
