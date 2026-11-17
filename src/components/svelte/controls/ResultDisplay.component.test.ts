@@ -139,3 +139,55 @@ describe("ResultDisplay Filter rooms field", () => {
     expect(roomButtons()).toHaveLength(12);
   });
 });
+
+describe("ResultDisplay rooms by institute", () => {
+  function withInstitutes(): RoomData[] {
+    const list = rooms(20);
+    list.forEach((room, i) => {
+      room.divisionName =
+        i < 8
+          ? "Institute of Physics"
+          : i < 15
+            ? "Institute of Chemistry"
+            : null;
+    });
+    return list;
+  }
+
+  test("a building with more than one institute lists each one", () => {
+    render(ResultDisplay, { props: { filteredRooms: withInstitutes() } });
+    const names = screen
+      .getAllByRole("group")
+      .map((el) =>
+        el.querySelector("summary")?.textContent?.replace(/\s+/g, " ").trim(),
+      );
+    expect(names).toEqual([
+      "Institute of Chemistry 7",
+      "Institute of Physics 8",
+      "Other rooms 5",
+    ]);
+    expect(screen.queryByRole("button", { name: /Show all/ })).toBeNull();
+  });
+
+  test("long lists start collapsed and a filter opens the matches", async () => {
+    const { container } = render(ResultDisplay, {
+      props: { filteredRooms: withInstitutes() },
+    });
+    const open = () =>
+      [...container.querySelectorAll("details")].filter((d) => d.open).length;
+    expect(open()).toBe(0);
+
+    await fireEvent.input(screen.getByLabelText("Filter rooms"), {
+      target: { value: "PS 101" },
+    });
+    expect(open()).toBe(1);
+    expect(screen.getByText("PS 101")).toBeInTheDocument();
+  });
+
+  test("one institute keeps the plain list", () => {
+    const list = rooms(5);
+    for (const room of list) room.divisionName = "Institute of Physics";
+    render(ResultDisplay, { props: { filteredRooms: list } });
+    expect(screen.queryByRole("group")).toBeNull();
+  });
+});
