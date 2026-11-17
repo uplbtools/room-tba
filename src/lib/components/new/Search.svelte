@@ -189,17 +189,14 @@
 				<X />
 			</button>
 		{/if}
-		<!-- {#if !mobile.current}
-								<button
-									type="button"
-									class="map-search-chrome__add"
-									aria-label="Add something to the map"
-									onclick={() => editorChromeStore.openAdditionModal()}
-								>
-									<MapPinPlus size={14} aria-hidden="true" />
-									<span>Add</span>
-								</button>
-							{/if} -->
+		<a
+			href={resolve('map/add')}
+			class="flex shrink-0 items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 text-sm"
+			aria-label="Add a place to the map"
+		>
+			<MapPinPlus size={14} aria-hidden="true" />
+			<span>Add</span>
+		</a>
 		<Suggestions />
 	</label>
 

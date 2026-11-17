@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs';
 
 const componentSources = [
 	'src/lib/components/AccountSettingsModal.svelte',
-	'src/lib/components/SuggestAdditionPanel.svelte',
 	'src/lib/components/editor/ImageUpload.svelte',
 	'src/lib/components/editor/EntityPhotoUpload.svelte',
 	'src/lib/components/editor/PhotoCollectionUpload.svelte',

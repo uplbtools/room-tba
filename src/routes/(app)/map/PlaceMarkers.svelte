@@ -16,7 +16,9 @@
 	const { placePinFilter, zoomLevel }: Props = $props();
 	const map = getMapStore();
 	const searchInfo = getSearchInfo();
-	const places = await getMapPlacesData();
+	const placesQuery = getMapPlacesData();
+	await placesQuery;
+	const places = $derived(placesQuery.current ?? []);
 
 	const filteredPlaces = $derived.by(() => {
 		// if (!loaded || placePinFilter === 'none') return [];

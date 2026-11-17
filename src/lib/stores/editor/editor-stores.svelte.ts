@@ -1,19 +1,6 @@
 import { clearProposeEventDraft } from '../../utils/contributor-drafts.js';
-import type { DraftPinPreview } from '../../utils/editor/draft-pin-preview.js';
 import { deactivateMapModesExcept } from '../map/map-modes.js';
 import type { EventPlacementDraft, MapProposalTarget } from '../store-types.js';
-
-export class EditorChromeStore {
-	additionModalOpen = $state(false);
-
-	openAdditionModal = () => {
-		this.additionModalOpen = true;
-	};
-
-	closeAdditionModal = () => {
-		this.additionModalOpen = false;
-	};
-}
 
 export class MapEditStore {
 	enabled: boolean = $state(false);
@@ -68,7 +55,6 @@ export class MapProposalStore {
 export class AdditionProposalStore {
 	pinPickActive = $state(false);
 	draftPin: { lat: number; lon: number } | null = $state(null);
-	draftPinPreview: DraftPinPreview | null = $state(null);
 	private pinResolver: ((coords: { lat: number; lon: number }) => void) | null = null;
 	private pinReject: ((reason?: unknown) => void) | null = null;
 
@@ -105,10 +91,6 @@ export class AdditionProposalStore {
 
 	setDraftPin(pin: { lat: number; lon: number } | null) {
 		this.draftPin = pin;
-	}
-
-	setDraftPinPreview(preview: DraftPinPreview | null) {
-		this.draftPinPreview = preview;
 	}
 }
 

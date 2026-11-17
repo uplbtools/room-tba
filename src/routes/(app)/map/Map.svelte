@@ -7,6 +7,8 @@
 	import PlaceMarkers from './PlaceMarkers.svelte';
 	import DormMarkers from './DormMarkers.svelte';
 	import TransitRouteLine from './TransitRouteLine.svelte';
+	import MapEntityPin from '#lib/components/map/MapEntityPin.svelte';
+	import PinGlyph from '#lib/components/map/PinGlyph.svelte';
 	// import { getAllBuildings } from '#lib/functions/buildings.remote.js';
 	import * as maplibre from 'maplibre-gl';
 	import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
@@ -57,6 +59,7 @@
 	<MapLibre
 		bind:map={() => map.getRawInstance(), (instance) => map.setRawInstance(instance)}
 		{...map.options}
+		onclick={(event) => map.pickPin(event.lngLat)}
 		style={'https://tiles.openfreemap.org/styles/positron'}
 		class="map"
 	>
@@ -65,7 +68,16 @@
 
 		<!-- route measuring -->
 
-		<!-- Addition proposal LMAO -->
+		{#if map.draftPin}
+			<MapEntityPin
+				active
+				label="New place"
+				tone="landmark"
+				lngLat={[map.draftPin.lon, map.draftPin.lat]}
+			>
+				<PinGlyph name="landmark" size={16} />
+			</MapEntityPin>
+		{/if}
 
 		<!-- Event location details...? with editing -->
 

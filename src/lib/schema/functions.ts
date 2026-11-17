@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { PLACE_CATEGORIES } from '#lib/constants/content/categories/place.js';
 
 /**
  * Querying the list only 
@@ -76,6 +77,17 @@ export const PlaceProposalSchema = v.object({
 		lon: v.optional(v.number()),
 		lat: v.optional(v.number()),
 		description: v.pipe(v.string(), v.trim())
+	})
+});
+
+export const PlaceCreateSchema = v.object({
+	meta: v.pick(ProposalMetaSchema, ['submitterName']),
+	body: v.object({
+		name: v.pipe(v.string(), v.trim(), v.nonEmpty('Name is empty'), v.maxLength(100)),
+		category: v.picklist(PLACE_CATEGORIES, 'Pick a category'),
+		description: v.pipe(v.string(), v.trim()),
+		lat: v.number('Tap the map to place the pin'),
+		lon: v.number('Tap the map to place the pin')
 	})
 });
 

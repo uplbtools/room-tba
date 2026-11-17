@@ -1,10 +1,15 @@
 import { form, query } from '$app/server';
-import { ListQuerySchema, PlaceProposalSchema, TableIdSchema } from '#lib/schema/functions.js';
+import {
+	ListQuerySchema,
+	PlaceCreateSchema,
+	PlaceProposalSchema,
+	TableIdSchema
+} from '#lib/schema/functions.js';
 import { placesTable } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
 import { error } from '@sveltejs/kit';
-import { updatePlace } from '#lib/services/admin/actions.js';
-import { saveEntityEdit } from '#lib/services/contribution/entity-edit.js';
+import { createPlace, updatePlace, type PlaceCreateInput } from '#lib/services/admin/actions.js';
+import { saveEntityCreate, saveEntityEdit } from '#lib/services/contribution/entity-edit.js';
 import { eq, isNotNull, or } from 'drizzle-orm';
 
 export const getMapPlacesData = query(async () => {
@@ -53,5 +58,17 @@ export const addPlaceSuggestion = form(PlaceProposalSchema, async ({ meta, body 
 		await getPlaceById(String(meta.entityId)).refresh();
 		await getMapPlacesData().refresh();
 	}
+	return result;
+});
+
+/** Editors add a place to the map. Everyone else suggests one for review. */
+export const addPlace = form(PlaceCreateSchema, async ({ meta, body }) => {
+	const result = await saveEntityCreate({
+		entityType: 'create_place',
+		meta,
+		patch: { ...body, description: body.description || null },
+		publish: (patch, editedBy) => createPlace(patch as PlaceCreateInput, editedBy)
+	});
+	if (result.published) await getMapPlacesData().refresh();
 	return result;
 });
