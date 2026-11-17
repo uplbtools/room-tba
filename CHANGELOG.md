@@ -1,3 +1,10 @@
+## [2.45.3](https://github.com/uplbtools/room-tba/compare/v2.45.2...v2.45.3) (2026-11-17)
+
+
+### Bug Fixes
+
+* **account:** put delete account in its own card ([#1505](https://github.com/uplbtools/room-tba/issues/1505)) ([a5decb4](https://github.com/uplbtools/room-tba/commit/a5decb4bf9b56ddb8cbf770d83e9c57200f33100))
+
 # [2.44.0](https://github.com/uplbtools/room-tba/compare/v2.43.0...v2.44.0) (2026-11-15)
 
 ### Features
