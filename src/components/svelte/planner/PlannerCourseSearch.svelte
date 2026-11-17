@@ -1,5 +1,6 @@
 <script lang="ts">
   import Search from "@lucide/svelte/icons/search";
+  import { onMount } from "svelte";
   import { SvelteSet } from "svelte/reactivity";
   import { fetchClassPage, fetchAllClasses } from "@lib/classes-api";
   import {
@@ -10,6 +11,12 @@
   import { plannerStore, termStore, toastStore } from "@lib/store.svelte";
   import { formatScheduleShort, formatSectionType } from "@lib/planner/format";
   import type { ClassMapValue } from "@lib/types";
+  import { readLocalJson, writeLocalJson } from "@lib/locStorage";
+  import {
+    fetchPrograms,
+    PLANNER_PROGRAM_KEY,
+    type Program,
+  } from "@lib/planner/program-courses";
 
   const termId = $derived(
     plannerStore.activePlan?.termId ?? termStore.activeTermId,
@@ -31,6 +38,21 @@
     ),
   ]);
   const expanded = new SvelteSet<string>();
+
+  let programs = $state<Program[]>([]);
+  let programCode = $state(readLocalJson<string>(PLANNER_PROGRAM_KEY, ""));
+  const program = $derived(programs.find((p) => p.code === programCode));
+  const programCourses = $derived(
+    program?.courses.filter((code) => !planCourses.includes(code)) ?? [],
+  );
+  onMount(() => {
+    void fetchPrograms().then((list) => (programs = list));
+  });
+
+  function pickProgram(code: string) {
+    programCode = code;
+    writeLocalJson(PLANNER_PROGRAM_KEY, code);
+  }
 
   // Browse mode (no query) pages through the term 100 at a time (#planner).
   async function loadMore() {
@@ -235,6 +257,36 @@
           {/each}
         </div>
       {/if}
+      {#if programs.length > 0}
+        <label class="course-search__program">
+          Your program
+          <select
+            value={programCode}
+            onchange={(event) => pickProgram(event.currentTarget.value)}
+          >
+            <option value="">Pick your program</option>
+            {#each programs as p (p.code)}
+              <option value={p.code}>{p.name}</option>
+            {/each}
+          </select>
+        </label>
+        {#if program && programCourses.length > 0}
+          <div
+            class="course-search__chips"
+            aria-label="Courses in {program.name}"
+          >
+            {#each programCourses as code (code)}
+              <button
+                type="button"
+                class="course-search__chip"
+                onclick={() => (query = code)}
+              >
+                {code}
+              </button>
+            {/each}
+          </div>
+        {/if}
+      {/if}
       <button
         type="button"
         class="course-search__more"
@@ -406,6 +458,28 @@
     font-size: 0.8125rem;
     line-height: 1.4;
     color: var(--theme-text-2, hsl(0, 0%, 35%));
+  }
+
+  .course-search__program {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 100%;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--theme-text-2, hsl(0, 0%, 35%));
+  }
+
+  .course-search__program select {
+    min-height: 2.75rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--theme-border, hsl(0, 0%, 85%));
+    border-radius: 0.5rem;
+    background: var(--theme-surface, white);
+    color: var(--theme-text, hsl(0, 0%, 15%));
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 400;
   }
 
   .course-search__chips {

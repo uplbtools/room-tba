@@ -27,7 +27,8 @@
     sidebarStore,
     announcementsStore,
   } from "@lib/store.svelte";
-  import { isRecentSearch } from "@lib/locStorage";
+  import { isRecentSearch, writeLocalJson } from "@lib/locStorage";
+  import { PLANNER_PROGRAM_KEY } from "@lib/planner/program-courses";
   import { decodeSharePlan } from "@lib/planner/share-codec";
   import { resolveSharedPlan } from "@lib/planner/import-shared";
   import Modal from "@ui/modal/Modal.svelte";
@@ -305,6 +306,11 @@
       if (routeParam === "1") {
         scheduleRouteStore.pendingDayRoute = true;
       }
+    }
+
+    const programParam = urlParams.get("program");
+    if (programParam) {
+      writeLocalJson(PLANNER_PROGRAM_KEY, programParam.toUpperCase());
     }
 
     const planParam = urlParams.get("plan");
