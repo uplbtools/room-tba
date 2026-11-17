@@ -7,7 +7,6 @@
 	// import BottomSheet from '#lib/components/BottomSheet.svelte';
 	// import JeepneyRouteModal from '#lib/components/modal/JeepneyRouteModal.svelte';
 	// import SponsorBanner from '#lib/components/SponsorBanner.svelte';
-	// import { resolvePanelContent } from '#lib/utils/side-panel-content.js';
 	// import { jeepneyStore, searchInfo, sidePanelStore } from '#lib/stores.svelte.js';
 	// import JeepneyStopPanel from './JeepneyStopPanel.svelte';
 
