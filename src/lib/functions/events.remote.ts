@@ -5,6 +5,7 @@ import { saveEntityEdit } from '#lib/services/contribution/entity-edit.js';
 import { getEventById as loadEvent } from '#lib/services/entity/event.js';
 import { error } from '@sveltejs/kit';
 
+/** One event by id. */
 export const getEventById = query(TableIdSchema, async (id) => {
 	const event = await loadEvent(id);
 
@@ -13,6 +14,7 @@ export const getEventById = query(TableIdSchema, async (id) => {
 	return event;
 });
 
+/** Editors publish an event edit. Everyone else files it as a proposal for review. */
 export const addEventSuggestion = form(EventProposalSchema, async ({ meta, body }) => {
 	const current = await loadEvent(meta.entityId);
 	if (!current) error(404, 'Not found');

@@ -4,12 +4,14 @@ import { getCollegeById as loadCollege, updateCollege } from '#lib/services/admi
 import { saveEntityEdit } from '#lib/services/contribution/entity-edit.js';
 import { error } from '@sveltejs/kit';
 
+/** One college by id. */
 export const getCollegeById = query(TableIdSchema, async (id) => {
 	const college = await loadCollege(id);
 	if (!college) error(404, 'Not found');
 	return college;
 });
 
+/** Editors publish a college edit. Everyone else files it as a proposal for review. */
 export const addCollegeSuggestion = form(CollegeProposalSchema, async ({ meta, body }) => {
 	const current = await loadCollege(meta.entityId);
 	if (!current) error(404, 'Not found');

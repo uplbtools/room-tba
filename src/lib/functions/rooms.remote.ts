@@ -7,6 +7,7 @@ import { updateRoom } from '#lib/services/admin/actions.js';
 import { saveEntityEdit } from '#lib/services/contribution/entity-edit.js';
 import { eq } from 'drizzle-orm';
 
+/** Every room in one building, with its division name. */
 export const getRoomsByBuildingId = query(TableIdSchema, async (id) => {
 	return db
 		.select({
@@ -20,6 +21,7 @@ export const getRoomsByBuildingId = query(TableIdSchema, async (id) => {
 		.orderBy(roomsTable.code);
 });
 
+/** One room by id. */
 export const getRoomById = query(TableIdSchema, async (id) => {
 	const [entry] = await db
 		.select({
@@ -41,6 +43,7 @@ export const getRoomById = query(TableIdSchema, async (id) => {
 	return entry;
 });
 
+/** Editors publish a room edit. Everyone else files it as a proposal for review. */
 export const addRoomSuggestion = form(RoomProposalSchema, async ({ meta, body }) => {
 	const [current] = await db.select().from(roomsTable).where(eq(roomsTable.id, meta.entityId));
 	if (!current) error(404, 'Not found');

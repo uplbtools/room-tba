@@ -8,6 +8,7 @@ import { isVisibleGithubContributor } from "#lib/utils/github-contributors.js";
 const GITHUB_REPO = 'uplbtools/room-tba';
 
 
+/** The repo's GitHub contributors who are shown publicly. */
 export const getGithubContributors = query(async () => {
 
     const res = await wretch(`https://api.github.com/repos/${GITHUB_REPO}/contributors?per_page=100`)
@@ -27,6 +28,7 @@ export const getGithubContributors = query(async () => {
     return filteredResult;
 })
 
+/** The repo's GitHub star count. */
 export const getGithubStars = query(async () => {
     const res = await wretch(`https://api.github.com/repos/${GITHUB_REPO}`)
         .headers({

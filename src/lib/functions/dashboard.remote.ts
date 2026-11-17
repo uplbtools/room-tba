@@ -9,6 +9,7 @@ import { countPendingProposals } from '#lib/services/contribution/proposal-actio
 import { listDigestRecipients } from '#lib/services/email/digest.js';
 import { db } from '#lib/utils/db.js';
 
+/** Review queue, recent edits, digest and outbox counts for editors. Access requests are for admins only. */
 export const getStaffDashboard = query(async () => {
 	const session = await optionalEditorSession(getRequestEvent().cookies);
 	if (!session || !canReviewProposals(session.role)) error(403, 'Only editors can see this.');

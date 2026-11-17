@@ -19,6 +19,7 @@ import { like, sql } from 'drizzle-orm';
 import { unionAll } from 'drizzle-orm/pg-core';
 import * as v from 'valibot';
 
+/** Search suggestions across buildings, rooms, dorms, organizations, places and aliases. */
 export const getUnionSuggestions = query(
 	v.pipe(v.string(), v.toLowerCase(), v.trim()),
 	async (query) => {
