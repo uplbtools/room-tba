@@ -65,6 +65,7 @@ describe("AccountSettingsModal", () => {
       "Connected accounts",
       "Your contributions",
       "Data and privacy",
+      "Delete account",
     ]) {
       await waitFor(() =>
         expect(screen.getByRole("heading", { name: section })).toBeVisible(),
