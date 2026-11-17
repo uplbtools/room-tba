@@ -1,14 +1,6 @@
 import * as v from 'valibot';
 
 /**
- * Querying Rooms with pagination (ID-based)
- */
-export const RoomQueryPaginationSchema = v.object({
-	id: v.pipe(v.number(), v.integer()),
-	offset: v.pipe(v.optional(v.number()), v.toNumber(), v.integer(), v.minValue(0))
-});
-
-/**
  * Querying the list only 
  */
 export const ListQuerySchema = v.pipe(
