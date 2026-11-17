@@ -1,3 +1,15 @@
+# [2.50.0](https://github.com/uplbtools/room-tba/compare/v2.49.0...v2.50.0) (2026-11-17)
+
+
+### Bug Fixes
+
+* **amis:** import seminar, special topics and field work classes ([#1540](https://github.com/uplbtools/room-tba/issues/1540)) ([b474903](https://github.com/uplbtools/room-tba/commit/b474903c56e03da63332b2dff99688f20fd5e053))
+
+
+### Features
+
+* **planner:** calendar export with holidays, finals and Asia/Manila times ([#1539](https://github.com/uplbtools/room-tba/issues/1539)) ([14cd695](https://github.com/uplbtools/room-tba/commit/14cd6953961236079bbf3c13ca71376debdd81cf))
+
 # [2.48.0](https://github.com/uplbtools/room-tba/compare/v2.47.0...v2.48.0) (2026-11-17)
 
 
