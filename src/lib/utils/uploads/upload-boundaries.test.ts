@@ -8,8 +8,6 @@ const componentSources = [
 	'src/lib/components/editor/PhotoCollectionUpload.svelte',
 	'src/routes/(app)/map/buildings/[id]/BuildingResult.svelte',
 	'src/lib/components/entity/DormEditorPanel.svelte',
-	'src/lib/components/entity/EventResult.svelte',
-	'src/lib/components/room/RoomResult.svelte',
 	'src/lib/components/map-chrome/EventPlacementImageField.svelte'
 ];
 
