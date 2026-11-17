@@ -1,3 +1,63 @@
+# [2.48.0](https://github.com/uplbtools/room-tba/compare/v2.47.0...v2.48.0) (2026-11-17)
+
+
+### Features
+
+* **trail:** add the Sipit Trail and a trail picker ([#1514](https://github.com/uplbtools/room-tba/issues/1514)) ([70f6a88](https://github.com/uplbtools/room-tba/commit/70f6a887712a7b61cb84f1d5a4bcf3346ed7cb93))
+* **transit-map:** A3 poster with stop lists, signboards and the leaving-town guide ([#1510](https://github.com/uplbtools/room-tba/issues/1510)) ([a0bf8b4](https://github.com/uplbtools/room-tba/commit/a0bf8b477fab317ede8dbd116e7bca1aef73c247)), closes [hi#contrast](https://github.com/hi/issues/contrast)
+
+# [2.47.0](https://github.com/uplbtools/room-tba/compare/v2.46.0...v2.47.0) (2026-11-17)
+
+
+### Features
+
+* **planner:** pick your program to see its courses ([#1530](https://github.com/uplbtools/room-tba/issues/1530)) ([7f44f24](https://github.com/uplbtools/room-tba/commit/7f44f2421e14acc3af5973371e67a04e4e3c4721))
+
+# [2.46.0](https://github.com/uplbtools/room-tba/compare/v2.45.3...v2.46.0) (2026-11-17)
+
+
+### Features
+
+* **rooms:** group a building's rooms by institute ([#1525](https://github.com/uplbtools/room-tba/issues/1525)) ([9cca928](https://github.com/uplbtools/room-tba/commit/9cca928abfc3243f0f87da825c3ef79254c8e238))
+* **transit:** bring the printable map's signboards, codes and notes into the app ([#1509](https://github.com/uplbtools/room-tba/issues/1509)) ([b32a01c](https://github.com/uplbtools/room-tba/commit/b32a01c4d4987a324d0780a99e75091e4361a263))
+
+## [2.45.3](https://github.com/uplbtools/room-tba/compare/v2.45.2...v2.45.3) (2026-11-17)
+
+
+### Bug Fixes
+
+* **account:** put delete account in its own card ([#1505](https://github.com/uplbtools/room-tba/issues/1505)) ([a5decb4](https://github.com/uplbtools/room-tba/commit/a5decb4bf9b56ddb8cbf770d83e9c57200f33100))
+
+## [2.45.2](https://github.com/uplbtools/room-tba/compare/v2.45.1...v2.45.2) (2026-11-15)
+
+
+### Bug Fixes
+
+* **editor-tools:** divide map tools, pages and sign out ([#1507](https://github.com/uplbtools/room-tba/issues/1507)) ([7914e90](https://github.com/uplbtools/room-tba/commit/7914e90a967facc143c90d786fc2d78065453fa8))
+* **manage-users:** show the role confirm under its user ([#1506](https://github.com/uplbtools/room-tba/issues/1506)) ([ef77431](https://github.com/uplbtools/room-tba/commit/ef77431cbef49e815d0f51e05d703b7a41d9368c))
+* **offline-maps:** group update and clear on one row ([#1508](https://github.com/uplbtools/room-tba/issues/1508)) ([4d060af](https://github.com/uplbtools/room-tba/commit/4d060af9c658968f140c099c0f71bd930c384ff9))
+
+## [2.45.1](https://github.com/uplbtools/room-tba/compare/v2.45.0...v2.45.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **transit:** DLTB Buendia bus boards at CPark, 5:30 AM Mon to Sat ([#1504](https://github.com/uplbtools/room-tba/issues/1504)) ([6377620](https://github.com/uplbtools/room-tba/commit/63776203beb607f04fb88ee057fc9074d7151f8f))
+
+# [2.45.0](https://github.com/uplbtools/room-tba/compare/v2.44.0...v2.45.0) (2026-11-15)
+
+
+### Bug Fixes
+
+* **transit-map:** leader lines, exit tags and visible shared routes on the printable sheet ([#1459](https://github.com/uplbtools/room-tba/issues/1459)) ([9e3ff69](https://github.com/uplbtools/room-tba/commit/9e3ff690e4deda9a0bcc5be7fec188477ccacc50))
+* **transit-map:** the printable sheet had Kaliwa and Kanan swapped ([#1470](https://github.com/uplbtools/room-tba/issues/1470)) ([3352c9a](https://github.com/uplbtools/room-tba/commit/3352c9a9715a75e93611ba96e4d7dfc92c00d8ab))
+
+
+### Features
+
+* **place-sheet:** icon-only action pills on phones ([#1501](https://github.com/uplbtools/room-tba/issues/1501)) ([3a4962b](https://github.com/uplbtools/room-tba/commit/3a4962b3752d6811a4818fc349daf1fa2e75c0a3))
+* **ui:** buttons shrink slightly while pressed on touch screens ([#1483](https://github.com/uplbtools/room-tba/issues/1483)) ([309c875](https://github.com/uplbtools/room-tba/commit/309c875686075e1f7c3cbec2c463acf40ad2c216))
+
 # [2.44.0](https://github.com/uplbtools/room-tba/compare/v2.43.0...v2.44.0) (2026-11-15)
 
 ### Features
