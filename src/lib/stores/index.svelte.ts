@@ -69,14 +69,12 @@ export {
 // export const travelTimeStore = new TravelTimeStore();
 // export const measureRouteStore = new MeasureRouteStore();
 // export const jeepneyStore = new JeepneyStore();
-// export const transitStore = new TransitStore();
 // export const announcementsStore = new AnnouncementsStore();
 // export const appBootstrapStore = new AppBootstrapStore();
 // export { syncToastStore } from './sync/SyncToastStore.svelte.js';
 // export const building3DStore = new Building3DStore();
 // export const adminAuthStore = new AdminAuthStore();
 // export const proposalsStore = new ProposalsStore();
-// export const sidebarStore = new SidebarStore();
 // export const sidePanelStore = new SidePanelStore();
 
 // Map modes (edit, jeepney routes, Makiling terrain) are mutually exclusive.

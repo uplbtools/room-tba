@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-import { buildingTypeFilter, searchInfo, sidebarStore } from '#lib/stores.svelte.js';
+import { buildingTypeFilter, searchInfo } from '#lib/stores.svelte.js';
 
 describe('searchInfo pin filter reset (#chip mislabel)', () => {
 	beforeEach(() => {
@@ -41,44 +41,5 @@ describe('searchInfo pin filter reset (#chip mislabel)', () => {
 		buildingTypeFilter.set('non-up-managed-dorm');
 		searchInfo.updateQuery({ type: 'query', category: null, value: 'caf' });
 		expect(buildingTypeFilter.value).toBe('non-up-managed-dorm');
-	});
-});
-
-describe('SidebarStore mobile rail', () => {
-	beforeEach(() => {
-		sidebarStore.closeRail();
-		sidebarStore.changeOpened('map');
-	});
-
-	test('rail starts closed and toggleRail flips it', () => {
-		expect(sidebarStore.railOpen).toBe(false);
-		sidebarStore.toggleRail();
-		expect(sidebarStore.railOpen).toBe(true);
-		sidebarStore.toggleRail();
-		expect(sidebarStore.railOpen).toBe(false);
-	});
-
-	test('closeRail forces the rail shut', () => {
-		sidebarStore.toggleRail();
-		sidebarStore.closeRail();
-		expect(sidebarStore.railOpen).toBe(false);
-	});
-
-	test('changeOpened switches the panel and closes the rail', () => {
-		sidebarStore.toggleRail();
-		sidebarStore.changeOpened('planner');
-		expect(sidebarStore.panelOpen).toBe('planner');
-		expect(sidebarStore.railOpen).toBe(false);
-	});
-
-	test('changeOpened keeps the rail open for settings and contributors', () => {
-		sidebarStore.toggleRail();
-		sidebarStore.changeOpened('settings');
-		expect(sidebarStore.panelOpen).toBe('settings');
-		expect(sidebarStore.railOpen).toBe(true);
-
-		sidebarStore.changeOpened('contributors');
-		expect(sidebarStore.panelOpen).toBe('contributors');
-		expect(sidebarStore.railOpen).toBe(true);
 	});
 });
