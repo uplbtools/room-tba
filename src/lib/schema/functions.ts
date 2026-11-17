@@ -143,3 +143,13 @@ export const DirectionsSchema = v.object({
 	from: DirectionsPointSchema,
 	to: DirectionsPointSchema
 });
+
+export const JeepReportSchema = v.object({
+	routeId: v.string(),
+	stopKey: v.string(),
+	direction: v.nullish(v.picklist(['forward', 'reverse'])),
+	deviceId: v.string(),
+	full: v.optional(v.boolean()),
+	lat: v.optional(v.number()),
+	lon: v.optional(v.number())
+});

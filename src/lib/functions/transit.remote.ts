@@ -8,6 +8,7 @@ import {
 	type StoredRouteGeometry
 } from '#lib/constants/map/jeepney-routes.js';
 import { clientIp } from '#lib/api/rate-limit.js';
+import { JeepReportSchema } from '#lib/schema/functions.js';
 import * as reports from '#lib/services/transit-report.js';
 import { getAllJeepneyRoutes } from '#lib/services/transit.js';
 import { routeDirections } from '#lib/utils/transit/transit-direction.js';
@@ -57,7 +58,7 @@ export const getStopPeaks = query(v.string(), async (stopKey) => {
 });
 
 /** An anonymous write, so every check of /api/transit/reports applies here too. */
-export const reportJeep = command('unchecked', async (body: unknown) => {
+export const reportJeep = command(JeepReportSchema, async (body) => {
 	if (enforceReportIpLimit(clientIp(getRequestEvent().request))) {
 		return { ok: false, error: "That's a lot of reports at once. Try again in a few minutes." };
 	}
