@@ -1,3 +1,10 @@
+## [2.48.1](https://github.com/uplbtools/room-tba/compare/v2.48.0...v2.48.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* **terms:** a second init waits for the terms load ([#1533](https://github.com/uplbtools/room-tba/issues/1533)) ([5c09de0](https://github.com/uplbtools/room-tba/commit/5c09de0586e2ff146618cece02f9aa3b6396450a))
+
 # [2.48.0](https://github.com/uplbtools/room-tba/compare/v2.47.0...v2.48.0) (2026-11-17)
 
 
