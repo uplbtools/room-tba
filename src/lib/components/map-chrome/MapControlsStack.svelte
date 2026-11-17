@@ -2,7 +2,6 @@
 	import Locate from '@lucide/svelte/icons/locate';
 	import LocateFixed from '@lucide/svelte/icons/locate-fixed';
 	import Navigation2 from '@lucide/svelte/icons/navigation-2';
-	import { untrack } from 'svelte';
 	import type { MapLibreEvent } from 'maplibre-gl';
 	import { isMap2DPitch } from '#lib/constants/map/dimension.js';
 	// import { userLocation, map } from '#lib/stores.svelte.js';
@@ -64,11 +63,6 @@
 			mapInstance.off('dragstart', stopFollowing);
 			mapInstance.off('rotatestart', stopFollowing);
 		};
-	});
-
-	$effect(() => {
-		if (!map.getRawInstance() || !userLocation.coords) return;
-		untrack(() => userLocation.follow(map));
 	});
 
 	function zoomBy(delta: number) {

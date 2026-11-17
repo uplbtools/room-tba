@@ -1,5 +1,5 @@
 import { CAMPUS_BOUNDS } from '#lib/constants/map/terrain.js';
-import { getToast } from '#lib/utils/context.js';
+import { getMapStore, getToast } from '#lib/utils/context.js';
 import {
 	compassHeading,
 	describeLocationFix,
@@ -22,6 +22,7 @@ export default class UserLocation {
 	/** Multi-stop foot route (schedule import or 2-point fallback). */
 	routeWaypoints: [number, number][] | null = $state(null);
 	private toastStore: ToastStore;
+	private map: MapStore;
 	private watchId: number | null = null;
 	private flyOnFix = false;
 	private stopHeading: (() => void) | null = null;
@@ -31,6 +32,7 @@ export default class UserLocation {
 
 	constructor () {
 		this.toastStore = getToast();
+		this.map = getMapStore();
 	}
 
 	private isWithinBounds(lng: number, lat: number) {
@@ -96,6 +98,7 @@ export default class UserLocation {
 					this.announcedApproximateFix = true;
 					// toastStore.show(fix.message, 'info');
 				}
+				this.follow(this.map);
 			},
 			(error) => {
 				let msg = 'An unknown error occurred while getting location.';
