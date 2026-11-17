@@ -1,3 +1,10 @@
+# [2.47.0](https://github.com/uplbtools/room-tba/compare/v2.46.0...v2.47.0) (2026-11-17)
+
+
+### Features
+
+* **planner:** pick your program to see its courses ([#1530](https://github.com/uplbtools/room-tba/issues/1530)) ([7f44f24](https://github.com/uplbtools/room-tba/commit/7f44f2421e14acc3af5973371e67a04e4e3c4721))
+
 # [2.44.0](https://github.com/uplbtools/room-tba/compare/v2.43.0...v2.44.0) (2026-11-15)
 
 ### Features
