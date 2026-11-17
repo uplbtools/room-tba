@@ -1,3 +1,4 @@
+import { tick } from "svelte";
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { beforeEach, describe, expect, test } from "vitest";
 import { directionsStore, locationStore } from "@lib/store.svelte";
@@ -85,6 +86,22 @@ describe("DirectionsPanel", () => {
     expect(
       screen.getByRole("button", { name: "Choose starting point" }),
     ).toBeVisible();
+  });
+
+  test("drops a GPS route when the location fix goes away", async () => {
+    seedReadyDirections();
+    locationStore.coords = [121.2435, 14.1647];
+    render(DirectionsPanel);
+    await tick();
+
+    locationStore.coords = null;
+    locationStore.failure = "You appear to be outside the UPLB campus.";
+    await tick();
+
+    expect(directionsStore.origin).toBeNull();
+    expect(directionsStore.journeys).toEqual([]);
+    expect(screen.getByText(/outside the UPLB campus/)).toBeInTheDocument();
+    locationStore.coords = null;
   });
 
   test.each([320, 768])(

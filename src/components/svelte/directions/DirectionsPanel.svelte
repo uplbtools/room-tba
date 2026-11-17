@@ -105,7 +105,15 @@
     // directionsStore.origin/destination/phase — tracking those here would
     // make the effect retrigger itself (effect_update_depth_exceeded).
     const coords = locationStore.coords;
-    if (!coords) return;
+    if (!coords) {
+      untrack(() => {
+        // The fix is gone (off campus, denied): drop the route from the old one.
+        if (!plannedFrom || directionsStore.originFixed) return;
+        plannedFrom = null;
+        void directionsStore.setOrigin(null, false);
+      });
+      return;
+    }
 
     untrack(() => {
       // A start point the rider chose wins over the blue dot.
