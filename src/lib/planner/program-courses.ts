@@ -15,7 +15,15 @@ export async function fetchPrograms(): Promise<Program[]> {
       .flatMap(([code, entry]) => {
         const { name, courses } = (entry ?? {}) as Partial<Program>;
         return typeof name === "string" && Array.isArray(courses)
-          ? [{ code, name, courses }]
+          ? [
+              {
+                code,
+                name,
+                courses: [...courses].sort((a, b) =>
+                  a.localeCompare(b, undefined, { numeric: true }),
+                ),
+              },
+            ]
           : [];
       })
       .sort((a, b) => a.name.localeCompare(b.name));
