@@ -8,8 +8,20 @@ import {
   sidebarStore,
   termStore,
 } from "@lib/store.svelte";
+import { getRoomCoords } from "@lib/local/data/utils";
 import { mountAtWidth } from "@test/layout-assertions";
 import type { ClassMapValue } from "@lib/types";
+
+vi.mock("@lib/local/data/utils", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@lib/local/data/utils")>()),
+  getRoomCoords: vi.fn(),
+}));
+vi.mock("@lib/travel-graph/load", () => ({
+  loadTravelGraph: async () => ({}),
+}));
+vi.mock("@lib/travel-graph/journey", () => ({
+  planJourneys: () => ({ journeys: [{ seconds: 440 }] }),
+}));
 
 const row = (overrides: Partial<ClassMapValue> = {}): ClassMapValue => ({
   id: 1,
@@ -86,6 +98,25 @@ describe("TodayScreen", () => {
 
   // #839 + Jakob audit micro 14: no faded button without a reason. With no
   // classes today the button is hidden and the reason takes its place.
+  test("says when to leave for a class in another building", async () => {
+    vi.mocked(getRoomCoords).mockImplementation(async (code) =>
+      code === "MB 101" ? [121.24, 14.16] : [121.25, 14.17],
+    );
+    plannerStore.addOffering([
+      row({
+        courseCode: "MATH 27",
+        roomCode: "MB 101",
+        schedule: ["M 07:00AM-08:00AM"],
+      }),
+    ]);
+    plannerStore.addOffering([row({ id: 2, schedule: ["M 08:10AM-09:00AM"] })]);
+    render(TodayScreen);
+
+    expect(
+      await screen.findByText("Leave by 8:02 AM, 8 min walk from MB 101"),
+    ).toBeVisible();
+  });
+
   test("Route my day is enabled when today has classes", () => {
     plannerStore.addOffering([row({ schedule: ["M 07:00AM-08:00AM"] })]);
     render(TodayScreen);

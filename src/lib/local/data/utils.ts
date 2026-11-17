@@ -378,6 +378,28 @@ export async function getLocalRoomByCode(code: string) {
   }
 }
 
+/** [lon, lat] of the room's building, from the local cache or the API. */
+export async function getRoomCoords(
+  roomCode: string,
+): Promise<[number, number] | null> {
+  const code = roomCode.trim().toUpperCase();
+  try {
+    const room =
+      (await getLocalRoomByCode(code)) ??
+      (
+        await getJSONFetch<{
+          data: { building: { lat: number | null; lon: number | null } | null };
+        }>(`/api/rooms?code=${encodeURIComponent(code)}`)
+      ).data;
+    const lat = room?.building?.lat;
+    const lon = room?.building?.lon;
+    return lat != null && lon != null ? [lon, lat] : null;
+  } catch (e) {
+    console.error(`Failed to resolve room ${code}:`, e);
+    return null;
+  }
+}
+
 export async function getLocalRoomById(id: number) {
   try {
     const localDB = await getDB();

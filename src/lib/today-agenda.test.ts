@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { buildAgenda, formatTimeRange } from "./today-agenda";
+import { buildAgenda, formatTimeRange, leaveByNote } from "./today-agenda";
 import type { PlannedSection } from "./planner/types";
 
 const section = (overrides: Partial<PlannedSection> = {}): PlannedSection => ({
@@ -125,5 +125,20 @@ describe("formatTimeRange", () => {
   it("formats noon and midnight without a zero hour", () => {
     expect(formatTimeRange(0, 30)).toBe("12:00 AM – 12:30 AM");
     expect(formatTimeRange(720, 780)).toBe("12:00 PM – 1:00 PM");
+  });
+});
+
+describe("leaveByNote", () => {
+  it("says when to leave when the gap is longer than the walk", () => {
+    // class ends 12:30, next at 1:00 PM, walk 7 min 20 s rounds up to 8
+    expect(leaveByNote(750, 780, 440, "PS C-203")).toBe(
+      "Leave by 12:52 PM, 8 min walk from PS C-203",
+    );
+  });
+
+  it("says how late you'll be when the walk is longer than the gap", () => {
+    expect(leaveByNote(777, 780, 480, "PS C-203")).toBe(
+      "8 min walk from PS C-203, so you'll be about 5 min late",
+    );
   });
 });

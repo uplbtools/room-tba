@@ -8,7 +8,11 @@ import {
   type OrientationReading,
 } from "@lib/geolocation";
 import { campusTransit } from "../../campus.config";
-import { getJSONFetch, getLocalRoomByCode } from "../local/data/utils.js";
+import {
+  getJSONFetch,
+  getLocalRoomByCode,
+  getRoomCoords,
+} from "../local/data/utils.js";
 import { isLocalCacheReady } from "../local/data/pgliteDB.js";
 import type { BuildingTypeFilter } from "@constants/building-types";
 import type { ClassMapValue } from "@lib/types";
@@ -1181,25 +1185,7 @@ class ScheduleRouteStore {
       return this._roomCoordCache.get(normalized) ?? null;
     }
 
-    let coords: [number, number] | null = null;
-    try {
-      const localRoom = await getLocalRoomByCode(normalized);
-      const room = localRoom
-        ? localRoom
-        : (
-            await getJSONFetch<{ data: RoomData }>(
-              `/api/rooms?code=${encodeURIComponent(normalized)}`,
-            )
-          ).data;
-      const lat = room?.building?.lat;
-      const lon = room?.building?.lon;
-      if (lat != null && lon != null) {
-        coords = [lon, lat];
-      }
-    } catch (e) {
-      console.error(`Failed to resolve room ${normalized}:`, e);
-    }
-
+    const coords = await getRoomCoords(normalized);
     this._roomCoordCache.set(normalized, coords);
     return coords;
   }

@@ -18,7 +18,10 @@
     sidebarStore,
     termStore,
   } from "@lib/store.svelte";
-  import { buildAgenda } from "@lib/today-agenda";
+  import { getRoomCoords } from "@lib/local/data/utils";
+  import { buildAgenda, leaveByNote } from "@lib/today-agenda";
+  import { loadTravelGraph } from "@lib/travel-graph/load";
+  import { planJourneys } from "@lib/travel-graph/journey";
   import { routableTodayWeekday, routeToday } from "@lib/today-route";
   import { formatTermDateRange, isDateWithinTerm } from "@lib/term-calendar";
 
@@ -47,6 +50,45 @@
     month: "long",
     day: "numeric",
     timeZone: "Asia/Manila",
+  });
+
+  let leaveNotes = $state<Record<string, string>>({});
+  $effect(() => {
+    const list = days;
+    let stale = false;
+    void (async () => {
+      const notes: Record<string, string> = {};
+      for (const day of list) {
+        for (let i = 1; i < day.entries.length; i++) {
+          const prev = day.entries[i - 1];
+          const next = day.entries[i];
+          if (!prev.roomCode || !next.roomCode) continue;
+          const [from, to] = await Promise.all([
+            getRoomCoords(prev.roomCode),
+            getRoomCoords(next.roomCode),
+          ]);
+          if (!from || !to || (from[0] === to[0] && from[1] === to[1])) {
+            continue;
+          }
+          const walk = planJourneys({
+            graph: await loadTravelGraph(),
+            origin: { lat: from[1], lng: from[0] },
+            destination: { lat: to[1], lng: to[0] },
+            routes: [],
+          }).journeys[0];
+          if (walk) {
+            notes[day.dateKey + i] = leaveByNote(
+              prev.endMin,
+              next.startMin,
+              walk.seconds,
+              prev.roomCode,
+            );
+          }
+        }
+      }
+      if (!stale) leaveNotes = notes;
+    })();
+    return () => (stale = true);
   });
 
   function close() {
@@ -208,7 +250,7 @@
             <p class="today-day__empty">{day.emptyLabel}</p>
           {:else}
             <ul class="today-entries">
-              {#each day.entries as entry (entry.courseCode + entry.section + entry.type + entry.startMin)}
+              {#each day.entries as entry, i (entry.courseCode + entry.section + entry.type + entry.startMin)}
                 <li class="today-entry">
                   <span class="today-entry__time">{entry.timeLabel}</span>
                   <span class="today-entry__main">
@@ -237,6 +279,9 @@
                     <span class="today-entry__room today-entry__room--tba">
                       Room TBA
                     </span>
+                  {/if}
+                  {#if leaveNotes[day.dateKey + i]}
+                    <p class="today-entry__leave">{leaveNotes[day.dateKey + i]}</p>
                   {/if}
                 </li>
               {/each}
@@ -553,6 +598,13 @@
     font-size: 0.75rem;
     color: var(--theme-text-2, hsl(0, 0%, 42%));
     overflow-wrap: anywhere;
+  }
+
+  .today-entry__leave {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--theme-text-2, hsl(0, 0%, 42%));
   }
 
   .today-entry__room {
