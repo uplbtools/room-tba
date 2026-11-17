@@ -5,7 +5,7 @@ import { and, desc, eq, getTableColumns, sql } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import { updateBuilding } from '#lib/services/admin/actions.js';
 import { saveEntityEdit } from '#lib/services/contribution/entity-edit.js';
-import { BuildingProposalSchema, ListQuerySchema, RoomQueryPaginationSchema, TableIdSchema } from '#lib/schema/functions.js';
+import { BuildingProposalSchema, ListQuerySchema, TableIdSchema } from '#lib/schema/functions.js';
 
 export const getMapBuildingsData = query(async () => {
 	const rows = await db
