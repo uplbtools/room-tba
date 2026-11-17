@@ -22,6 +22,9 @@ export const DRIVE_HIGHWAY_CLASSES: ReadonlySet<string> = new Set([
 /** Cycling skips stairs. */
 export const CYCLE_EXCLUDED_CLASS = 'steps';
 
+/** A trip end farther than this from the mapped paths can't be planned honestly. */
+export const ENDPOINT_SNAP_TOLERANCE_METERS = 250;
+
 /** Isochrone color ramp caps here; farther edges keep the last color. */
 export const ISOCHRONE_CAP_MINUTES = 30;
 

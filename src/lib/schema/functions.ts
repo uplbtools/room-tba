@@ -124,3 +124,22 @@ export const EventProposalSchema = v.object({
 		description: v.optional(v.pipe(v.string(), v.trim()))
 	})
 });
+
+const CoordinateSchema = v.object({
+	lat: v.pipe(v.number(), v.minValue(-90), v.maxValue(90)),
+	lon: v.pipe(v.number(), v.minValue(-180), v.maxValue(180)),
+	name: v.optional(v.pipe(v.string(), v.maxLength(80)))
+});
+
+export const DirectionsPointSchema = v.union([
+	CoordinateSchema,
+	v.object({
+		type: v.picklist(['building', 'room', 'dorm', 'organization', 'place']),
+		id: TableIdSchema
+	})
+]);
+
+export const DirectionsSchema = v.object({
+	from: DirectionsPointSchema,
+	to: DirectionsPointSchema
+});

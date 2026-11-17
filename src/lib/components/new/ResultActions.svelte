@@ -3,7 +3,8 @@
 	import ResultAction from './ResultAction.svelte';
 	import { copyTextToClipboard } from '#lib/utils/clipboard.js';
 	import { onMount } from 'svelte';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { getSavedPlacesStore, getToast, getUserLocation } from '#lib/utils/context.js';
 	import { getGoogleMapsPinUrl } from '#lib/utils/google-maps-links.js';
@@ -35,7 +36,9 @@
 		<ResultAction
 			onclick={() => {
 				userLocation.requestLocation();
-				userLocation.setDestination([lon, lat]);
+				goto(
+					`${resolve('/map/directions')}?${new URLSearchParams({ to: `${lat},${lon}`, name: props.name ?? '' })}`
+				);
 			}}
 		>
 			{#snippet icon()}
