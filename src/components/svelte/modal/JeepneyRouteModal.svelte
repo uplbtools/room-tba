@@ -17,6 +17,10 @@
   import {
     JEEPNEY_RIDING_NOTES,
     ROUTE_BOARDING_NOTES,
+    ROUTE_END_BOARDS,
+    ROUTE_LINE_CODES,
+    ROUTE_SIGNBOARDS,
+    routeSchedule,
     TOWN_JEEPNEY_RIDING_NOTES,
     TRANSIT_DATA_CREDIT,
     resolveRouteGeometry,
@@ -45,6 +49,7 @@
   import MapChromeActionLink from "@ui/map-chrome/MapChromeActionLink.svelte";
   import TransitStopEditor from "../controls/TransitStopEditor.svelte";
   import ModalHeader from "./ModalHeader.svelte";
+  import TransitSignboard from "./TransitSignboard.svelte";
   import EntityEditorToggle from "../editor/EntityEditorToggle.svelte";
 
   type Props = {
@@ -90,6 +95,17 @@
         : [],
   );
   const loop = $derived(route ? isLoopRoute(route) : false);
+  const signboard = $derived(route ? (ROUTE_SIGNBOARDS[route.id] ?? null) : null);
+  const boardTone = $derived(
+    kind === "bus" ? "yellow" : kind === "town" ? "red" : "green",
+  );
+  // Kaliwa/Kanan has one code per direction.
+  const lineCodes = $derived.by(() => {
+    const codes = route ? (ROUTE_LINE_CODES[route.id] ?? []) : [];
+    return directions && codes.length === 2 ? [codes[reversed ? 1 : 0]!] : codes;
+  });
+  const timetable = $derived(route ? routeSchedule(route.id) : null);
+  const endBoards = $derived(route ? (ROUTE_END_BOARDS[route.id] ?? []) : []);
 
   // Say so when the drawn line is inferred rather than traced from the
   // operator's mapped route; riders plan around these lines.
@@ -196,12 +212,17 @@
     {#if onback || onclose}
       <header class="jeepney-modal__header">
         <h2 class="jeepney-modal__title">
-          <span
-            class="jeepney-modal__board"
-            class:jeepney-modal__board--bus={transitRouteKind(route) === "bus"}
-            style:--line-color={route.color}>{route.name}</span
+          <TransitSignboard
+            lines={signboard ?? [route.name]}
+            tone={boardTone}
+            lineColor={route.color}
+          />
+          {#each lineCodes as code (code)}
+            <span class="jeepney-modal__code">{code}</span>
+          {/each}
+          <span class="jeepney-modal__noun"
+            >{signboard ? route.name : transitRouteNoun(route)}</span
           >
-          <span class="jeepney-modal__noun">{transitRouteNoun(route)}</span>
         </h2>
       </header>
     {:else}
@@ -241,12 +262,15 @@
           <Banknote size={16} aria-hidden="true" />
           {#if fare?.kind === "ticketed"}
             <span
-              >Buy tickets on the
+              >{#if fare.ticketing.price}<strong>₱{fare.ticketing.price}</strong>
+                a seat. Book on the{:else}Buy tickets on the{/if}
               <a
                 href={fare.ticketing.url}
                 target="_blank"
                 rel="noopener noreferrer">{fare.ticketing.operator} website</a
-              >, which also lists the current fare.</span
+              >{fare.ticketing.price
+                ? `. Price checked ${fare.ticketing.priceCheckedOn}.`
+                : ", which also lists the current fare."}</span
             >
           {:else if fare?.kind === "fixed" || fare?.kind === "end-to-end"}
             <span
@@ -267,11 +291,20 @@
         {#if schedule}
           <li>
             <Clock size={16} aria-hidden="true" />
+            {#if timetable?.departures?.length}
+              <span class="jeepney-modal__timetable"
+                >{timetable.days}, leaves at
+                {#each timetable.departures as time (time)}
+                  <span class="jeepney-modal__time">{time}</span>
+                {/each}{#if schedule.note}<span>{schedule.note}</span>{/if}</span
+              >
+            {:else}
             <span
               >{schedule.hours}{schedule.published
                 ? `, ${schedule.frequency}`
                 : ""}{schedule.note ? `. ${schedule.note}` : ""}</span
             >
+            {/if}
           </li>
         {/if}
         {#if reportLine}
@@ -320,6 +353,18 @@
           <MapPin size={16} aria-hidden="true" />
           <span>{ROUTE_BOARDING_NOTES[route.id]}</span>
         </p>
+      {/if}
+
+      {#if endBoards.length > 0}
+        <h3 class="jeepney-modal__stops-title">Where it ends</h3>
+        <ul class="jeepney-modal__boards">
+          {#each endBoards as end (end.board)}
+            <li>
+              <TransitSignboard lines={[end.board]} small />
+              <span>{end.ends}</span>
+            </li>
+          {/each}
+        </ul>
       {/if}
 
       <details class="jeepney-modal__about">
@@ -481,32 +526,57 @@
     color: var(--theme-text, hsl(0, 0%, 15%));
   }
 
-  /* Styled after the black acrylic route signs on campus jeeps. */
-  .jeepney-modal__board {
-    padding: 0.375rem 0.75rem 0.3125rem;
-    border: 1px solid #c9c3b6;
-    border-bottom: 4px solid var(--line-color);
+  .jeepney-modal__code {
+    padding: 0.125rem 0.375rem;
     border-radius: 0.25rem;
-    background: #12110f;
-    box-shadow: inset 0 0 0 2px #12110f, inset 0 0 0 3px #3a3631;
-    color: #70e500;
-    font-size: 1rem;
+    background: var(--route-color, #7b1113);
+    color: white;
+    font-size: 0.75rem;
     font-weight: 800;
     letter-spacing: 0.04em;
-    line-height: 1.15;
-    text-transform: uppercase;
-    text-shadow: 1px 1px 0 #2a5400;
-  }
-
-  .jeepney-modal__board--bus {
-    color: #e5e500;
-    text-shadow: 1px 1px 0 #5a5a00;
   }
 
   .jeepney-modal__noun {
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--theme-text-2, hsl(0, 0%, 40%));
+  }
+
+  .jeepney-modal__timetable {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.375rem;
+  }
+
+  .jeepney-modal__time {
+    padding: 0.0625rem 0.375rem;
+    border-radius: 0.25rem;
+    background: var(--theme-text, hsl(0, 0%, 12%));
+    color: var(--theme-surface, white);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .jeepney-modal__boards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .jeepney-modal__boards li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--theme-text, hsl(0, 0%, 20%));
+  }
+
+  .jeepney-modal__boards li :global(.signboard) {
+    min-width: 5.5rem;
   }
 
   .jeepney-modal__scroll {

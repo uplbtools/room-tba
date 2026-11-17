@@ -248,7 +248,7 @@
             />
             {#if campusTransit.enabled}
               <SettingsRow
-                label="Jeepney routes"
+                label={campusTransit.label}
                 icon={Bus}
                 checked={jeepneyStore.layerActive}
                 onclick={jeepneyStore.toggleLayer}

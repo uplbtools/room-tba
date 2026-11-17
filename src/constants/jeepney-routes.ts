@@ -61,11 +61,19 @@ export const VERIFIED_END_TO_END_FARES: Readonly<Record<string, JeepneyFare>> =
 const STANDARD_CAMPUS_FARE: JeepneyFare = { regular: 14, discounted: 12 };
 
 /** Routes sold as advance tickets instead of cash on board. */
-export type RouteTicketing = { operator: string; url: string };
+export type RouteTicketing = {
+  operator: string;
+  url: string;
+  /** Seat price in PHP, as the operator's booking site listed it. */
+  price?: number;
+  priceCheckedOn?: string;
+};
 
 const DLTB_TICKETING: RouteTicketing = {
   operator: "DLTB",
   url: "https://dltb.ph/",
+  price: 197,
+  priceCheckedOn: "November 16, 2026",
 };
 
 /**
@@ -89,7 +97,39 @@ export const ROUTE_BOARDING_NOTES: Readonly<Record<string, string>> = {
   "lb-to-san-pablo": JUNCTION_BOARDING_NOTE,
   "lb-to-sta-cruz": JUNCTION_BOARDING_NOTE,
   forestry:
-    "Board at a terminal. Forestry jeeps fill up at their first stop and rarely have room further along. Going up, board at the Forestry Jeep Terminal. Going down, board at the Upper Forestry Jeep Terminal.",
+    "Board at a terminal. Forestry jeeps fill up at their first stop and rarely have room further along. Going up, board at the Forestry Jeep Terminal near Big Belly's. Going down, board at the Upper Forestry Jeep Terminal.",
+  "lb-to-calamba": "Board at Olivarez Plaza Mall.",
+  "lb-to-buendia":
+    "This isn't the DLTB bus. Wait for it at the bus stop by Olivarez Plaza Mall. You don't need to book.",
+};
+
+/** The codes on the stop signs around campus, forward direction first. */
+export const ROUTE_LINE_CODES: Readonly<Record<string, readonly string[]>> = {
+  "kaliwa-kanan": ["KN", "KL"],
+  forestry: ["FR"],
+  snodlob: ["LOOP"],
+  "up-rural": ["RURAL"],
+};
+
+/** What the windshield signboard says, one entry per line of the board. */
+export const ROUTE_SIGNBOARDS: Readonly<Record<string, readonly string[]>> = {
+  "lb-to-calamba": ["Crossing", "SM Calamba"],
+  "lb-to-san-pablo": ["San Pablo"],
+  "lb-to-sta-cruz": ["Sta. Cruz"],
+  "uplb-to-upd": ["UP Diliman"],
+  "uplb-to-buendia": ["Buendia"],
+  "lb-to-buendia": ["Buendia"],
+};
+
+/** Signboards that say where a jeep on this route ends its trip. */
+export const ROUTE_END_BOARDS: Readonly<
+  Record<string, readonly { board: string; ends: string }[]>
+> = {
+  "kaliwa-kanan": [
+    { board: "Olivarez", ends: "Goes on to Olivarez Plaza Mall." },
+    { board: "Junction", ends: "Ends at Jollibee at the end of Lopez Ave." },
+    { board: "Bayan", ends: "Ends at the Los Baños Municipal Hall." },
+  ],
 };
 
 /** The same advice, short enough for a route card on the printable map. */
@@ -837,7 +877,7 @@ export const JEEPNEY_RIDING_NOTES: string[] = [
   "Jeepneys from Calamba Crossing carry a UP COLLEGE or COLLEGE signboard. Near campus they may become Kaliwa, Kanan, Forestry, or UP Gate routes. Check the windshield signboard or ask the driver.",
   "A UP GATE signboard means the jeep stops at Grove and doesn't enter campus.",
   "Hailing a jeep bound for Forestry or Upper Campus? Point your index finger upwards.",
-  "The outbound signboards are BAYAN (town proper), OLIVAREZ (College Junction), SM CROSSING, CROSSING CALAMBA, SAKAY/LALAKAY.",
+  "The outbound signboards are BAYAN (town proper), OLIVAREZ (Olivarez Plaza Mall), JUNCTION (Lopez Ave), SM CROSSING, CROSSING CALAMBA, SAKAY/LALAKAY.",
   "Board and get off only at the designated stops, marked in yellow.",
 ];
 
