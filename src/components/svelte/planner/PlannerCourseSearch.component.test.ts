@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/svelte";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/svelte";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import PlannerCourseSearch from "@ui/planner/PlannerCourseSearch.svelte";
 import { plannerStore, termStore } from "@lib/store.svelte";
@@ -105,5 +111,54 @@ describe("PlannerCourseSearch", () => {
     expect(added).toHaveAttribute("aria-pressed", "true");
     // Times read like people write them, with the room.
     expect(screen.getAllByText("Lec WF 4–5 PM in EAA LH")[0]).toBeVisible();
+  });
+});
+
+describe("PlannerCourseSearch program courses", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    termStore.activeTermId = 1253;
+    plannerStore.plans = [];
+    plannerStore.activePlanIdByTerm = {};
+    vi.mocked(fetch).mockImplementation((input) =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify(
+            String(input).includes("program-courses")
+              ? {
+                  BSCS: {
+                    name: "BS Computer Science",
+                    courses: ["CMSC 12", "MATH 27"],
+                  },
+                }
+              : { rows, total: rows.length },
+          ),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+  });
+
+  test("picking a program lists its courses, and a course searches it", async () => {
+    render(PlannerCourseSearch);
+    const select = await screen.findByLabelText("Your program");
+    await fireEvent.change(select, { target: { value: "BSCS" } });
+    expect(localStorage.getItem("rtba-planner-program")).toBe('"BSCS"');
+
+    const list = screen.getByLabelText("Courses in BS Computer Science");
+    await fireEvent.click(
+      within(list).getByRole("button", { name: "MATH 27" }),
+    );
+    expect(screen.getByPlaceholderText(/Search courses/)).toHaveValue(
+      "MATH 27",
+    );
+  });
+
+  test("remembers the program", async () => {
+    localStorage.setItem("rtba-planner-program", '"BSCS"');
+    render(PlannerCourseSearch);
+    expect(
+      await screen.findByLabelText("Courses in BS Computer Science"),
+    ).toBeVisible();
   });
 });
