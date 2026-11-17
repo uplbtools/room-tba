@@ -31,5 +31,5 @@ export const CAMPUS_BROWSE_LABELS: Record<CampusBrowseTab, string> = {
   offices: "Units and offices",
   landmarks: "Landmarks",
   services: "Food & stores",
-  jeepney: "Jeepney routes",
+  jeepney: "Jeep & bus routes",
 };

@@ -30,7 +30,7 @@ const structuredData = jsonLd(
   webpageSchema({ title, description, path: canonicalPath }),
   breadcrumbSchema([
     { name: "Home", path: "/" },
-    { name: "Jeepney routes", path: "/transit/" },
+    { name: "Jeep & bus routes", path: "/transit/" },
     { name: routeName, path: `/transit/${encodeURIComponent(routeId ?? "")}/` },
     { name: stopName, path: canonicalPath },
   ]),

@@ -106,7 +106,7 @@ test.describe("campus browsing", () => {
     ).toBeHidden();
   });
 
-  test("Jeepney routes opens the transit browse panel", async ({ page }) => {
+  test("Jeep & bus routes opens the transit browse panel", async ({ page }) => {
     // The route line, stop circles and direction arrows are drawn in one
     // pass; a failed draw logs this warning instead of throwing.
     const drawFailures: string[] = [];
@@ -117,7 +117,7 @@ test.describe("campus browsing", () => {
     });
     await browse(page, "jeepney");
     await expect(
-      page.getByRole("heading", { name: /Jeepney (& Bus )?Routes/i }),
+      page.getByRole("heading", { name: /Jeep & Bus Routes/i }),
     ).toBeVisible({ timeout: 10_000 });
     const route = page.locator("button.entity-list-row").first();
     await expect(route).toBeVisible();

@@ -80,7 +80,7 @@ export async function openCampusDirectory(
 
   const filterLabels = {
     buildings: "Class Buildings",
-    jeepney: "Jeepney routes",
+    jeepney: "Jeep & bus routes",
     landmarks: "Landmarks",
     services: "Food & stores",
     events: "Events",
