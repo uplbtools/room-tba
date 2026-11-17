@@ -70,6 +70,20 @@ export function formatTimeRange(startMin: number, endMin: number): string {
   return `${formatClock(startMin)} – ${formatClock(endMin)}`;
 }
 
+/** When to leave for a class that starts `startMin`, after one ending `prevEndMin`. */
+export function leaveByNote(
+  prevEndMin: number,
+  startMin: number,
+  walkSeconds: number,
+  fromRoom: string,
+): string {
+  const walk = Math.ceil(walkSeconds / 60);
+  const late = prevEndMin + walk - startMin;
+  return late > 0
+    ? `${walk} min walk from ${fromRoom}, so you'll be about ${late} min late`
+    : `Leave by ${formatClock(startMin - walk)}, ${walk} min walk from ${fromRoom}`;
+}
+
 /**
  * Agenda for `days` consecutive Manila days starting with today.
  *
