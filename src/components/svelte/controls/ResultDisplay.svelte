@@ -89,9 +89,9 @@
 
   type InstituteGroup = { name: string; rooms: RoomData[] };
 
-  // Rooms split by institute once a building holds more than one.
+  // Long room lists split by institute once a building holds more than one.
   const instituteGroups = $derived.by((): InstituteGroup[] | null => {
-    if (groupByBuilding) return null;
+    if (groupByBuilding || filteredRooms.length <= INITIAL_ROOMS) return null;
     const names = new Set(filteredRooms.map((room) => room.divisionName ?? ""));
     if (names.size < 2) return null;
     const byName = new Map<string, RoomData[]>();
@@ -110,9 +110,7 @@
       return a.name.localeCompare(b.name);
     });
   });
-  const groupsOpen = $derived(
-    needle !== "" || filteredRooms.length <= INITIAL_ROOMS,
-  );
+  const groupsOpen = $derived(needle !== "");
 
   function setFilter(text: string) {
     filter = { key: listKey, text };

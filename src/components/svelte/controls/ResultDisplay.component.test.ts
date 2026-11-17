@@ -184,6 +184,12 @@ describe("ResultDisplay rooms by institute", () => {
     expect(screen.getByText("PS 101")).toBeInTheDocument();
   });
 
+  test("short lists stay flat", () => {
+    const list = withInstitutes().slice(5, 17);
+    render(ResultDisplay, { props: { filteredRooms: list } });
+    expect(screen.queryByRole("group")).toBeNull();
+  });
+
   test("one institute keeps the plain list", () => {
     const list = rooms(5);
     for (const room of list) room.divisionName = "Institute of Physics";
