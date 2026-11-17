@@ -681,7 +681,18 @@
 
       <SettingsSection
         title="Data and privacy"
-        description="Take a copy of your data, or close the account."
+        description="Take a copy of your data."
+      >
+        <EntityEditorSubmitButton
+          label="Download my data"
+          variant="secondary"
+          onclick={downloadExport}
+        />
+      </SettingsSection>
+
+      <SettingsSection
+        title="Delete account"
+        description="Close the account for good."
         danger={showDeleteConfirm}
       >
         {#if showDeleteConfirm}
@@ -727,11 +738,6 @@
               onclick={confirmDelete}
             />
           {:else}
-            <EntityEditorSubmitButton
-              label="Download my data"
-              variant="secondary"
-              onclick={downloadExport}
-            />
             <button
               type="button"
               class="settings-link-btn settings-link-btn--danger"

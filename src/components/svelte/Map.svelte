@@ -82,6 +82,7 @@
   import { isStudentOrganization } from "@constants/org-categories";
   import { isLandmarkPlaceCategory } from "@constants/place-categories";
   import {
+    ROUTE_LINE_CODES,
     resolveRouteGeometry,
     type JeepneyRoute,
     type JeepneyStop,
@@ -452,6 +453,7 @@
   const JEEPNEY_ARROW_SOURCE_ID = "jeepney-route-arrows";
   const JEEPNEY_ARROW_LAYER_ID = "jeepney-route-arrows";
   const JEEPNEY_ARROW_IMAGE_ID = "jeepney-route-arrow";
+  const JEEPNEY_CODE_LAYER_ID = "jeepney-route-code";
   const USER_LOCATION_ACCURACY_SOURCE_ID = "user-location-accuracy";
   const USER_LOCATION_ACCURACY_FILL_ID = "user-location-accuracy-fill";
   const USER_LOCATION_ACCURACY_LINE_ID = "user-location-accuracy-line";
@@ -609,6 +611,33 @@
     map.setPaintProperty(JEEPNEY_ARROW_LAYER_ID, "icon-color", color);
     map.setPaintProperty(JEEPNEY_ARROW_LAYER_ID, "icon-opacity", opacity);
 
+    // The stop-sign code (KN, FR, LOOP) along the line, like the printable map.
+    if (!map.getLayer(JEEPNEY_CODE_LAYER_ID)) {
+      map.addLayer({
+        id: JEEPNEY_CODE_LAYER_ID,
+        type: "symbol",
+        source: JEEPNEY_ROUTE_SOURCE_ID,
+        layout: {
+          "symbol-placement": "line",
+          "symbol-spacing": 360,
+          "text-field": ["get", "code"],
+          "text-font": ["Noto Sans Regular"],
+          "text-size": 12,
+          "text-letter-spacing": 0.08,
+        },
+        paint: {
+          "text-color": "#ffffff",
+          "text-halo-color": color,
+          "text-halo-width": 3,
+        },
+      });
+    }
+    map.setPaintProperty(
+      JEEPNEY_CODE_LAYER_ID,
+      "text-halo-color",
+      darkenForWhiteText(color),
+    );
+
     // Layers outlive a single route, so provenance styling is applied on every
     // draw, not only when the layer is first created.
     map.setPaintProperty(JEEPNEY_ROUTE_LAYER_ID, "line-color", color);
@@ -643,6 +672,9 @@
   }
 
   function clearJeepneyRouteLayers(map: mapGl.MapLibreMap) {
+    if (map.getLayer(JEEPNEY_CODE_LAYER_ID)) {
+      map.removeLayer(JEEPNEY_CODE_LAYER_ID);
+    }
     if (map.getLayer(JEEPNEY_ARROW_LAYER_ID)) {
       map.removeLayer(JEEPNEY_ARROW_LAYER_ID);
     }
@@ -3308,9 +3340,10 @@
     // and flip the line for the reverse direction.
     const listed = transitStore.getRoute(route.id) ?? route;
     const { line: listedLine, source: geometrySource } = routeGeometry(listed);
-    const line = transitStore.isReversed(route.id)
-      ? reverseLine(listedLine)
-      : listedLine;
+    const reversed = transitStore.isReversed(route.id);
+    const line = reversed ? reverseLine(listedLine) : listedLine;
+    const codes = ROUTE_LINE_CODES[route.id] ?? [];
+    const code = (reversed ? codes[1] : undefined) ?? codes[0] ?? "";
     const draw = () => {
       ensureJeepneyRouteLayers(map, route.color, geometrySource);
       const source = map.getSource(JEEPNEY_ROUTE_SOURCE_ID) as
@@ -3323,7 +3356,7 @@
               {
                 type: "Feature",
                 geometry: line,
-                properties: { routeId: route.id, geometrySource },
+                properties: { routeId: route.id, geometrySource, code },
               },
             ]
           : [],

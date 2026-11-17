@@ -88,7 +88,7 @@ test.describe("place full-screen view @mobile", () => {
     page,
   }) => {
     await expect(page).toHaveURL(/\/building\//);
-    await page.goto(page.url());
+    await page.reload();
     await waitForAppBoot(page);
     await expect(fullScreen(page)).toBeVisible();
     await expect(title(page)).toHaveText(name);

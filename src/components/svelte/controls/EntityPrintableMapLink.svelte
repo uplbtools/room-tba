@@ -20,7 +20,7 @@
     lat,
     lon,
     name,
-    ariaLabel = `Download a printable jeepney route map marking ${name}`,
+    ariaLabel = `Download a printable transit map marking ${name}`,
     inline = false,
   }: Props = $props();
 
@@ -30,7 +30,7 @@
 {#if inline}
   <a class="entity-printable-link" {href} aria-label={ariaLabel}>
     <Printer size={16} aria-hidden="true" />
-    Print jeepney route map
+    Print transit map
   </a>
 {:else}
   <MapChromeActionLink {href} {ariaLabel} toolbar>
