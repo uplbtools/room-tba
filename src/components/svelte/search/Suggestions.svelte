@@ -236,7 +236,7 @@
           category: "trail" as const,
           secondary: hit.secondary,
           score: hit.score,
-          trailStopId: hit.stopId,
+          trailStopId: hit.stopId ?? hit.trailId,
           lat: hit.lat,
           lon: hit.lon,
         })),

@@ -2,8 +2,9 @@
   /**
    * The Makiling trail sheet (#716). Overview: an AllTrails-style summary,
    * the elevation profile, one "Before you go" briefing and every stop, all
-   * in the sheet's single scroll. A stop: its number, elevation, distance,
-   * what to know there, and Prev / Next along the trail.
+   * in the sheet's single scroll, with a picker between the two trails. A
+   * stop: its number, elevation, distance, what to know there, and Prev / Next
+   * along the trail.
    */
   import { onDestroy, onMount } from "svelte";
   import ChevronLeft from "@lucide/svelte/icons/chevron-left";
@@ -17,23 +18,20 @@
   import EntityDirectionsChip from "@ui/controls/EntityDirectionsChip.svelte";
   import EntityShareButton from "@ui/controls/EntityShareButton.svelte";
   import TrailElevationProfile from "./TrailElevationProfile.svelte";
-  import {
-    MAKILING_TRAIL_BEFORE_YOU_GO,
-    MAKILING_TRAIL_COLOR,
-    MAKILING_TRAIL_NAME,
-    MAKILING_TRAIL_SUBTITLE,
-  } from "@constants/makiling-trail";
+  import { MAKILING_TRAIL_COLOR, MAKILING_TRAILS } from "@constants/makiling-trail";
   import { TERRAIN_ENABLED } from "@constants/map-terrain";
   import {
     findTrailStop,
     formatHours,
     formatKm,
     formatMeters,
+    getTrail,
     getTrailStops,
     getTrailSummary,
     stationLabel,
+    trailUrlValue,
   } from "@lib/makiling-trail";
-  import { TRAIL_OVERVIEW_PARAM, withAppState } from "@lib/app-url-state";
+  import { withAppState } from "@lib/app-url-state";
   import {
     directionsStore,
     queryStore,
@@ -42,9 +40,10 @@
     trailStore,
   } from "@lib/store.svelte";
 
-  const summary = getTrailSummary();
-  const stops = getTrailStops();
-  const trailhead = stops[0];
+  const trail = $derived(getTrail(trailStore.trailId));
+  const summary = $derived(getTrailSummary(trail.id));
+  const stops = $derived(getTrailStops(trail.id));
+  const trailhead = $derived(stops[0]);
 
   const stop = $derived(findTrailStop(trailStore.selectedStopId));
   const stopIndex = $derived(stop ? stops.findIndex((s) => s.id === stop.id) : -1);
@@ -58,7 +57,7 @@
       ? ""
       : `${location.origin}${withAppState("/", {
           layers: "trail",
-          trail: stop?.id ?? TRAIL_OVERVIEW_PARAM,
+          trail: trailUrlValue(trail.id, stop?.id ?? null),
         })}`,
   );
 
@@ -87,10 +86,25 @@
     queryStore.updateQuery({ type: "result", category: "place", value: name });
   }
 
+  function pickTrail(id: string) {
+    trailStore.selectTrail(id);
+    trailStore.requestFrame();
+  }
+
   function distanceLine(meters: number, elevation: number) {
-    return `${formatKm(meters)} from Station 1, ${formatMeters(elevation)}`;
+    return `${formatKm(meters)} from ${trail.startLabel}, ${formatMeters(elevation)}`;
   }
 </script>
+
+{#snippet closedNotice()}
+  {#if trail.closed}
+    <p class="trail-closed">
+      {trail.closed.text} Check
+      <a href={trail.closed.href} target="_blank" rel="noreferrer">{trail.closed.label}</a>
+      for the opening announcement.
+    </p>
+  {/if}
+{/snippet}
 
 <div class="entity-detail trail-panel" style:--trail-color={MAKILING_TRAIL_COLOR}>
   {#if stop}
@@ -101,7 +115,7 @@
         onclick={() => trailStore.selectStop(null)}
       >
         <ChevronLeft size={14} aria-hidden="true" />
-        <span>{MAKILING_TRAIL_NAME}</span>
+        <span>{trail.name}</span>
       </button>
       <div class="entity-header__title-row entity-header__title-row--with-close">
         <h2 class="entity-header__title">{stop.name}</h2>
@@ -116,7 +130,7 @@
           <dd>{formatMeters(stop.elevationMeters)}</dd>
         </div>
         <div>
-          <dt>From Station 1</dt>
+          <dt>From {trail.startLabel}</dt>
           <dd>{formatKm(stop.distanceMeters)}</dd>
         </div>
         <div>
@@ -125,12 +139,12 @@
         </div>
       </dl>
       <div class="entity-actions">
-        {#if stop.placeName}
+        {#if stop.placeName || stop.id === trailhead?.id}
           <EntityDirectionsChip
             primary={stop.id === trailhead?.id}
             lat={stop.lat}
             lon={stop.lon}
-            destinationLabel={stop.placeName}
+            destinationLabel={stop.placeName ?? stop.name}
           />
         {/if}
         <MapChromeActionChip toolbar onclick={() => trailStore.flyToStop(stop.id)}>
@@ -150,6 +164,7 @@
     {#if stop.description}
       <p class="trail-text">{stop.description}</p>
     {/if}
+    {@render closedNotice()}
     <nav class="trail-stop-nav" aria-label="Stops along the trail">
       {#if prevStop}
         <button type="button" class="trail-stop-nav__btn" onclick={() => selectStop(prevStop.id)}>
@@ -179,14 +194,24 @@
   {:else}
     <header class="entity-header">
       <div class="entity-header__title-row entity-header__title-row--with-close">
-        <h2 class="entity-header__title">{MAKILING_TRAIL_NAME}</h2>
+        <h2 class="entity-header__title">{trail.name}</h2>
         <EntityPanelClose ariaLabel="Close trail" showOnMobile onclick={close} />
       </div>
-      <p class="trail-subtitle">{MAKILING_TRAIL_SUBTITLE}</p>
+      <p class="trail-subtitle">{trail.subtitle}</p>
+      <div class="trail-picker" role="group" aria-label="Trail">
+        {#each MAKILING_TRAILS as item (item.id)}
+          <button
+            type="button"
+            class="trail-picker__btn"
+            aria-pressed={item.id === trail.id}
+            onclick={() => pickTrail(item.id)}>{item.label}</button
+          >
+        {/each}
+      </div>
       <dl class="trail-facts trail-facts--summary">
         <div>
           <dt>Length</dt>
-          <dd>{formatKm(summary.roundTripMeters)}</dd>
+          <dd>{formatKm(summary.hikeMeters)}</dd>
         </div>
         <div>
           <dt>Elevation gain</dt>
@@ -194,16 +219,18 @@
         </div>
         <div>
           <dt>Route type</dt>
-          <dd>Out and back</dd>
+          <dd>{trail.oneWay ? "One way" : "Out and back"}</dd>
         </div>
         <div>
           <dt>Est. time</dt>
-          <dd>{formatHours(summary.naismithHours)}</dd>
+          <dd>{trail.estTime ?? formatHours(summary.naismithHours)}</dd>
         </div>
-        <div>
-          <dt>Difficulty</dt>
-          <dd>{summary.difficulty}</dd>
-        </div>
+        {#if !trail.oneWay}
+          <div>
+            <dt>Difficulty</dt>
+            <dd>{summary.difficulty}</dd>
+          </div>
+        {/if}
       </dl>
       <div class="entity-actions">
         {#if trailhead}
@@ -211,7 +238,7 @@
             primary
             lat={trailhead.lat}
             lon={trailhead.lon}
-            destinationLabel={trailhead.placeName}
+            destinationLabel={trailhead.placeName ?? trailhead.name}
             label="Directions to trailhead"
           />
         {/if}
@@ -229,25 +256,37 @@
             {terrainStore.enabled ? "Terrain on" : "Show terrain"}
           </MapChromeActionChip>
         {/if}
-        <EntityShareButton url={shareUrl} entityLabel={MAKILING_TRAIL_NAME} />
+        <EntityShareButton url={shareUrl} entityLabel={trail.name} />
       </div>
     </header>
 
+    {@render closedNotice()}
+
     <p class="trail-note">
-      The trail is {formatKm(summary.lengthMeters)} each way, from {formatMeters(summary.startElevation)}
-      at Station 1 to {formatMeters(summary.summitElevation)} at Peak 2. Time uses Naismith's
-      rule (5 km per hour plus 1 hour per 600 m climbed). Mud and rest stops often add hours.
+      {#if trail.oneWay}
+        The trail is {formatKm(summary.lengthMeters)} from {formatMeters(summary.startElevation)}
+        at the trailhead to {formatMeters(summary.summitElevation)} at Peak 2. The time is from older
+        guides (Pinoy Mountaineer, 2015).
+      {:else}
+        The trail is {formatKm(summary.lengthMeters)} each way, from {formatMeters(summary.startElevation)}
+        at Station 1 to {formatMeters(summary.summitElevation)} at Peak 2. Time uses Naismith's
+        rule (5 km per hour plus 1 hour per 600 m climbed). Mud and rest stops often add hours.
+      {/if}
     </p>
 
     <section class="trail-section" aria-labelledby="trail-profile-heading">
       <h3 id="trail-profile-heading" class="trail-section__title">Elevation profile</h3>
-      <TrailElevationProfile profile={summary.profile} {stops} />
+      <TrailElevationProfile
+        profile={summary.profile}
+        {stops}
+        startLabel={trail.startLabel}
+      />
     </section>
 
     <section class="trail-section" aria-labelledby="trail-before-heading">
       <h3 id="trail-before-heading" class="trail-section__title">Before you go</h3>
       <ul class="trail-brief">
-        {#each MAKILING_TRAIL_BEFORE_YOU_GO as item (item.title)}
+        {#each trail.beforeYouGo as item (item.title)}
           <li>
             <strong>{item.title}</strong>
             <span>{item.body}</span>
@@ -255,13 +294,16 @@
         {/each}
       </ul>
       <p class="trail-note">
-        Rules and hours change, so confirm with MCME before your hike. This map is for planning, not
-        navigation.
+        {trail.source.text}
+        <a href={trail.source.href} target="_blank" rel="noreferrer">{trail.source.label}</a>.
+        Confirm with MCME before your hike. This map is for planning, not navigation.
       </p>
     </section>
 
     <section class="trail-section" aria-labelledby="trail-stops-heading">
-      <h3 id="trail-stops-heading" class="trail-section__title">Stations</h3>
+      <h3 id="trail-stops-heading" class="trail-section__title">
+        {stops.some((item) => item.station !== null) ? "Stations" : "Stops"}
+      </h3>
       <ol class="trail-stops">
         {#each stops as item (item.id)}
           <li>
@@ -305,6 +347,54 @@
   .trail-badge {
     background: color-mix(in srgb, var(--trail-color) 14%, transparent);
     color: var(--theme-green-text, #166534);
+  }
+
+  .trail-picker {
+    display: flex;
+    padding: 0.1875rem;
+    border-radius: 999px;
+    background: var(--theme-surface-2, hsl(0 0% 94%));
+  }
+
+  .trail-picker__btn {
+    flex: 1 1 0;
+    min-height: 2.25rem;
+    padding: 0 0.75rem;
+    border: none;
+    border-radius: 999px;
+    background: none;
+    color: var(--theme-text, hsl(0 0% 28%));
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .trail-picker__btn[aria-pressed="true"] {
+    background: var(--theme-surface, white);
+    color: var(--theme-green-text, #166534);
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.18);
+  }
+
+  .trail-picker__btn:focus-visible {
+    outline: 2px solid var(--theme-accent-text, #7b1113);
+    outline-offset: 1px;
+  }
+
+  .trail-closed {
+    margin: 0;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid var(--theme-border, hsl(0 0% 85%));
+    border-left: 4px solid var(--theme-accent-text, #7b1113);
+    border-radius: 0.5rem;
+    color: var(--theme-text, hsl(0 0% 15%));
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+
+  .trail-closed a,
+  .trail-note a {
+    color: inherit;
   }
 
   .trail-subtitle {

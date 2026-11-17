@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/svelte";
 import { flushSync } from "svelte";
 import { beforeEach, describe, expect, test } from "vitest";
+import { MAKILING_TRAIL_ID, SIPIT_TRAIL_ID } from "@constants/makiling-trail";
 import { mapToolsStore, sidePanelStore, trailStore } from "@lib/store.svelte";
 import { getTrailStops } from "@lib/makiling-trail";
 import TrailControl from "../TrailControl.svelte";
@@ -9,6 +10,7 @@ import TrailPanel from "./TrailPanel.svelte";
 describe("TrailPanel", () => {
   beforeEach(() => {
     trailStore.disable();
+    trailStore.selectTrail(MAKILING_TRAIL_ID);
     sidePanelStore.closePanel();
   });
 
@@ -46,11 +48,19 @@ describe("TrailPanel", () => {
       screen.getAllByRole("heading", { name: "Before you go" }),
     ).toHaveLength(1);
     expect(
-      screen.getByText(/MCME registration area at Station 1 \(trailhead\)/),
+      screen.getByText(/Monitoring Station 1 \(College of Forestry\)/),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/reach Agila Base \(Station 11\) by 09:00/),
+      screen.getByText(/cut-off to start for Peak 2 is 9 AM/),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText(/logs out at Station 1 by 4 PM/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/PHP 10 per person/)).toBeInTheDocument();
+    expect(screen.getByText(/PHP 500 per group per night/)).toBeInTheDocument();
+    expect(screen.getByText(/0908 988 1778/)).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/guide/);
+    expect(document.body.textContent).not.toContain("06:00");
     expect(document.body.textContent).not.toMatch(/Wilderness Zone start/);
     expect(document.body.textContent).not.toContain("\u00b7");
   });
@@ -104,6 +114,65 @@ describe("TrailPanel", () => {
     flushSync();
     expect(trailStore.sheetOpen).toBe(false);
     expect(trailStore.enabled).toBe(true);
+  });
+});
+
+describe("TrailPanel trail picker", () => {
+  beforeEach(() => {
+    trailStore.disable();
+    trailStore.selectTrail(MAKILING_TRAIL_ID);
+    sidePanelStore.closePanel();
+  });
+
+  test("two buttons switch the trail and ask for a frame", () => {
+    trailStore.openSheet();
+    render(TrailPanel);
+    const uplb = screen.getByRole("button", { name: "UPLB trail" });
+    const sipit = screen.getByRole("button", { name: "Sipit trail" });
+    expect(uplb).toHaveAttribute("aria-pressed", "true");
+    expect(sipit).toHaveAttribute("aria-pressed", "false");
+    const before = trailStore.frameNonce;
+    sipit.click();
+    flushSync();
+    expect(trailStore.trailId).toBe(SIPIT_TRAIL_ID);
+    expect(trailStore.frameNonce).toBe(before + 1);
+    expect(sipit).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByRole("heading", { name: "Sipit Trail" }),
+    ).toBeInTheDocument();
+  });
+
+  test("the Sipit overview says it isn't open and points to Facebook", () => {
+    trailStore.openSheet(null, SIPIT_TRAIL_ID);
+    render(TrailPanel);
+    expect(screen.getByText(/isn't open to visitors yet/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "facebook.com/makilingcenter" }),
+    ).toHaveAttribute("href", "https://www.facebook.com/makilingcenter");
+    const facts = screen.getByText("Route type").closest("dl") as HTMLElement;
+    expect(within(facts).getByText("One way")).toBeInTheDocument();
+    expect(within(facts).getByText("5 to 8 h")).toBeInTheDocument();
+    expect(within(facts).getByText(/^5\.\d\d km$/)).toBeInTheDocument();
+    expect(screen.queryByText("Difficulty")).toBeNull();
+    expect(screen.getAllByText(/older guides/i).length).toBeGreaterThan(0);
+    expect(document.body.textContent).not.toMatch(/PHP 10 per person/);
+    expect(
+      screen.getByRole("img", { name: /Elevation profile from the trailhead/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Stops" })).toBeInTheDocument();
+  });
+
+  test("a Sipit stop shows the notice and measures from the trailhead", () => {
+    trailStore.openSheet("sipit-junction", SIPIT_TRAIL_ID);
+    render(TrailPanel);
+    expect(trailStore.trailId).toBe(SIPIT_TRAIL_ID);
+    expect(
+      screen.getByRole("heading", {
+        name: "Junction with the old Makiling Trail",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("From the trailhead")).toBeInTheDocument();
+    expect(screen.getByText(/isn't open to visitors yet/)).toBeInTheDocument();
   });
 });
 

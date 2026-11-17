@@ -2,9 +2,15 @@ import { describe, expect, test } from "bun:test";
 import {
   MAKILING_PEAK_2_PLACE,
   MAKILING_TRAILHEAD_PLACE,
+  MAKILING_TRAILS,
   MAKILING_TRAIL_STOPS,
+  SIPIT_TRAIL_ID,
+  SIPIT_TRAIL_STOPS,
 } from "@constants/makiling-trail";
-import { MAKILING_TRAIL_PATH } from "@constants/makiling-trail-path";
+import {
+  MAKILING_TRAIL_PATH,
+  SIPIT_TRAIL_PATH,
+} from "@constants/makiling-trail-path";
 import {
   cumulativeDistances,
   elevationGain,
@@ -17,10 +23,12 @@ import {
   hikeDifficulty,
   naismithHours,
   projectOntoPath,
+  resolveTrailTarget,
   sampleProfile,
   searchTrail,
   stationLabel,
   trailStopForPlace,
+  trailUrlValue,
   type TrailVertex,
 } from "./makiling-trail";
 
@@ -120,7 +128,7 @@ describe("Makiling trail data", () => {
   test("numbers are plausible for the real trail", () => {
     expect(summary.lengthMeters).toBeGreaterThan(8500);
     expect(summary.lengthMeters).toBeLessThan(9100);
-    expect(summary.roundTripMeters).toBeCloseTo(summary.lengthMeters * 2, 6);
+    expect(summary.hikeMeters).toBeCloseTo(summary.lengthMeters * 2, 6);
     // At least the net climb, at most a little over it once DEM noise is smoothed.
     const net = summary.summitElevation - summary.startElevation;
     expect(summary.gainMeters).toBeGreaterThanOrEqual(net);
@@ -184,12 +192,105 @@ describe("Makiling trail data", () => {
   });
 });
 
+describe("Sipit Trail data", () => {
+  const summary = getTrailSummary(SIPIT_TRAIL_ID);
+  const stops = getTrailStops(SIPIT_TRAIL_ID);
+
+  test("runs from the Sto. Tomas trailhead to Peak 2", () => {
+    expect(SIPIT_TRAIL_PATH[0]?.slice(0, 2)).toEqual([121.1882616, 14.106425]);
+    expect(SIPIT_TRAIL_PATH.at(-1)?.slice(0, 2)).toEqual([
+      121.193872, 14.135741,
+    ]);
+    expect(summary.lengthMeters).toBeGreaterThan(5100);
+    expect(summary.lengthMeters).toBeLessThan(5400);
+    expect(summary.hikeMeters).toBe(summary.lengthMeters);
+    expect(summary.startElevation).toBe(250);
+    expect(summary.summitElevation).toBe(1082);
+  });
+
+  test("every stop sits on the line, in walking order", () => {
+    expect(stops.map((s) => s.id)).toEqual([
+      "sipit-trailhead",
+      "sipit-junction",
+      "sipit-peak-2",
+    ]);
+    let previous = -1;
+    for (const stop of stops) {
+      expect(stop.trailId).toBe(SIPIT_TRAIL_ID);
+      expect(
+        projectOntoPath(SIPIT_TRAIL_PATH, [stop.lon, stop.lat]).offset,
+      ).toBeLessThan(20);
+      expect(stop.distanceMeters).toBeGreaterThan(previous);
+      previous = stop.distanceMeters;
+    }
+    expect(stops[0]?.distanceMeters).toBe(0);
+    expect(stops[1]?.elevationMeters).toBeCloseTo(603, -1);
+    expect(stops.at(-1)?.distanceMeters).toBeCloseTo(summary.lengthMeters, -2);
+  });
+
+  test("Peak 2 is the same pin on both trails", () => {
+    const [uplbPeak] = MAKILING_TRAIL_STOPS.slice(-1);
+    const [sipitPeak] = SIPIT_TRAIL_STOPS.slice(-1);
+    expect(sipitPeak?.osmNode).toBe(332020189);
+    expect([sipitPeak?.lon, sipitPeak?.lat]).toEqual([
+      uplbPeak?.lon,
+      uplbPeak?.lat,
+    ]);
+    expect(trailStopForPlace(MAKILING_PEAK_2_PLACE)?.id).toBe("peak-2");
+  });
+
+  test("stop ids are unique across both trails", () => {
+    const ids = MAKILING_TRAILS.flatMap((trail) =>
+      trail.stops.map((stop) => stop.id),
+    );
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(findTrailStop("sipit-junction")?.trailId).toBe(SIPIT_TRAIL_ID);
+    expect(findTrailStop("agila-base")?.trailId).toBe("uplb");
+  });
+
+  test("the Sipit Trail says it isn't open", () => {
+    const sipit = MAKILING_TRAILS.find((trail) => trail.id === SIPIT_TRAIL_ID);
+    expect(sipit?.closed?.text).toMatch(/isn't open to visitors yet/);
+    expect(sipit?.closed?.href).toBe("https://www.facebook.com/makilingcenter");
+  });
+});
+
+describe("trail targets", () => {
+  test("a stop, a trail id or anything else", () => {
+    expect(resolveTrailTarget("agila-base")).toEqual({
+      trailId: "uplb",
+      stopId: "agila-base",
+    });
+    expect(resolveTrailTarget("sipit-junction")).toEqual({
+      trailId: "sipit",
+      stopId: "sipit-junction",
+    });
+    expect(resolveTrailTarget("sipit")).toEqual({
+      trailId: "sipit",
+      stopId: null,
+    });
+    expect(resolveTrailTarget("overview")).toEqual({
+      trailId: "uplb",
+      stopId: null,
+    });
+  });
+
+  test("urls keep ?trail=overview for the UPLB trail", () => {
+    expect(trailUrlValue("uplb", null)).toBe("overview");
+    expect(trailUrlValue("sipit", null)).toBe("sipit");
+    expect(trailUrlValue("sipit", "sipit-trailhead")).toBe("sipit-trailhead");
+  });
+});
+
 describe("searchTrail", () => {
   const top = (query: string) =>
     [...searchTrail(query)].sort((a, b) => a.score - b.score)[0];
 
   test("finds the trail by name and common aliases", () => {
-    expect(top("Makiling trail")?.stopId).toBeNull();
+    expect(top("Makiling trail")).toMatchObject({
+      trailId: "uplb",
+      stopId: null,
+    });
     expect(top("mt. makiling trail")?.stopId).toBeNull();
     expect(top("trail")?.stopId).toBeNull();
   });
@@ -208,6 +309,16 @@ describe("searchTrail", () => {
     const agila = top("Agila");
     expect(agila?.secondary).toBe("Makiling Trail, Station 11, 5.27 km");
     expect(agila?.lat).toBeCloseTo(14.129, 3);
+  });
+
+  test("finds the Sipit Trail and its stops", () => {
+    expect(top("Sipit")).toMatchObject({ trailId: "sipit", stopId: null });
+    expect(top("Sipit trail")?.label).toBe("Sipit Trail");
+    expect(top("Sto. Tomas")?.stopId).toBe("sipit-trailhead");
+    expect(top("junction")?.stopId).toBe("sipit-junction");
+    const peaks = searchTrail("Peak 2").map((hit) => hit.stopId);
+    expect(peaks).toEqual(expect.arrayContaining(["peak-2", "sipit-peak-2"]));
+    expect(top("Makiling trail")?.trailId).toBe("uplb");
   });
 
   test("misses stay empty", () => {

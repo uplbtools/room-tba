@@ -15,7 +15,7 @@
 
 <SettingsRow
   label="Makiling Trail"
-  supporting="Stations from the trailhead to the peak"
+  supporting="The UPLB and Sipit trails to Peak 2"
   icon={Route}
   checked={trailStore.enabled}
   onclick={() => trailStore.toggle()}
@@ -27,7 +27,7 @@
   </button>
   <button type="button" class="trail-link" onclick={() => openTrailSheet()}>
     <Info size={14} aria-hidden="true" />
-    <span>Trail details and stations</span>
+    <span>Trail details and stops</span>
   </button>
 </SettingsRow>
 

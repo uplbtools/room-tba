@@ -1,15 +1,17 @@
 <script lang="ts">
   /**
-   * Makiling trail on the map (#716): the line, a dot per stop, stop labels
-   * once zoomed in, the selected stop ringed. Tapping a dot opens that stop's
-   * sheet; tapping the line opens the trail. Answers the trail store's frame
-   * and fly requests with the shared visible-area padding.
+   * Makiling trails on the map (#716): both lines (the chosen one solid), a
+   * dot per stop of the chosen trail, stop labels once zoomed in, the selected
+   * stop ringed. Tapping a dot opens that stop's sheet; tapping a line opens
+   * that trail. Answers the trail store's frame and fly requests with the
+   * shared visible-area padding.
    */
   import { untrack } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
   import type * as maplibre from "maplibre-gl";
   import {
     MAKILING_TRAIL_COLOR,
+    MAKILING_TRAILS,
     MAKILING_TRAIL_LAYER_CASING_ID,
     MAKILING_TRAIL_LAYER_ID,
     MAKILING_TRAIL_SELECTED_LAYER_ID,
@@ -18,9 +20,8 @@
     MAKILING_TRAIL_STATIONS_LAYER_ID,
     MAKILING_TRAIL_STATIONS_SOURCE_ID,
   } from "@constants/makiling-trail";
-  import { MAKILING_TRAIL_PATH } from "@constants/makiling-trail-path";
   import { TERRAIN_ENABLED } from "@constants/map-terrain";
-  import { findTrailStop, getTrailStops } from "@lib/makiling-trail";
+  import { findTrailStop, getTrail, getTrailStops } from "@lib/makiling-trail";
   import {
     measureVisibleMapPadding,
     pointsBounds,
@@ -47,14 +48,24 @@
   /** Where stop names appear; below it the dots alone keep the map calm. */
   const LABEL_MIN_ZOOM = 14.5;
 
-  const lineCoords = MAKILING_TRAIL_PATH.map(
-    ([lng, lat]) => [lng, lat] as [number, number],
-  );
+  function lineFeatures() {
+    return {
+      type: "FeatureCollection" as const,
+      features: MAKILING_TRAILS.map((trail) => ({
+        type: "Feature" as const,
+        geometry: {
+          type: "LineString" as const,
+          coordinates: trail.path.map(([lng, lat]) => [lng, lat]),
+        },
+        properties: { id: trail.id, active: trail.id === trailStore.trailId },
+      })),
+    };
+  }
 
   function stationFeatures() {
     return {
       type: "FeatureCollection" as const,
-      features: getTrailStops().map((stop) => ({
+      features: getTrailStops(trailStore.trailId).map((stop) => ({
         type: "Feature" as const,
         geometry: {
           type: "Point" as const,
@@ -84,11 +95,7 @@
     if (!map.getSource(MAKILING_TRAIL_SOURCE_ID)) {
       map.addSource(MAKILING_TRAIL_SOURCE_ID, {
         type: "geojson",
-        data: {
-          type: "Feature",
-          geometry: { type: "LineString", coordinates: lineCoords },
-          properties: {},
-        },
+        data: lineFeatures(),
       });
     }
     if (!map.getSource(MAKILING_TRAIL_STATIONS_SOURCE_ID)) {
@@ -119,6 +126,7 @@
         paint: {
           "line-color": colors.line,
           "line-width": ["interpolate", ["linear"], ["zoom"], 12, 3, 16, 5],
+          "line-opacity": ["case", ["get", "active"], 1, 0.4],
           "line-dasharray": [2, 1],
         },
       });
@@ -250,6 +258,16 @@
     };
   });
 
+  // The chosen trail's solid line and stop dots follow the picker.
+  $effect(() => {
+    const map = mapStore.mapInstance;
+    if (!map || !trailStore.enabled) return;
+    const lines = map.getSource(MAKILING_TRAIL_SOURCE_ID);
+    const stations = map.getSource(MAKILING_TRAIL_STATIONS_SOURCE_ID);
+    if (lines && "setData" in lines) lines.setData(lineFeatures());
+    if (stations && "setData" in stations) stations.setData(stationFeatures());
+  });
+
   // Ring the selected stop.
   $effect(() => {
     const map = mapStore.mapInstance;
@@ -276,20 +294,24 @@
       })[0];
       if (stop) {
         const id = stop.properties?.id;
-        return { stopId: typeof id === "string" ? id : null };
+        return { stopId: typeof id === "string" ? id : null, trailId: null };
       }
       const line = map.queryRenderedFeatures(box, {
         layers: [MAKILING_TRAIL_LAYER_ID, MAKILING_TRAIL_LAYER_CASING_ID],
       })[0];
-      return line ? { stopId: null } : null;
+      const trailId = line?.properties?.id;
+      return typeof trailId === "string" ? { stopId: null, trailId } : null;
     };
     const click = (event: maplibre.MapMouseEvent) => {
       const target = hit(event);
       if (!target) return;
       if (target.stopId) {
         openTrailSheet(target.stopId, { fly: false });
-      } else if (!trailStore.sheetOpen) {
-        openTrailSheet(null, { frame: false });
+      } else if (
+        target.trailId &&
+        (!trailStore.sheetOpen || target.trailId !== trailStore.trailId)
+      ) {
+        openTrailSheet(target.trailId, { frame: false });
       }
     };
     let pointing = false;
@@ -349,7 +371,11 @@
     if (nonce === 0 || !map) return;
     untrack(() => {
       if (TERRAIN_ENABLED && !terrainStore.enabled) terrainStore.enable();
-      const bounds = pointsBounds(lineCoords);
+      const bounds = pointsBounds(
+        getTrail(trailStore.trailId).path.map(
+          ([lng, lat]) => [lng, lat] as [number, number],
+        ),
+      );
       if (!bounds) return;
       whenReady(
         map,

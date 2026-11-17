@@ -1,4 +1,5 @@
 import type * as maplibre from "maplibre-gl";
+import { MAKILING_TRAIL_ID } from "../../constants/makiling-trail.js";
 import {
   DEFAULT_TERRAIN_EXAGGERATION,
   TERRAIN_ENABLED,
@@ -212,6 +213,8 @@ function readTrailLayerPref(): boolean {
  */
 export class TrailStore {
   enabled: boolean = $state(readTrailLayerPref());
+  /** The trail the sheet and the map's stop dots show. */
+  trailId: string = $state(MAKILING_TRAIL_ID);
   /** The trail sheet is open (overview, or a stop when one is selected). */
   sheetOpen: boolean = $state(false);
   selectedStopId: string | null = $state(null);
@@ -244,15 +247,21 @@ export class TrailStore {
     this.closeSheet();
   };
 
-  /** Show the trail and its sheet, at the overview or at one stop. */
-  openSheet = (stopId: string | null = null) => {
+  /** Show a trail and its sheet, at the overview or at one stop. */
+  openSheet = (stopId: string | null = null, trailId = this.trailId) => {
     this.enable();
+    this.trailId = trailId;
     this.sheetOpen = true;
     this.selectedStopId = stopId;
   };
 
   closeSheet = () => {
     this.sheetOpen = false;
+    this.selectedStopId = null;
+  };
+
+  selectTrail = (trailId: string) => {
+    this.trailId = trailId;
     this.selectedStopId = null;
   };
 
