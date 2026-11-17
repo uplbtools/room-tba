@@ -39,12 +39,9 @@
 			: [];
 	});
 
-	let index = $state(0);
-	$effect(() => {
-		name;
-		photos;
-		imageUrl;
-		index = 0;
+	let index = $derived.by(() => {
+		void images;
+		return 0;
 	});
 
 	const current = $derived(images[Math.min(index, images.length - 1)]);

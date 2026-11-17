@@ -252,7 +252,10 @@
 	const hasSchedule = $derived((plan?.sections ?? []).some((s) => !s.stale && !isUnscheduled(s)));
 
 	// --- Rename -------------------------------------------------------------
-	let renaming = $state(false);
+	let renaming = $derived.by(() => {
+		void plan?.id;
+		return false;
+	});
 	let renameDraft = $state('');
 
 	function deletePlan(tabPlan: { id: string; label: string; sections: unknown[] }) {
@@ -289,7 +292,7 @@
 		if (!target) return;
 		if (plan?.id !== target.id) {
 			plannerStore.selectPlan(target.id);
-			// Plan-switch effect clears renaming; wait a tick before enabling it.
+			// Switching plans clears renaming; wait a tick before enabling it.
 			await tick();
 		}
 		renameDraft = target.label;
@@ -311,16 +314,6 @@
 	function autofocus(node: HTMLInputElement) {
 		node.focus();
 	}
-
-	$effect(() => {
-		void plan?.id;
-		renaming = false;
-		tick().then(() =>
-			screenEl
-				?.querySelector('.planner-tab-item--active')
-				?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
-		);
-	});
 
 	onMount(async () => {
 		await termStore.init();
@@ -424,7 +417,15 @@
 
 	<div class="planner-tabs" role="tablist" aria-label="Plans">
 		{#each plannerStore.plansForTerm as tabPlan (tabPlan.id)}
-			<div class="planner-tab-item" class:planner-tab-item--active={tabPlan.id === plan?.id}>
+			<div
+				class="planner-tab-item"
+				class:planner-tab-item--active={tabPlan.id === plan?.id}
+				{@attach (tab) => {
+					if (tabPlan.id === plan?.id) {
+						tab.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+					}
+				}}
+			>
 				{#if renaming && tabPlan.id === plan?.id}
 					<input
 						class="planner-tab planner-tab--rename"
