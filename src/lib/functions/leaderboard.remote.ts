@@ -18,10 +18,12 @@ const SOURCES = {
 	editors: 'editor_published'
 } as const satisfies Record<string, ContributionSource>;
 
+/** Top contributors for a time window and board. */
 export const getLeaderboard = query(params, ({ window, board }) =>
 	getContributorLeaderboard(window, SOURCES[board])
 );
 
+/** The signed-in contributor's standing on a board, or null when signed out. */
 export const getMyStanding = query(params, async ({ window, board }) => {
 	const session = await optionalEditorSession(getRequestEvent().cookies);
 	return session && session.id > 0
@@ -29,6 +31,7 @@ export const getMyStanding = query(params, async ({ window, board }) => {
 		: null;
 });
 
+/** One contributor's profile on a board. */
 export const getContributorProfile = query(
 	v.object({ key: v.pipe(v.string(), v.regex(/^[ucn].{1,120}$/s)), board: params.entries.board }),
 	({ key, board }) => loadContributorProfile(key, SOURCES[board])

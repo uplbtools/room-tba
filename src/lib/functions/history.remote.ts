@@ -3,6 +3,7 @@ import * as v from 'valibot';
 import { getPublicEntityHistory } from '#lib/services/entity/public-history.js';
 import { PUBLIC_HISTORY_FIELDS } from '#lib/utils/editor/entity-attribution.js';
 
+/** A page of the public edit history of one entity. */
 export const getPublicHistory = query(
 	v.object({
 		entityType: v.picklist(Object.keys(PUBLIC_HISTORY_FIELDS) as [string, ...string[]]),

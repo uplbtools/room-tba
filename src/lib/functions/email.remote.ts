@@ -8,6 +8,7 @@ import {
 	setTopicEnabled
 } from '#lib/services/email/unsubscribe.js';
 
+/** Turns off the email topic named by an unsubscribe link token. */
 export const unsubscribe = form(v.object({ token: v.string() }), async ({ token }) => {
 	const target = readUnsubscribeToken(token);
 	if (!target) return { done: false };
@@ -22,8 +23,10 @@ async function staffId() {
 	return session.id;
 }
 
+/** Whether the signed-in editor gets the daily review digest. */
 export const getDigestEnabled = query(async () => isDigestEnabled(await staffId()));
 
+/** Turns the daily review digest on or off for the signed-in editor. */
 export const setDigestEnabled = command(v.boolean(), async (enabled) => {
 	await setTopicEnabled(await staffId(), 'digest', enabled);
 	getDigestEnabled().refresh();

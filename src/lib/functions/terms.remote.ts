@@ -3,6 +3,7 @@ import { classesTable, termsTable } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
 import { desc, eq, getTableColumns, sql } from 'drizzle-orm';
 
+/** Every term with its class count, newest first. */
 export const getTerms = query(async () => {
 	const rows = await db
 		.select({

@@ -7,6 +7,7 @@ import { updateBuilding } from '#lib/services/admin/actions.js';
 import { saveEntityEdit } from '#lib/services/contribution/entity-edit.js';
 import { BuildingProposalSchema, ListQuerySchema, TableIdSchema } from '#lib/schema/functions.js';
 
+/** Id, name and coordinates of every building, for the map pins. */
 export const getMapBuildingsData = query(async () => {
 	const rows = await db
 		.select({
@@ -19,6 +20,7 @@ export const getMapBuildingsData = query(async () => {
 	return rows;
 });
 
+/** One building by id. Responds 404 when it doesn't exist. */
 export const getBuildingById = query(TableIdSchema, async (id) => {
 
 	// const [buildingData] = await db.select().from(buildingsTable).where(eq(buildingsTable.id, id));
@@ -58,6 +60,7 @@ export const getBuildingById = query(TableIdSchema, async (id) => {
 	return { ...buildingData};
 });
 
+/** One page of buildings by name, 8 per page. */
 export const getBuildingsList = query(ListQuerySchema, async(offset = 0) => {
 	const rows = await db
 		.select()
@@ -68,6 +71,7 @@ export const getBuildingsList = query(ListQuerySchema, async(offset = 0) => {
 	return rows;
 })
 
+/** Editors publish a building edit. Everyone else files it as a proposal for review. */
 export const addBuildingSuggestion = form(BuildingProposalSchema, async ({ meta, body }) => {
 	const [current] = await db
 		.select()

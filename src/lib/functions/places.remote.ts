@@ -12,6 +12,7 @@ import { createPlace, updatePlace, type PlaceCreateInput } from '#lib/services/a
 import { saveEntityCreate, saveEntityEdit } from '#lib/services/contribution/entity-edit.js';
 import { eq, isNotNull, or } from 'drizzle-orm';
 
+/** Id, name and coordinates of every place, for the map pins. */
 export const getMapPlacesData = query(async () => {
 	const rows = await db
 		.select({
@@ -26,6 +27,7 @@ export const getMapPlacesData = query(async () => {
 	return rows;
 });
 
+/** One place by id. */
 export const getPlaceById = query(TableIdSchema, async (id) => {
 	const [entry] = await db.select().from(placesTable).where(eq(placesTable.id, id));
 
@@ -34,6 +36,7 @@ export const getPlaceById = query(TableIdSchema, async (id) => {
 	return entry;
 });
 
+/** One page of places by name, 8 per page. */
 export const getPlacesList = query(ListQuerySchema, async(offset = 0) => {
 	const rows = await db
 		.select()
@@ -44,6 +47,7 @@ export const getPlacesList = query(ListQuerySchema, async(offset = 0) => {
 	return rows;
 })
 
+/** Editors publish a place edit. Everyone else files it as a proposal for review. */
 export const addPlaceSuggestion = form(PlaceProposalSchema, async ({ meta, body }) => {
 	const [current] = await db.select().from(placesTable).where(eq(placesTable.id, meta.entityId));
 	if (!current) error(404, 'Not found');

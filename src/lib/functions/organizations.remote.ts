@@ -9,6 +9,7 @@ import { saveEntityEdit } from '#lib/services/contribution/entity-edit.js';
 import { eq, isNotNull, or } from 'drizzle-orm';
 import { delay } from 'es-toolkit';
 
+/** Id, name and coordinates of every organization, for the map pins. */
 export const getMapOrgsData = query(async () => {
 	const hasLocationRows = await db
 		.select({
@@ -23,6 +24,7 @@ export const getMapOrgsData = query(async () => {
 	return hasLocationRows;
 });
 
+/** One organization by id. */
 export const getOrgById = query(TableIdSchema, async (id) => {
 	// const rows = await client`
 	//     SELECT * FROM organizations
@@ -38,6 +40,7 @@ export const getOrgById = query(TableIdSchema, async (id) => {
 	return entry;
 });
 
+/** Organizations housed in one building. */
 export const getOrgsByBuildingId = query(TableIdSchema, async (id) => {
 	const rows = await db
 		.select()
@@ -46,6 +49,7 @@ export const getOrgsByBuildingId = query(TableIdSchema, async (id) => {
 	return rows;
 });
 
+/** One page of organizations by name, 8 per page. */
 export const getOrgsList = query(ListQuerySchema, async(offset = 0) => {
 	const rows = await db
 		.select()
@@ -56,6 +60,7 @@ export const getOrgsList = query(ListQuerySchema, async(offset = 0) => {
 	return rows;
 })
 
+/** Editors publish an organization edit. Everyone else files it as a proposal for review. */
 export const addOrgSuggestion = form(OrgProposalSchema, async ({ meta, body }) => {
 	const [current] = await db.select().from(organizationsTable).where(eq(organizationsTable.id, meta.entityId));
 	if (!current) error(404, 'Not found');

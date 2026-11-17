@@ -4,12 +4,14 @@ import { getDivisionById as loadDivision, updateDivision } from '#lib/services/a
 import { saveEntityEdit } from '#lib/services/contribution/entity-edit.js';
 import { error } from '@sveltejs/kit';
 
+/** One division by id. */
 export const getDivisionById = query(TableIdSchema, async (id) => {
 	const division = await loadDivision(id);
 	if (!division) error(404, 'Not found');
 	return division;
 });
 
+/** Editors publish a division edit. Everyone else files it as a proposal for review. */
 export const addDivisionSuggestion = form(DivisionProposalSchema, async ({ meta, body }) => {
 	const current = await loadDivision(meta.entityId);
 	if (!current) error(404, 'Not found');

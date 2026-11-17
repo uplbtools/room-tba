@@ -4,6 +4,7 @@ import { db } from '#lib/utils/db.js';
 import { and, eq } from 'drizzle-orm';
 import * as v from 'valibot';
 
+/** Final exams in a term, filtered by course code or room code. */
 export const getFinalExams = query(
 	v.object({
 		termId: v.pipe(v.number(), v.integer()),

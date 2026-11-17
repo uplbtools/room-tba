@@ -18,6 +18,7 @@ const classFields = {
 	directions: roomsTable.directions
 };
 
+/** Classes in a term whose course code starts with the given text. */
 export const getClassesByCourseCode = query(
 	v.object({
 		termId: v.pipe(v.number(), v.integer()),
@@ -40,6 +41,7 @@ export const getClassesByCourseCode = query(
 	}
 );
 
+/** Classes held in one room in a term. */
 export const getClassesByRoomId = query(
 	v.object({
 		termId: v.pipe(v.number(), v.integer()),

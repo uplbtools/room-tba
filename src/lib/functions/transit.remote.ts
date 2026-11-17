@@ -23,6 +23,7 @@ import {
 
 const geometries = jeepneyGeometries as Record<string, StoredRouteGeometry | undefined>;
 
+/** Every jeepney route, with the bundled routes added. */
 export const getTransitRoutes = query(async () => {
 	const routes = await getAllJeepneyRoutes().catch((err) => {
 		console.error('Transit routes query failed:', err);
@@ -31,6 +32,7 @@ export const getTransitRoutes = query(async () => {
 	return withBundledRoutes(routes);
 });
 
+/** One transit route by id, with its geometry. Responds 404 when it doesn't exist. */
 export const getTransitRoute = query(v.string(), async (id) => {
 	const route = (await getTransitRoutes()).find((r) => r.id === id);
 	if (!route) error(404, 'Not found');
@@ -50,6 +52,7 @@ export const getStopReports = query(v.array(v.string()), async (stopKeys) => {
 	}
 });
 
+/** When classes in nearby buildings let out, for one stop. */
 export const getStopPeaks = query(v.string(), async (stopKey) => {
 	const stop = parseStopKey(stopKey);
 	if (!stop) error(400, 'Invalid stop.');
