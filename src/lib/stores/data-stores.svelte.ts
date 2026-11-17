@@ -16,7 +16,7 @@ export class TermStore {
   terms = $state<TermWithCount[]>([]);
   activeTermId = $state<number | null>(null);
   loaded = $state(false);
-  private _hydrated = false;
+  private _init: Promise<void> | null = null;
 
   activeTerm = $derived(
     this.terms.find((t) => t.id === this.activeTermId) ?? null,
@@ -24,9 +24,9 @@ export class TermStore {
 
   defaultTermId = $derived(resolveDefaultTermFromList(this.terms)?.id ?? null);
 
-  init = async () => {
-    if (this._hydrated) return;
-    this._hydrated = true;
+  init = () => (this._init ??= this.load());
+
+  private load = async () => {
     try {
       const terms = await getJSONFetch<TermWithCount[]>("/api/terms");
       this.terms = terms;
