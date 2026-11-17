@@ -14,6 +14,7 @@ import {
 	CYCLE_KPH,
 	DRIVE_CAP_KPH,
 	DRIVE_HIGHWAY_CLASSES,
+	ENDPOINT_SNAP_TOLERANCE_METERS,
 	WALK_KPH
 } from '#lib/constants/travel-modes.js';
 import { distanceMeters } from '../campus/campus-route';
@@ -229,6 +230,28 @@ export function shortestPath(
 	segments.reverse();
 	const coordinates = segments.flatMap((coords, i) => (i === 0 ? coords : coords.slice(1)));
 	return { seconds: seconds[to], meters, coordinates };
+}
+
+export type WalkPlan =
+	| { status: 'ok'; route: TravelRoute }
+	| { status: 'origin-off-network' | 'destination-off-network' | 'no-route' };
+
+type LatLon = { lat: number; lon: number };
+
+function snapToNetwork(graph: TravelGraph, point: LatLon): number | null {
+	const node = nearestNodeIndex(graph, point.lat, point.lon);
+	const meters = distanceMeters(point, { lat: graph.lat[node], lon: graph.lng[node] });
+	return meters > ENDPOINT_SNAP_TOLERANCE_METERS ? null : node;
+}
+
+/** Walking route between two points, each snapped to the nearest path node. */
+export function planWalk(graph: TravelGraph, from: LatLon, to: LatLon): WalkPlan {
+	const start = snapToNetwork(graph, from);
+	if (start === null) return { status: 'origin-off-network' };
+	const end = snapToNetwork(graph, to);
+	if (end === null) return { status: 'destination-off-network' };
+	const route = shortestPath(graph, start, end, 'walk');
+	return route ? { status: 'ok', route } : { status: 'no-route' };
 }
 
 /**

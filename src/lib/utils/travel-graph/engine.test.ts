@@ -8,6 +8,7 @@ import {
 	edgeSeconds,
 	isochroneFeatures,
 	nearestNodeIndex,
+	planWalk,
 	shortestPath,
 	type WalkGraphData
 } from './engine';
@@ -177,5 +178,13 @@ describe('real campus graph', () => {
 		expect(routed.meters).toBeLessThan(straightLine * 3);
 		// Time follows directly from the walk speed constant.
 		expect(routed.seconds).toBeCloseTo(routed.meters / (4.5 / 3.6), 3);
+	});
+
+	test('planWalk routes between points and refuses ends off the network', () => {
+		const campusEnd = { lat: 14.167, lon: 121.2435 };
+		const far = { lat: 14.3, lon: 121.4 };
+		expect(planWalk(campus, campusEnd, { lat: 14.1655, lon: 121.2412 }).status).toBe('ok');
+		expect(planWalk(campus, far, campusEnd).status).toBe('origin-off-network');
+		expect(planWalk(campus, campusEnd, far).status).toBe('destination-off-network');
 	});
 });
