@@ -5,7 +5,7 @@
 	const { buildingId }: { buildingId: number } = $props();
 
 	const rooms = $derived(await getRoomsByBuildingId(buildingId));
-	// Rooms split by institute once a building holds more than one.
+	// Long room lists split by institute once a building holds more than one.
 	const groups = $derived.by(() => {
 		const byName = new Map<string, typeof rooms>();
 		for (const room of rooms) {
@@ -36,7 +36,7 @@
 {#if rooms.length > 0}
 	<section aria-label="Rooms">
 		<h3 class="font-semibold">Rooms</h3>
-		{#if groups.length > 1}
+		{#if rooms.length > 12 && groups.length > 1}
 			{#each groups as group (group.name)}
 				<details class="border-t border-neutral-200 py-1 first-of-type:border-t-0">
 					<summary class="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold">
