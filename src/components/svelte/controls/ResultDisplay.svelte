@@ -87,6 +87,31 @@
   );
   const hiddenCount = $derived(matchingRooms.length - visibleRooms.length);
 
+  type InstituteGroup = { name: string; rooms: RoomData[] };
+
+  // Long room lists split by institute once a building holds more than one.
+  const instituteGroups = $derived.by((): InstituteGroup[] | null => {
+    if (groupByBuilding || filteredRooms.length <= INITIAL_ROOMS) return null;
+    const names = new Set(filteredRooms.map((room) => room.divisionName ?? ""));
+    if (names.size < 2) return null;
+    const byName = new Map<string, RoomData[]>();
+    for (const room of matchingRooms) {
+      const name = room.divisionName ?? "";
+      byName.set(name, [...(byName.get(name) ?? []), room]);
+    }
+    return Array.from(byName, ([name, rooms]) => ({
+      name: name || "Other rooms",
+      rooms: rooms.sort((a, b) =>
+        a.code.localeCompare(b.code, undefined, { numeric: true }),
+      ),
+    })).sort((a, b) => {
+      if (a.name === "Other rooms") return 1;
+      if (b.name === "Other rooms") return -1;
+      return a.name.localeCompare(b.name);
+    });
+  });
+  const groupsOpen = $derived(needle !== "");
+
   function setFilter(text: string) {
     filter = { key: listKey, text };
   }
@@ -193,6 +218,44 @@
         onclear={() => setFilter("")}
       />
     {/if}
+    {#if instituteGroups}
+      <div class="building-groups">
+        {#each instituteGroups as group (group.name)}
+          <details class="institute-group" open={groupsOpen}>
+            <summary>
+              <span>{group.name}</span>
+              <span class="institute-group__count">{group.rooms.length}</span>
+              <svg
+                class="institute-group__chevron"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg
+              >
+            </summary>
+            <div class="room-list room-list--nested">
+              {#each group.rooms as room (room.id)}
+                <RoomDisplay
+                  {room}
+                  searchInput={filterText}
+                  classCount={classCounts?.get(room.id)}
+                />
+              {/each}
+            </div>
+          </details>
+        {/each}
+        {#if needle && matchingRooms.length === 0}
+          <p class="rooms-filter-empty" role="status">
+            No rooms match “{filterText.trim()}”
+          </p>
+        {/if}
+      </div>
+    {:else}
     <div class="room-list">
       {#each visibleRooms as room (room.id)}
         <RoomDisplay
@@ -226,6 +289,7 @@
         />
       {/if}
     </div>
+    {/if}
   {/if}
 </section>
 
@@ -261,6 +325,56 @@
     margin: 0;
     padding: 0 0.5rem;
     font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--theme-text-2, #71717a);
+  }
+
+  .institute-group summary {
+    display: flex;
+    list-style: none;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--theme-text, #18181b);
+    cursor: pointer;
+  }
+
+  .institute-group + .institute-group {
+    border-top: 1px solid var(--theme-border, #ececec);
+  }
+
+  .institute-group summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .institute-group__chevron {
+    flex-shrink: 0;
+    color: var(--theme-text-2, #71717a);
+    transition: rotate 0.15s ease-out;
+  }
+
+  .institute-group[open] .institute-group__chevron {
+    rotate: 180deg;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .institute-group__chevron {
+      transition: none;
+    }
+  }
+
+  .institute-group summary:focus-visible {
+    outline: 2px solid var(--theme-accent-text, #7b1113);
+    outline-offset: 2px;
+    border-radius: 0.375rem;
+  }
+
+  .institute-group__count {
+    margin-left: auto;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--theme-text-2, #71717a);
   }
