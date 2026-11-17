@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	import IconButton from '#lib/components/IconButton.svelte';
 	import { fade, fly } from 'svelte/transition';
@@ -66,9 +67,7 @@
 		}
 	}
 
-	$effect(() => {
-		if (adminAuthStore.manageUsersOpen) void loadUsers();
-	});
+	onMount(() => void loadUsers());
 
 	function close() {
 		adminAuthStore.closeManageUsers();

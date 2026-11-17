@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	import IconButton from '#lib/components/IconButton.svelte';
 	import { fade, fly } from 'svelte/transition';
@@ -125,9 +126,7 @@
 		}
 	}
 
-	$effect(() => {
-		if (adminAuthStore.accountSettingsOpen) void loadProfile();
-	});
+	onMount(() => void loadProfile());
 
 	function close() {
 		adminAuthStore.closeAccountSettings();

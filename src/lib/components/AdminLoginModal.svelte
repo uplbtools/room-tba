@@ -39,12 +39,16 @@
 	type Mode = 'signin' | 'signup';
 
 	let loginFrameEl = $state<HTMLDivElement | null>(null);
-	let mode = $state<Mode>('signin');
+	let mode = $state<Mode>(adminAuthStore.loginInitialMode);
 	let username = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
 	let signupEmail = $state('');
-	let error: string | null = $state(null);
+	let error: string | null = $state(
+		adminAuthStore.oauthError
+			? (OAUTH_ERROR_MESSAGES[adminAuthStore.oauthError] ?? 'Google sign-in failed. Try again.')
+			: null
+	);
 	let googleLoading = $state(false);
 	let turnstileToken = $state<string | null>(null);
 	/** Bump to remount Turnstile after a failed siteverify (token is single-use). */
@@ -95,23 +99,6 @@
 			forgotPasswordSending = false;
 		}
 	}
-
-	// Each time the modal opens, land on the tab the entry point requested
-	// (the "Sign up" menu entry opens straight into signup).
-	let wasOpen = false;
-	$effect(() => {
-		if (adminAuthStore.loginOpen && !wasOpen) {
-			switchMode(adminAuthStore.loginInitialMode);
-		}
-		wasOpen = adminAuthStore.loginOpen;
-	});
-
-	$effect(() => {
-		const code = adminAuthStore.oauthError;
-		if (code) {
-			error = OAUTH_ERROR_MESSAGES[code] ?? 'Google sign-in failed. Try again.';
-		}
-	});
 
 	async function signInWithGoogle() {
 		error = null;
