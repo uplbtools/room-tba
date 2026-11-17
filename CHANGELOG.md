@@ -1,3 +1,11 @@
+# [2.46.0](https://github.com/uplbtools/room-tba/compare/v2.45.3...v2.46.0) (2026-11-17)
+
+
+### Features
+
+* **rooms:** group a building's rooms by institute ([#1525](https://github.com/uplbtools/room-tba/issues/1525)) ([9cca928](https://github.com/uplbtools/room-tba/commit/9cca928abfc3243f0f87da825c3ef79254c8e238))
+* **transit:** bring the printable map's signboards, codes and notes into the app ([#1509](https://github.com/uplbtools/room-tba/issues/1509)) ([b32a01c](https://github.com/uplbtools/room-tba/commit/b32a01c4d4987a324d0780a99e75091e4361a263))
+
 # [2.44.0](https://github.com/uplbtools/room-tba/compare/v2.43.0...v2.44.0) (2026-11-15)
 
 ### Features
