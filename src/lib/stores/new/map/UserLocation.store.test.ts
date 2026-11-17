@@ -1,13 +1,16 @@
 import { describe, expect, test, vi } from 'vitest';
 
-vi.mock('#lib/utils/context.js', () => ({ getToast: () => ({ show: vi.fn() }) }));
+const mapStore = vi.hoisted(() => ({ current: undefined as unknown }));
+
+vi.mock('#lib/utils/context.js', () => ({
+	getToast: () => ({ show: vi.fn() }),
+	getMapStore: () => mapStore.current
+}));
 
 import UserLocation from './UserLocation.svelte.js';
 import type { MapStore } from './map-stores.svelte.js';
 
 function setup() {
-	const userLocation = new UserLocation();
-	userLocation.coords = [121.24, 14.16];
 	const mapInstance = {
 		flyTo: vi.fn(),
 		easeTo: vi.fn(),
@@ -15,6 +18,9 @@ function setup() {
 		getBearing: () => 40
 	};
 	const map = { getRawInstance: () => mapInstance } as unknown as MapStore;
+	mapStore.current = map;
+	const userLocation = new UserLocation();
+	userLocation.coords = [121.24, 14.16];
 	return { userLocation, mapInstance, map };
 }
 
@@ -64,5 +70,26 @@ describe('UserLocation follow mode', () => {
 		const { userLocation } = setup();
 		userLocation.cycleFollow({ getRawInstance: () => undefined } as unknown as MapStore);
 		expect(userLocation.followMode).toBe('off');
+	});
+
+	test('a position fix follows the user', () => {
+		const { userLocation, mapInstance } = setup();
+		userLocation.followMode = 'follow';
+		let onFix: PositionCallback | undefined;
+		vi.stubGlobal('navigator', {
+			geolocation: {
+				watchPosition: (callback: PositionCallback) => {
+					onFix = callback;
+					return 1;
+				}
+			}
+		});
+		userLocation.requestLocation();
+		onFix?.({
+			coords: { longitude: 121.25, latitude: 14.17, heading: null, accuracy: 10 }
+		} as GeolocationPosition);
+		expect(mapInstance.easeTo).toHaveBeenCalledWith(
+			expect.objectContaining({ center: [121.25, 14.17] })
+		);
 	});
 });

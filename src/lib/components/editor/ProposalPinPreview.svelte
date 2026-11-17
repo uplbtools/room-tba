@@ -15,64 +15,32 @@
 
 	const { change, label }: Props = $props();
 
-	let mapStyle = $state<StyleSpecification | null>(null);
-	let styleError = $state(false);
-	let map = $state.raw<maplibregl.Map | undefined>(undefined);
-
 	const distance = $derived(pinMoveDistanceMeters(change));
 
-	// The style is only fetched once this component mounts, which happens only
-	// when the reviewer opens the preview — a 59-row queue never pays for it.
-	$effect(() => {
-		let cancelled = false;
-		void loadCampusMapStyle<StyleSpecification>()
-			.then((style) => {
-				if (!cancelled) mapStyle = style;
-			})
-			.catch(() => {
-				if (!cancelled) styleError = true;
-			});
-		return () => {
-			cancelled = true;
-		};
-	});
-
-	// Camera moves fire map handlers synchronously; running them inside a
-	// reactive flush can chain back into this effect and kill the Svelte
-	// scheduler (effect_update_depth_exceeded). Defer to the next frame.
-	$effect(() => {
-		const instance = map;
-		if (!instance) return;
+	function fitPin(map: maplibregl.Map) {
 		const bounds = pinChangeBounds(change);
-		const frame = requestAnimationFrame(() => {
-			if (bounds) {
-				instance.fitBounds(bounds, { padding: 36, duration: 0, maxZoom: 18 });
-			} else {
-				instance.jumpTo({ center: [change.after.lon, change.after.lat], zoom: 17 });
-			}
-		});
-		return () => cancelAnimationFrame(frame);
-	});
+		if (bounds) {
+			map.fitBounds(bounds, { padding: 36, duration: 0, maxZoom: 18 });
+		} else {
+			map.jumpTo({ center: [change.after.lon, change.after.lat], zoom: 17 });
+		}
+	}
 </script>
 
 <div class="proposal-pin-preview">
-	{#if styleError}
-		<p class="proposal-pin-preview__fallback">
-			Map tiles unavailable. Proposed position: {change.after.lat.toFixed(6)}, {change.after.lon.toFixed(
-				6
-			)}
-		</p>
-	{:else if mapStyle}
+	{#await loadCampusMapStyle<StyleSpecification>()}
+		<p class="proposal-pin-preview__fallback">Loading map preview…</p>
+	{:then mapStyle}
 		<div
 			class="proposal-pin-preview__canvas"
 			role="img"
 			aria-label={`Map preview of the proposed position for ${label}`}
 		>
 			<MapLibre
-				bind:map
 				style={mapStyle}
 				center={[change.after.lon, change.after.lat]}
 				zoom={17}
+				onload={fitPin}
 				attributionControl={false}
 				interactive={false}
 				class="proposal-pin-preview__map"
@@ -100,9 +68,13 @@
 				)}, {change.after.lon.toFixed(5)}
 			{/if}
 		</p>
-	{:else}
-		<p class="proposal-pin-preview__fallback">Loading map preview…</p>
-	{/if}
+	{:catch}
+		<p class="proposal-pin-preview__fallback">
+			Map tiles unavailable. Proposed position: {change.after.lat.toFixed(6)}, {change.after.lon.toFixed(
+				6
+			)}
+		</p>
+	{/await}
 </div>
 
 <style>

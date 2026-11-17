@@ -14,7 +14,6 @@
 	import * as maplibre from 'maplibre-gl';
 	import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 	import { getMapStore, getSearchInfo } from '#lib/utils/context.js';
-	import { onMount } from 'svelte';
 	import UserLocationMarker from './UserLocationMarker.svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -24,42 +23,14 @@
 
 	const map = getMapStore();
 	const searchInfo = getSearchInfo();
-
-	onMount(initZoom);
-	$effect(syncZoom);
-
-	function initZoom() {
-		const mapInstance = map.getRawInstance();
-		map.setZoomLevel(17);
-		if (mapInstance) {
-			mapInstance.on('load', handleZoom(mapInstance));
-			return () => {
-				mapInstance.off('load', handleZoom(mapInstance));
-			};
-		}
-	}
-
-	function syncZoom() {
-		const mapInstance = map.getRawInstance();
-		if (mapInstance) {
-			mapInstance.on('zoom', handleZoom(mapInstance));
-			return () => {
-				mapInstance.off('zoom', handleZoom(mapInstance));
-			};
-		}
-	}
-
-	function handleZoom(mapInstance: maplibre.Map) {
-		return () => {
-			map.setZoomLevel(mapInstance.getZoom());
-		};
-	}
 </script>
 
 <div class="map-container">
 	<MapLibre
 		bind:map={() => map.getRawInstance(), (instance) => map.setRawInstance(instance)}
 		{...map.options}
+		onload={(instance) => map.setZoomLevel(instance.getZoom())}
+		onzoom={(event) => map.setZoomLevel(event.target.getZoom())}
 		onclick={(event) => map.pickPin(event.lngLat)}
 		style={'https://tiles.openfreemap.org/styles/positron'}
 		class="map"
