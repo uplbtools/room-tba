@@ -33,10 +33,7 @@
 				if (!(await form.submit().updates(getMapPlacesData())))
 					return toast.show('Some fields need fixing', 'error');
 				const result = addPlace.result;
-				toast.show(
-					result?.published ? 'Added to the map.' : 'Thanks, we will review it.',
-					'success'
-				);
+				toast.show(result?.published ? 'Added to the map.' : "Thanks, we'll review it.", 'success');
 				await goto(result?.id ? resolve(`map/places/${result.id}`) : resolve('map'));
 			} catch (e) {
 				toast.show(isHttpError(e) ? e.body.message : "Couldn't send it.", 'error');
