@@ -12,7 +12,7 @@ vi.mock("../local/data/utils.js", () => ({
   getLocalClassesForRoom,
 }));
 
-import { RoomClassesStore } from "./data-stores.svelte.js";
+import { RoomClassesStore, TermStore } from "./data-stores.svelte.js";
 
 const sample = (id: number): ClassMapValue =>
   ({
@@ -68,5 +68,17 @@ describe("RoomClassesStore", () => {
     expect(getJSONFetch).toHaveBeenCalledWith(
       "/api/classes?room_code=NL&term_id=1252",
     );
+  });
+});
+
+describe("TermStore", () => {
+  test("a second init waits for the same terms load", async () => {
+    getJSONFetch.mockReset();
+    getJSONFetch.mockResolvedValueOnce([{ id: 1261, classCount: 13274 }]);
+    const store = new TermStore();
+    void store.init();
+    await store.init();
+    expect(store.terms.find((t) => t.id === 1261)?.classCount).toBe(13274);
+    expect(getJSONFetch).toHaveBeenCalledTimes(1);
   });
 });
