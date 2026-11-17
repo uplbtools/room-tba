@@ -31,6 +31,18 @@ export const NON_ROOM_CLASS_TYPES: Readonly<
     label: "Independent study",
     description: "Independent study usually has no fixed room in AMIS.",
   },
+  SEM: {
+    label: "Seminar",
+    description: "Seminar sections may meet without a room code.",
+  },
+  STO: {
+    label: "Special topics",
+    description: "Special topics sections may meet without a room code.",
+  },
+  FLD: {
+    label: "Field work",
+    description: "Field work usually meets off-campus or without a room code.",
+  },
 };
 
 /** Short copy for room schedule panels (per-room class lists). */
