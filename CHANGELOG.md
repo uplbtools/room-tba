@@ -1,3 +1,11 @@
+# [2.48.0](https://github.com/uplbtools/room-tba/compare/v2.47.0...v2.48.0) (2026-11-17)
+
+
+### Features
+
+* **trail:** add the Sipit Trail and a trail picker ([#1514](https://github.com/uplbtools/room-tba/issues/1514)) ([70f6a88](https://github.com/uplbtools/room-tba/commit/70f6a887712a7b61cb84f1d5a4bcf3346ed7cb93))
+* **transit-map:** A3 poster with stop lists, signboards and the leaving-town guide ([#1510](https://github.com/uplbtools/room-tba/issues/1510)) ([a0bf8b4](https://github.com/uplbtools/room-tba/commit/a0bf8b477fab317ede8dbd116e7bca1aef73c247)), closes [hi#contrast](https://github.com/hi/issues/contrast)
+
 # [2.44.0](https://github.com/uplbtools/room-tba/compare/v2.43.0...v2.44.0) (2026-11-15)
 
 ### Features
