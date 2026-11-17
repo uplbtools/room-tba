@@ -1,5 +1,6 @@
 <script lang="ts">
 	import './entity-editor.css';
+	import { onMount } from 'svelte';
 	import { UPLOAD_MAX_BYTES } from '#lib/utils/r2-upload-core.js';
 
 	type Props = {
@@ -29,27 +30,18 @@
 
 	const maxSizeLabel = `${Math.round(UPLOAD_MAX_BYTES / (1024 * 1024))} MB`;
 
-	$effect(() => {
-		let cancelled = false;
-		uploadConfigured = null;
-		fetch(endpoint, { credentials: 'same-origin' })
-			.then(async (res) => {
-				if (cancelled) return;
-				if (res.status === 401 || res.status === 403) {
-					uploadConfigured = false;
-					return;
-				}
-				const data = (await res.json().catch(() => ({}))) as {
-					configured?: boolean;
-				};
-				uploadConfigured = data.configured === true;
-			})
-			.catch(() => {
-				if (!cancelled) uploadConfigured = false;
-			});
-		return () => {
-			cancelled = true;
-		};
+	onMount(async () => {
+		try {
+			const res = await fetch(endpoint, { credentials: 'same-origin' });
+			if (res.status === 401 || res.status === 403) {
+				uploadConfigured = false;
+				return;
+			}
+			const data = (await res.json().catch(() => ({}))) as { configured?: boolean };
+			uploadConfigured = data.configured === true;
+		} catch {
+			uploadConfigured = false;
+		}
 	});
 
 	async function handleFileChange(event: Event) {

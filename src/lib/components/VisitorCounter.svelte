@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Users from '@lucide/svelte/icons/users';
+	import { onMount } from 'svelte';
 	import { fetchVisitorCount } from '#lib/utils/visitor-count.js';
 
 	let {
@@ -13,18 +14,11 @@
 	let count = $state<number | null>(null);
 	let failed = $state(false);
 
-	$effect(() => {
-		let active = true;
-		fetchVisitorCount()
-			.then((value) => {
-				if (active) count = value;
-			})
-			.catch(() => {
-				if (active) failed = true;
-			});
-		return () => {
-			active = false;
-		};
+	onMount(() => {
+		fetchVisitorCount().then(
+			(value) => (count = value),
+			() => (failed = true)
+		);
 	});
 
 	const display = $derived(count !== null ? count.toLocaleString() : failed ? '?' : '...');
