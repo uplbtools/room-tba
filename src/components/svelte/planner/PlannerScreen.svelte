@@ -202,6 +202,14 @@
     const ics = buildPlanIcs(
       plan,
       term ? { startsOn: term.startsOn, endsOn: term.endsOn } : null,
+      {
+        finals: planFinals,
+        roomIds: Object.fromEntries(
+          [...courseRows, ...finals].flatMap((row) =>
+            row.roomCode && row.roomId ? [[row.roomCode, row.roomId]] : [],
+          ),
+        ),
+      },
     );
     const blob = new Blob([ics], { type: "text/calendar" });
     const url = URL.createObjectURL(blob);
