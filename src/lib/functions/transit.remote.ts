@@ -32,7 +32,7 @@ export const getTransitRoutes = query(async () => {
 	return withBundledRoutes(routes);
 });
 
-/** One transit route by id, with its geometry. Responds 404 when it does not exist. */
+/** One transit route by id, with its geometry. Responds 404 when it doesn't exist. */
 export const getTransitRoute = query(v.string(), async (id) => {
 	const route = (await getTransitRoutes()).find((r) => r.id === id);
 	if (!route) error(404, 'Not found');

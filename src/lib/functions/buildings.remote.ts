@@ -20,7 +20,7 @@ export const getMapBuildingsData = query(async () => {
 	return rows;
 });
 
-/** One building by id. Responds 404 when it does not exist. */
+/** One building by id. Responds 404 when it doesn't exist. */
 export const getBuildingById = query(TableIdSchema, async (id) => {
 
 	// const [buildingData] = await db.select().from(buildingsTable).where(eq(buildingsTable.id, id));
