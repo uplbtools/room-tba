@@ -41,7 +41,9 @@
   import TermSelector from "@ui/TermSelector.svelte";
   import GoogleCalendarIcon from "@ui/icons/GoogleCalendarIcon.svelte";
   import PlannerCourseSearch from "./PlannerCourseSearch.svelte";
+  import PlannerFindSchedule from "./PlannerFindSchedule.svelte";
   import PlannerGrid from "./PlannerGrid.svelte";
+  import type { ClassOfferingGroup } from "@lib/class-offering-groups";
   import type { ClassMapValue, FinalExamRow } from "@lib/types";
   import { tick } from "svelte";
   import { MediaQuery } from "svelte/reactivity";
@@ -159,6 +161,11 @@
 
   function swapSection(courseCode: string, toSections: ClassMapValue[]) {
     plannerStore.replaceCourse(courseCode, toSections);
+  }
+
+  function useSchedule(groups: ClassOfferingGroup[]) {
+    for (const g of groups) swapSection(g.courseCode, g.sections);
+    toastStore.show("Schedule applied", "success");
   }
 
   // The store's open/close was removed (babff7b) - the screen now mounts only
@@ -630,6 +637,13 @@
               </li>
             {/each}
           </ul>
+        {/if}
+        {#if courseGroups.length > 1}
+          <PlannerFindSchedule
+            rows={courseRows}
+            courseCodes={courseGroups.map((g) => g.courseCode)}
+            onpick={useSchedule}
+          />
         {/if}
         <p class="planner-side__hint" role="note">
           AMIS doesn't list instructors here. Jot each section's professor
