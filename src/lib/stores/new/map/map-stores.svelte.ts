@@ -40,6 +40,8 @@ export class MapStore {
 	});
 	poiPinsZoomVisible: boolean = $state(true);
 	zoomLevel: number = $state(0);
+	pickingPin = $state(false);
+	draftPin: { lat: number; lon: number } | null = $state(null);
 	// private viewFilter = $state<MarkerFilter>("all");
 
 	constructor() {
@@ -48,6 +50,18 @@ export class MapStore {
 
 	public getRawInstance = () => this.mapInstance;
 	public setRawInstance = (v: maplibre.MapLibreMap | undefined) => (this.mapInstance = v);
+
+	public startPickingPin() {
+		this.pickingPin = true;
+		return () => {
+			this.pickingPin = false;
+			this.draftPin = null;
+		};
+	}
+
+	public pickPin({ lat, lng }: { lat: number; lng: number }) {
+		if (this.pickingPin) this.draftPin = { lat, lon: lng };
+	}
 
 	public setZoomLevel(zoomLevel: number) {
 		this.zoomLevel = zoomLevel;

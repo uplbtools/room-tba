@@ -2,27 +2,11 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import type { MapProposalTarget } from './store-types.js';
 import {
 	AdditionProposalStore,
-	EditorChromeStore,
 	EventPlacementStore,
 	MapEditStore,
 	MapProposalStore
 } from './editor/editor-stores.svelte.js';
 import { mapEditStore, terrainStore } from '#lib/stores.svelte.js';
-
-describe('EditorChromeStore', () => {
-	let store: EditorChromeStore;
-
-	beforeEach(() => {
-		store = new EditorChromeStore();
-	});
-
-	test('openAdditionModal opens the addition modal', () => {
-		store.openAdditionModal();
-		expect(store.additionModalOpen).toBe(true);
-		store.closeAdditionModal();
-		expect(store.additionModalOpen).toBe(false);
-	});
-});
 
 describe('MapEditStore', () => {
 	let store: MapEditStore;
@@ -75,21 +59,6 @@ describe('AdditionProposalStore', () => {
 		store.deliverMapPin(14.1, 121.2);
 		await expect(pending).resolves.toEqual({ lat: 14.1, lon: 121.2 });
 		expect(store.pinPickActive).toBe(false);
-	});
-
-	test('setDraftPinPreview stores preview metadata independently of coords', () => {
-		const store = new AdditionProposalStore();
-		store.setDraftPinPreview({ kind: 'building', label: 'Baker Hall' });
-		expect(store.draftPinPreview).toEqual({
-			kind: 'building',
-			label: 'Baker Hall'
-		});
-		store.clearDraftPin();
-		expect(store.draftPin).toBeNull();
-		expect(store.draftPinPreview).toEqual({
-			kind: 'building',
-			label: 'Baker Hall'
-		});
 	});
 });
 
