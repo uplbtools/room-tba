@@ -204,7 +204,7 @@ describe("renderTransitMapPdf", () => {
     expect(bytes.length).toBeGreaterThan(2000);
 
     const pdf = await PDFDocument.load(bytes);
-    expect(pdf.getTitle()).toBe("UPLB Jeepney Routes");
+    expect(pdf.getTitle()).toBe("UPLB Jeeps & Buses");
     expect(pdf.getAuthor()).toBe("Room TBA");
   });
 
@@ -234,7 +234,12 @@ describe("renderTransitMapPdf", () => {
   });
 
   test("renders every print palette", async () => {
-    for (const palette of ["app", "high-contrast", "colorblind"] as const) {
+    for (const palette of [
+      "paper",
+      "app",
+      "high-contrast",
+      "colorblind",
+    ] as const) {
       const bytes = await renderTransitMapPdf({ routes: [route()], palette });
       const header = Buffer.from(bytes.slice(0, 5)).toString("latin1");
       expect(header).toBe("%PDF-");
@@ -511,7 +516,7 @@ describe("any point as You are here", () => {
       routes: [route()],
       here: { name: "\u6559\u5ba4", lat: 14.1644, lon: 121.2412 },
     });
-    expect((await PDFDocument.load(bytes)).getPageCount()).toBe(1);
+    expect((await PDFDocument.load(bytes)).getPageCount()).toBe(2);
   });
 
   test("renders a nameless point near campus", async () => {
@@ -521,7 +526,24 @@ describe("any point as You are here", () => {
       basemap: basemap as TransitBasemap,
     });
     const pdf = await PDFDocument.load(bytes);
-    expect(pdf.getPageCount()).toBe(1);
+    expect(pdf.getPageCount()).toBe(2);
+  });
+});
+
+describe("poster layout", () => {
+  test("the poster is portrait, and A3 fits on one page", async () => {
+    for (const format of ["a4", "a3"] as const) {
+      const bytes = await renderTransitMapPdf({
+        routes: [route()],
+        format,
+        layout: "poster",
+      });
+      const pdf = await PDFDocument.load(bytes);
+      // A4 moves what doesn't fit under the lists to a second page.
+      if (format === "a3") expect(pdf.getPageCount()).toBe(1);
+      const { width, height } = pdf.getPage(0).getSize();
+      expect(height).toBeGreaterThan(width);
+    }
   });
 });
 

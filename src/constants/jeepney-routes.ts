@@ -135,8 +135,9 @@ export const ROUTE_END_BOARDS: Readonly<
 /** The same advice, short enough for a route card on the printable map. */
 export const ROUTE_PRINT_NOTES: Readonly<Record<string, string>> = {
   forestry:
-    "Sumakay sa Forestry Jeep Terminal malapit sa Big Belly's pag paakyat, at sa Upper Forestry Jeep Terminal pag pababa.",
-  "kaliwa-kanan": "Kumakaliwa sa gate ang Kaliwa at kumakanan ang Kanan.",
+    "Sumakay sa Forestry Jeep Terminal malapit sa Big Belly's pag paakyat, at sa Upper Forestry Jeep Terminal pag pababa. Para pumara ng jeep paakyat, ituro ang hintuturo pataas.",
+  "kaliwa-kanan":
+    "Kumakaliwa sa gate ang Kaliwa at kumakanan ang Kanan. Hanggang Olivarez Plaza Mall ang OLIVAREZ, Jollibee sa Lopez Ave ang JUNCTION, at Municipal Hall ang BAYAN. Hindi pumapasok sa campus ang UP GATE. Sa Freedom Park, tanungin ang driver kung sa SU o sa dorms dadaan.",
 };
 
 /** Forestry's two trips; also written to the database by scripts/fix-transit-data.ts. */
