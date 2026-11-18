@@ -65,6 +65,6 @@
 		class="text-sm underline"
 		href={getTransitMapPath({ lat: stop.lat, lon: stop.lon, name: stop.name })}
 		target="_blank"
-		rel="noopener">Printable jeepney map from this stop</a
+		rel="noopener">Printable transit map from this stop</a
 	>
 </div>

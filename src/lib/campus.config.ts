@@ -72,7 +72,7 @@ export const campusTransit: {
 	/** Campus transit overlay: map layer, sidebar browse tab, /transit/ links, sitemap entries. */
 	enabled: true,
 	/** Menu / browse-tab label; title case and singular copy are derived from it. */
-	label: 'Jeepney routes',
+	label: 'Jeep & bus routes',
 	/** Bundled route/stop data a fork replaces (runtime rows come from the transit tables). */
 	routeDataModule: 'src/constants/jeepney-routes.ts'
 };

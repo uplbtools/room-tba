@@ -345,7 +345,7 @@
 			<section class="app-menu__section" aria-label="Transit">
 				<a class="app-menu__action map-chrome-chip" href="/map/transit" onclick={closePanel}>
 					<BusFront size={14} aria-hidden="true" />
-					<span>Jeepney and bus routes</span>
+					<span>Jeep & bus routes</span>
 				</a>
 				<a
 					class="app-menu__action map-chrome-chip"
