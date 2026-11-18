@@ -34,7 +34,9 @@
 	import TermSelector from '#lib/components/TermSelector.svelte';
 	import GoogleCalendarIcon from '#lib/components/icons/GoogleCalendarIcon.svelte';
 	import PlannerCourseSearch from './PlannerCourseSearch.svelte';
+	import PlannerFindSchedule from './PlannerFindSchedule.svelte';
 	import PlannerGrid from './PlannerGrid.svelte';
+	import type { ClassOfferingGroup } from '#lib/utils/class-offering-groups.js';
 	import type { ClassMapValue, FinalExamRow } from '#lib/utils/types.js';
 	import { onMount, tick } from 'svelte';
 	import { MediaQuery } from 'svelte/reactivity';
@@ -177,6 +179,11 @@
 
 	function swapSection(courseCode: string, toSections: ClassMapValue[]) {
 		plannerStore.replaceCourse(courseCode, toSections);
+	}
+
+	function useSchedule(groups: ClassOfferingGroup[]) {
+		for (const group of groups) swapSection(group.courseCode, group.sections);
+		toastStore.show('Schedule applied', 'success');
 	}
 
 	function close() {
@@ -628,6 +635,18 @@
 						</li>
 					{/each}
 				</ul>
+
+				{#if courseGroups.length > 1}
+					<svelte:boundary>
+						{#snippet pending()}{/snippet}
+						{@const classes = await courseClasses}
+						<PlannerFindSchedule
+							rows={classes.rows}
+							courseCodes={courseGroups.map((g) => g.courseCode)}
+							onpick={useSchedule}
+						/>
+					</svelte:boundary>
+				{/if}
 
 				{#if unscheduled.length > 0}
 					<h2 class="planner-side__heading">Unscheduled (TBA)</h2>

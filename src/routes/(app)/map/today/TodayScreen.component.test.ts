@@ -1,14 +1,14 @@
 import { render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import TodayScreen from './TodayScreen.svelte';
-import { getRoomWalkSeconds } from '#lib/functions/directions.remote.js';
+import { getRoomWalkMinutes } from '#lib/functions/directions.remote.js';
 import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
 import TermStore from '#lib/stores/new/data/TermStore.svelte.js';
 import type { ClassMapValue } from '#lib/utils/types.js';
 
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
 vi.mock('#lib/functions/terms.remote.js', () => ({ getTerms: vi.fn() }));
-vi.mock('#lib/functions/directions.remote.js', () => ({ getRoomWalkSeconds: vi.fn() }));
+vi.mock('#lib/functions/directions.remote.js', () => ({ getRoomWalkMinutes: vi.fn() }));
 vi.mock('#lib/utils/context.js', () => ({
 	getPlannerStore: () => plannerStore,
 	getTermStore: () => termStore,
@@ -41,13 +41,13 @@ describe('TodayScreen', () => {
 		termStore.activeTermId = 1252;
 		plannerStore.plans = [];
 		plannerStore.activePlanIdByTerm = {};
-		vi.mocked(getRoomWalkSeconds).mockReset();
+		vi.mocked(getRoomWalkMinutes).mockReset();
 	});
 
 	afterEach(() => vi.useRealTimers());
 
 	test('says when to leave for a class in another building', async () => {
-		vi.mocked(getRoomWalkSeconds).mockResolvedValue(440);
+		vi.mocked(getRoomWalkMinutes).mockResolvedValue({ 'MB 101|ICS MH1': 8 });
 		plannerStore.addOffering([
 			row({ courseCode: 'MATH 27', roomCode: 'MB 101', schedule: ['M 07:00AM-08:00AM'] })
 		]);
@@ -55,18 +55,18 @@ describe('TodayScreen', () => {
 		render(TodayScreen);
 
 		expect(await screen.findByText('Leave by 8:02 AM, 8 min walk from MB 101')).toBeVisible();
-		expect(getRoomWalkSeconds).toHaveBeenCalledWith({ from: 'MB 101', to: 'ICS MH1' });
+		expect(getRoomWalkMinutes).toHaveBeenCalledWith(['MB 101', 'ICS MH1']);
 	});
 
 	test('says nothing when the rooms are in one building', async () => {
-		vi.mocked(getRoomWalkSeconds).mockResolvedValue(null);
+		vi.mocked(getRoomWalkMinutes).mockResolvedValue({});
 		plannerStore.addOffering([
 			row({ courseCode: 'MATH 27', roomCode: 'MB 101', schedule: ['M 07:00AM-08:00AM'] })
 		]);
 		plannerStore.addOffering([row({ id: 2, roomCode: 'MB 102', schedule: ['M 08:10AM-09:00AM'] })]);
 		render(TodayScreen);
 
-		await vi.waitFor(() => expect(getRoomWalkSeconds).toHaveBeenCalled());
+		await vi.waitFor(() => expect(getRoomWalkMinutes).toHaveBeenCalled());
 		expect(document.querySelector('.today-entry__leave')).toBeNull();
 	});
 });

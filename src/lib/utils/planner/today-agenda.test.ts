@@ -122,14 +122,13 @@ describe('formatTimeRange', () => {
 
 describe('leaveByNote', () => {
 	it('says when to leave when the gap is longer than the walk', () => {
-		// class ends 12:30, next at 1:00 PM, walk 7 min 20 s rounds up to 8
-		expect(leaveByNote(750, 780, 440, 'PS C-203')).toBe(
+		expect(leaveByNote(750, 780, 8, 'PS C-203')).toBe(
 			'Leave by 12:52 PM, 8 min walk from PS C-203'
 		);
 	});
 
 	it("says how late you'll be when the walk is longer than the gap", () => {
-		expect(leaveByNote(777, 780, 480, 'PS C-203')).toBe(
+		expect(leaveByNote(777, 780, 8, 'PS C-203')).toBe(
 			"8 min walk from PS C-203, so you'll be about 5 min late"
 		);
 	});

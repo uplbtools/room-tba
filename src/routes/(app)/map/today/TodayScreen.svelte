@@ -5,7 +5,7 @@
 	import { fly } from 'svelte/transition';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { goto } from '$app/navigation';
-	import { getRoomWalkSeconds } from '#lib/functions/directions.remote.js';
+	import { getRoomWalkMinutes } from '#lib/functions/directions.remote.js';
 	import { getPlannerStore, getSearchInfo, getTermStore } from '#lib/utils/context.js';
 	import { trapFocus } from '#lib/utils/focus-trap.js';
 	import { fullScreenReveal } from '#lib/utils/motion.js';
@@ -135,13 +135,13 @@
 										<svelte:boundary>
 											{#snippet pending()}{/snippet}
 											{#snippet failed()}{/snippet}
-											{@const seconds = await getRoomWalkSeconds({
-												from: prev.roomCode ?? '',
-												to: entry.roomCode ?? ''
-											})}
-											{#if seconds}
+											{@const from = prev.roomCode ?? ''}
+											{@const walk = (await getRoomWalkMinutes([from, entry.roomCode]))[
+												`${from}|${entry.roomCode}`
+											]}
+											{#if walk}
 												<p class="today-entry__leave">
-													{leaveByNote(prev.endMin, entry.startMin, seconds, prev.roomCode ?? '')}
+													{leaveByNote(prev.endMin, entry.startMin, walk, from)}
 												</p>
 											{/if}
 										</svelte:boundary>
