@@ -18,6 +18,7 @@
 	import BookOpen from '@lucide/svelte/icons/book-open';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import BusFront from '@lucide/svelte/icons/bus-front';
+	import Mountain from '@lucide/svelte/icons/mountain';
 	import Printer from '@lucide/svelte/icons/printer';
 	import UserRound from '@lucide/svelte/icons/user-round';
 	import { onMount } from 'svelte';
@@ -356,6 +357,10 @@
 				>
 					<Printer size={14} aria-hidden="true" />
 					<span>Printable transit map</span>
+				</a>
+				<a class="app-menu__action map-chrome-chip" href="/map/trail" onclick={closePanel}>
+					<Mountain size={14} aria-hidden="true" />
+					<span>Makiling trails</span>
 				</a>
 			</section>
 
