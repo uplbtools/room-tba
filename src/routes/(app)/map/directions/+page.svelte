@@ -4,8 +4,10 @@
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import InfoPanel from '#lib/components/new/InfoPanel.svelte';
-	import { getWalkingRoute } from '#lib/functions/directions.remote.js';
+	import { getJeepRide, getWalkingRoute } from '#lib/functions/directions.remote.js';
 	import { getMapStore, getUserLocation } from '#lib/utils/context.js';
+	import JeepLegs from './JeepLegs.svelte';
+	import { routeLegs, usesJeep } from './legs.js';
 	import { directionsRequest } from './point.js';
 	import StartPicker from './StartPicker.svelte';
 
@@ -22,10 +24,17 @@
 
 	async function fitRoute() {
 		if (!request) return;
-		const { plan } = await getWalkingRoute(request);
+		const { from, to, plan } = await getWalkingRoute(request);
 		if (plan.status !== 'ok') return;
-		const lons = plan.route.coordinates.map(([lon]) => lon);
-		const lats = plan.route.coordinates.map(([, lat]) => lat);
+		const jeep = await getJeepRide(request);
+		const line = routeLegs(
+			from,
+			to,
+			plan.route.coordinates,
+			usesJeep(page.url.searchParams, jeep) ? jeep : null
+		).flatMap((leg) => leg.coordinates);
+		const lons = line.map(([lon]) => lon);
+		const lats = line.map(([, lat]) => lat);
 		map.fitBounds([
 			[Math.min(...lons), Math.min(...lats)],
 			[Math.max(...lons), Math.max(...lats)]
@@ -36,6 +45,13 @@
 		const params = new URLSearchParams(page.url.search);
 		if (value) params.set('from', value);
 		else params.delete('from');
+		goto(`${resolve('/map/directions')}?${params}`, { replaceState: true });
+	}
+
+	function setMode(mode: 'walk' | null) {
+		const params = new URLSearchParams(page.url.search);
+		if (mode) params.set('mode', mode);
+		else params.delete('mode');
 		goto(`${resolve('/map/directions')}?${params}`, { replaceState: true });
 	}
 
@@ -84,13 +100,39 @@
 					{/snippet}
 					{@const { from, to, plan } = await getWalkingRoute(request)}
 					{#if plan.status === 'ok'}
-						<p class="text-lg font-semibold">
-							{Math.max(1, Math.round(plan.route.seconds / 60))} min walk
-							<span class="text-sm font-normal text-neutral-700">
-								{Math.round(plan.route.meters)} m
-							</span>
-						</p>
-						<p class="text-sm text-neutral-700">{from.name} to {to.name}</p>
+						{@const jeep = await getJeepRide(request)}
+						{@const byJeep = usesJeep(page.url.searchParams, jeep)}
+						{#if jeep}
+							<div class="flex gap-2 text-sm">
+								<button
+									type="button"
+									class="cursor-pointer rounded-lg border px-3 py-2 aria-pressed:border-blue-700 aria-pressed:bg-blue-50"
+									aria-pressed={byJeep}
+									onclick={() => setMode(null)}
+								>
+									{Math.max(1, Math.round(jeep.seconds / 60))} min by jeep
+								</button>
+								<button
+									type="button"
+									class="cursor-pointer rounded-lg border px-3 py-2 aria-pressed:border-blue-700 aria-pressed:bg-blue-50"
+									aria-pressed={!byJeep}
+									onclick={() => setMode('walk')}
+								>
+									{Math.max(1, Math.round(plan.route.seconds / 60))} min walk
+								</button>
+							</div>
+						{/if}
+						{#if jeep && byJeep}
+							<JeepLegs {jeep} from={from.name} to={to.name} />
+						{:else}
+							<p class="text-lg font-semibold">
+								{Math.max(1, Math.round(plan.route.seconds / 60))} min walk
+								<span class="text-sm font-normal text-neutral-700">
+									{Math.round(plan.route.meters)} m
+								</span>
+							</p>
+							<p class="text-sm text-neutral-700">{from.name} to {to.name}</p>
+						{/if}
 						<button
 							type="button"
 							class="cursor-pointer self-start text-sm text-blue-700 underline"
