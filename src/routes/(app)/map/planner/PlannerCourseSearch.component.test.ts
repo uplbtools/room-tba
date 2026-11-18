@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/svelte';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/svelte';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import PlannerCourseSearch from './PlannerCourseSearch.svelte';
 import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
@@ -15,6 +15,11 @@ vi.mock('#lib/utils/context.js', () => ({
 	getTermStore: () => termStore,
 	getToast: () => toastStore
 }));
+
+vi.stubGlobal(
+	'fetch',
+	vi.fn(async () => Response.json({}))
+);
 
 const termStore = new TermStore();
 const plannerStore = new PlannerStore(() => termStore.activeTermId);
@@ -100,5 +105,50 @@ describe('PlannerCourseSearch', () => {
 		expect(added).toHaveTextContent('✓ Added');
 		expect(added).toHaveAttribute('aria-pressed', 'true');
 		expect(screen.getAllByText('Lec WF 4–5 PM · EAA LH')[0]).toBeVisible();
+	});
+});
+
+describe('PlannerCourseSearch program courses', () => {
+	beforeEach(() => {
+		localStorage.clear();
+		termStore.activeTermId = 1253;
+		plannerStore.plans = [];
+		plannerStore.activePlanIdByTerm = {};
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () =>
+				Response.json({
+					BSCS: { name: 'BS Computer Science', courses: ['CMSC 12', 'MATH 27'], electives: [] }
+				})
+			)
+		);
+	});
+
+	test('picking a program lists its courses, and a course searches it', async () => {
+		render(PlannerCourseSearch);
+		await fireEvent.change(await screen.findByLabelText('Your program'), {
+			target: { value: 'BSCS' }
+		});
+		expect(localStorage.getItem('rtba-planner-program')).toBe('"BSCS"');
+
+		const list = screen.getByLabelText('Courses in BS Computer Science');
+		await fireEvent.click(within(list).getByRole('button', { name: 'MATH 27' }));
+		expect(screen.getByPlaceholderText(/Search courses/)).toHaveValue('MATH 27');
+	});
+
+	test('remembers the program and hides courses already in the plan', async () => {
+		localStorage.setItem('rtba-planner-program', '"BSCS"');
+		plannerStore.addOffering([rows[0]]);
+		render(PlannerCourseSearch);
+		const list = await screen.findByLabelText('Courses in BS Computer Science');
+		expect(within(list).queryByRole('button', { name: 'CMSC 12' })).toBeNull();
+		expect(within(list).getByRole('button', { name: 'MATH 27' })).toBeVisible();
+	});
+
+	test('shows no picker when the file cannot load', async () => {
+		vi.mocked(fetch).mockRejectedValue(new Error('offline'));
+		render(PlannerCourseSearch);
+		expect(await screen.findByText(/Type a course code/)).toBeVisible();
+		expect(screen.queryByLabelText('Your program')).toBeNull();
 	});
 });

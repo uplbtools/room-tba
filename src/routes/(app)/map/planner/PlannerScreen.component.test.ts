@@ -20,6 +20,11 @@ vi.mock('#lib/utils/context.js', () => ({
 	getEscapeActions: () => ({})
 }));
 
+vi.stubGlobal(
+	'fetch',
+	vi.fn(async () => Response.json({}))
+);
+
 const termStore = new TermStore();
 termStore.init = async () => {};
 const plannerStore = new PlannerStore(() => termStore.activeTermId);

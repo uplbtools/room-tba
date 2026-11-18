@@ -10,6 +10,8 @@
 	} from '#lib/utils/class-offering-groups.js';
 	import { formatScheduleShort, formatSectionType } from '#lib/utils/planner/format.js';
 	import { getPlannerStore, getTermStore, getToast } from '#lib/utils/context.js';
+	import { readLocalJson, writeLocalJson } from '#lib/utils/locStorage.js';
+	import { fetchPrograms, PLANNER_PROGRAM_KEY } from '#lib/utils/planner/program-courses.js';
 	import type { ClassMapValue } from '#lib/utils/types.js';
 
 	const plannerStore = getPlannerStore();
@@ -27,6 +29,13 @@
 	const planCourses = $derived([
 		...new Set((plannerStore.activePlan?.sections ?? []).map((s) => s.courseCode))
 	]);
+
+	let programCode = $state(readLocalJson<string>(PLANNER_PROGRAM_KEY, ''));
+
+	function pickProgram(code: string) {
+		programCode = code;
+		writeLocalJson(PLANNER_PROGRAM_KEY, code);
+	}
 
 	function searchCourse(code: string) {
 		query = code;
@@ -144,6 +153,37 @@
 					{/each}
 				</div>
 			{/if}
+			<svelte:boundary>
+				{#snippet pending()}{/snippet}
+				{@const programs = await fetchPrograms()}
+				{@const program = programs.find((p) => p.code === programCode)}
+				{@const programCourses =
+					program?.courses.filter((code) => !planCourses.includes(code)) ?? []}
+				{#if programs.length > 0}
+					<label class="course-search__program">
+						Your program
+						<select value={programCode} onchange={(e) => pickProgram(e.currentTarget.value)}>
+							<option value="">Pick your program</option>
+							{#each programs as p (p.code)}
+								<option value={p.code}>{p.name}</option>
+							{/each}
+						</select>
+					</label>
+					{#if program && programCourses.length > 0}
+						<div class="course-search__chips" aria-label="Courses in {program.name}">
+							{#each programCourses as code (code)}
+								<button
+									type="button"
+									class="course-search__chip"
+									onclick={() => searchCourse(code)}
+								>
+									{code}
+								</button>
+							{/each}
+						</div>
+					{/if}
+				{/if}
+			</svelte:boundary>
 		</div>
 	{:else}
 		<svelte:boundary>
@@ -271,6 +311,28 @@
 		font-size: 0.8125rem;
 		line-height: 1.4;
 		color: hsl(0, 0%, 35%);
+	}
+
+	.course-search__program {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		width: 100%;
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: hsl(0, 0%, 35%);
+	}
+
+	.course-search__program select {
+		min-height: 2.75rem;
+		padding: 0 0.5rem;
+		border: 1px solid hsl(0, 0%, 85%);
+		border-radius: 0.5rem;
+		background: white;
+		color: hsl(0, 0%, 15%);
+		font: inherit;
+		font-size: 0.8125rem;
+		font-weight: 400;
 	}
 
 	.course-search__chips {
