@@ -98,7 +98,7 @@
 			githubRepoStars = repoStarsRes.stars;
 			githubLoaded = true;
 		} catch (err) {
-			githubError = err instanceof Error ? err.message : 'Could not load GitHub data';
+			githubError = err instanceof Error ? err.message : "Couldn't load GitHub data";
 		} finally {
 			githubLoading = false;
 		}
@@ -218,19 +218,19 @@
 				>
 					<section class="people-block">
 						<h3>Campus editors &amp; contributors</h3>
-						<p class="section-note">People credited for published campus data changes.</p>
+						<p class="section-note">These people are credited for published campus data changes.</p>
 						{#if creditsLoading}
 							<p class="section-note">Loading credits…</p>
 						{:else if campusCredits.length > 0}
 							<PeopleAvatarGrid people={campusCreditPeople} />
 						{:else if creditsLoaded}
-							<p class="section-note">No public credits yet.</p>
+							<p class="section-note">There are no public credits yet.</p>
 						{/if}
 					</section>
 
 					<GithubContributorsSection
 						title="Developers"
-						note="From GitHub commit history on the Room TBA repo."
+						note="These come from the GitHub commit history of the Room TBA repo."
 						contributors={githubContributors}
 						loading={githubLoading}
 						loaded={githubLoaded}
@@ -241,7 +241,7 @@
 					<section class="people-block">
 						<h3>Design</h3>
 						<p class="section-note">
-							Visual and UX design (manual credits, not from GitHub commits).
+							Design credits are added by hand, not taken from GitHub commits.
 						</p>
 						<PeopleAvatarGrid people={designerPeople} imageFolder="contributors" />
 					</section>

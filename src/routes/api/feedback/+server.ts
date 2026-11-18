@@ -179,7 +179,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 		console.error(e);
 		return json(
 			{
-				error: 'Could not send your message. Try again, or reach us on Discord or Messenger.'
+				error: "Couldn't send your message. Try again, or reach us on Discord or Messenger."
 			},
 			{ status: 500 }
 		);

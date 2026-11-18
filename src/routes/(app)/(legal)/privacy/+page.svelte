@@ -79,7 +79,7 @@
 </section>
 
 <section>
-	<h2>What we do not sell</h2>
+	<h2>What we don't sell</h2>
 	<p>
 		We do not sell your personal information. The interactive map runs no third-party ad networks.
 	</p>

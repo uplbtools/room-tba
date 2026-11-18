@@ -63,7 +63,9 @@
 		if (!URL.canParse(siteUrl)) list.push('Site URL must be a valid URL.');
 		if (!(zoom >= 1 && zoom <= 22)) list.push('Default zoom must be 1–22.');
 		if (!(west < east && south < north))
-			list.push('Bounds are degenerate: west must be less than east and south less than north.');
+			list.push(
+				'The bounds are degenerate. West must be less than east and south less than north.'
+			);
 		if (transitOverlay && !transitLabel.trim())
 			list.push('Transit overlay label is required when the overlay is on.');
 		return list;
@@ -216,7 +218,7 @@
 			await copyTextToClipboard(configText);
 			copyStatus = 'Copied.';
 		} catch {
-			copyStatus = 'Could not copy — select the text manually.';
+			copyStatus = "Couldn't copy. Select the text manually.";
 		}
 		if (copyTimer) clearTimeout(copyTimer);
 		copyTimer = setTimeout(() => {
@@ -332,7 +334,9 @@
 			<label>
 				Short name (slug)
 				<input type="text" value={slug} oninput={(e) => (slugOverride = e.currentTarget.value)} />
-				<span class="fw__hint"> Auto-filled from the name. Used for the Vercel project name. </span>
+				<span class="fw__hint">
+					This is filled in from the name and used as the Vercel project name.
+				</span>
 			</label>
 			<label>
 				Site URL
@@ -342,7 +346,7 @@
 					oninput={(e) => (siteUrlOverride = e.currentTarget.value)}
 				/>
 				<span class="fw__hint">
-					Where the fork will live. The Vercel default works until you have a domain.
+					This is where the fork will live. The Vercel default works until you have a domain.
 				</span>
 			</label>
 			<label>
@@ -365,7 +369,8 @@
 				Transit overlay label
 				<input type="text" bind:value={transitLabel} disabled={!transitOverlay} />
 				<span class="fw__hint">
-					What the toggle is called in your app, e.g. "Jeepney routes", "Shuttle lines".
+					This is what the toggle is called in your app, for example "Jeepney routes" or "Shuttle
+					lines".
 				</span>
 			</label>
 			<label class="fw__check">
@@ -415,11 +420,11 @@
 					Paste the config above over <code>src/campus.config.ts</code> in your fork.
 				</li>
 				<li>
-					Seed a starter dataset: <code>bun run seed:sample</code>, then import your class schedule
-					with <code>bun run import:classes-generic</code>.
+					Seed a starter dataset with <code>bun run seed:sample</code>, then import your class
+					schedule with <code>bun run import:classes-generic</code>.
 				</li>
 				<li>
-					Click "Deploy with Vercel" above — it prompts for the env vars the app needs (<code
+					Click "Deploy with Vercel" above. It prompts for the env vars the app needs (<code
 						>DATABASE_URL</code
 					>
 					and friends, see

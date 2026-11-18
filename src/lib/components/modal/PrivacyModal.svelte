@@ -9,12 +9,12 @@
 	<header>
 		<p class="privacy-modal__eyebrow">Legal</p>
 		<h2>Privacy Policy</h2>
-		<p>Last updated: June 29, 2026.</p>
+		<p>Last updated June 29, 2026.</p>
 	</header>
 
 	<div class="privacy-modal__scroll map-chrome-scroll">
 		<p>
-			Room TBA is a free UPLB campus map and schedule finder maintained by volunteers. It is not an
+			Room TBA is a free UPLB campus map and schedule finder maintained by volunteers. It isn't an
 			official University of the Philippines Los Baños website.
 		</p>
 
@@ -32,14 +32,14 @@
 			<h3>Your choices</h3>
 			<p>
 				Clear site data in your browser to remove local caches, and sign out on shared devices.
-				Account settings let signed-in contributors manage their details or delete their account;
-				published edit history stays attributed to a deleted user so the audit trail remains intact.
+				Account settings let signed-in contributors manage their details or delete their account.
+				Published edit history stays attributed to a deleted user so the audit trail remains intact.
 			</p>
 		</section>
 
 		<section>
-			<h3>What we do not sell</h3>
-			<p>We do not sell personal information or run third-party ad networks.</p>
+			<h3>What we don't sell</h3>
+			<p>We don't sell personal information or run third-party ad networks.</p>
 		</section>
 
 		<p>

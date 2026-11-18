@@ -116,7 +116,7 @@
 			);
 			const data = (await res.json().catch(() => ({}))) as { error?: string };
 			if (!res.ok) {
-				editorError = data.error ?? 'Could not save the announcement.';
+				editorError = data.error ?? "Couldn't save the announcement.";
 				return;
 			}
 			draft = null;
@@ -141,7 +141,7 @@
 			});
 			const data = (await res.json().catch(() => ({}))) as { error?: string };
 			if (!res.ok) {
-				editorError = data.error ?? 'Could not delete the announcement.';
+				editorError = data.error ?? "Couldn't delete the announcement.";
 				return;
 			}
 			await Promise.all([loadEditorRows(), getAnnouncements().refresh()]);
@@ -246,7 +246,7 @@
 			{@const rows = canPublish ? sortNewestFirst(editorRows) : await getAnnouncements()}
 			{#if rows.length === 0}
 				<p class="announcements__empty">
-					No announcements right now. Check back when something is up.
+					There are no announcements right now. Check back when something is up.
 				</p>
 			{/if}
 			{#each rows as row (row.id)}

@@ -102,6 +102,6 @@ export async function uploadImageRequest(options: {
 		});
 	} catch (error) {
 		console.error('Failed to upload image:', error);
-		return errorResponse('Failed to upload image', 500);
+		return errorResponse("Couldn't upload the image.", 500);
 	}
 }

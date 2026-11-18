@@ -404,7 +404,7 @@
 									aria-label="{block.courseCode} {formatSectionType(block.type)} {block.section}"
 									title="{block.courseCode} {block.type} {block.section}{block.roomCode
 										? ` in ${block.roomCode}`
-										: ''} — drag to switch section"
+										: ''}, drag to switch section"
 									onclick={() => onBlockClick(block)}
 									onpointerdown={(e) => onBlockPointerDown(e, block)}
 									onpointermove={onBlockPointerMove}

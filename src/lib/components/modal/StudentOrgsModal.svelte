@@ -30,21 +30,21 @@
 		<li>
 			<Users size={18} aria-hidden="true" />
 			<span>
-				<strong>Find an org.</strong> Search its name, or browse the Orgs category. Each listing shows
-				its category, host building, and contact links.
+				Search an org's name, or browse the Orgs category. Each listing shows its category, host
+				building, and contact links.
 			</span>
 		</li>
 		<li>
 			<Building2 size={18} aria-hidden="true" />
 			<span>
-				<strong>Locate the tambayan.</strong> Listings pin to the org's own location when known, otherwise
-				to its host building, so directions always resolve.
+				Listings pin to the org's own location when known, otherwise to its host building, so
+				directions always resolve.
 			</span>
 		</li>
 		<li>
 			<Pencil size={18} aria-hidden="true" />
 			<span>
-				<strong>Keep it accurate.</strong> Open any listing and hit
+				Open any listing and hit
 				<em>Edit</em> to suggest a fix. Signed-in contributors have their suggestions credited to them.
 			</span>
 		</li>

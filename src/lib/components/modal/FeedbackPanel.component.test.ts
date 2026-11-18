@@ -26,8 +26,8 @@ describe('FeedbackPanel', () => {
 
 	test('lists what is attached before anything is sent', () => {
 		render(FeedbackPanel);
-		const note = screen.getByText(/Sent with your message/i);
-		expect(note.textContent).toMatch(/app version v/);
+		const note = screen.getByText(/Your message includes/i);
+		expect(note.textContent).toMatch(/the app version v/);
 		// Template reflow may wrap the sentence; compare with collapsed whitespace.
 		expect(note.textContent?.replace(/\s+/g, ' ')).toMatch(
 			/No email and no IP address are stored/i
@@ -71,7 +71,7 @@ describe('FeedbackPanel', () => {
 		expect(typeof body.wasOnline).toBe('boolean');
 
 		await waitFor(() => {
-			expect(screen.getByText(/Sent\. Thank you/i)).toBeVisible();
+			expect(screen.getByText(/Thanks, the team reads every message/i)).toBeVisible();
 		});
 	});
 
@@ -101,7 +101,7 @@ describe('FeedbackPanel', () => {
 			json: () => Promise.resolve({ success: true })
 		} as Response);
 		await waitFor(() => {
-			expect(screen.getByText(/Sent\. Thank you/i)).toBeVisible();
+			expect(screen.getByText(/Thanks, the team reads every message/i)).toBeVisible();
 		});
 	});
 
