@@ -19,9 +19,9 @@ import {
 	dormsTable,
 	organizationsTable,
 	placesTable
-} from '@drizzle/schema';
-import { normalizeAlias } from '../src/lib/site';
-import entries from '../data/uplb-directory.json';
+} from '../src/lib/server/db/schema';
+import { normalizeAlias } from '../src/lib/utils/site';
+import entries from '../src/lib/data/uplb-directory.json';
 
 config({ path: '.env' });
 

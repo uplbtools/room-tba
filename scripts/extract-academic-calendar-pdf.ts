@@ -20,7 +20,7 @@
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { parseAcademicCalendar } from '../src/lib/academic-calendar-pdf';
+import { parseAcademicCalendar } from '../src/lib/utils/calendar/academic-calendar-pdf';
 
 const pdfPath = process.argv[2];
 if (!pdfPath) {

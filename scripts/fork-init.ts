@@ -19,7 +19,7 @@
 import { execSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import readline from 'node:readline/promises';
-import { generateCampusConfig } from '@lib/fork/campus-config-template';
+import { generateCampusConfig } from '../src/lib/utils/fork/campus-config-template';
 
 const CONFIG_PATH = 'src/campus.config.ts';
 const force = process.argv.includes('--force');

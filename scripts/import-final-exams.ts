@@ -17,14 +17,19 @@ import { randomUUID } from 'node:crypto';
 import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq } from 'drizzle-orm';
-import { aliasesTable, finalExamsTable, roomsTable, updateTable } from '@drizzle/schema';
-import { buildRoomLookup, matchRoomId } from '@lib/amis/import-classes';
+import {
+	aliasesTable,
+	finalExamsTable,
+	roomsTable,
+	updateTable
+} from '../src/lib/server/db/schema';
+import { buildRoomLookup, matchRoomId } from '../src/lib/amis/import-classes';
 import {
 	defaultFinalExamsExportPath,
 	extractFinalExamRows,
 	normalizeFinalExamRow,
 	type FinalExamExportPayload
-} from '@lib/final-exams/normalize';
+} from '../src/lib/utils/final-exams/normalize';
 
 config({ path: '.env' });
 

@@ -12,7 +12,7 @@ import { join } from 'node:path';
 import type pg from 'pg';
 import { connectE2eClient, E2E_SCHEMA_PATTERN, e2eSchema } from './e2e-schema';
 import { loadEnv } from './load-env';
-import { campusTestFixtures } from '../src/campus.config';
+import { campusTestFixtures } from '../src/lib/campus.config';
 
 loadEnv();
 

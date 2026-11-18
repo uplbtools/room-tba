@@ -11,9 +11,9 @@
 import { config } from 'dotenv';
 import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { aliasesTable, buildingsTable } from '@drizzle/schema';
-import { normalizeAlias } from '../src/lib/site';
-import roomInfo from '../public/room_info.json';
+import { aliasesTable, buildingsTable } from '../src/lib/server/db/schema';
+import { normalizeAlias } from '../src/lib/utils/site';
+import roomInfo from '../static/room_info.json';
 
 config({ path: '.env' });
 

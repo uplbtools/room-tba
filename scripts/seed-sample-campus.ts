@@ -28,20 +28,20 @@ import {
 	roomsTable,
 	termsTable,
 	updateTable
-} from '@drizzle/schema';
+} from '../src/lib/server/db/schema';
 import {
 	buildRoomLookup,
 	classNaturalKey,
 	matchRoomId,
 	summarizeImportChanges
-} from '@lib/amis/import-classes';
+} from '../src/lib/amis/import-classes';
 import {
 	formatRowIssues,
 	normalizeGenericClasses,
 	parseGenericClassesCsv,
 	validateGenericClassEntries
-} from '@lib/generic-class-import';
-import { normalizeAlias } from '@lib/site';
+} from '../src/lib/utils/generic-class-import';
+import { normalizeAlias } from '../src/lib/utils/site';
 import { loadEnv } from './load-env';
 
 loadEnv();

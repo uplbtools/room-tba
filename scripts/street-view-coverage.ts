@@ -25,7 +25,7 @@
  * bulk-history.ts does.
  */
 import pg from 'pg';
-import { fetchStreetViewMetadata, hasStreetViewKey } from '../src/lib/street-view.ts';
+import { fetchStreetViewMetadata, hasStreetViewKey } from '../src/lib/utils/street-view';
 import { loadEnv } from './load-env';
 
 loadEnv();

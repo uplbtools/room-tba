@@ -15,9 +15,12 @@ import {
 	dormsTable,
 	organizationsTable,
 	updateTable
-} from '@drizzle/schema';
-import { normalizeAlias } from '@lib/site';
-import { campusOfficeDirectoryEntries, type CampusWebsite } from '@lib/campus-office-directory';
+} from '../src/lib/server/db/schema';
+import { normalizeAlias } from '../src/lib/utils/site';
+import {
+	campusOfficeDirectoryEntries,
+	type CampusWebsite
+} from '../src/lib/utils/campus/campus-office-directory';
 
 const CAMPUS_WEBSITES_API =
 	'https://iaepijmnqstgxtivmlsh.supabase.co/rest/v1/websites?select=name,url,description,category&order=name';
