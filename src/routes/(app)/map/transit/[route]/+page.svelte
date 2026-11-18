@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { afterNavigate } from '$app/navigation';
-	import { navigating } from '$app/state';
+	import { afterNavigate, goto } from '$app/navigation';
+	import { navigating, page } from '$app/state';
 	import { onMount } from 'svelte';
 	import InfoPanel from '#lib/components/new/InfoPanel.svelte';
 	import { getTransitRoute } from '#lib/functions/transit.remote.js';
@@ -11,6 +11,14 @@
 	const map = getMapStore();
 
 	const route = $derived(getTransitRoute(params.route));
+	const reversed = $derived(page.url.searchParams.get('dir') === 'reverse');
+
+	function reverse(next: boolean) {
+		const url = new URL(page.url);
+		if (next) url.searchParams.set('dir', 'reverse');
+		else url.searchParams.delete('dir');
+		void goto(url, { replaceState: true, reset: false });
+	}
 
 	afterNavigate(fitRoute);
 
@@ -39,6 +47,6 @@
 		{#snippet pending()}
 			Loading...
 		{/snippet}
-		<TransitRoute route={await route} />
+		<TransitRoute route={await route} {reversed} onreverse={reverse} />
 	</svelte:boundary>
 </InfoPanel>
