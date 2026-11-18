@@ -42,7 +42,7 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 	}
 
 	if (body.buildingName !== undefined && body.buildingName.trim().length === 0) {
-		error(400, 'Building name cannot be empty');
+		error(400, "Building name can't be empty");
 	}
 
 	if (body.buildingType && !['admin', 'non-admin'].includes(body.buildingType)) {
@@ -104,6 +104,6 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 		}
 
 		console.error('Failed to update building:', err);
-		error(500, 'Failed to save building');
+		error(500, "Couldn't save building");
 	}
 };

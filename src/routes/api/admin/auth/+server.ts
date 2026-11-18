@@ -168,7 +168,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			console.error('Admin session signing misconfigured:', error);
 			return json(
 				{
-					error: 'Editor sign-in is not configured on this server. Contact the site maintainer.'
+					error: "Editor sign-in isn't configured on this server. Contact the site maintainer."
 				},
 				503
 			);

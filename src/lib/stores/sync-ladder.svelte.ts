@@ -12,8 +12,8 @@ export function getSyncLadderState() {
 	if (appBootstrapStore.phase === 'error') {
 		return {
 			kind: 'bootstrap_error' as const,
-			label: appBootstrapStore.errorMessage ?? 'Could not load campus data',
-			detail: 'Map is available; campus data failed to load.',
+			label: appBootstrapStore.errorMessage ?? "Couldn't load campus data",
+			detail: 'The map is available, but campus data failed to load.',
 			actionLabel: 'Try again',
 			action: appBootstrapStore.canRetry ? () => appBootstrapStore.retry() : null,
 			canRetry: appBootstrapStore.canRetry

@@ -33,7 +33,7 @@ export function validateBundledRooms(rooms: BundledRoomDraft[], maxRooms = 20): 
 	for (const room of rooms) {
 		const key = room.roomCode.toLowerCase();
 		if (codes.has(key)) {
-			throw new ProposalValidationError(`Duplicate room code in this suggestion: ${room.roomCode}`);
+			throw new ProposalValidationError(`This suggestion lists room code ${room.roomCode} twice.`);
 		}
 		codes.add(key);
 	}

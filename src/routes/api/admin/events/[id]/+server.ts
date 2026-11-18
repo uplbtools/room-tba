@@ -33,7 +33,7 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 	}
 
 	if (body.title !== undefined && body.title.trim().length === 0) {
-		return json({ error: 'Event title cannot be empty' }, 400);
+		return json({ error: "Event title can't be empty" }, 400);
 	}
 
 	const parsedVersion = parseRequiredEditorVersion(body.version);
@@ -105,7 +105,7 @@ function handleEventError(err: unknown) {
 	}
 
 	console.error('Failed to update event:', err);
-	return json({ error: 'Failed to save event' }, 500);
+	return json({ error: "Couldn't save event" }, 500);
 }
 
 function json(body: unknown, status = 200) {

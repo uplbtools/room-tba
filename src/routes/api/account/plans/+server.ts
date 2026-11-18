@@ -43,7 +43,7 @@ export const PUT: RequestHandler = async ({ cookies, request }) => {
 		return json({ success: true });
 	} catch (error) {
 		console.error('Save planner failed:', error);
-		return json({ error: 'Failed to save planner.' }, 500);
+		return json({ error: "Couldn't save planner." }, 500);
 	}
 };
 

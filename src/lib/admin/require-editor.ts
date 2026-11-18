@@ -72,13 +72,13 @@ export async function editorSessionOrUnauthorized(
 		error(401, 'Unauthorized');
 	}
 	if (options.requirePublish && !canPublishDirectly(session.role)) {
-		error(403, 'Your account can suggest edits but cannot publish directly.');
+		error(403, "Your account can suggest edits but can't publish directly.");
 	}
 	if (options.requireReview && !canReviewProposals(session.role)) {
-		error(403, 'Your account cannot review edit proposals.');
+		error(403, "Your account can't review edit proposals.");
 	}
 	if (options.requireAdmin && session.role !== 'admin') {
-		error(403, 'Your account cannot manage other users.');
+		error(403, "Your account can't manage other users.");
 	}
 	return {
 		session,

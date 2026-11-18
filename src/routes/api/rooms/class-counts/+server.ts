@@ -72,7 +72,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		});
 	} catch (e) {
 		console.error('Error: ', e);
-		return new Response(JSON.stringify({ error: 'Failed to fetch class counts', success: false }), {
+		return new Response(JSON.stringify({ error: "Couldn't fetch class counts", success: false }), {
 			status: 500,
 			headers: { 'Content-Type': 'application/json' }
 		});

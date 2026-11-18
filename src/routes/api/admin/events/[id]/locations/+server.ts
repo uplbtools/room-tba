@@ -55,7 +55,7 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 			);
 		}
 		console.error('Failed to update event locations:', err);
-		return json({ error: 'Failed to save event locations' }, 500);
+		return json({ error: "Couldn't save event locations" }, 500);
 	}
 };
 

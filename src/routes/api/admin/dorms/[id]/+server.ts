@@ -126,6 +126,6 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 		}
 
 		console.error('Failed to update dorm:', err);
-		return errorResponse('Failed to save dorm', 500);
+		return errorResponse("Couldn't save dorm", 500);
 	}
 };

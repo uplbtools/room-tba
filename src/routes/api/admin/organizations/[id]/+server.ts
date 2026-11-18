@@ -110,7 +110,7 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 		}
 
 		console.error('Failed to update organization:', err);
-		return new Response(JSON.stringify({ error: 'Failed to save organization' }), {
+		return new Response(JSON.stringify({ error: "Couldn't save organization" }), {
 			status: 500,
 			headers: { 'Content-Type': 'application/json' }
 		});

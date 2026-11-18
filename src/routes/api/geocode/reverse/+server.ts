@@ -142,6 +142,6 @@ export const GET: RequestHandler = async ({ url, getClientAddress }) => {
 		return json({ address });
 	} catch (e) {
 		console.error('Reverse geocode failed:', e);
-		return json({ error: 'Could not look up the address.' }, { status: 502 });
+		return json({ error: "Couldn't look up the address." }, { status: 502 });
 	}
 };

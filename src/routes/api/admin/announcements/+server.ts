@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 		return json({ success: true, announcements: await listAnnouncements() });
 	} catch (error) {
 		console.error('Failed to list announcements:', error);
-		return json({ error: 'Failed to load announcements' }, 500);
+		return json({ error: "Couldn't load announcements" }, 500);
 	}
 };
 
@@ -72,10 +72,10 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 			linkUrl: typeof body.linkUrl === 'string' ? body.linkUrl.trim() || null : null,
 			author: sessionEditedBy(auth.session)
 		});
-		if (!announcement) return json({ error: 'Failed to post' }, 500);
+		if (!announcement) return json({ error: "Couldn't post" }, 500);
 		return json({ success: true, announcement }, 201);
 	} catch (error) {
 		console.error('Failed to create announcement:', error);
-		return json({ error: 'Failed to post announcement' }, 500);
+		return json({ error: "Couldn't post announcement" }, 500);
 	}
 };

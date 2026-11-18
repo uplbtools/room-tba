@@ -86,6 +86,6 @@ export const POST: RequestHandler = async ({ cookies, params, request }) => {
 		}
 
 		console.error('Failed to merge rooms:', err);
-		return json({ error: 'Failed to merge rooms' }, 500);
+		return json({ error: "Couldn't merge rooms" }, 500);
 	}
 };

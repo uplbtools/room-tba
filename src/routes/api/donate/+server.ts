@@ -33,13 +33,13 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const secretKey = PAYMONGO_SECRET_KEY;
 	if (!secretKey) {
-		return json(503, { error: 'Donations are not configured yet' });
+		return json(503, { error: "Donations aren't configured yet" });
 	}
 
 	const message = typeof body.message === 'string' ? body.message.trim().slice(0, 200) : '';
 	const description = message
-		? `Room TBA donation — "${message}"`
-		: `Room TBA donation — ₱${pesoAmount.toLocaleString()}`;
+		? `Room TBA donation ("${message}")`
+		: `Room TBA donation (₱${pesoAmount.toLocaleString()})`;
 
 	const origin = new URL(request.url).origin;
 
@@ -82,7 +82,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	if (!response.ok) {
 		console.error('PayMongo error:', JSON.stringify(data.errors ?? data));
 		return json(response.status, {
-			error: data.errors?.[0]?.detail ?? 'Failed to create checkout session'
+			error: data.errors?.[0]?.detail ?? "Couldn't create checkout session"
 		});
 	}
 

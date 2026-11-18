@@ -184,6 +184,6 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 		}
 
 		console.error('Failed to update room:', err);
-		return json({ error: 'Failed to save room' }, 500);
+		return json({ error: "Couldn't save room" }, 500);
 	}
 };

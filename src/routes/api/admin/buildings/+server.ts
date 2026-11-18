@@ -52,11 +52,11 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 			auth.editedBy
 		);
 		if (!building) {
-			return json({ error: 'Failed to create building' }, 500);
+			return json({ error: "Couldn't create building" }, 500);
 		}
 		return json({ success: true, building }, 201);
 	} catch (err) {
 		console.error('Failed to create building:', err);
-		return json({ error: 'Failed to create building' }, 500);
+		return json({ error: "Couldn't create building" }, 500);
 	}
 };

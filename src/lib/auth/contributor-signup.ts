@@ -47,7 +47,7 @@ export function validateContributorSignup(input: SignupInput): SignupValid | Sig
 		!USERNAME_PATTERN.test(username)
 	) {
 		return fail(
-			`Username must be ${USERNAME_MIN_LENGTH}–${USERNAME_MAX_LENGTH} characters: lowercase letters, numbers, and . _ - (starting with a letter or number).`
+			`Username must be ${USERNAME_MIN_LENGTH} to ${USERNAME_MAX_LENGTH} characters. Use lowercase letters, numbers, and . _ - (starting with a letter or number).`
 		);
 	}
 
