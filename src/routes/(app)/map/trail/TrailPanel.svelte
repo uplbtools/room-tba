@@ -11,6 +11,7 @@
 		stationLabel
 	} from '#lib/utils/makiling-trail.js';
 	import TrailElevationProfile from './TrailElevationProfile.svelte';
+	import TrailShare from './TrailShare.svelte';
 
 	const { trailId, stopId }: { trailId: string; stopId: string | null } = $props();
 
@@ -41,6 +42,7 @@
 		{#if stationLabel(stop) && !stop.name.includes(stationLabel(stop) ?? '')}
 			<p class="text-neutral-600">{stationLabel(stop)}</p>
 		{/if}
+		<TrailShare label={stop.name} />
 		<dl class="grid grid-cols-3 gap-2">
 			{@render fact('Elevation', formatMeters(stop.elevationMeters))}
 			{@render fact(`From ${trail.startLabel}`, formatKm(stop.distanceMeters))}
@@ -62,6 +64,7 @@
 	{:else}
 		<h2 class="text-2xl font-semibold">{trail.name}</h2>
 		<p class="text-neutral-600">{trail.subtitle}</p>
+		<TrailShare label={trail.name} />
 		<div class="flex gap-2" role="group" aria-label="Trail">
 			{#each MAKILING_TRAILS as item (item.id)}
 				<a
