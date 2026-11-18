@@ -75,6 +75,8 @@
 		</button>
 	{/if}
 
+	<hr class="editor-shelf-divider" />
+
 	<button type="button" class="editor-shelf-action danger" onclick={handleLogout}>
 		<LogOut size={16} aria-hidden="true" />
 		Sign out
@@ -129,6 +131,14 @@
 		line-height: 1;
 		padding: 0.2rem 0.45rem;
 		white-space: nowrap;
+	}
+
+	.editor-shelf-divider {
+		grid-column: 1 / -1;
+		width: 100%;
+		margin: 0.25rem 0;
+		border: 0;
+		border-top: 1px solid hsl(0, 0%, 90%);
 	}
 
 	.editor-shelf-action {
