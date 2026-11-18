@@ -18,18 +18,27 @@
 	onMount(async () => {
 		const planParam = page.url.searchParams.get('plan');
 		if (!planParam) return;
-		await goto(resolve('map/planner'), { replaceState: true });
 		const decoded = decodeSharePlan(planParam);
 		if (!decoded) {
+			await goto(resolve('map/planner'), { replaceState: true });
 			toastStore.show('That plan link is invalid.', 'error');
 			return;
 		}
+		await ready;
+		if (!termStore.terms.find((term) => term.id === decoded.termId)?.classCount) {
+			toastStore.show(
+				"The class schedule for that term isn't out yet. Open this link again once it is.",
+				'info'
+			);
+			return;
+		}
+		await goto(resolve('map/planner'), { replaceState: true });
 		const { sections, missing } = await resolveSharedPlan(decoded);
 		plannerStore.importShared(decoded.termId, sections);
 		termStore.setTerm(decoded.termId);
 		if (missing > 0) {
 			toastStore.show(
-				`${missing} shared ${missing === 1 ? 'section is' : 'sections are'} no longer offered.`,
+				`${missing} ${missing === 1 ? "class isn't" : "classes aren't"} offered this term.`,
 				'info'
 			);
 		}
