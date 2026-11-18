@@ -39,6 +39,13 @@ export function encodeSharePlan(plan: PlannerPlan): string {
 	return toBase64Url(JSON.stringify(payload));
 }
 
+/** GradeSim pins these courses to the term in the student's own plan. */
+export function gradesimTakeUrl(plan: PlannerPlan): string | null {
+	const codes = [...new Set(plan.sections.filter((s) => !s.stale).map((s) => s.courseCode))];
+	if (codes.length === 0) return null;
+	return `https://gradesim.uplb.tools/?take=${codes.map(encodeURIComponent).join(',')}&term=${plan.termId}#planner`;
+}
+
 /** Decode a `?plan=` payload. Null on any parse/shape error. */
 export function decodeSharePlan(raw: string | null): DecodedSharePlan | null {
 	if (!raw) return null;

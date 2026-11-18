@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeSharePlan, encodeSharePlan } from './share-codec.js';
+import { decodeSharePlan, encodeSharePlan, gradesimTakeUrl } from './share-codec.js';
 import type { PlannerPlan } from './types.js';
 
 const plan: PlannerPlan = {
@@ -61,5 +61,18 @@ describe('share codec', () => {
 		expect(
 			decodeSharePlan(btoa(JSON.stringify({ v: 1, t: 1252, s: [['only-two', 'parts']] })))
 		).toBeNull();
+	});
+});
+
+describe('gradesimTakeUrl', () => {
+	it("lists each course once with the plan's term", () => {
+		expect(gradesimTakeUrl(plan)).toBe(
+			'https://gradesim.uplb.tools/?take=CMSC%20128&term=1252#planner'
+		);
+	});
+
+	it('leaves out stale rows and returns null with no courses', () => {
+		const stale = { ...plan, sections: plan.sections.map((s) => ({ ...s, stale: true })) };
+		expect(gradesimTakeUrl(stale)).toBeNull();
 	});
 });
