@@ -54,7 +54,7 @@ function firstTouch(line: LngLat[], p: LatLon, start: number, minT: number): Pro
 
 function isClosed(line: LngLat[]): boolean {
 	const first = line[0];
-	const last = line.at(-1);
+	const last = line[line.length - 1];
 	return (
 		distanceMeters({ lat: first[1], lon: first[0] }, { lat: last[1], lon: last[0] }) <=
 		RIDE_SNAP_TOLERANCE_METERS

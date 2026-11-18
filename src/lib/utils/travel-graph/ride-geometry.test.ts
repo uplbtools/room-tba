@@ -28,7 +28,7 @@ describe('sliceRouteLine', () => {
 		// Keeps the corner vertex a straight chord would cut.
 		expect(slice).toContainEqual([121.242, 14.16]);
 		expect(slice![0]).toEqual([121.2405, 14.16]);
-		expect(slice!.at(-1)[1]).toBeCloseTo(14.1615, 6);
+		expect(slice!.at(-1)![1]).toBeCloseTo(14.1615, 6);
 	});
 
 	test('returns null when a stop is far off the line', () => {
@@ -57,7 +57,7 @@ describe('real route geometry', () => {
 	const stored = jeepneyGeometries as Record<string, StoredRouteGeometry>;
 
 	test('a Forestry ride follows the road, not the stop chord', () => {
-		const forestry = JEEPNEY_ROUTES.find((route) => route.id === 'forestry');
+		const forestry = JEEPNEY_ROUTES.find((route) => route.id === 'forestry')!;
 		const { line, source } = resolveRouteGeometry(forestry, stored);
 		expect(source).not.toBe('stops-only');
 		const board = forestry.stops.findIndex((s) => /Health Service/.test(s.name));
