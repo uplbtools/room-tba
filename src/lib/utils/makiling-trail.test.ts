@@ -21,6 +21,7 @@ import {
 	naismithHours,
 	projectOntoPath,
 	resolveTrailTarget,
+	searchTrail,
 	sampleProfile,
 	stationLabel,
 	type TrailVertex
@@ -241,5 +242,23 @@ describe('trail targets', () => {
 			trailId: 'uplb',
 			stopId: null
 		});
+	});
+});
+
+describe('searchTrail', () => {
+	const targets = (query: string) => searchTrail(query).map((hit) => hit.target);
+
+	test('finds trails by alias and stops by name, alias or station', () => {
+		expect(targets('makiling trail')).toContain('uplb');
+		expect(targets('sipit')).toContain('sipit');
+		expect(targets('agila')).toContain('agila-base');
+		expect(targets('station 11')).toContain('agila-base');
+		expect(targets('11')).toContain('agila-base');
+	});
+
+	test('matches word starts only', () => {
+		expect(targets('gila')).not.toContain('agila-base');
+		expect(searchTrail('')).toEqual([]);
+		expect(searchTrail('zzzz')).toEqual([]);
 	});
 });

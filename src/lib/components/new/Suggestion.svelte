@@ -6,6 +6,7 @@
 	import GraduationCap from '@lucide/svelte/icons/graduation-cap';
 	import Home from '@lucide/svelte/icons/home';
 	import MapPin from '@lucide/svelte/icons/map-pin';
+	import Mountain from '@lucide/svelte/icons/mountain';
 	import School from '@lucide/svelte/icons/school';
 	import University from '@lucide/svelte/icons/university';
 	import Users from '@lucide/svelte/icons/users';
@@ -31,12 +32,15 @@
 		building,
 		event: eventData,
 		secondary,
+		href,
 		recent
 
 		/** Supporting line under the value, e.g. a room's unabbreviated name (#875). */
 	}: {
 		value: string;
-		category: EntityType;
+		category: EntityType | 'trail';
+		/** Where a row that isn't an entity goes. */
+		href?: string;
 		entityId?: number;
 		eventSlug?: string;
 		building?: Building;
@@ -54,7 +58,7 @@
 
 	async function handleSuggestionClick() {
 		// entityHoverPreviewStore.hideNow();
-		await goto(resolve(`map/${category}s/${id}`));
+		await goto(href ?? resolve(`map/${category}s/${id}`));
 	}
 
 	function handleRemoveRecent() {
@@ -126,6 +130,8 @@
 			<CalendarDays size={20} />
 		{:else if type === 'organization'}
 			<Users size={20} />
+		{:else if type === 'trail'}
+			<Mountain size={20} />
 		{:else if type === 'place'}
 			<MapPin size={20} />
 		{:else}

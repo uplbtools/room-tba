@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import LoadingIndicator from '#lib/components/LoadingIndicator.svelte';
 	// import {
 	// 	buildingMatchesTypeFilter,
@@ -12,6 +13,7 @@
 	import Suggestion from './Suggestion.svelte';
 	import { getSearchInfo } from '#lib/utils/context.js';
 	import { getUnionSuggestions } from '#lib/functions/search.remote.js';
+	import { searchTrail } from '#lib/utils/makiling-trail.js';
 
 	const searchInfo = getSearchInfo();
 
@@ -30,6 +32,14 @@
 		<!-- {:else if suggestedResult.length !== 0} -->
 		{#each await suggestionsPromise as { id, name, type }, index (index)}
 			<Suggestion category={type} value={name} entityId={id} />
+		{/each}
+		{#each searchTrail(searchInfo.queryValue).slice(0, 3) as hit (hit.target)}
+			<Suggestion
+				category="trail"
+				value={hit.label}
+				secondary={hit.secondary}
+				href={`${resolve('/map/trail')}?trail=${hit.target}`}
+			/>
 		{/each}
 		<!-- {#if searchInfo.recentSearches.length !== 0}
 		<h2 class="suggestions-header">Recent searches</h2> -->
