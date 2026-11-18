@@ -158,3 +158,8 @@ export const JeepReportSchema = v.object({
 	lat: v.optional(v.number()),
 	lon: v.optional(v.number())
 });
+
+export const RoomCodesSchema = v.pipe(
+	v.array(v.pipe(v.string(), v.trim(), v.minLength(1))),
+	v.maxLength(200)
+);
