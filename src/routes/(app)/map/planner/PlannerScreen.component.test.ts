@@ -116,6 +116,15 @@ describe('PlannerScreen', () => {
 		});
 	});
 
+	test('links the plan to GradeSim for its term', async () => {
+		plannerStore.addOffering([row({})]);
+		render(PlannerScreen);
+		const link = (await screen.findByText('Open in GradeSim')).closest('a');
+		expect(link?.getAttribute('href')).toBe(
+			'https://gradesim.uplb.tools/?take=CMSC%20128&term=1252#planner'
+		);
+	});
+
 	test('plan tabs switch between plans', async () => {
 		plannerStore.addOffering([row({})]);
 		plannerStore.createPlan();
