@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { CircleLayer, GeoJSON, LineLayer } from 'svelte-maplibre';
+	import { CircleLayer, GeoJSON, LineLayer, SymbolLayer } from 'svelte-maplibre';
+	import { ROUTE_LINE_CODES } from '#lib/constants/map/jeepney-routes.js';
 	import { getTransitRoute } from '#lib/functions/transit.remote.js';
+	import { darkenForWhiteText } from '#lib/utils/color-contrast.js';
 </script>
 
 {#if page.route.id?.startsWith('/(app)/map/transit/[route]') && page.params.route}
@@ -18,6 +20,23 @@
 						...(route.geometry.source === 'stops-only' ? { 'line-dasharray': [1.5, 1.5] } : {})
 					}}
 				/>
+				{#if ROUTE_LINE_CODES[route.id]}
+					<SymbolLayer
+						layout={{
+							'symbol-placement': 'line',
+							'symbol-spacing': 360,
+							'text-field': ROUTE_LINE_CODES[route.id].join('/'),
+							'text-font': ['Noto Sans Regular'],
+							'text-size': 12,
+							'text-letter-spacing': 0.08
+						}}
+						paint={{
+							'text-color': '#ffffff',
+							'text-halo-color': darkenForWhiteText(route.color),
+							'text-halo-width': 3
+						}}
+					/>
+				{/if}
 			</GeoJSON>
 		{/if}
 		<GeoJSON

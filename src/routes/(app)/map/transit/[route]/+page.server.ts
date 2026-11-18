@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			webpageSchema({ title, description, path: canonicalPath }),
 			breadcrumbSchema([
 				{ name: 'Home', path: '/' },
-				{ name: 'Jeepney routes', path: '/transit/' },
+				{ name: 'Jeep & bus routes', path: '/transit/' },
 				{ name: routeName, path: canonicalPath }
 			])
 		)

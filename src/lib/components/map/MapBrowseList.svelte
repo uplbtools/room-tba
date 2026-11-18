@@ -7,11 +7,13 @@
 	const {
 		heading,
 		entries,
-		empty
+		empty,
+		leading
 	}: {
 		heading: string;
 		entries: BrowseEntry[];
 		empty?: Snippet;
+		leading?: Snippet<[number]>;
 	} = $props();
 </script>
 
@@ -28,9 +30,9 @@
 			{/if}
 		{:else}
 			<ul class="map-browse__list">
-				{#each entries as entry (entry.href)}
+				{#each entries as entry, i (entry.href)}
 					<li>
-						<a href={entry.href}>{entry.label}</a>
+						<a href={entry.href}>{@render leading?.(i)}{entry.label}</a>
 						{#if entry.description}
 							<span class="map-browse__description">{entry.description}</span>
 						{/if}
