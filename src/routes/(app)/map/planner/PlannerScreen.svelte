@@ -203,10 +203,18 @@
 		}
 	}
 
-	function downloadIcs() {
+	async function downloadIcs() {
 		if (!plan || !hasSchedule) return;
 		const term = termStore.activeTerm;
-		const ics = buildPlanIcs(plan, term ? { startsOn: term.startsOn, endsOn: term.endsOn } : null);
+		const [{ rows }, exams] = await Promise.all([courseClasses, finals]);
+		const ics = buildPlanIcs(plan, term ? { startsOn: term.startsOn, endsOn: term.endsOn } : null, {
+			finals: planFinals(exams),
+			roomIds: Object.fromEntries(
+				[...rows, ...exams].flatMap((row) =>
+					row.roomCode && row.roomId ? [[row.roomCode, row.roomId]] : []
+				)
+			)
+		});
 		const blob = new Blob([ics], { type: 'text/calendar' });
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement('a');
