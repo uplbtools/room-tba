@@ -28,13 +28,16 @@ function json(data: unknown, status = 200) {
 	});
 }
 
+/** Printable transit map PDF, with `here`, `format=a4|letter|a3`, `layout=poster` and `palette`. */
 export const GET: RequestHandler = async ({ url }) => {
 	const hereParam = url.searchParams.get('here')?.trim();
 	const formatParam = url.searchParams.get('format')?.trim();
 	const paletteParam = url.searchParams.get('palette')?.trim() ?? '';
 	const palette =
 		paletteParam in TRANSIT_MAP_PALETTES ? (paletteParam as TransitMapPalette) : undefined;
-	const format: TransitMapFormat = formatParam === 'letter' ? 'letter' : 'a4';
+	const format: TransitMapFormat =
+		formatParam === 'letter' || formatParam === 'a3' ? formatParam : 'a4';
+	const layout = url.searchParams.get('layout') === 'poster' ? 'poster' : 'sheet';
 
 	const point = parseHerePoint(url.searchParams);
 	if (point === 'invalid') {
@@ -100,6 +103,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			here,
 			basemap: transitBasemap as TransitBasemap,
 			format,
+			layout,
 			palette
 		});
 		const nameSlug = (here?.name ?? '')
