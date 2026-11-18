@@ -5,10 +5,11 @@
 	import { fly } from 'svelte/transition';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { goto } from '$app/navigation';
+	import { getRoomWalkSeconds } from '#lib/functions/directions.remote.js';
 	import { getPlannerStore, getSearchInfo, getTermStore } from '#lib/utils/context.js';
 	import { trapFocus } from '#lib/utils/focus-trap.js';
 	import { fullScreenReveal } from '#lib/utils/motion.js';
-	import { buildAgenda } from '#lib/utils/planner/today-agenda.js';
+	import { buildAgenda, leaveByNote } from '#lib/utils/planner/today-agenda.js';
 	import { formatTermDateRange, isDateWithinTerm } from '#lib/utils/term/term-calendar.js';
 
 	const plannerStore = getPlannerStore();
@@ -102,7 +103,7 @@
 						<p class="today-day__empty">{day.emptyLabel}</p>
 					{:else}
 						<ul class="today-entries">
-							{#each day.entries as entry (entry.courseCode + entry.section + entry.type + entry.startMin)}
+							{#each day.entries as entry, i (entry.courseCode + entry.section + entry.type + entry.startMin)}
 								<li class="today-entry">
 									<span class="today-entry__time">{entry.timeLabel}</span>
 									<span class="today-entry__main">
@@ -128,6 +129,22 @@
 										</button>
 									{:else}
 										<span class="today-entry__room today-entry__room--tba">Room TBA</span>
+									{/if}
+									{#if i > 0 && day.entries[i - 1].roomCode && entry.roomCode}
+										{@const prev = day.entries[i - 1]}
+										<svelte:boundary>
+											{#snippet pending()}{/snippet}
+											{#snippet failed()}{/snippet}
+											{@const seconds = await getRoomWalkSeconds({
+												from: prev.roomCode ?? '',
+												to: entry.roomCode ?? ''
+											})}
+											{#if seconds}
+												<p class="today-entry__leave">
+													{leaveByNote(prev.endMin, entry.startMin, seconds, prev.roomCode ?? '')}
+												</p>
+											{/if}
+										</svelte:boundary>
 									{/if}
 								</li>
 							{/each}
@@ -367,6 +384,13 @@
 		font-size: 0.75rem;
 		color: var(--theme-text-2, hsl(0, 0%, 42%));
 		overflow-wrap: anywhere;
+	}
+
+	.today-entry__leave {
+		grid-column: 1 / -1;
+		margin: 0;
+		font-size: 0.75rem;
+		color: var(--theme-text-2, hsl(0, 0%, 35%));
 	}
 
 	.today-entry__room {

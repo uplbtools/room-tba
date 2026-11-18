@@ -6,7 +6,14 @@ import { getDormById } from '#lib/functions/dorms.remote.js';
 import { getOrgById } from '#lib/functions/organizations.remote.js';
 import { getPlaceById } from '#lib/functions/places.remote.js';
 import { getRoomById } from '#lib/functions/rooms.remote.js';
-import { type DirectionsPointSchema, DirectionsSchema } from '#lib/schema/functions.js';
+import {
+	type DirectionsPointSchema,
+	DirectionsSchema,
+	RoomWalkSchema
+} from '#lib/schema/functions.js';
+import { buildingsTable, roomsTable } from '#lib/server/db/schema.js';
+import { db } from '#lib/utils/db.js';
+import { eq, inArray } from 'drizzle-orm';
 import { planWalk } from '#lib/utils/travel-graph/engine.js';
 import { loadTravelGraph } from '#lib/utils/travel-graph/load.js';
 
@@ -47,4 +54,23 @@ async function resolvePoint(point: v.InferOutput<typeof DirectionsPointSchema>):
 export const getWalkingRoute = query(DirectionsSchema, async ({ from, to }) => {
 	const [start, end] = await Promise.all([resolvePoint(from), resolvePoint(to)]);
 	return { from: start, to: end, plan: planWalk(await loadTravelGraph(), start, end) };
+});
+
+/** Walking seconds between two rooms' buildings, or null in the same building, with no pin or with no route. */
+export const getRoomWalkSeconds = query(RoomWalkSchema, async ({ from, to }) => {
+	const rows = await db
+		.select({ code: roomsTable.code, lat: buildingsTable.lat, lon: buildingsTable.lon })
+		.from(roomsTable)
+		.innerJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
+		.where(inArray(roomsTable.code, [from, to]));
+	const start = rows.find((row) => row.code === from);
+	const end = rows.find((row) => row.code === to);
+	if (start?.lat == null || start.lon == null || end?.lat == null || end.lon == null) return null;
+	if (start.lat === end.lat && start.lon === end.lon) return null;
+	const plan = planWalk(
+		await loadTravelGraph(),
+		{ lat: start.lat, lon: start.lon },
+		{ lat: end.lat, lon: end.lon }
+	);
+	return plan.status === 'ok' ? plan.route.seconds : null;
 });
