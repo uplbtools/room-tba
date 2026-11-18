@@ -17,7 +17,6 @@
 	import MapLegend from '#lib/components/MapLegend.svelte';
 	import TerrainControl from '#lib/components/TerrainControl.svelte';
 	import { TERRAIN_ENABLED } from '#lib/constants/map/terrain.js';
-	import TrailControl from '#lib/components/TrailControl.svelte';
 	import JeepneyMenu from '#lib/components/JeepneyMenu.svelte';
 	import ScheduleImportPanel from '#lib/components/ScheduleImportPanel.svelte';
 	import { trapFocus } from '#lib/utils/focus-trap.js';
@@ -40,7 +39,6 @@
 		{ id: 'view', label: 'View' },
 		{ id: 'legend', label: 'Legend' },
 		...(TERRAIN_ENABLED ? [{ id: 'terrain' as const, label: 'Terrain' }] : []),
-		{ id: 'trail', label: 'Makiling Trail' },
 		{ id: 'schedule', label: 'Schedule' }
 	];
 
@@ -160,8 +158,6 @@
 									<MapLegend embedded />
 								{:else if section.id === 'terrain'}
 									<TerrainControl embedded />
-								{:else if section.id === 'trail'}
-									<TrailControl embedded />
 								{:else if section.id === 'jeepney'}
 									<JeepneyMenu embedded />
 								{:else if section.id === 'schedule'}

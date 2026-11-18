@@ -7,6 +7,7 @@
 	import PlaceMarkers from './PlaceMarkers.svelte';
 	import DormMarkers from './DormMarkers.svelte';
 	import TransitRouteLine from './TransitRouteLine.svelte';
+	import TrailLine from './TrailLine.svelte';
 	import DirectionsLine from './directions/DirectionsLine.svelte';
 	import MapEntityPin from '#lib/components/map/MapEntityPin.svelte';
 	import PinGlyph from '#lib/components/map/PinGlyph.svelte';
@@ -56,6 +57,7 @@
 		<!-- Entities -->
 
 		<TransitRouteLine />
+		<TrailLine />
 		<DirectionsLine />
 
 		<!-- Buildings -->

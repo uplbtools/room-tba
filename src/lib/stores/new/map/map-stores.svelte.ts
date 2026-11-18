@@ -237,22 +237,6 @@ export class TerrainStore {
 	};
 }
 
-export class TrailStore {
-	enabled: boolean = $state(false);
-
-	toggle = () => {
-		this.enabled = !this.enabled;
-	};
-
-	enable = () => {
-		this.enabled = true;
-	};
-
-	disable = () => {
-		this.enabled = false;
-	};
-}
-
 /**
  * Travel-time isochrone tool (#847): tap the map, every path segment colors
  * by walking minutes from that point. Owns map clicks, so it registers as an
