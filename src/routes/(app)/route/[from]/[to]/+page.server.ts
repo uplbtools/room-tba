@@ -31,8 +31,8 @@ export const load: PageServerLoad = async ({ params }) => {
 	const canonicalPath = getRoutePath(from.name, to.name);
 	const title = `${from.name} to ${to.name} | Walking route at UPLB | Room TBA`;
 	const summary = route
-		? `${formatDistance(route.meters)}, about ${formatDuration(route.seconds)} walking.`
-		: `Walking route between ${from.name} and ${to.name} at UPLB.`;
+		? `The walk is ${formatDistance(route.meters)}, about ${formatDuration(route.seconds)}.`
+		: `This is a walking route between ${from.name} and ${to.name} at UPLB.`;
 	const description = `How to walk from ${from.name} to ${to.name} at UP Los Banos. ${summary}`;
 
 	const seo: SeoData = {

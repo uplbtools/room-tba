@@ -4,7 +4,7 @@ import type { PageServerLoad } from './$types';
 
 const title = 'Class Planner | Room TBA';
 const description =
-	'Plan your UPLB class schedule: add sections by term, spot conflicts, and export to your calendar.';
+	'Plan your UPLB class schedule. Add sections by term, spot conflicts and export to your calendar.';
 const canonicalPath = '/map/planner/';
 
 export const load: PageServerLoad = () => {

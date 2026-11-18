@@ -86,7 +86,7 @@
 
 {#if studentOrgs.length > 0}
 	<h2>Student orgs</h2>
-	<p>Student org events get free promotion. No payment involved.</p>
+	<p>Student org events get free promotion, with no payment involved.</p>
 	<ul>
 		{#each studentOrgs as sponsor (sponsor.id)}
 			<li><a href={sponsor.url} target="_blank" rel="noopener noreferrer">{sponsor.name}</a></li>

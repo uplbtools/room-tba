@@ -4,7 +4,7 @@ import type { PageServerLoad } from './$types';
 
 const title = 'Help & FAQ | Room TBA';
 const description =
-	'Student FAQ for Room TBA: 3D building models, data sources, offline use, and how to report mistakes.';
+	'Answers to student questions about Room TBA, including 3D building models, data sources, offline use and how to report mistakes.';
 const canonicalPath = '/faq';
 
 export const load: PageServerLoad = () => {

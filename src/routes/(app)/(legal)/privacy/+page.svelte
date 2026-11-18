@@ -8,7 +8,7 @@
 
 <h1>Privacy Policy</h1>
 <p class="text-neutral-600">
-	Last updated: August 6, 2026. Room TBA is operated by
+	This page was last updated on August 6, 2026. Room TBA is operated by
 	<a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer">UPLB Tools</a> volunteers. This policy
 	explains what we collect and why.
 </p>
@@ -28,7 +28,7 @@
 	<ul>
 		<li>
 			<strong>Usage analytics.</strong> We use Vercel Analytics on the public site to understand traffic
-			patterns (page views, referrers). We do not intentionally collect your name or student number through
+			patterns (page views, referrers). We don't intentionally collect your name or student number through
 			analytics.
 		</li>
 		<li>
@@ -43,13 +43,13 @@
 		</li>
 		<li>
 			<strong>Location (optional).</strong> If you enable location on your device, the map may use your
-			coordinates locally to show where you are. We do not persist your live GPS track on our servers.
+			coordinates locally to show where you are. We don't persist your live GPS track on our servers.
 		</li>
 		<li>
 			<strong>Online counter.</strong> To show how many people are using the map right now, your browser
-			sends a random session id (kept only for the current tab) every 30 seconds. It is not linked to
-			an account, and we store nothing else with it — no IP address, no user agent. The id is deleted
-			once the session has been idle for 10 minutes.
+			sends a random session id (kept only for the current tab) every 30 seconds. It isn't linked to an
+			account, and we store nothing else with it, so there's no IP address and no user agent. The id is
+			deleted once the session has been idle for 10 minutes.
 		</li>
 	</ul>
 
@@ -79,9 +79,9 @@
 </section>
 
 <section>
-	<h2>What we do not sell</h2>
+	<h2>What we don't sell</h2>
 	<p>
-		We do not sell your personal information. The interactive map runs no third-party ad networks.
+		We don't sell your personal information. The interactive map runs no third-party ad networks.
 	</p>
 </section>
 
@@ -91,7 +91,7 @@
 		Room TBA displays curated sponsor promotions from local businesses. Sponsors are manually
 		selected by our team. Sponsor placements use no ad networks, tracking pixels, or behavioral
 		targeting. Sponsor images are hosted on our own servers. Clicking a sponsor link takes you to
-		the sponsor's website; we do not share any of your data with sponsors.
+		the sponsor's website. We don't share any of your data with sponsors.
 	</p>
 </section>
 
@@ -117,7 +117,7 @@
 	<h2>Community channels</h2>
 	<p>
 		If you contact us on Discord or Messenger, those platforms handle messages under their own
-		policies. Do not send passwords or sensitive personal data in public channels.
+		policies. Don't send passwords or sensitive personal data in public channels.
 	</p>
 </section>
 
@@ -128,9 +128,9 @@
 		<li>Sign out of editor/contributor sessions when using shared devices.</li>
 		<li>
 			If you have an editor or contributor account, open <strong>Account settings</strong> (from the app
-			menu) to change your display name, email, or password; connect or disconnect a Google sign-in; download
-			a copy of your account data; or delete your account. Deleting an account removes your email, display
-			name, and password; past proposals and edit history remain on record, attributed to a deleted user,
+			menu) to change your display name, email or password, connect or disconnect a Google sign-in, download
+			a copy of your account data, or delete your account. Deleting an account removes your email, display
+			name and password. Past proposals and edit history remain on record, attributed to a deleted user,
 			so the audit trail for published changes stays intact.
 		</li>
 	</ul>

@@ -4,7 +4,7 @@ import type { PageServerLoad } from './$types';
 
 const title = 'Today | Room TBA';
 const description =
-	'Your UPLB classes today, tomorrow, and the rest of the week, in time order, with a link to each room on the campus map.';
+	'See your UPLB classes today, tomorrow and the rest of the week in time order, with a link to each room on the campus map.';
 const canonicalPath = '/map/today';
 
 export const load: PageServerLoad = () => {
