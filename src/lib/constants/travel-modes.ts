@@ -39,3 +39,18 @@ export const VIRIDIS_STOPS = [
 	'#a0da39',
 	'#fde725'
 ] as const;
+
+/** Door-to-door jeep speed including stops, not the cruising speed. */
+export const JEEPNEY_KPH = 14;
+
+/** Half of a roughly 10 minute headway, since campus jeeps run on frequency. */
+export const JEEPNEY_WAIT_SECONDS = 5 * 60;
+
+/** Beyond this, walking to a stop costs more than the ride saves. */
+export const MAX_ACCESS_WALK_METERS = 900;
+
+/** A stop farther than this from a path node can't be reached on foot. */
+export const STOP_SNAP_TOLERANCE_METERS = 120;
+
+/** A ride that saves less than this isn't worth the wait. */
+export const MIN_RIDE_SAVING_SECONDS = 3 * 60;

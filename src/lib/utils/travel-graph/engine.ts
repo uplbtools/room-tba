@@ -201,21 +201,16 @@ export type TravelRoute = {
 	coordinates: [number, number][];
 };
 
-/** Shortest path between two node indexes, or null when the mode has no route. */
-export function shortestPath(
+/** Walks a settled Dijkstra run back from `to` to `from`, or null when `to` is unreachable. */
+export function reconstructPath(
 	graph: TravelGraph,
+	{ seconds, prevEdge, prevNode }: DijkstraResult,
 	from: number,
-	to: number,
-	mode: TravelMode
+	to: number
 ): TravelRoute | null {
 	if (from === to) {
-		return {
-			seconds: 0,
-			meters: 0,
-			coordinates: [[graph.lng[from], graph.lat[from]]]
-		};
+		return { seconds: 0, meters: 0, coordinates: [[graph.lng[from], graph.lat[from]]] };
 	}
-	const { seconds, prevEdge, prevNode } = dijkstra(graph, from, mode, to);
 	if (!Number.isFinite(seconds[to])) return null;
 	let meters = 0;
 	const segments: [number, number][][] = [];
@@ -232,13 +227,24 @@ export function shortestPath(
 	return { seconds: seconds[to], meters, coordinates };
 }
 
+/** Shortest path between two node indexes, or null when the mode has no route. */
+export function shortestPath(
+	graph: TravelGraph,
+	from: number,
+	to: number,
+	mode: TravelMode
+): TravelRoute | null {
+	return reconstructPath(graph, dijkstra(graph, from, mode, to), from, to);
+}
+
 export type WalkPlan =
 	| { status: 'ok'; route: TravelRoute }
 	| { status: 'origin-off-network' | 'destination-off-network' | 'no-route' };
 
-type LatLon = { lat: number; lon: number };
+export type LatLon = { lat: number; lon: number };
 
-function snapToNetwork(graph: TravelGraph, point: LatLon): number | null {
+/** Nearest path node, or null when the point is too far off the mapped paths. */
+export function snapToNetwork(graph: TravelGraph, point: LatLon): number | null {
 	const node = nearestNodeIndex(graph, point.lat, point.lon);
 	const meters = distanceMeters(point, { lat: graph.lat[node], lon: graph.lng[node] });
 	return meters > ENDPOINT_SNAP_TOLERANCE_METERS ? null : node;

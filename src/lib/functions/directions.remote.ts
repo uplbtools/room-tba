@@ -6,6 +6,7 @@ import { getDormById } from '#lib/functions/dorms.remote.js';
 import { getOrgById } from '#lib/functions/organizations.remote.js';
 import { getPlaceById } from '#lib/functions/places.remote.js';
 import { getRoomById } from '#lib/functions/rooms.remote.js';
+import { getTransitRoute, getTransitRoutes } from '#lib/functions/transit.remote.js';
 import {
 	type DirectionsPointSchema,
 	DirectionsSchema,
@@ -14,7 +15,9 @@ import {
 import { buildingsTable, roomsTable } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
 import { eq, inArray } from 'drizzle-orm';
+import { transitRouteKind } from '#lib/utils/transit/transit-route-kind.js';
 import { planWalk } from '#lib/utils/travel-graph/engine.js';
+import { planJeepRide } from '#lib/utils/travel-graph/journey.js';
 import { loadTravelGraph } from '#lib/utils/travel-graph/load.js';
 
 type Pin = { name: string; lat: number; lon: number };
@@ -54,6 +57,23 @@ async function resolvePoint(point: v.InferOutput<typeof DirectionsPointSchema>):
 export const getWalkingRoute = query(DirectionsSchema, async ({ from, to }) => {
 	const [start, end] = await Promise.all([resolvePoint(from), resolvePoint(to)]);
 	return { from: start, to: end, plan: planWalk(await loadTravelGraph(), start, end) };
+});
+
+/** The fastest walk, ride, walk trip on a campus jeep, or null when walking is as quick. */
+export const getJeepRide = query(DirectionsSchema, async (request) => {
+	const [{ from, to, plan }, graph, routes] = await Promise.all([
+		getWalkingRoute(request),
+		loadTravelGraph(),
+		getTransitRoutes()
+	]);
+	if (plan.status !== 'ok') return null;
+	const campus = await Promise.all(
+		routes.filter((route) => transitRouteKind(route) === 'campus').map((r) => getTransitRoute(r.id))
+	);
+	const lines = Object.fromEntries(
+		campus.map((r) => [r.id, (r.geometry.line?.coordinates as [number, number][]) ?? null])
+	);
+	return planJeepRide(graph, from, to, campus, lines, plan.route.seconds);
 });
 
 /** Whole walking minutes between rooms in different buildings, keyed "from|to". */
