@@ -297,3 +297,31 @@ export function formatHours(hours: number): string {
 	if (h === 0) return `${m} min`;
 	return m === 0 ? `${h} h` : `${h} h ${m} min`;
 }
+
+export type TrailSearchHit = {
+	/** The ?trail= value that opens it: a stop id, or the trail's id for its overview. */
+	target: string;
+	label: string;
+	secondary: string;
+};
+
+/** Trails and trail stops whose name, alias or station number starts with the query. */
+export function searchTrail(query: string): TrailSearchHit[] {
+	const needle = query.trim().toLowerCase();
+	if (needle === '') return [];
+	const station = /^(?:station\s*|st\.?\s*)?(\d{1,2})$/.exec(needle)?.[1];
+	const matches = (...names: (string | null | undefined)[]) =>
+		names.some((name) => name && ` ${name.toLowerCase()}`.includes(` ${needle}`));
+	return MAKILING_TRAILS.flatMap((trail) => [
+		...(matches(...trail.aliases)
+			? [{ target: trail.id, label: trail.name, secondary: trail.subtitle }]
+			: []),
+		...trail.stops
+			.filter(
+				(stop) =>
+					matches(stop.name, stationLabel(stop), ...(stop.aliases ?? [])) ||
+					(station !== undefined && stop.station === Number(station))
+			)
+			.map((stop) => ({ target: stop.id, label: stop.name, secondary: trail.name }))
+	]);
+}

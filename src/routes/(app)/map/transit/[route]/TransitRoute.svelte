@@ -11,6 +11,7 @@
 		type ResolvedRouteGeometry
 	} from '#lib/constants/map/jeepney-routes.js';
 	import { darkenForWhiteText } from '#lib/utils/color-contrast.js';
+	import { orientRoute, routeDirections } from '#lib/utils/transit/transit-direction.js';
 	import {
 		distinctStopCount,
 		isLoopRoute,
@@ -22,14 +23,27 @@
 	import { routeScheduleSummary } from '#lib/utils/transit/transit-schedule.js';
 	import TransitSignboard from '../TransitSignboard.svelte';
 
-	const { route }: { route: JeepneyRoute & { geometry: ResolvedRouteGeometry } } = $props();
+	const {
+		route,
+		reversed = false,
+		onreverse = () => {}
+	}: {
+		route: JeepneyRoute & { geometry: ResolvedRouteGeometry };
+		reversed?: boolean;
+		onreverse?: (reversed: boolean) => void;
+	} = $props();
 
+	const directions = $derived(routeDirections(route.id));
+	const stops = $derived(orientRoute(route, reversed).stops);
 	const fare = $derived(routeFareInfo(route));
 	const schedule = $derived(routeScheduleSummary(route.id));
 	const loop = $derived(isLoopRoute(route));
 	const boardingNote = $derived(ROUTE_BOARDING_NOTES[route.id]);
 	const signboard = $derived(ROUTE_SIGNBOARDS[route.id]);
-	const codes = $derived(ROUTE_LINE_CODES[route.id] ?? []);
+	const allCodes = $derived(ROUTE_LINE_CODES[route.id] ?? []);
+	const codes = $derived(
+		directions && allCodes.length === 2 ? [allCodes[reversed ? 1 : 0]!] : allCodes
+	);
 	const timetable = $derived(routeSchedule(route.id));
 	const endBoards = $derived(ROUTE_END_BOARDS[route.id] ?? []);
 
@@ -58,6 +72,24 @@
 			>
 		</h2>
 	</header>
+	{#if directions}
+		<div class="flex flex-col gap-1.5">
+			<div class="flex gap-2" role="group" aria-label="Direction">
+				{#each [false, true] as isReverse (isReverse)}
+					<button
+						type="button"
+						class="rounded-full border border-neutral-300 px-3 py-1.5 text-sm font-medium aria-pressed:border-neutral-900 aria-pressed:bg-neutral-900 aria-pressed:text-white"
+						aria-pressed={reversed === isReverse}
+						onclick={() => onreverse(isReverse)}
+						>{(isReverse ? directions.reverse : directions.forward).label}</button
+					>
+				{/each}
+			</div>
+			<p class="text-sm text-neutral-800">
+				{(reversed ? directions.reverse : directions.forward).summary}
+			</p>
+		</div>
+	{/if}
 	{#if route.description}
 		<p class="text-sm text-neutral-800">{route.description}</p>
 	{/if}
@@ -141,15 +173,15 @@
 		>
 	</h3>
 	<ol class="flex flex-col gap-1 text-sm">
-		{#each route.stops as stop, i (`${route.id}-${i}`)}
+		{#each stops as stop, i (`${route.id}-${i}`)}
 			<li class="flex gap-2">
 				<span class="w-5 shrink-0 text-right text-neutral-600"
-					>{loop && i === route.stops.length - 1 ? 1 : i + 1}</span
+					>{loop && i === stops.length - 1 ? 1 : i + 1}</span
 				>
 				<a
 					class="underline-offset-2 hover:underline"
-					href={`/map/transit/${encodeURIComponent(route.id)}/${i + 1}`}
-					>{stop.name}{loop && i === route.stops.length - 1 ? ' (back to the start)' : ''}</a
+					href={`/map/transit/${encodeURIComponent(route.id)}/${reversed ? stops.length - i : i + 1}`}
+					>{stop.name}{loop && i === stops.length - 1 ? ' (back to the start)' : ''}</a
 				>
 			</li>
 		{/each}

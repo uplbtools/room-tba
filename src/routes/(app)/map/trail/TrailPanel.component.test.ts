@@ -1,6 +1,10 @@
-import { render, screen } from '@testing-library/svelte';
-import { describe, expect, test } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/svelte';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import TrailPanel from './TrailPanel.svelte';
+
+const { show } = vi.hoisted(() => ({ show: vi.fn() }));
+
+vi.mock('#lib/utils/context.js', () => ({ getToast: () => ({ show }) }));
 
 describe('TrailPanel', () => {
 	test('the UPLB trail shows its briefing and a picker with both trails', () => {
@@ -46,5 +50,34 @@ describe('TrailPanel', () => {
 		);
 		expect(screen.getByRole('link', { name: /^Previous, / })).toBeVisible();
 		expect(screen.getByRole('link', { name: /^Next, / })).toBeVisible();
+	});
+
+	describe('share', () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			show.mockClear();
+		});
+
+		test('opens the native share sheet when the browser has one', async () => {
+			const share = vi.fn().mockResolvedValue(undefined);
+			vi.stubGlobal('navigator', { ...navigator, share });
+			render(TrailPanel, { trailId: 'uplb', stopId: null });
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Share' }));
+
+			expect(share).toHaveBeenCalledWith({ title: 'Makiling Trail', url: location.href });
+			expect(show).not.toHaveBeenCalled();
+		});
+
+		test('copies the link when there is no share sheet', async () => {
+			const writeText = vi.fn().mockResolvedValue(undefined);
+			vi.stubGlobal('navigator', { clipboard: { writeText } });
+			render(TrailPanel, { trailId: 'uplb', stopId: 'agila-base' });
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Share' }));
+
+			expect(writeText).toHaveBeenCalledWith(location.href);
+			expect(show).toHaveBeenCalledWith('Copied link for Agila Base.', 'success');
+		});
 	});
 });
