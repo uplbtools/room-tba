@@ -35,7 +35,7 @@ describe('room-scheduled-types', () => {
 	});
 
 	it('documents scope for room schedules vs class browse', () => {
-		expect(ROOM_SCHEDULE_SCOPE_NOTE).toContain('do not appear here');
+		expect(ROOM_SCHEDULE_SCOPE_NOTE).toContain("don't appear here");
 		expect(CLASS_BROWSE_SCOPE_NOTE).toContain('thesis');
 		expect(CLASS_BROWSE_SCOPE_NOTE).toContain('unassigned');
 	});

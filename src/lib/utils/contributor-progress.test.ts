@@ -34,7 +34,7 @@ describe('contributor-progress', () => {
 			position: false
 		});
 		expect(row.missingFields).toEqual(['position']);
-		expect(missingFieldLabel('PSLH 4', 'position')).toBe('PSLH 4 — floor plan pin missing');
+		expect(missingFieldLabel('PSLH 4', 'position')).toBe('PSLH 4 is missing its floor plan pin');
 	});
 
 	it('summarizes campus room field counts', () => {

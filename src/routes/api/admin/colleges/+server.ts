@@ -30,11 +30,11 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	try {
 		const college = await createCollege(collegeName, auth.editedBy);
 		if (!college) {
-			return json({ error: 'Failed to create college' }, 500);
+			return json({ error: "Couldn't create college" }, 500);
 		}
 		return json({ success: true, college }, 201);
 	} catch (err) {
 		console.error('Failed to create college:', err);
-		return json({ error: 'Failed to create college' }, 500);
+		return json({ error: "Couldn't create college" }, 500);
 	}
 };

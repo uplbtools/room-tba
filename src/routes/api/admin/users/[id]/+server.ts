@@ -57,7 +57,7 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 			return json({ error: error.message }, error.status);
 		}
 		console.error('Update managed user failed:', error);
-		return json({ error: 'Failed to update account.' }, 500);
+		return json({ error: "Couldn't update account." }, 500);
 	}
 };
 

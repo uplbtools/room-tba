@@ -56,10 +56,10 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 			},
 			auth.editedBy
 		);
-		if (!organization) return json({ error: 'Failed to create' }, 500);
+		if (!organization) return json({ error: "Couldn't create" }, 500);
 		return json({ success: true, organization }, 201);
 	} catch (err) {
 		console.error('Failed to create organization:', err);
-		return json({ error: 'Failed to create organization' }, 500);
+		return json({ error: "Couldn't create organization" }, 500);
 	}
 };

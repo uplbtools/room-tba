@@ -39,7 +39,7 @@ export const POST: RequestHandler = async ({ cookies, params, request }) => {
 			return json({ error: err.message }, err.status);
 		}
 		console.error('Failed to approve proposal:', err);
-		return json({ error: 'Failed to approve proposal' }, 500);
+		return json({ error: "Couldn't approve proposal" }, 500);
 	}
 };
 

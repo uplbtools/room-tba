@@ -90,7 +90,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 			return json({ error: err.message }, 409);
 		}
 		console.error('Failed to create event:', err);
-		return json({ error: 'Failed to create event' }, 500);
+		return json({ error: "Couldn't create event" }, 500);
 	}
 };
 

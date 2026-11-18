@@ -31,10 +31,7 @@ import {
 } from '#lib/utils/entity/entity-photos.js';
 import { resolvePhotoAttribution } from './entity-photo';
 import { canWithdrawProposal } from './proposal-access';
-export {
-	canViewProposalSubmitterDetails,
-	canWithdrawProposal
-} from './proposal-access';
+export { canViewProposalSubmitterDetails, canWithdrawProposal } from './proposal-access';
 import {
 	EditConflictError,
 	DuplicateSlugError,
@@ -687,7 +684,7 @@ export async function submitProposal(input: SubmitProposalInput): Promise<EditPr
 				.limit(1);
 			if (!row) {
 				throw new ProposalValidationError(
-					'That building is not on the map yet. Wait for editors to approve your building suggestion, or pick a building that already exists.'
+					"That building isn't on the map yet. Wait for editors to approve your building suggestion, or pick a building that already exists."
 				);
 			}
 		}

@@ -98,7 +98,7 @@ export const PATCH: RequestHandler = async ({ cookies, params, request }) => {
 	} catch (error) {
 		if (error instanceof EditConflictError) return conflict(error);
 		console.error('Failed to update announcement:', error);
-		return json({ error: 'Failed to save announcement' }, 500);
+		return json({ error: "Couldn't save announcement" }, 500);
 	}
 };
 
@@ -122,6 +122,6 @@ export const DELETE: RequestHandler = async ({ cookies, params, request }) => {
 	} catch (error) {
 		if (error instanceof EditConflictError) return conflict(error);
 		console.error('Failed to delete announcement:', error);
-		return json({ error: 'Failed to delete announcement' }, 500);
+		return json({ error: "Couldn't delete announcement" }, 500);
 	}
 };

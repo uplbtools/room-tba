@@ -61,7 +61,7 @@ export const PATCH: RequestHandler = async ({ cookies, request }) => {
 			return json({ error: error.message }, error.status);
 		}
 		console.error('Update account profile failed:', error);
-		return json({ error: 'Failed to update account profile.' }, 500);
+		return json({ error: "Couldn't update account profile." }, 500);
 	}
 };
 

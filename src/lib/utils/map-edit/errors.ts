@@ -37,5 +37,5 @@ export function editErrorMessage(name: string, fallback: string, error: unknown)
 		return `${name} failed to save.`;
 	}
 
-	return `${name} failed to save: ${reason}`;
+	return `${name} failed to save. ${reason}`;
 }

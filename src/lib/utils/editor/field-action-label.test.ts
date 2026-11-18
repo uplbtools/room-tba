@@ -38,10 +38,10 @@ describe('editorToggleLabel', () => {
 describe('proposalStatusMessage', () => {
 	test('formats pending statuses', () => {
 		expect(proposalStatusMessage('pending')).toBe(
-			'Status: pending. You can update this suggestion below while it waits for review.'
+			'This suggestion is pending. You can update it below while it waits for review.'
 		);
 		expect(proposalStatusMessage('needs_changes')).toBe(
-			'Status: needs changes. Update your suggestion below, then submit again.'
+			'This suggestion needs changes. Update it below, then submit again.'
 		);
 	});
 });

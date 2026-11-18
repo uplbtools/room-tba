@@ -42,7 +42,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 			return json({ error: error.message }, error.status);
 		}
 		console.error('Delete account failed:', error);
-		return json({ error: 'Failed to delete account.' }, 500);
+		return json({ error: "Couldn't delete account." }, 500);
 	}
 };
 

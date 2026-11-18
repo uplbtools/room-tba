@@ -48,7 +48,7 @@ export const POST: RequestHandler = async ({ cookies, params, request }) => {
 			return json({ error: err.message }, err.status);
 		}
 		console.error('Failed to withdraw proposal:', err);
-		return json({ error: 'Failed to withdraw proposal' }, 500);
+		return json({ error: "Couldn't withdraw proposal" }, 500);
 	}
 };
 

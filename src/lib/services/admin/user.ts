@@ -328,7 +328,7 @@ export async function updateAccountProfile(
 	}
 ): Promise<void> {
 	const displayName = input.displayName.trim();
-	if (!displayName) throw new AccountActionError('Display name cannot be empty.');
+	if (!displayName) throw new AccountActionError("Display name can't be empty.");
 	if (
 		(input.avatarUrl !== undefined &&
 			input.avatarUrl !== null &&
@@ -367,7 +367,7 @@ export async function updateAccountProfile(
 export async function updateDisplayName(userId: number, displayName: string): Promise<void> {
 	const trimmed = displayName.trim();
 	if (!trimmed) {
-		throw new AccountActionError('Display name cannot be empty.');
+		throw new AccountActionError("Display name can't be empty.");
 	}
 	await db
 		.update(adminUsersTable)
@@ -881,7 +881,7 @@ export async function updateManagedUser(
 		if (demotingFromAdmin || deactivatingAdmin) {
 			const remaining = await countActiveAdmins(tx, targetUserId);
 			if (remaining < 1) {
-				throw new AccountActionError('Cannot remove the last remaining admin.', 400);
+				throw new AccountActionError("Can't remove the last remaining admin.", 400);
 			}
 		}
 

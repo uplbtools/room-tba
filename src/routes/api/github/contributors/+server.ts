@@ -137,7 +137,7 @@ export const GET: RequestHandler = async () => {
 
 		if (!res.ok) {
 			return json(
-				{ error: 'Failed to load GitHub contributors' },
+				{ error: "Couldn't load GitHub contributors" },
 				{ status: res.status === 403 ? 503 : res.status }
 			);
 		}
@@ -178,6 +178,6 @@ export const GET: RequestHandler = async () => {
 		);
 	} catch (e) {
 		console.error(e);
-		return json({ error: 'Failed to load GitHub contributors' }, { status: 503 });
+		return json({ error: "Couldn't load GitHub contributors" }, { status: 503 });
 	}
 };

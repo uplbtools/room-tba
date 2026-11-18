@@ -237,7 +237,7 @@ export async function persistEntityChange(input: PersistEntityChangeInput): Prom
 	if (!result.ok) {
 		return {
 			ok: false,
-			error: result.error ?? `Proposal for ${input.entityLabel} could not be submitted.`
+			error: result.error ?? `Proposal for ${input.entityLabel} couldn't be submitted.`
 		};
 	}
 

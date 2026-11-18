@@ -89,7 +89,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			console.error('Signup session signing misconfigured:', error);
 			return json(
 				{
-					error: 'Sign-up is not configured on this server. Contact the site maintainer.'
+					error: "Sign-up isn't configured on this server. Contact the site maintainer."
 				},
 				503
 			);

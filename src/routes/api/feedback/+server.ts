@@ -19,8 +19,7 @@ const DAILY_WINDOW_MS = 24 * 60 * 60 * 1000;
 const IP_SHORT_MAX = 5;
 const IP_DAILY_MAX = 25;
 
-const RATE_LIMIT_MESSAGE =
-	'Thanks — that is a lot of feedback at once. Try again in a few minutes.';
+const RATE_LIMIT_MESSAGE = "Thanks, that's a lot of feedback at once. Try again in a few minutes.";
 
 // Best-effort in-memory limiter (per server instance), inlined from
 // astro/src/lib/api/rate-limit.ts.

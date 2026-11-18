@@ -45,7 +45,7 @@ export function classesScheduleFreshnessMessage(
 	if (com && today <= com.endsOn) {
 		const comNote =
 			today >= com.startsOn
-				? `Change of matriculation (COM) is under way this semester (${range}); classes and rooms can still change.`
+				? `Change of matriculation (COM) is under way this semester (${range}), so classes and rooms can still change.`
 				: `Classes and rooms can still change during this semester's change of matriculation (COM), ${range}.`;
 		return label
 			? `${isClassesScheduleStale(importedAt, now) ? 'Schedules last imported' : 'Schedules updated'} ${label}. ${comNote}`

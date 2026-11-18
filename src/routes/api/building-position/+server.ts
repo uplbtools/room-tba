@@ -72,6 +72,6 @@ export const PUT: RequestHandler = async ({ request, cookies, url }) => {
 
 		return jsonOk({ success: true, lon, lat });
 	} catch (_error) {
-		return jsonError(500, 'Failed to update building position');
+		return jsonError(500, "Couldn't update building position");
 	}
 };

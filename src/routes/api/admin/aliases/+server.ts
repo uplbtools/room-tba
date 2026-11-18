@@ -34,7 +34,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 		return json({ data: rows });
 	} catch (err) {
 		console.error('Failed to list aliases:', err);
-		return json({ error: 'Failed to list aliases' }, 500);
+		return json({ error: "Couldn't list aliases" }, 500);
 	}
 };
 
@@ -83,7 +83,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 		return json({ success: true, alias: row }, 201);
 	} catch (err) {
 		console.error('Failed to create alias:', err);
-		return json({ error: 'Failed to create alias' }, 500);
+		return json({ error: "Couldn't create alias" }, 500);
 	}
 };
 
@@ -115,6 +115,6 @@ export const DELETE: RequestHandler = async ({ cookies, request }) => {
 		return json({ success: true, deleted: ids.length });
 	} catch (err) {
 		console.error('Failed to delete aliases:', err);
-		return json({ error: 'Failed to delete aliases' }, 500);
+		return json({ error: "Couldn't delete aliases" }, 500);
 	}
 };
