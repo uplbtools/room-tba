@@ -31,7 +31,7 @@
 
 {#if visible}
 	<div bind:this={bannerEl} class="staging-banner" role="status" aria-live="polite">
-		<p class="staging-banner__title">Staging — changes here are not on production</p>
+		<p class="staging-banner__title">This is staging. Changes here aren't on production</p>
 		<p class="staging-banner__sub">
 			Edits, contributor sign-ups, and proposals on staging stay in the staging database until
 			released to prod via the normal ship pipeline.

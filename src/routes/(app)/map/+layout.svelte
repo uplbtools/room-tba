@@ -307,7 +307,7 @@
 					appBootstrapStore.complete();
 				} else {
 					appBootstrapStore.fail(
-						'Could not load campus data. Check your connection and try again.',
+						'Couldn\'t load campus data. Check your connection and try again.',
 						() => {
 							void refreshFromNetwork(false);
 						}
@@ -353,13 +353,13 @@
 			});
 			if (!hasCachedDataAtStart && !hasUsableData) {
 				appBootstrapStore.fail(
-					'Could not connect to the database. Check your connection and try again.',
+					'Couldn\'t connect to the database. Check your connection and try again.',
 					() => {
 						void refreshFromNetwork(false);
 					}
 				);
 			} else if (hasUsableData) {
-				syncToastStore.setSyncError('Could not sync campus data.', () => {
+				syncToastStore.setSyncError('Couldn\'t sync campus data.', () => {
 					void refreshFromNetwork(hasCachedDataAtStart);
 				});
 				appBootstrapStore.complete();
@@ -382,7 +382,7 @@
 			toastStore.show('You are offline. Campus data may be stale.', 'info');
 		};
 		const onOnline = () => {
-			toastStore.show('Back online. Syncing latest data...', 'success');
+			toastStore.show('Back online. We\'re syncing the latest data.', 'success');
 			void refreshFromNetwork(appBootstrapStore.hasCachedData);
 		};
 		window.addEventListener('offline', onOffline);
@@ -433,7 +433,7 @@
 					appBootstrapStore.complete();
 				} else {
 					appBootstrapStore.fail(
-						'Could not load campus data. Check your connection and try again.',
+						'Couldn\'t load campus data. Check your connection and try again.',
 						() => {
 							void refreshFromNetwork(false);
 						}

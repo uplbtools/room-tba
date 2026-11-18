@@ -20,7 +20,7 @@
 		isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
 		const onOnline = () => {
 			isOnline = true;
-			toastStore.show('Back online — campus data will sync.', 'success');
+			toastStore.show('Back online. Campus data will sync.', 'success');
 		};
 		const onOffline = () => {
 			isOnline = false;

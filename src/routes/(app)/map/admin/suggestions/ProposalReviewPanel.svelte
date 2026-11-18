@@ -53,7 +53,7 @@
 		if (entityType !== 'create_building') return null;
 		const rooms = parseBundledRooms(patch);
 		if (rooms.length === 0) return null;
-		return `Will create building + ${rooms.length} room${rooms.length === 1 ? '' : 's'}: ${rooms.map((r) => r.roomCode).join(', ')}`;
+		return `Will create the building and ${rooms.length} room${rooms.length === 1 ? '' : 's'} (${rooms.map((r) => r.roomCode).join(', ')})`;
 	}
 
 	function diffsFor(proposal: {
@@ -191,7 +191,7 @@
 		try {
 			const result = await approveOne(held.id);
 			if (!result.ok) {
-				toastStore.show(result.error ?? `Could not approve proposal #${held.id}.`, 'error');
+				toastStore.show(result.error ?? `Couldn't approve proposal #${held.id}.`, 'error');
 			} else {
 				selectedIds.delete(held.id);
 			}
@@ -206,7 +206,7 @@
 		clearHoldTimers();
 		heldApproval = null;
 		undoSecondsLeft = 0;
-		toastStore.show('Approve undone — the suggestion is back in the queue.', 'info');
+		toastStore.show('Approve undone. The suggestion is back in the queue.', 'info');
 	}
 
 	/** Hold an approve for the undo window instead of writing immediately. */
@@ -245,7 +245,7 @@
 		try {
 			const result = await reviewOne(id, action, noteById[id] ?? '');
 			if (!result.ok) {
-				toastStore.show(result.error ?? `Could not ${action} proposal #${id}.`, 'error');
+				toastStore.show(result.error ?? `Couldn't ${action} proposal #${id}.`, 'error');
 				return;
 			}
 			selectedIds.delete(id);
@@ -376,7 +376,7 @@
 		toastStore.show(
 			failed === 0
 				? `${verb} ${done} proposal${done === 1 ? '' : 's'}.`
-				: `${verb} ${done}, ${failed} failed (likely conflicts) — review the rest.`,
+				: `${done} ${verb.toLowerCase()}, ${failed} failed (likely conflicts). Review the rest.`,
 			failed === 0 ? 'success' : 'error'
 		);
 	}
@@ -409,7 +409,7 @@
 		{#if heldApproval}
 			<div class="entity-review-undo" role="status">
 				<span class="entity-review-undo-text">
-					Approved <strong>{heldApproval.label}</strong> — publishing in {undoSecondsLeft}s
+					Approved <strong>{heldApproval.label}</strong>, publishing in {undoSecondsLeft}s
 				</span>
 				<div class="entity-review-undo-actions">
 					<button type="button" onclick={undoHeldApproval}>Undo</button>
@@ -429,7 +429,7 @@
 				<LoadingIndicator label="Loading proposals…" />
 			</p>
 		{:else if proposalsStore.proposals.length === 0}
-			<p class="entity-review-empty">No pending suggestions.</p>
+			<p class="entity-review-empty">There are no pending suggestions.</p>
 		{:else}
 			<div class="entity-review-batch">
 				<label class="entity-review-select-all">
@@ -570,8 +570,8 @@
 											{#if openById[proposal.id]}
 												{#if stale}
 													<p class="entity-review-stale" role="alert">
-														Published data changed since this was submitted. Compare carefully —
-														approving may conflict.
+														Published data changed since this was submitted. Compare carefully,
+														because approving may conflict.
 													</p>
 												{/if}
 
@@ -623,7 +623,7 @@
 																<Preview change={pinChange} label={proposal.entityLabel} />
 															{:catch}
 																<p class="entity-review-preview-loading">
-																	Map preview could not load.
+																	Map preview couldn't load.
 																</p>
 															{/await}
 														{/if}

@@ -85,7 +85,7 @@
 		<p class="map-chrome-row-hint">Stops come from your Planner, on this device.</p>
 	{:else if !scheduleRouteStore.matching}
 		<p class="schedule-import-panel__empty">
-			No plan for this term yet. Build one in the Planner
+			You don't have a plan for this term yet. Build one in the Planner
 			<!-- <a class="schedule-import-panel__planner-link" href={resolve("/planner")}>Planner</a> -->
 			and your class stops will show up here.
 		</p>
@@ -140,7 +140,7 @@
 						</button>
 					</li>
 				{:else}
-					<li class="schedule-import-panel__empty">No routable classes this day.</li>
+					<li class="schedule-import-panel__empty">You have no routable classes this day.</li>
 				{/each}
 			</ul>
 

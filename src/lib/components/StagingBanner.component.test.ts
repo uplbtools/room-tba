@@ -23,7 +23,7 @@ describe('StagingBanner', () => {
 		mockedIsStaging.mockReturnValue(true);
 		mountAtWidth(320);
 		render(StagingBanner);
-		expect(screen.getByText(/Staging — changes here are not on production/i)).toBeVisible();
+		expect(screen.getByText(/This is staging. Changes here aren't on production/i)).toBeVisible();
 		expect(screen.getByText(/stay in the staging database until released to prod/i)).toBeVisible();
 	});
 });

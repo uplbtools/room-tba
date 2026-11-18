@@ -177,7 +177,7 @@
 					</button>
 				{:else}
 					<p class="map-chrome-popover-sub">
-						Map tiles for campus bounds ({offlineStore.tilesTotal} tiles).
+						This downloads {offlineStore.tilesTotal} map tiles for the campus bounds.
 					</p>
 					{#if offlineStore.status === 'error' && offlineStore.error}
 						<p class="offline-error">{offlineStore.error}</p>
@@ -208,7 +208,7 @@
 				{:else if offlineStore.directoryStatus === 'done'}
 					<p class="map-chrome-popover-sub">
 						Buildings, rooms, dorms, colleges, divisions, orgs &amp; offices, landmarks &amp;
-						establishments, and events saved for offline search.
+						establishments, and events are saved for offline search.
 					</p>
 					<div class="offline-actions">
 						<button
@@ -226,8 +226,8 @@
 					</div>
 				{:else}
 					<p class="map-chrome-popover-sub">
-						Buildings, rooms, dorms, colleges, divisions, orgs &amp; offices, landmarks &amp;
-						establishments, and events.
+						This covers buildings, rooms, dorms, colleges, divisions, orgs &amp; offices, landmarks
+						&amp; establishments, and events.
 					</p>
 					{#if offlineStore.directoryStatus === 'error' && offlineStore.directoryError}
 						<p class="offline-error">{offlineStore.directoryError}</p>
@@ -267,7 +267,9 @@
 						</button>
 					</div>
 				{:else}
-					<p class="map-chrome-popover-sub">Active-term class list for offline class search.</p>
+					<p class="map-chrome-popover-sub">
+						Saves the active term's class list for offline class search.
+					</p>
 					{#if offlineStore.schedulesStatus === 'error' && offlineStore.schedulesError}
 						<p class="offline-error">{offlineStore.schedulesError}</p>
 					{/if}
