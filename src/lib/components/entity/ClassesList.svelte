@@ -65,7 +65,7 @@
 				classes = [];
 				nextCursor = null;
 				hasMore = false;
-				loadError = 'Could not load classes. Check your connection and try again.';
+				loadError = "Couldn't load classes. Check your connection and try again.";
 			})
 			.finally(() => {
 				loading = false;
