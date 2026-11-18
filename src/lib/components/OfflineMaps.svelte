@@ -172,7 +172,7 @@
 					<p class="map-chrome-popover-sub">
 						Saved · {offlineStore.tilesTotal} tiles · {fmtBytes(offlineStore.bytesDownloaded)}
 					</p>
-					<button class="offline-btn ghost" onclick={() => offlineStore.clear()}>
+					<button class="offline-btn ghost danger" onclick={() => offlineStore.clear()}>
 						Clear map tiles
 					</button>
 				{:else}
@@ -210,12 +210,20 @@
 						Buildings, rooms, dorms, colleges, divisions, orgs &amp; offices, landmarks &amp;
 						establishments, and events saved for offline search.
 					</p>
-					<button class="offline-btn ghost" onclick={() => offlineStore.downloadCampusDirectory()}>
-						Update directory
-					</button>
-					<button class="offline-btn ghost" onclick={() => offlineStore.clearCampusDirectory()}>
-						Mark as not downloaded
-					</button>
+					<div class="offline-actions">
+						<button
+							class="offline-btn ghost"
+							onclick={() => offlineStore.downloadCampusDirectory()}
+						>
+							Update directory
+						</button>
+						<button
+							class="offline-btn ghost danger"
+							onclick={() => offlineStore.clearCampusDirectory()}
+						>
+							Mark as not downloaded
+						</button>
+					</div>
 				{:else}
 					<p class="map-chrome-popover-sub">
 						Buildings, rooms, dorms, colleges, divisions, orgs &amp; offices, landmarks &amp;
@@ -247,12 +255,17 @@
 					<p class="map-chrome-popover-sub">
 						{offlineStore.schedulesRowCount} classes saved for offline browse.
 					</p>
-					<button class="offline-btn ghost" onclick={() => offlineStore.downloadClassSchedules()}>
-						Update schedules
-					</button>
-					<button class="offline-btn ghost" onclick={() => offlineStore.clearClassSchedules()}>
-						Mark as not downloaded
-					</button>
+					<div class="offline-actions">
+						<button class="offline-btn ghost" onclick={() => offlineStore.downloadClassSchedules()}>
+							Update schedules
+						</button>
+						<button
+							class="offline-btn ghost danger"
+							onclick={() => offlineStore.clearClassSchedules()}
+						>
+							Mark as not downloaded
+						</button>
+					</div>
 				{:else}
 					<p class="map-chrome-popover-sub">Active-term class list for offline class search.</p>
 					{#if offlineStore.schedulesStatus === 'error' && offlineStore.schedulesError}
@@ -428,5 +441,13 @@
 	}
 	.offline-btn.ghost:hover {
 		background-color: hsl(5, 53%, 97%);
+	}
+	.offline-btn.danger {
+		color: hsl(0, 70%, 38%);
+	}
+	.offline-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
 	}
 </style>

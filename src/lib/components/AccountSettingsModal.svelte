@@ -680,7 +680,10 @@
 						variant="secondary"
 						onclick={downloadExport}
 					/>
+				</section>
 
+				<section class="settings-section entity-editor-form">
+					<h3>Delete account</h3>
 					{#if !showDeleteConfirm}
 						<button
 							type="button"
