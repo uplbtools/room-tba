@@ -20,7 +20,7 @@ afterEach(() => {
 });
 
 async function renderInSyncError(retry: () => void = () => {}) {
-	syncToastStore.setSyncError('Could not sync campus data.', retry);
+	syncToastStore.setSyncError("Couldn't sync campus data.", retry);
 	const rendered = render(StatusBar);
 	await tick();
 	return rendered;
@@ -38,7 +38,7 @@ describe('StatusBar in the sync-error state', () => {
 	test('states the problem without telling the user to tap to retry', async () => {
 		const { container } = await renderInSyncError();
 
-		expect(screen.getByText('Could not sync campus data.')).toBeVisible();
+		expect(screen.getByText("Couldn't sync campus data.")).toBeVisible();
 		expect(container.textContent).not.toMatch(/tap to retry/i);
 	});
 

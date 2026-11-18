@@ -154,7 +154,7 @@
 					<section class="legend-section" aria-labelledby="legend-events">
 						<h3 id="legend-events" class="legend-section-title">Events</h3>
 						{#if eventsEmpty}
-							<p class="legend-empty-note">No events on the map yet.</p>
+							<p class="legend-empty-note">There are no events on the map yet.</p>
 						{:else}
 							<div class="legend-list">
 								{#each eventItems as item (item.key)}

@@ -65,7 +65,7 @@
 
 	async function defaultSignOut() {
 		await adminAuthStore.logout();
-		toastStore.show('Signed out.', 'info');
+		toastStore.show("You're signed out.", 'info');
 	}
 
 	function handleSignIn() {

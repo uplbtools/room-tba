@@ -255,11 +255,11 @@
 			totalFloors = floors;
 
 			footprintNote = footprintApproximate
-				? `Floor count estimated from the room codes (${floors}).`
+				? `The floor count is estimated from the room codes (${floors}).`
 				: footprint.levels
 					? `OpenStreetMap lists ${footprint.levels} floors for this building.`
 					: footprint.heightMeters
-						? `Floor count estimated from OSM height (~${footprint.heightMeters.toFixed(0)} m).`
+						? `The floor count is estimated from OSM height (~${footprint.heightMeters.toFixed(0)} m).`
 						: null;
 
 			// === Scene setup ===
@@ -676,7 +676,7 @@
 			animate();
 		} catch (err) {
 			console.error('Building3DViewer init failed', err);
-			errorMsg = 'Failed to load the 3D viewer.';
+			errorMsg = "Couldn't load the 3D viewer.";
 			loading = false;
 		}
 	}
@@ -998,8 +998,8 @@
 						type: 'error',
 						message:
 							data.code === 'manual_position'
-								? `${roomCode} was not saved: an editor has already placed this room by hand.`
-								: `${roomCode} was not saved because the server has newer data.`
+								? `${roomCode} wasn't saved because an editor already placed this room by hand.`
+								: `${roomCode} wasn't saved because the server has newer data.`
 					};
 					return;
 				}
@@ -1010,7 +1010,7 @@
 				setRoomSavingState(roomCode, 'failed');
 				editorStatus = {
 					type: 'error',
-					message: `${roomCode} failed to save: ${data.error ?? `Save failed (${res.status})`}`
+					message: `${roomCode} failed to save. ${data.error ?? `The server returned ${res.status}.`}`
 				};
 				return;
 			}
@@ -1066,7 +1066,7 @@
 			// Only give up once the dataset is in and the building still isn't there.
 			if (ready && (buildings ?? []).length > 0) {
 				initStarted = true;
-				errorMsg = 'This building is not in the campus data yet.';
+				errorMsg = "This building isn't in the campus data yet.";
 				loading = false;
 			}
 		});
@@ -1216,7 +1216,7 @@
 							</li>
 						{/each}
 						{#if visibleRooms.length === 0}
-							<li class="room-empty">No rooms on this floor.</li>
+							<li class="room-empty">There are no rooms on this floor.</li>
 						{/if}
 					</ul>
 				</section>
@@ -1255,7 +1255,7 @@
 										<p class="editor-hint">
 											{suggestions.size} unsaved room{suggestions.size === 1 ? '' : 's'} can be placed
 											from their room code. Floors are read from the code or directions; the spot on the
-											floor is a corridor estimate — check them before saving.
+											floor is a corridor estimate, so check each one before saving.
 										</p>
 										<button
 											class="suggest-accept-all"
@@ -1296,7 +1296,7 @@
 									class:error={editorStatus?.type === 'error'}
 									class:success={editorStatus?.type === 'success'}
 								>
-									{editorStatus?.message ?? 'Ready. Each move saves automatically.'}
+									{editorStatus?.message ?? 'Each move saves automatically.'}
 								</p>
 							{/if}
 						</div>
@@ -1318,11 +1318,11 @@
 					<div class="viewer-provisional">
 						<span>
 							{#if footprintApproximate}
-								Approximate shape. OpenStreetMap has no footprint for this building yet, so this is
-								a stand-in box around its coordinates — the outline is not the real building.
+								This is an approximate shape. OpenStreetMap has no footprint for this building yet,
+								so the outline is a stand-in box around its coordinates, not the real building.
 							{:else}
-								This outline may belong to a neighbouring building: the closest OpenStreetMap
-								footprint{footprintOsmName ? ` (“${footprintOsmName}”)` : ''} does not contain this building’s
+								This outline may belong to a neighbouring building. The closest OpenStreetMap
+								footprint{footprintOsmName ? ` (“${footprintOsmName}”)` : ''} doesn't contain this building’s
 								coordinates.
 							{/if}
 						</span>

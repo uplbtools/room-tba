@@ -127,7 +127,7 @@
 			</p>
 			{#if confirming}
 				<p id="settings-storage-warning" class="map-chrome-row-hint map-chrome-row-hint--warn">
-					Downloaded offline maps go too. You will need a connection to download them again.
+					Downloaded offline maps go too. You'll need a connection to download them again.
 				</p>
 				<div class="map-chrome-row-actions">
 					<button

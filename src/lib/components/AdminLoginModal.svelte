@@ -33,7 +33,7 @@
 	const OAUTH_ERROR_MESSAGES: Record<string, string> = {
 		missing_code: 'Google sign-in was cancelled or incomplete. Try again.',
 		oauth_failed: 'Google sign-in failed. Try again.',
-		account_unavailable: 'This Google account cannot be used to sign in. Contact the maintainers.'
+		account_unavailable: "This Google account can't be used to sign in. Contact the maintainers."
 	};
 
 	type Mode = 'signin' | 'signup';
@@ -122,7 +122,7 @@
 
 		if (isSignup) {
 			if (password !== confirmPassword) {
-				error = 'Passwords do not match.';
+				error = "Passwords don't match.";
 				return;
 			}
 			const err = await adminAuthStore.signup({

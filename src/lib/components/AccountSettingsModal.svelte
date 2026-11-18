@@ -101,7 +101,7 @@
 		try {
 			const res = await fetch('/api/account/me', { credentials: 'same-origin' });
 			if (!res.ok) {
-				loadError = 'Could not load your account.';
+				loadError = "Couldn't load your account.";
 				return;
 			}
 			profile = (await res.json()) as Profile;
@@ -119,7 +119,7 @@
 				};
 				contributions = data.contributions ?? [];
 			} else {
-				contributionsError = 'Could not load your contributions.';
+				contributionsError = "Couldn't load your contributions.";
 			}
 		} catch {
 			loadError = 'Network error loading your account.';
@@ -160,7 +160,7 @@
 			});
 			const data = await res.json().catch(() => ({}) as { error?: string });
 			if (!res.ok) {
-				profileError = data.error ?? 'Could not save profile.';
+				profileError = data.error ?? "Couldn't save profile.";
 				return;
 			}
 			profile = {
@@ -195,7 +195,7 @@
 			});
 			const data = await res.json().catch(() => ({}) as { error?: string });
 			if (!res.ok) {
-				emailError = data.error ?? 'Could not send confirmation email.';
+				emailError = data.error ?? "Couldn't send confirmation email.";
 				return;
 			}
 			emailRequestSent = true;
@@ -217,7 +217,7 @@
 			});
 			const data = await res.json().catch(() => ({}) as { error?: string });
 			if (!res.ok) {
-				verificationError = data.error ?? 'Could not send a confirmation link.';
+				verificationError = data.error ?? "Couldn't send a confirmation link.";
 				return;
 			}
 			verificationSent = true;
@@ -245,7 +245,7 @@
 			});
 			const data = await res.json().catch(() => ({}) as { error?: string });
 			if (!res.ok) {
-				passwordError = data.error ?? 'Could not change password.';
+				passwordError = data.error ?? "Couldn't change password.";
 				return;
 			}
 			currentPasswordDraft = '';
@@ -279,7 +279,7 @@
 			});
 			const data = await res.json().catch(() => ({}) as { error?: string });
 			if (!res.ok) {
-				identityError = data.error ?? 'Could not disconnect Google.';
+				identityError = data.error ?? "Couldn't disconnect Google.";
 				return;
 			}
 			profile = { ...profile, linkedGoogle: false };
@@ -333,7 +333,7 @@
 			});
 			const data = await res.json().catch(() => ({}) as { error?: string });
 			if (!res.ok) {
-				deleteError = data.error ?? 'Could not delete account.';
+				deleteError = data.error ?? "Couldn't delete account.";
 				return;
 			}
 			close();

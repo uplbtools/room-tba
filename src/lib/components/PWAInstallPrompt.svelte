@@ -64,7 +64,7 @@
 		const { outcome } = await deferredPrompt.userChoice;
 		if (outcome === 'accepted') {
 			isInstalled = true;
-			toastStore.show('Room TBA installed — open it from your home screen.', 'success');
+			toastStore.show('Room TBA is installed. Open it from your home screen.', 'success');
 		}
 		deferredPrompt = null;
 	}
