@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { PLACE_CATEGORIES } from '#lib/constants/content/categories/place.js';
 
 /**
- * Querying the list only 
+ * Querying the list only
  */
 export const ListQuerySchema = v.pipe(
 	v.optional(v.number()),
@@ -26,7 +26,7 @@ export const ProposalMetaSchema = v.object({
 	entityId: v.pipe(v.number(), v.integer()),
 	baseVersion: v.number(),
 	// patch is a record,
-	submitterName: v.pipe(v.string(), v.trim(), v.nonEmpty("Submitter name is empty")),
+	submitterName: v.pipe(v.string(), v.trim(), v.nonEmpty('Submitter name is empty'))
 });
 
 /**
@@ -142,6 +142,11 @@ export const DirectionsPointSchema = v.union([
 export const DirectionsSchema = v.object({
 	from: DirectionsPointSchema,
 	to: DirectionsPointSchema
+});
+
+export const RoomWalkSchema = v.object({
+	from: v.pipe(v.string(), v.trim(), v.minLength(1)),
+	to: v.pipe(v.string(), v.trim(), v.minLength(1))
 });
 
 export const JeepReportSchema = v.object({
