@@ -21,6 +21,9 @@ describe('room-scheduled-types', () => {
 		expect(isNonRoomClassType('DSR')).toBe(true);
 		expect(isNonRoomClassType('PRA')).toBe(true);
 		expect(isNonRoomClassType('IND')).toBe(true);
+		expect(isNonRoomClassType('SEM')).toBe(true);
+		expect(isNonRoomClassType('STO')).toBe(true);
+		expect(isNonRoomClassType('FLD')).toBe(true);
 		expect(isNonRoomClassType('LEC')).toBe(false);
 		expect(isNonRoomClassType('THS')).toBe(false);
 	});
