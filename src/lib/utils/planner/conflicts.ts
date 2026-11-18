@@ -40,6 +40,10 @@ export function isUnscheduled(section: PlannedSection): boolean {
 
 export type Conflict = { a: ScheduleBlock; b: ScheduleBlock };
 
+export function overlaps(a: ScheduleBlock, b: ScheduleBlock): boolean {
+	return a.dayIndex === b.dayIndex && a.startMin < b.endMin && b.startMin < a.endMin;
+}
+
 /**
  * Pairwise overlaps: same day and strictly overlapping minute ranges.
  * Touching boundaries (10:00 end vs 10:00 start) do not conflict; a section
@@ -56,11 +60,7 @@ export function findConflicts(sections: PlannedSection[]): Conflict[] {
 			const a = blocks[i];
 			const b = blocks[j];
 			if (a.key === b.key) continue;
-			if (
-				a.block.dayIndex === b.block.dayIndex &&
-				a.block.startMin < b.block.endMin &&
-				b.block.startMin < a.block.endMin
-			) {
+			if (overlaps(a.block, b.block)) {
 				conflicts.push({ a: a.block, b: b.block });
 			}
 		}
