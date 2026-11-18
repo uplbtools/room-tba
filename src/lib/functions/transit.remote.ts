@@ -15,6 +15,7 @@ import { routeDirections } from '#lib/utils/transit/transit-direction.js';
 import {
 	enforceReportIpLimit,
 	isReportTooFar,
+	isRouteId,
 	isUndefinedTableError,
 	parseStopKey,
 	parseStopKeysParam,
@@ -47,6 +48,17 @@ export const getStopReports = query(v.array(v.string()), async (stopKeys) => {
 	const now = Date.now();
 	try {
 		return { now, reports: await reports.getStopReports(keys) };
+	} catch (err) {
+		if (isUndefinedTableError(err)) return { now, reports: [] };
+		throw err;
+	}
+});
+
+/** The last hour of reports anywhere on one route, with the server clock they are relative to. */
+export const getRouteReports = query(v.pipe(v.string(), v.check(isRouteId)), async (routeId) => {
+	const now = Date.now();
+	try {
+		return { now, reports: await reports.getRouteReports(routeId) };
 	} catch (err) {
 		if (isUndefinedTableError(err)) return { now, reports: [] };
 		throw err;

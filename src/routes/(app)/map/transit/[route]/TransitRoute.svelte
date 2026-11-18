@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { getRouteReports } from '#lib/functions/transit.remote.js';
 	import {
 		ROUTE_BOARDING_NOTES,
 		ROUTE_END_BOARDS,
@@ -17,6 +19,7 @@
 		transitRouteKind,
 		transitRouteNoun
 	} from '#lib/utils/transit/transit-route-kind.js';
+	import { routeReportLine } from '#lib/utils/transit/transit-reports.js';
 	import { routeScheduleSummary } from '#lib/utils/transit/transit-schedule.js';
 	import TransitSignboard from '../TransitSignboard.svelte';
 
@@ -43,6 +46,11 @@
 	);
 	const timetable = $derived(routeSchedule(route.id));
 	const endBoards = $derived(ROUTE_END_BOARDS[route.id] ?? []);
+
+	onMount(() => {
+		const poll = setInterval(() => void getRouteReports(route.id).refresh(), 60_000);
+		return () => clearInterval(poll);
+	});
 </script>
 
 <div class="flex flex-col gap-3 p-6">
@@ -134,6 +142,13 @@
 				{/if}
 			</li>
 		{/if}
+		<svelte:boundary>
+			{#snippet pending()}{/snippet}
+			{#snippet failed()}{/snippet}
+			{@const data = await getRouteReports(route.id)}
+			{@const line = routeReportLine(data.reports, route.stops, data.now)}
+			<li>{line.last}{line.frequency ? `. ${line.frequency}` : ''}</li>
+		</svelte:boundary>
 	</ul>
 
 	{#if route.geometry.caveat}
