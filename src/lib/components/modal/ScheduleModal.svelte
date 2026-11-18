@@ -29,7 +29,7 @@
 			<ScheduleRender roomCode={room.code} {classes} />
 		{:else}
 			<p class="schedule-modal__empty">
-				No classes to display for this room{termLabel ? ` in ${termLabel}` : ''}.
+				There are no classes to display for this room{termLabel ? ` in ${termLabel}` : ''}.
 			</p>
 		{/if}
 	</div>

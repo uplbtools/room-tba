@@ -50,14 +50,14 @@
 			const data = await res.json().catch(() => ({}) as { error?: string });
 			if (!res.ok) {
 				// Leave `message` alone — retyping lost feedback is how feedback dies.
-				error = data.error ?? 'Could not send your message. Try again.';
+				error = data.error ?? "Couldn't send your message. Try again.";
 				return;
 			}
 			sent = true;
 			message = '';
 			contact = '';
 		} catch {
-			error = 'Network error. Your message is still here — try again.';
+			error = 'Network error. Your message is still here, so try again.';
 		} finally {
 			sending = false;
 		}
@@ -66,10 +66,7 @@
 
 <div class="feedback-panel">
 	{#if sent}
-		<EntityEditorMessage
-			variant="success"
-			message="Sent. Thank you — the team reads every message."
-		/>
+		<EntityEditorMessage variant="success" message="Thanks, the team reads every message." />
 		<button class="feedback-panel__again" type="button" onclick={() => (sent = false)}>
 			Send another
 		</button>
@@ -78,7 +75,7 @@
 			<EntityEditorFormField
 				label="Your message"
 				inputId="feedback-message"
-				hint="Anything — a wrong room, a bug, an idea."
+				hint="A wrong room, a bug or an idea."
 			>
 				{#snippet control()}
 					<textarea
@@ -110,7 +107,7 @@
 			</EntityEditorFormField>
 
 			<p class="feedback-panel__attached">
-				Sent with your message: the screen you are on ({screen ?? 'unknown'}), app version {APP_VERSION_LABEL},
+				Your message includes the screen you're on ({screen ?? 'unknown'}), the app version {APP_VERSION_LABEL},
 				and whether you were {wasOnline === false ? 'offline' : 'online'}. No email and no IP
 				address are stored.
 			</p>

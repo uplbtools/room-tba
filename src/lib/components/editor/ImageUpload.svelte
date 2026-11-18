@@ -76,7 +76,7 @@
 			}
 			if (res.status === 503) {
 				uploadConfigured = false;
-				throw new Error(data.error ?? 'Image uploads are not configured on this server yet.');
+				throw new Error(data.error ?? "Image uploads aren't configured on this server yet.");
 			}
 			if (!res.ok || !data.url) {
 				throw new Error(data.error ?? `Upload failed (${res.status})`);
@@ -86,7 +86,7 @@
 			onValueChange?.(value);
 			onuploaded?.(value);
 		} catch (uploadError) {
-			error = uploadError instanceof Error ? uploadError.message : 'Failed to upload image';
+			error = uploadError instanceof Error ? uploadError.message : "Couldn't upload the image.";
 		} finally {
 			uploading = false;
 		}
@@ -137,9 +137,9 @@
 	/>
 	<p class="entity-editor-muted image-upload-hint">
 		{#if uploadConfigured === false}
-			Image uploads are not configured on this server. You can still save without a photo.
+			Image uploads aren't configured on this server. You can still save without a photo.
 		{:else}
-			JPEG, PNG, or WebP up to {maxSizeLabel}.
+			Use a JPEG, PNG, or WebP up to {maxSizeLabel}.
 		{/if}
 	</p>
 	{#if error}

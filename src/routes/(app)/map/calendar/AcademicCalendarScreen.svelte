@@ -179,8 +179,8 @@
 	<details class="acal-about">
 		<summary>May differ from the official UPLB academic calendar</summary>
 		<p class="acal-note" role="note">
-			Term windows are community-maintained per CRS term; the dated rows below are read from the
-			Office of the University Registrar's published calendar. Verify anything you are relying on
+			Term windows are community-maintained per CRS term. The dated rows below are read from the
+			Office of the University Registrar's published calendar. Verify anything you're relying on
 			with the Registrar.
 		</p>
 	</details>
@@ -189,7 +189,7 @@
 		{#if !termStore.loaded}
 			<p class="acal-status" role="status">Loading terms…</p>
 		{:else if activeTerms.length === 0}
-			<p class="acal-status">No academic terms available.</p>
+			<p class="acal-status">There are no academic terms available.</p>
 		{:else}
 			{#if timeline}
 				<section class="acal-year" aria-label="{timelineHeading} timeline">
@@ -222,7 +222,7 @@
 							<div class="acal-today" style="left: {timeline.todayPct}%" aria-hidden="true"></div>
 						{/if}
 					</div>
-					<p class="acal-caption">Today: {todayLabel} (Asia/Manila)</p>
+					<p class="acal-caption">Today is {todayLabel} (Asia/Manila)</p>
 					<ul class="acal-legend" aria-label="Timeline legend">
 						{#each LEGEND as item (item.kind)}
 							<li>
@@ -257,7 +257,7 @@
 						</ul>
 					{:else}
 						<p class="acal-status">
-							No registrar calendar published for {timelineHeading} yet.
+							There's no registrar calendar published for {timelineHeading} yet.
 						</p>
 					{/each}
 					{#if milestoneTimeline && milestoneTimeline.outOfRangeCount > 0}
@@ -271,9 +271,8 @@
 						</p>
 					{/if}
 					<p class="acal-milestones__note">
-						From the Office of the University Registrar's academic calendar for
-						{timelineHeading}. Staff-only rows (faculty, University Council and BOR meetings) are
-						omitted.
+						These dates come from the Office of the University Registrar's academic calendar for {timelineHeading}.
+						Staff-only rows (faculty, University Council and BOR meetings) are omitted.
 					</p>
 				</section>
 			{/if}
@@ -318,7 +317,9 @@
 								{/each}
 							</ul>
 						{:else}
-							<p class="acal-card__empty">No registrar dates published for this term yet.</p>
+							<p class="acal-card__empty">
+								There are no registrar dates published for this term yet.
+							</p>
 						{/if}
 					</details>
 				{/each}

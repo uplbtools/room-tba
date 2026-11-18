@@ -42,7 +42,7 @@
 <div class="entity-photo-upload">
 	<p class="entity-photo-upload__label">{label}</p>
 	<p class="entity-editor-muted entity-photo-upload__hint">
-		Add up to {MAX_ENTITY_PHOTOS} photos. JPEG, PNG, or WebP up to 5 MB each.
+		Add up to {MAX_ENTITY_PHOTOS} photos. Use a JPEG, PNG, or WebP up to 5 MB each.
 	</p>
 	<div class="entity-photo-upload__items">
 		{#each Array.from({ length: slotCount }) as _, index (index)}

@@ -113,7 +113,7 @@
 					<CalendarX size={32} aria-hidden="true" />
 					<h2 class="finals-empty__title">No schedule published yet</h2>
 					<p class="finals-status">
-						The registrar has not released final exams for this term.{#if finalsWindow}{' '}The
+						The registrar hasn't released final exams for this term.{#if finalsWindow}{' '}The
 							academic calendar sets them for
 							<span class="finals-nowrap">{finalsWindow}</span>.{/if}
 					</p>

@@ -51,7 +51,7 @@
 		try {
 			const res = await fetch('/api/admin/users', { credentials: 'same-origin' });
 			if (!res.ok) {
-				loadError = 'Could not load users.';
+				loadError = "Couldn't load users.";
 				return;
 			}
 			const data = (await res.json()) as {
@@ -95,7 +95,7 @@
 			});
 			const data = await res.json().catch(() => ({}) as { error?: string });
 			if (!res.ok) {
-				rowError = data.error ?? 'Could not update role.';
+				rowError = data.error ?? "Couldn't update role.";
 				return;
 			}
 			users = (users ?? []).map((u) => (u.id === user.id ? { ...u, role } : u));
@@ -118,7 +118,7 @@
 			});
 			const data = await res.json().catch(() => ({}) as { error?: string });
 			if (!res.ok) {
-				rowError = data.error ?? 'Could not update account.';
+				rowError = data.error ?? "Couldn't update account.";
 				return;
 			}
 			users = (users ?? []).map((u) => (u.id === user.id ? { ...u, isActive: !user.isActive } : u));
