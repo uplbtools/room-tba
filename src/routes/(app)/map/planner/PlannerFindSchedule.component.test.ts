@@ -1,10 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/svelte';
 import { describe, expect, test, vi } from 'vitest';
 import PlannerFindSchedule from './PlannerFindSchedule.svelte';
-import { getRoomWalkMinutes } from '#lib/functions/walk.remote.js';
+import { getRoomWalkMinutes } from '#lib/functions/directions.remote.js';
 import type { ClassMapValue } from '#lib/utils/types.js';
 
-vi.mock('#lib/functions/walk.remote.js', () => ({ getRoomWalkMinutes: vi.fn(async () => ({})) }));
+vi.mock('#lib/functions/directions.remote.js', () => ({
+	getRoomWalkMinutes: vi.fn(async () => ({}))
+}));
 
 let id = 1;
 const row = (over: Partial<ClassMapValue>): ClassMapValue => ({

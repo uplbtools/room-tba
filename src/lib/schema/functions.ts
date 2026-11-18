@@ -144,11 +144,6 @@ export const DirectionsSchema = v.object({
 	to: DirectionsPointSchema
 });
 
-export const RoomWalkSchema = v.object({
-	from: v.pipe(v.string(), v.trim(), v.minLength(1)),
-	to: v.pipe(v.string(), v.trim(), v.minLength(1))
-});
-
 export const JeepReportSchema = v.object({
 	routeId: v.string(),
 	stopKey: v.string(),

@@ -9,7 +9,7 @@ import { getRoomById } from '#lib/functions/rooms.remote.js';
 import {
 	type DirectionsPointSchema,
 	DirectionsSchema,
-	RoomWalkSchema
+	RoomCodesSchema
 } from '#lib/schema/functions.js';
 import { buildingsTable, roomsTable } from '#lib/server/db/schema.js';
 import { db } from '#lib/utils/db.js';
@@ -56,21 +56,32 @@ export const getWalkingRoute = query(DirectionsSchema, async ({ from, to }) => {
 	return { from: start, to: end, plan: planWalk(await loadTravelGraph(), start, end) };
 });
 
-/** Walking seconds between two rooms' buildings, or null in the same building, with no pin or with no route. */
-export const getRoomWalkSeconds = query(RoomWalkSchema, async ({ from, to }) => {
-	const rows = await db
+/** Whole walking minutes between rooms in different buildings, keyed "from|to". */
+export const getRoomWalkMinutes = query(RoomCodesSchema, async (codes) => {
+	const rooms = await db
 		.select({ code: roomsTable.code, lat: buildingsTable.lat, lon: buildingsTable.lon })
 		.from(roomsTable)
 		.innerJoin(buildingsTable, eq(buildingsTable.id, roomsTable.buildingId))
-		.where(inArray(roomsTable.code, [from, to]));
-	const start = rows.find((row) => row.code === from);
-	const end = rows.find((row) => row.code === to);
-	if (start?.lat == null || start.lon == null || end?.lat == null || end.lon == null) return null;
-	if (start.lat === end.lat && start.lon === end.lon) return null;
-	const plan = planWalk(
-		await loadTravelGraph(),
-		{ lat: start.lat, lon: start.lon },
-		{ lat: end.lat, lon: end.lon }
-	);
-	return plan.status === 'ok' ? plan.route.seconds : null;
+		.where(inArray(roomsTable.code, codes));
+	const graph = await loadTravelGraph();
+	const byBuilding = new Map<string, number | null>();
+	const minutes: Record<string, number> = {};
+	for (const from of rooms) {
+		for (const to of rooms) {
+			if (from.lat == null || from.lon == null || to.lat == null || to.lon == null) continue;
+			if (from.lat === to.lat && from.lon === to.lon) continue;
+			const key = `${from.lat},${from.lon}|${to.lat},${to.lon}`;
+			if (!byBuilding.has(key)) {
+				const plan = planWalk(
+					graph,
+					{ lat: from.lat, lon: from.lon },
+					{ lat: to.lat, lon: to.lon }
+				);
+				byBuilding.set(key, plan.status === 'ok' ? Math.ceil(plan.route.seconds / 60) : null);
+			}
+			const walk = byBuilding.get(key);
+			if (walk != null) minutes[`${from.code}|${to.code}`] = walk;
+		}
+	}
+	return minutes;
 });

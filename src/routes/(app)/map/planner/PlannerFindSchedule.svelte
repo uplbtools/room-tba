@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getRoomWalkMinutes } from '#lib/functions/walk.remote.js';
+	import { getRoomWalkMinutes } from '#lib/functions/directions.remote.js';
 	import type { ClassOfferingGroup } from '#lib/utils/class-offering-groups.js';
 	import { formatScheduleShort } from '#lib/utils/planner/format.js';
 	import { findSchedules, MAX_RESULTS, type FindResult } from '#lib/utils/planner/find-schedule.js';

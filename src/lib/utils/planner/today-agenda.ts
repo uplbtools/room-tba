@@ -61,10 +61,9 @@ export function formatTimeRange(startMin: number, endMin: number): string {
 export function leaveByNote(
 	prevEndMin: number,
 	startMin: number,
-	walkSeconds: number,
+	walk: number,
 	fromRoom: string
 ): string {
-	const walk = Math.ceil(walkSeconds / 60);
 	const late = prevEndMin + walk - startMin;
 	return late > 0
 		? `${walk} min walk from ${fromRoom}, so you'll be about ${late} min late`
