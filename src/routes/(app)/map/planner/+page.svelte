@@ -5,7 +5,9 @@
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import { getPlannerStore, getTermStore, getToast } from '#lib/utils/context.js';
+	import { writeLocalJson } from '#lib/utils/locStorage.js';
 	import { resolveSharedPlan } from '#lib/utils/planner/import-shared.js';
+	import { PLANNER_PROGRAM_KEY } from '#lib/utils/planner/program-courses.js';
 	import { decodeSharePlan } from '#lib/utils/planner/share-codec.js';
 	import PlannerScreen from './PlannerScreen.svelte';
 
@@ -13,6 +15,9 @@
 	const termStore = getTermStore();
 	const toastStore = getToast();
 	const ready = browser ? termStore.init().then(plannerStore.init) : null;
+
+	const programParam = page.url.searchParams.get('program');
+	if (browser && programParam) writeLocalJson(PLANNER_PROGRAM_KEY, programParam.toUpperCase());
 
 	// Import a plan from a share link (?plan=).
 	onMount(async () => {
