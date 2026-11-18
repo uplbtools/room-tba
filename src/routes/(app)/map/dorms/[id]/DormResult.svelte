@@ -705,7 +705,12 @@
 		</header>
 		<ResultActions data={dorm} name={dorm.dormName} />
 		<SuggestEditButton
-			data={{ id: dorm.id, version: dorm.version, dormName: dorm.dormName, description: dorm.description ?? '' }}
+			data={{
+				id: dorm.id,
+				version: dorm.version,
+				dormName: dorm.dormName,
+				description: dorm.description ?? ''
+			}}
 		/>
 		{#if kuboDormCta}
 			<EntityExternalLink
@@ -792,7 +797,7 @@
 						entityKind="dorm"
 						sourceLabel={dorm.dormName}
 						candidateLabel={mergePrompt.candidate.dormName}
-						detail="Merge event links and metadata into the kept dorm;"
+						detail="Event links and metadata move to the kept dorm. Merge"
 						merging={mergingEntity}
 						disabled={savingField !== null}
 						onconfirm={confirmDormMerge}

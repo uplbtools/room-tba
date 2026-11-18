@@ -20,7 +20,7 @@
 			await copyTextToClipboard(url);
 			toastStore.show(`Copied link for ${entityLabel}.`, 'success');
 		} catch {
-			toastStore.show(`Could not copy link for ${entityLabel}.`, 'error');
+			toastStore.show(`Couldn't copy link for ${entityLabel}.`, 'error');
 		}
 	}
 </script>

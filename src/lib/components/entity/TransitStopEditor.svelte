@@ -90,7 +90,7 @@
 		} catch (caught) {
 			return caught instanceof ProposalValidationError
 				? caught.message
-				: 'Could not submit stop suggestion.';
+				: "Couldn't submit stop suggestion.";
 		}
 	}
 
@@ -130,7 +130,7 @@
 				if (canPublish) {
 					const result = await publishEntityCreate('create_jeepney_stop', patch);
 					if (!result.ok) {
-						error = result.error ?? 'Could not add stop.';
+						error = result.error ?? "Couldn't add stop.";
 						return;
 					}
 					await transitStore.refresh();
@@ -153,7 +153,7 @@
 					proposalId: activeProposalId
 				});
 				if (!result.ok) {
-					error = result.error ?? 'Could not submit stop suggestion.';
+					error = result.error ?? "Couldn't submit stop suggestion.";
 					return;
 				}
 				activeProposalId = result.proposal?.id ?? null;
@@ -178,7 +178,7 @@
 				proposalId: activeProposalId
 			});
 			if (!result.ok) {
-				error = result.error ?? 'Could not save stop.';
+				error = result.error ?? "Couldn't save stop.";
 				return;
 			}
 			if (canPublish) await transitStore.refresh();
@@ -211,7 +211,7 @@
 				})
 			});
 			if (!result.ok) {
-				error = result.error ?? 'Could not remove stop.';
+				error = result.error ?? "Couldn't remove stop.";
 				return;
 			}
 			if (canPublish) {
