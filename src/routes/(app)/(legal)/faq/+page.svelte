@@ -28,7 +28,7 @@
 	<details id="official">
 		<summary>Is Room TBA an official UPLB site?</summary>
 		<p>
-			No. Room TBA is a student-run community tool under UPLB Tools. It is not affiliated with,
+			No. Room TBA is a student-run community tool under UPLB Tools. It isn't affiliated with,
 			endorsed by, or operated by the University of the Philippines Los Baños. For enrollment,
 			grades, or official announcements, use university channels.
 		</p>
@@ -70,10 +70,10 @@
 		<summary>Where does class and room schedule data come from?</summary>
 		<p>
 			Volunteers import class offerings from AMIS/CRS each term. Class search can list lecture, lab,
-			recitation, thesis, special problem, and similar sections; sections without a room in AMIS
+			recitation, thesis, special problem, and similar sections. Sections without a room in AMIS
 			show as unassigned. Room schedules list lecture, lab, and similar sections that have an
 			assigned room. Thesis and special-problem style rows usually have no facility in AMIS, so they
-			often do not appear on a room timetable.
+			often don't appear on a room timetable.
 		</p>
 		<p>
 			Offerings can still change up to the last day of change of matriculation. Always double-check
@@ -83,17 +83,17 @@
 
 	<details id="missing">
 		<summary>Why is my class or room missing?</summary>
-		<p>Common reasons:</p>
+		<p>Here are the common reasons.</p>
 		<ul>
 			<li>
 				The section type is outside what room schedules show (for example thesis or special problem
 				with no facility in AMIS).
 			</li>
 			<li>
-				The AMIS facility string does not match our room codes yet (aliases and typos). Volunteers
+				The AMIS facility string doesn't match our room codes yet (aliases and typos). Volunteers
 				track that as data work.
 			</li>
-			<li>The building or room has not been added to the map database.</li>
+			<li>The building or room hasn't been added to the map database.</li>
 		</ul>
 		<p>See also how to <a href="#report">report wrong or missing data</a>.</p>
 	</details>
@@ -101,9 +101,9 @@
 	<details id="report">
 		<summary>How do I report wrong data?</summary>
 		<p>
-			Open a GitHub issue with the room code, building name, or class section and what is wrong:
-			<a href={reportIssueUrl} target="_blank" rel="noopener noreferrer">Report wrong data</a>. You
-			can also ask in
+			Open a GitHub issue (<a href={reportIssueUrl} target="_blank" rel="noopener noreferrer"
+				>Report wrong data</a
+			>) with the room code, building name or class section and what's wrong. You can also ask in
 			<a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">Discord</a>. Signed-in
 			contributors can use <strong>Suggest an edit</strong> in the app for many map fields.
 		</p>
@@ -117,18 +117,18 @@
 		</p>
 		<div class="mt-3">
 			<FollowUpdates
-				note="Posted there: new features, corrections to room and class data, and the day each term's schedules land."
+				note="We post new features, corrections to room and class data, and the day each term's schedules land."
 			/>
 		</div>
 	</details>
 
 	<details id="data-license">
 		<summary>Can I reuse Room TBA data?</summary>
-		<p>It depends which layer you mean:</p>
+		<p>It depends on which layer you mean.</p>
 		<ul>
 			<li>
-				<strong>App code</strong> is {SOFTWARE_LICENSE}. Fork for another campus is fine; replace
-				the UPLB data.
+				<strong>App code</strong> is {SOFTWARE_LICENSE}. You can fork it for another campus, but
+				replace the UPLB data.
 			</li>
 			<li>
 				<strong>Community campus map data</strong> (buildings, rooms, dorms, orgs, pins, aliases
@@ -139,12 +139,13 @@
 			</li>
 			<li>
 				<strong>OpenStreetMap</strong> basemap tiles and building footprints stay under the
-				<a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">ODbL</a>; keep OSM
+				<a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">ODbL</a>. Keep OSM
 				attribution.
 			</li>
 			<li>
 				<strong>AMIS/CRS class schedules</strong> and similar university imports are not offered for bulk
-				redistribution under an open license. Use the app; do not scrape and republish the registrar feed.
+				redistribution under an open license. Use the app, but don't scrape and republish the registrar
+				feed.
 			</li>
 		</ul>
 		<p>Binding wording for contributors is in the <a href={DATA_LICENSE_TERMS_PATH}>Terms</a>.</p>
@@ -155,7 +156,7 @@
 		<p>
 			Yes, within limits. Room TBA is a PWA: after you visit online, campus data can stay cached in
 			your browser (PGlite). Map tiles work offline if you already loaded them or used the offline
-			maps download. A first visit with no signal will not have a full cache yet.
+			maps download. A first visit with no signal won't have a full cache yet.
 		</p>
 	</details>
 </article>

@@ -11,7 +11,6 @@
 	</nav>
 
 	<header class="route-head">
-		<p class="route-kicker">Walking route</p>
 		<h1>{data.fromName} to {data.toName}</h1>
 		{#if data.stats}
 			<p class="route-stats">
@@ -44,14 +43,14 @@
 			<p class="route-note">
 				Distance and time come from
 				<a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">OpenStreetMap</a>
-				footpaths and assume an unhurried walk. Campus shortcuts and closed gates are not accounted for.
+				footpaths and assume an unhurried walk. Campus shortcuts and closed gates aren't accounted for.
 			</p>
 		</section>
 	{:else}
 		<section class="route-body">
 			<p class="route-lede">
 				{data.samePlace
-					? 'That is the same place twice. Pick a different destination.'
+					? "That's the same place twice. Pick a different destination."
 					: 'No walking route could be worked out between these two right now. The routing service may be unavailable.'}
 			</p>
 			<div class="route-actions">
@@ -79,15 +78,6 @@
 		margin-top: 1rem;
 		padding-bottom: 1.25rem;
 		border-bottom: 1px solid hsl(0, 0%, 88%);
-	}
-
-	.route-kicker {
-		margin: 0;
-		color: hsl(5, 53%, 36%);
-		font-size: 0.75rem;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
 	}
 
 	.route-head h1 {

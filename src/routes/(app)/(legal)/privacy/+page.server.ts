@@ -3,7 +3,8 @@ import { breadcrumbSchema, jsonLd, webpageSchema } from '#lib/utils/site.js';
 import type { PageServerLoad } from './$types';
 
 const title = 'Privacy Policy | Room TBA';
-const description = 'How Room TBA handles data, analytics, editor accounts, and offline storage.';
+const description =
+	'See how Room TBA handles data, analytics, editor accounts and offline storage.';
 const canonicalPath = '/privacy';
 
 export const load: PageServerLoad = () => {

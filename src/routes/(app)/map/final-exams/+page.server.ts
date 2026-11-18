@@ -4,7 +4,7 @@ import type { PageServerLoad } from './$types';
 
 const title = 'Final Exam Schedule | Room TBA';
 const description =
-	'Browse the UPLB final exam schedule by term: search courses, sections, and rooms with dates and times from OUR releases.';
+	'Browse the UPLB final exam schedule by term. Search courses, sections and rooms for dates and times from OUR releases.';
 const canonicalPath = '/map/final-exams';
 
 export const load: PageServerLoad = () => {

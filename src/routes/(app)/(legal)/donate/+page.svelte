@@ -11,7 +11,7 @@
 		page.url.searchParams.has('success')
 			? { text: 'Salamat! Your donation went through.', kind: 'success' }
 			: page.url.searchParams.has('cancelled')
-				? { text: 'Checkout cancelled. No charge was made.', kind: 'info' }
+				? { text: 'Checkout was cancelled. No charge was made.', kind: 'info' }
 				: null
 	);
 
@@ -94,8 +94,8 @@
 	<p class="fineprint">
 		Payments are processed by
 		<a href="https://www.paymongo.com" target="_blank" rel="noopener noreferrer">PayMongo</a>
-		via QR Ph, which works with GCash, Maya and bank apps. We never see your payment details. ₱10 minimum.
-		See our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
+		via QR Ph, which works with GCash, Maya and bank apps. We never see your payment details. The minimum
+		is ₱10. See our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
 	</p>
 </section>
 

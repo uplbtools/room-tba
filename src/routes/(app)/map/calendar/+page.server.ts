@@ -4,7 +4,7 @@ import type { PageServerLoad } from './$types';
 
 const title = 'Academic Calendar | Room TBA';
 const description =
-	'See where today falls in the UPLB academic year: instructional windows per CRS term, the in-session term, and class counts.';
+	'See where today falls in the UPLB academic year, with the instructional windows per CRS term, the in-session term and class counts.';
 const canonicalPath = '/map/calendar';
 
 export const load: PageServerLoad = () => {

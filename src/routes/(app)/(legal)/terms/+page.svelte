@@ -18,8 +18,10 @@
 
 <h1>Terms of Service</h1>
 <p class="text-neutral-600">
-	Last updated: July 28, 2026. By using Room TBA you agree to these terms. The service is provided
-	by <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer">UPLB Tools</a> volunteers.
+	This page was last updated on July 28, 2026. By using Room TBA you agree to these terms. The
+	service is provided by <a href={UPLB_TOOLS_URL} target="_blank" rel="noopener noreferrer"
+		>UPLB Tools</a
+	> volunteers.
 </p>
 
 <section>
@@ -34,8 +36,8 @@
 <section>
 	<h2>Not official UPLB</h2>
 	<p>
-		Room TBA is a community tool. It is not affiliated with, endorsed by, or operated by the
-		University of the Philippines Los Baños. Do not rely on it as your only source for enrollment,
+		Room TBA is a community tool. It isn't affiliated with, endorsed by, or operated by the
+		University of the Philippines Los Baños. Don't rely on it as your only source for enrollment,
 		room assignments, or official announcements.
 	</p>
 </section>
@@ -54,7 +56,7 @@
 	<ul>
 		<li>
 			<strong>In-app contributions.</strong> Use “Suggest an edit” or contributor tools inside the map.
-			Do not submit false or malicious data.
+			Don't submit false or malicious data.
 		</li>
 		<li>
 			<strong>Review.</strong> Volunteer editors may approve, reject, or request changes to proposals
@@ -75,9 +77,9 @@
 <section id="data-licenses">
 	<h2>Data licenses</h2>
 	<p>
-		Room TBA mixes several sources. Short summary (see also the <a href={DATA_LICENSE_FAQ_PATH}
-			>FAQ</a
-		>):
+		Room TBA mixes several sources. Here's a short summary (see also the <a
+			href={DATA_LICENSE_FAQ_PATH}>FAQ</a
+		>).
 	</p>
 	<ul>
 		<li>
@@ -119,7 +121,7 @@
 
 <section>
 	<h2>Acceptable use</h2>
-	<p>You agree not to:</p>
+	<p>You agree not to do any of the following.</p>
 	<ul>
 		<li>Attempt to break, scrape, or overload the service.</li>
 		<li>Bypass authentication or tamper with other users’ edits.</li>
