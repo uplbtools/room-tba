@@ -39,8 +39,8 @@ import {
 	parseLocatedAt,
 	resolveReference,
 	spreadMeters
-} from '@lib/campus-audit';
-import { distanceMeters } from '@lib/campus-route';
+} from '../src/lib/utils/campus/campus-audit';
+import { distanceMeters } from '../src/lib/utils/campus/campus-route';
 
 config({ path: '.env', quiet: true });
 

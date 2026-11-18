@@ -18,7 +18,7 @@
  */
 
 import pg from 'pg';
-import { pickRoomFullName } from '../src/lib/room-full-name';
+import { pickRoomFullName } from '../src/lib/utils/room-full-name';
 import { loadEnv } from './load-env';
 
 loadEnv();

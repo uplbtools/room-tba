@@ -23,8 +23,8 @@
  * street-view-coverage.ts does.
  */
 import pg from 'pg';
-import { campusMap } from '../src/campus.config';
-import { distanceMeters } from '../src/lib/campus-route';
+import { campusMap } from '../src/lib/campus.config';
+import { distanceMeters } from '../src/lib/utils/campus/campus-route';
 import {
 	DEFAULT_FLAG_THRESHOLD_M,
 	classify,

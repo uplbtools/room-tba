@@ -85,6 +85,7 @@
 	},
 	"imports": {
 		"#lib": "./src/lib/index.js",
+		"#lib/*.js": "./src/lib/*.ts",
 		"#lib/*": "./src/lib/*"
 	}
 }

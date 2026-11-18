@@ -23,7 +23,7 @@ import {
 	dormsTable,
 	roomsTable,
 	termsTable
-} from '@drizzle/schema';
+} from '../src/lib/server/db/schema';
 
 const OUT_DIR = join(import.meta.dir, '..', 'exports', 'deep-research');
 // Fallback term label when the terms table is unavailable (e.g. SQLite export).

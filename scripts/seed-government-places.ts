@@ -12,7 +12,7 @@
 import { config } from 'dotenv';
 import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { placesTable } from '@drizzle/schema';
+import { placesTable } from '../src/lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 config({ path: '.env' });

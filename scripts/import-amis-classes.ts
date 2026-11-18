@@ -31,20 +31,30 @@ import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
-import { aliasesTable, classesTable, roomsTable, termsTable, updateTable } from '@drizzle/schema';
-import { fetchAmisClasses } from '@lib/amis/fetch-classes';
-import { defaultAmisExportPath } from '@lib/amis/export-path';
+import {
+	aliasesTable,
+	classesTable,
+	roomsTable,
+	termsTable,
+	updateTable
+} from '../src/lib/server/db/schema';
+import { fetchAmisClasses } from '../src/lib/amis/fetch-classes';
+import { defaultAmisExportPath } from '../src/lib/amis/export-path';
 import {
 	buildRoomLookup,
 	classNaturalKey,
 	formatImportReport,
 	resolveImportRows,
 	summarizeImportChanges
-} from '@lib/amis/import-classes';
-import { extractClassRows, normalizeAmisClass } from '@lib/amis/normalize-class';
-import { amisExportContainsInstructorPii, sanitizeAmisRows } from '@lib/amis/sanitize-row';
-import { amisImportExitCode, AmisImportError, operatorHintForCode } from '@lib/amis/import-errors';
-import type { AmisClassRow } from '@lib/amis/types';
+} from '../src/lib/amis/import-classes';
+import { extractClassRows, normalizeAmisClass } from '../src/lib/amis/normalize-class';
+import { amisExportContainsInstructorPii, sanitizeAmisRows } from '../src/lib/amis/sanitize-row';
+import {
+	amisImportExitCode,
+	AmisImportError,
+	operatorHintForCode
+} from '../src/lib/amis/import-errors';
+import type { AmisClassRow } from '../src/lib/amis/types';
 
 config({ path: '.env' });
 

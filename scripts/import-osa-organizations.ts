@@ -8,11 +8,11 @@
 import { config } from 'dotenv';
 import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { organizationsTable, updateTable } from '@drizzle/schema';
+import { organizationsTable, updateTable } from '../src/lib/server/db/schema';
 import { sql } from 'drizzle-orm';
-import { UPLB_OSA_ORGANIZATIONS_URL } from '@constants/community-links';
-import { parseOsaOrganizations } from '@lib/osa-organization-directory';
-import { normalizeAlias } from '@lib/site';
+import { UPLB_OSA_ORGANIZATIONS_URL } from '../src/lib/constants/content/links/community';
+import { parseOsaOrganizations } from '../src/lib/utils/osa-organization-directory';
+import { normalizeAlias } from '../src/lib/utils/site';
 
 config({ path: '.env' });
 

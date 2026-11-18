@@ -24,21 +24,27 @@ import { readFileSync } from 'node:fs';
 import { eq, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
-import { aliasesTable, classesTable, roomsTable, termsTable, updateTable } from '@drizzle/schema';
+import {
+	aliasesTable,
+	classesTable,
+	roomsTable,
+	termsTable,
+	updateTable
+} from '../src/lib/server/db/schema';
 import {
 	buildRoomLookup,
 	type ClassInsertRow,
 	classNaturalKey,
 	matchRoomId,
 	summarizeImportChanges
-} from '@lib/amis/import-classes';
+} from '../src/lib/amis/import-classes';
 import {
 	formatRowIssues,
 	type NormalizedGenericClass,
 	normalizeGenericClasses,
 	parseGenericClassesFile,
 	validateGenericClassEntries
-} from '@lib/generic-class-import';
+} from '../src/lib/utils/generic-class-import';
 import { loadEnv } from './load-env';
 
 loadEnv();

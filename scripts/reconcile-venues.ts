@@ -22,10 +22,10 @@ import { config } from 'dotenv';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
-import { aliasesTable, roomsTable } from '@drizzle/schema';
-import { buildRoomLookup, matchRoomId } from '@lib/amis/import-classes';
-import { normalizeFacilityKey } from '@lib/amis/normalize-class';
-import { normalizeAlias } from '@lib/site';
+import { aliasesTable, roomsTable } from '../src/lib/server/db/schema';
+import { buildRoomLookup, matchRoomId } from '../src/lib/amis/import-classes';
+import { normalizeFacilityKey } from '../src/lib/amis/normalize-class';
+import { normalizeAlias } from '../src/lib/utils/site';
 
 config({ path: '.env' });
 

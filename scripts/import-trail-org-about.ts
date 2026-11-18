@@ -15,8 +15,8 @@ import { config } from 'dotenv';
 import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq, sql } from 'drizzle-orm';
-import { organizationsTable, updateTable } from '@drizzle/schema';
-import { normalizeAlias } from '@lib/site';
+import { organizationsTable, updateTable } from '../src/lib/server/db/schema';
+import { normalizeAlias } from '../src/lib/utils/site';
 
 config({ path: '.env' });
 

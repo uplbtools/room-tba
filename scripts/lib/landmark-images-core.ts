@@ -12,8 +12,8 @@ export type {
 	CommonsImage,
 	LandmarkImagesEntry,
 	LandmarkImagesManifest
-} from '../../src/lib/landmark-images';
-export { MAX_COMMONS_IMAGES } from '../../src/lib/landmark-images';
+} from '../../src/lib/utils/landmark-images';
+export { MAX_COMMONS_IMAGES } from '../../src/lib/utils/landmark-images';
 
 /** Great-circle initial bearing from `from` to `to`, degrees 0-360. */
 export function bearingDegrees(

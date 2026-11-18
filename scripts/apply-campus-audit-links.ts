@@ -6,7 +6,7 @@
  */
 
 import { eq, inArray } from 'drizzle-orm';
-import { organizationsTable } from '@drizzle/schema';
+import { organizationsTable } from '../src/lib/server/db/schema';
 import { recordBulkHistory, type BulkOperation } from '../src/lib/services/bulk-history';
 import { loadEnv } from './load-env';
 import { openDb } from './record-bulk-history';

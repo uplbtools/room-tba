@@ -20,7 +20,7 @@
  * production credentials.
  */
 import { writeFileSync } from 'node:fs';
-import { fetchStreetViewMetadata, hasStreetViewKey } from '../src/lib/street-view';
+import { fetchStreetViewMetadata, hasStreetViewKey } from '../src/lib/utils/street-view';
 import {
 	bearingDegrees,
 	facadeHeadings,

@@ -38,7 +38,7 @@ import {
 	placesTable,
 	roomPositionsTable,
 	roomsTable
-} from '#lib/server/db/schema.js';
+} from '../src/lib/server/db/schema';
 
 type LocalColumn = {
 	name: string;

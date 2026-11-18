@@ -2,7 +2,7 @@
  * Pure pieces of the Places coordinate audit (#963), split out so they are
  * covered by the bun unit suite (scripts/ itself is not).
  */
-import { STRUCTURAL_TOKENS, tokenize } from '../../src/lib/campus-audit';
+import { STRUCTURAL_TOKENS, tokenize } from '../../src/lib/utils/campus/campus-audit';
 
 /**
  * Past this, a pin and Google's location for the same name are telling two
