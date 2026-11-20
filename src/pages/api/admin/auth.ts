@@ -15,12 +15,10 @@ import { readSessionVersion } from "@lib/services/account-security";
 import {
   authenticateAdminUser,
   bootstrapAdminLogin,
-  getAdminUserBySupabaseId,
 } from "@lib/services/admin-user-service";
 import { loginStepResponse } from "@lib/auth/login-challenge";
 import { recordAudit } from "@lib/services/audit-log-service";
 import { loginPlanFor } from "@lib/services/staff-security-service";
-import { createServerSupabaseClient } from "@lib/supabase/server";
 import { verifyTurnstileToken } from "@lib/turnstile";
 
 export const prerender = false;
@@ -141,42 +139,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     let user: Awaited<ReturnType<typeof authenticateAdminUser>> = null;
 
-    // Try Supabase Auth when configured (#293). Bounded with a timeout — a
-    // slow/unreachable Supabase Auth call must not block sign-in forever;
-    // fall through to local password verification just like the "not configured" case.
-    try {
-      const supabase = createServerSupabaseClient({
-        request,
-        cookies,
-      });
-      const SUPABASE_LOGIN_TIMEOUT_MS = 5000;
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      try {
-        const { data, error } = await Promise.race([
-          supabase.auth.signInWithPassword({ email: username, password }),
-          new Promise<never>((_, reject) => {
-            timer = setTimeout(
-              () => reject(new Error("Supabase sign-in timed out")),
-              SUPABASE_LOGIN_TIMEOUT_MS,
-            );
-          }),
-        ]);
-        if (data.user && !error) {
-          user = await getAdminUserBySupabaseId(data.user.id);
-        }
-      } finally {
-        // Always clear the timer so a fast response doesn't leave a live
-        // handle behind. The losing signInWithPassword call can't be
-        // aborted (supabase-js takes no signal); it settles unobserved.
-        clearTimeout(timer);
-      }
-    } catch {
-      // Supabase not configured or unavailable → fall through to local password check
-    }
-
-    if (!user) {
-      user = await authenticateAdminUser(username, password);
-    }
+    user = await authenticateAdminUser(username, password);
 
     if (!user) {
       if (!skipLoginRateLimit) await accountBackoff.fail(backoffKey);

@@ -1,11 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { bootstrapObservability } from "./lib/observability/bootstrap";
 import { getSessionUser, ADMIN_COOKIE_NAME } from "./lib/admin/auth";
-import {
-  applySupabaseCacheHeaders,
-  refreshSupabaseSession,
-} from "./lib/supabase/session";
-import { getAdminUserBySupabaseId } from "./lib/services/admin-user-service";
 import { runWithRequestDb } from "./lib/db";
 import { recordLatency } from "./lib/latency-tracker";
 import { applySecurityHeaders } from "./lib/security-headers";
@@ -15,8 +10,6 @@ const onRequestHandler = defineMiddleware(async (context, next) => {
 
   const { pathname } = context.url;
   const start = performance.now();
-
-  await refreshSupabaseSession(context);
 
   // /admin itself is a landing page that also serves signed-out and
   // non-staff visitors (roles explainer); only deeper pages need a session.
@@ -28,42 +21,25 @@ const onRequestHandler = defineMiddleware(async (context, next) => {
     pathname !== "/api/admin/auth" &&
     pathname !== "/api/admin/upload";
 
-  // Resolve editor identity from HMAC cookie or Supabase session (#293).
-  let editorUser = getSessionUser(
+  // Resolve editor identity from HMAC cookie (Google OAuth uses same session).
+  const editorUser = getSessionUser(
     context.cookies.get(ADMIN_COOKIE_NAME)?.value,
   );
-  if (!editorUser) {
-    const sbUser = context.locals.supabaseUser;
-    if (sbUser?.id) {
-      try {
-        const linked = await getAdminUserBySupabaseId(sbUser.id);
-        if (linked) editorUser = linked;
-      } catch (error) {
-        console.error("Supabase editor session lookup failed:", error);
-      }
-    }
-  }
 
   context.locals.editorUser = editorUser ?? undefined;
 
   if (isAdminPage) {
     if (!editorUser) {
-      return applySupabaseCacheHeaders(
-        context.redirect("/?editor=login"),
-        context,
-      );
+      return context.redirect("/?editor=login");
     }
   }
 
   if (isAdminApi) {
     if (!editorUser) {
-      return applySupabaseCacheHeaders(
-        new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }),
-        context,
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
     }
   }
 
@@ -90,7 +66,7 @@ const onRequestHandler = defineMiddleware(async (context, next) => {
     // the same values at the edge.
   }
 
-  return applySupabaseCacheHeaders(response, context);
+  return response;
 });
 
 // One Postgres client per request: workerd binds socket I/O to the request

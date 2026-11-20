@@ -299,13 +299,8 @@ export default defineConfig({
         context: "server",
         optional: true,
       }),
-      // Supabase JS client (Auth, Realtime, Storage). Separate from DATABASE_URL.
-      PUBLIC_SUPABASE_URL: envField.string({
-        access: "public",
-        context: "client",
-        optional: true,
-      }),
-      PUBLIC_SUPABASE_PUBLISHABLE_KEY: envField.string({
+      // Google OAuth client ID (public, for client-side config check)
+      PUBLIC_GOOGLE_CLIENT_ID: envField.string({
         access: "public",
         context: "client",
         optional: true,
@@ -345,6 +340,25 @@ export default defineConfig({
         optional: true,
       }),
       ADMIN_SESSION_SECRET: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // Direct Google OAuth sign-in (/api/auth/google/*), replacing Supabase
+      // Auth. Both unset = Google sign-in reports "not configured".
+      GOOGLE_CLIENT_ID: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      GOOGLE_CLIENT_SECRET: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // Optional override for the login callback redirect_uri registered in
+      // Google Cloud Console; defaults to <site>/api/auth/google/callback.
+      GOOGLE_REDIRECT_URI: envField.string({
         access: "secret",
         context: "server",
         optional: true,

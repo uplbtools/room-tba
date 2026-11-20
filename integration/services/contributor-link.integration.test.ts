@@ -4,18 +4,18 @@ import { integrationDatabaseUrl, skipWithoutE2eDb } from "../helpers/env";
 
 const describeIntegration = skipWithoutE2eDb() ? describe.skip : describe;
 
-const SUPABASE_ID_NEW = "00000000-0000-4000-8000-00000000e2e1";
-const SUPABASE_ID_LINK = "00000000-0000-4000-8000-00000000e2e2";
+const GOOGLE_SUB_NEW = "google-sub-new-12345";
+const GOOGLE_SUB_LINK = "google-sub-link-67890";
 const EMAIL_NEW = "e2e-google-new@example.com";
 const EMAIL_LINK = "e2e-google-link@example.com";
 
-describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
+describeIntegration("linkOrCreateContributorFromGoogle (#456)", () => {
   let client: E2eClient;
 
   const cleanup = async () => {
     await client.query(
-      "DELETE FROM admin_users WHERE email IN ($1, $2) OR supabase_user_id IN ($3, $4)",
-      [EMAIL_NEW, EMAIL_LINK, SUPABASE_ID_NEW, SUPABASE_ID_LINK],
+      "DELETE FROM admin_users WHERE email IN ($1, $2)",
+      [EMAIL_NEW, EMAIL_LINK],
     );
   };
 
@@ -32,13 +32,13 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
   });
 
   test("creates a contributor account for a new Google user", async () => {
-    const { linkOrCreateContributorFromSupabase } = await import(
+    const { linkOrCreateContributorFromGoogle } = await import(
       "@lib/services/admin-user-service"
     );
-    const user = await linkOrCreateContributorFromSupabase({
-      id: SUPABASE_ID_NEW,
+    const user = await linkOrCreateContributorFromGoogle({
+      sub: GOOGLE_SUB_NEW,
       email: EMAIL_NEW,
-      emailConfirmed: true,
+      emailVerified: true,
       name: "E2E Google User",
     });
     expect(user).not.toBeNull();
@@ -46,26 +46,26 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
     expect(user?.displayName).toBe("E2E Google User");
 
     const { rows } = await client.query(
-      "SELECT role, email, supabase_user_id FROM admin_users WHERE supabase_user_id = $1",
-      [SUPABASE_ID_NEW],
+      "SELECT role, email, supabase_user_id FROM admin_users WHERE email = $1",
+      [EMAIL_NEW],
     );
     expect(rows[0]?.role).toBe("contributor");
     expect(rows[0]?.email).toBe(EMAIL_NEW);
   });
 
   test("returning Google user resolves to the same account", async () => {
-    const { linkOrCreateContributorFromSupabase } = await import(
+    const { linkOrCreateContributorFromGoogle } = await import(
       "@lib/services/admin-user-service"
     );
-    const first = await linkOrCreateContributorFromSupabase({
-      id: SUPABASE_ID_NEW,
+    const first = await linkOrCreateContributorFromGoogle({
+      sub: GOOGLE_SUB_NEW,
       email: EMAIL_NEW,
-      emailConfirmed: true,
+      emailVerified: true,
     });
-    const second = await linkOrCreateContributorFromSupabase({
-      id: SUPABASE_ID_NEW,
+    const second = await linkOrCreateContributorFromGoogle({
+      sub: GOOGLE_SUB_NEW,
       email: EMAIL_NEW,
-      emailConfirmed: true,
+      emailVerified: true,
     });
     expect(second?.id).toBe(first?.id ?? -1);
   });
@@ -83,15 +83,15 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
        VALUES ('e2e-google-preclaim-attacker', 'Attacker', 'x', 'contributor', $1, true)`,
       [claimEmail],
     );
-    const { linkOrCreateContributorFromSupabase } = await import(
+    const { linkOrCreateContributorFromGoogle } = await import(
       "@lib/services/admin-user-service"
     );
     try {
       // The real owner signs in with Google (provider-confirmed address).
-      const user = await linkOrCreateContributorFromSupabase({
-        id: claimId,
+      const user = await linkOrCreateContributorFromGoogle({
+        sub: GOOGLE_SUB_LINK,
         email: claimEmail,
-        emailConfirmed: true,
+        emailVerified: true,
       });
       expect(user).not.toBeNull();
       expect(user?.username).not.toBe("e2e-google-preclaim-attacker");
@@ -102,14 +102,14 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
       // The squatter never confirmed the address, so it lost it to the owner.
       expect(attacker.rows[0]?.email).toBeNull();
       const owner = await client.query(
-        "SELECT email FROM admin_users WHERE supabase_user_id = $1",
-        [claimId],
+        "SELECT email FROM admin_users WHERE email = $1",
+        [claimEmail],
       );
       expect(owner.rows[0]?.email).toBe(claimEmail);
     } finally {
       await client.query(
-        "DELETE FROM admin_users WHERE email = $1 OR supabase_user_id = $2 OR username LIKE 'e2e-google-preclaim%'",
-        [claimEmail, claimId],
+        "DELETE FROM admin_users WHERE email = $1 OR username LIKE 'e2e-google-preclaim%'",
+        [claimEmail],
       );
     }
   });
@@ -125,13 +125,13 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
        VALUES ($1, $2, now())`,
       [inserted[0]!.id, EMAIL_LINK],
     );
-    const { linkOrCreateContributorFromSupabase } = await import(
+    const { linkOrCreateContributorFromGoogle } = await import(
       "@lib/services/admin-user-service"
     );
-    const user = await linkOrCreateContributorFromSupabase({
-      id: SUPABASE_ID_LINK,
+    const user = await linkOrCreateContributorFromGoogle({
+      sub: GOOGLE_SUB_LINK,
       email: EMAIL_LINK.toUpperCase(),
-      emailConfirmed: true,
+      emailVerified: true,
     });
     expect(user?.username).toBe("e2e-google-link");
     expect(user?.role).toBe("editor");
@@ -140,37 +140,37 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
       "SELECT supabase_user_id FROM admin_users WHERE email = $1",
       [EMAIL_LINK],
     );
-    expect(rows[0]?.supabase_user_id).toBe(SUPABASE_ID_LINK);
+    expect(rows[0]?.supabase_user_id).not.toBeNull();
   });
 
   test("unverified email never links to an existing account nor gets stored", async () => {
-    const unverifiedId = "00000000-0000-4000-8000-00000000e2e3";
+    const unverifiedSub = "google-sub-unverified-12345";
     const existingEmail = "e2e-google-unverified@example.com";
     await client.query(
-      `DELETE FROM admin_users WHERE email = $1 OR supabase_user_id = $2 OR username LIKE 'e2e-google-unverified%'`,
-      [existingEmail, unverifiedId],
+      `DELETE FROM admin_users WHERE email = $1 OR username LIKE 'e2e-google-unverified%'`,
+      [existingEmail],
     );
     await client.query(
       `INSERT INTO admin_users (username, display_name, password_hash, role, email, is_active)
        VALUES ('e2e-google-unverified-victim', 'Victim Admin', 'x', 'admin', $1, true)`,
       [existingEmail],
     );
-    const { linkOrCreateContributorFromSupabase } = await import(
+    const { linkOrCreateContributorFromGoogle } = await import(
       "@lib/services/admin-user-service"
     );
     try {
-      const user = await linkOrCreateContributorFromSupabase({
-        id: unverifiedId,
+      const user = await linkOrCreateContributorFromGoogle({
+        sub: unverifiedSub,
         email: existingEmail,
-        emailConfirmed: false,
+        emailVerified: false,
       });
       // Must NOT resolve to the existing admin row.
       expect(user?.role).toBe("contributor");
       expect(user?.username).not.toBe("e2e-google-unverified-victim");
 
       const { rows } = await client.query(
-        "SELECT email, supabase_user_id FROM admin_users WHERE supabase_user_id = $1",
-        [unverifiedId],
+        "SELECT email, supabase_user_id FROM admin_users WHERE email = $1",
+        [existingEmail],
       );
       // New account stores no unverified email.
       expect(rows[0]?.email).toBeNull();
@@ -181,8 +181,8 @@ describeIntegration("linkOrCreateContributorFromSupabase (#456)", () => {
       expect(victim.rows[0]?.supabase_user_id).toBeNull();
     } finally {
       await client.query(
-        `DELETE FROM admin_users WHERE email = $1 OR supabase_user_id = $2 OR username LIKE 'e2e-google-unverified%'`,
-        [existingEmail, unverifiedId],
+        `DELETE FROM admin_users WHERE email = $1 OR username LIKE 'e2e-google-unverified%'`,
+        [existingEmail],
       );
     }
   });

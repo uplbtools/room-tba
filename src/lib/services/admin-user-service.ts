@@ -127,6 +127,48 @@ export type SupabaseIdentity = {
   name?: string | null;
 };
 
+export type GoogleIdentity = {
+  /** Google `sub` claim — stable per Google account. */
+  sub: string;
+  email: string | null;
+  emailVerified: boolean;
+  name?: string | null;
+};
+
+/**
+ * `admin_users.supabase_user_id` is a uuid column, but Google `sub` is an
+ * opaque numeric string. Map it deterministically to a UUID (SHA-256,
+ * version/variant bits set) so the existing link/lookup path — and the
+ * "linked Google" account flag — keep working unchanged. Supabase-issued
+ * UUIDs and derived Google UUIDs share the column but never collide in
+ * practice; direct Google OAuth replaces the Supabase-issued values.
+ */
+export function googleIdentityUuid(sub: string): string {
+  const hash = createHash("sha256").update(`google:${sub}`).digest();
+  const bytes = Buffer.from(hash.subarray(0, 16));
+  bytes[6] = (bytes[6]! & 0x0f) | 0x50; // version 5
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80; // RFC 4122 variant
+  const hex = bytes.toString("hex");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+/**
+ * Resolve a direct Google OAuth identity to an `admin_users` row (#456
+ * follow-up, replaces Supabase Auth). Same linking rules as
+ * linkOrCreateContributorFromSupabase: by identity id, then by
+ * provider-verified email, else a new `contributor` account.
+ */
+export async function linkOrCreateContributorFromGoogle(
+  identity: GoogleIdentity,
+): Promise<SessionUser | null> {
+  return linkOrCreateContributorFromSupabase({
+    id: googleIdentityUuid(identity.sub),
+    email: identity.email,
+    emailConfirmed: identity.emailVerified,
+    name: identity.name ?? null,
+  });
+}
+
 /**
  * Resolve an OAuth (e.g. Google) Supabase user to an `admin_users` row.
  * Links by supabase id, then by email (existing account without a link),
