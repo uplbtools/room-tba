@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig, envField } from "astro/config";
+import { fileURLToPath } from "node:url";
 import svelte from "@astrojs/svelte";
 import AstroPWA from "@vite-pwa/astro";
 import node from "@astrojs/node";
@@ -214,6 +215,18 @@ export default defineConfig({
   ],
 
   vite: {
+    resolve: {
+      alias: [
+        {
+          // workerd cannot compile hb.wasm from bytes; satori gets a
+          // pre-compiled module via src/lib/harfbuzzjs-worker.ts instead.
+          find: /^harfbuzzjs$/,
+          replacement: fileURLToPath(
+            new URL("./src/lib/harfbuzzjs-worker.ts", import.meta.url),
+          ),
+        },
+      ],
+    },
     preview: {
       host: "127.0.0.1",
     },

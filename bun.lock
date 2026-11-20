@@ -16,12 +16,12 @@
         "@esri/wayback-core": "^1.2.0",
         "@lucide/svelte": "^1.70.0",
         "@maplibre/maplibre-gl-directions": "^0.10.1",
+        "@resvg/resvg-wasm": "^2.4.1",
         "@smithy/fetch-http-handler": "^5.8.1",
         "@supabase/ssr": "^0.12.7",
         "@supabase/supabase-js": "^2.119.0",
         "@tailwindcss/vite": "^4.3.5",
         "@vercel/analytics": "^2.0.1",
-        "@vercel/og": "^1.0.3",
         "@vitejs/plugin-basic-ssl": "^2.3.0",
         "astro": "7.2.1",
         "bcryptjs": "^3.0.3",
@@ -32,6 +32,7 @@
         "pdf-lib": "^1.17.1",
         "pg": "^8.23.1",
         "postgres": "^4.1.1",
+        "satori": "^0.33.5",
         "svelte": "^5.57.3",
         "svelte-maplibre": "^2.0.1",
         "tailwindcss": "^4.3.3",
@@ -1071,8 +1072,6 @@
     "@vercel/functions": ["@vercel/functions@3.10.6", "", { "dependencies": { "@vercel/oidc": "4.0.6" }, "peerDependencies": { "@aws-sdk/credential-provider-web-identity": "*", "ws": ">=8" }, "optionalPeers": ["@aws-sdk/credential-provider-web-identity", "ws"] }, "sha512-E6oojSTJALDq703E0R1ijZzX2ibZYYwRwLCq/9+FIdArpjJzQEy2nT3rGCV8H3mgU45wbjCd8iSdjpLtGjGvrw=="],
 
     "@vercel/nft": ["@vercel/nft@1.11.0", "", { "dependencies": { "@mapbox/node-pre-gyp": "^2.0.0", "@rollup/pluginutils": "^5.1.3", "acorn": "^8.6.0", "acorn-import-attributes": "^1.9.5", "async-sema": "^3.1.1", "bindings": "^1.4.0", "estree-walker": "2.0.2", "glob": "^13.0.0", "graceful-fs": "^4.2.9", "node-gyp-build": "^4.2.2", "picomatch": "^4.0.4", "resolve-from": "^5.0.0" }, "bin": { "nft": "out/cli.js" } }, "sha512-m1QFg+U+3yPOnP1xSYJ73UIRxLOXdts1JOhiOiyPYqEsALgrXFFINvgUaD6R6iNvaBFAjHllBCbkfx4FuOdpaA=="],
-
-    "@vercel/og": ["@vercel/og@1.0.3", "", { "dependencies": { "@resvg/resvg-wasm": "2.4.1", "satori": "0.33.5" }, "optionalDependencies": { "sharp": "^0.35.3" } }, "sha512-/iYJ34PDu4lty1TXdL86qHEw8viveHTllG1PWLuJX8tSFfqKL7kyVJeUORJmQ250bHB0h+alcalXUlza3c/NSA=="],
 
     "@vercel/oidc": ["@vercel/oidc@4.0.6", "", { "dependencies": { "@vercel/cli-config": "0.3.6", "@vercel/cli-exec": "1.0.1", "jose": "^5.9.6" } }, "sha512-VlrMq9V20Sts9PRYeeh7d8+QCuTvDgujZ0OyakfEJkM7NpQTW+x2IFvVWGJzg+84RhFFa2kKir6gw5E4EcTsuw=="],
 
