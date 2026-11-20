@@ -17,7 +17,7 @@ export const BREACHED_PASSWORD_MESSAGE =
 /**
  * The Pwned Passwords range API is keyed on SHA-1, so that is the one digest
  * that works here. It is a lookup key sent as a 5 character prefix, never a
- * stored credential: passwords are stored with bcrypt.
+ * stored credential: passwords are stored hashed.
  */
 export async function sha1Hex(value: string): Promise<string> {
   const digest = await crypto.subtle.digest(

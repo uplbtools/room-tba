@@ -1,5 +1,4 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import bcrypt from "bcrypt";
 import { and, desc, eq, getTableColumns, ne, sql } from "drizzle-orm";
 import { withUndefinedColumnFallback } from "@lib/db-column-fallback";
 import { ADMIN_PASSWORD } from "astro:env/server";
@@ -11,6 +10,11 @@ import {
   plannerPlansTable,
 } from "@drizzle/schema";
 import { db } from "@lib/db";
+import {
+  hashPassword,
+  isLegacyPasswordHash,
+  verifyPassword,
+} from "@lib/auth/password-hash";
 import type { SessionUser } from "@lib/admin/auth";
 import { createSignedToken, verifySignedToken } from "@lib/admin/signed-token";
 import {
@@ -272,8 +276,22 @@ export async function authenticateAdminUser(
 
   const user = await findUserByLogin(login);
   if (!user?.passwordHash) return null;
-  const valid = await bcrypt.compare(password, user.passwordHash);
+  const valid = await verifyPassword(password, user.passwordHash);
   if (!valid) return null;
+
+  // bcryptjs costs ~300ms of CPU per compare, which the Workers Free 10ms
+  // budget cannot absorb. Upgrade legacy hashes to PBKDF2 on the first
+  // successful login; the plaintext is already verified here.
+  if (isLegacyPasswordHash(user.passwordHash)) {
+    const upgraded = await hashPassword(password);
+    await db
+      .update(adminUsersTable)
+      .set({ passwordHash: upgraded, updatedAt: sql`now()` })
+      .where(eq(adminUsersTable.id, user.id))
+      .catch((error: unknown) =>
+        console.error("Legacy password hash upgrade failed:", error),
+      );
+  }
 
   return toSessionUser(user);
 }
@@ -443,13 +461,13 @@ export async function changePassword(
     const valid =
       typeof currentPassword === "string" &&
       currentPassword.length > 0 &&
-      (await bcrypt.compare(currentPassword, row.passwordHash));
+      (await verifyPassword(currentPassword, row.passwordHash));
     if (!valid) {
       throw new AccountActionError("Current password is incorrect.", 401);
     }
   }
 
-  const passwordHash = await bcrypt.hash(newPassword, 12);
+  const passwordHash = await hashPassword(newPassword);
   await db
     .update(adminUsersTable)
     .set({ passwordHash, updatedAt: sql`now()` })
@@ -622,7 +640,7 @@ export async function confirmPasswordReset(
     throw new AccountActionError("This link is invalid or has expired.", 400);
   }
 
-  const passwordHash = await bcrypt.hash(newPassword, 12);
+  const passwordHash = await hashPassword(newPassword);
   // New password also revokes every live session: whoever knew the old one
   // (the reason for many resets) is signed out everywhere.
   await db
@@ -728,7 +746,7 @@ export async function softDeleteAccount(
     const valid =
       typeof currentPassword === "string" &&
       currentPassword.length > 0 &&
-      (await bcrypt.compare(currentPassword, row.passwordHash));
+      (await verifyPassword(currentPassword, row.passwordHash));
     if (!valid) {
       throw new AccountActionError("Current password is incorrect.", 401);
     }
@@ -854,7 +872,7 @@ export async function createAdminUser(
     );
   }
   const email = input.email?.trim().toLowerCase() || null;
-  const passwordHash = await bcrypt.hash(input.password, 12);
+  const passwordHash = await hashPassword(input.password);
 
   try {
     const [created] = await db
@@ -1161,7 +1179,7 @@ export async function bootstrapAdminLogin(
   const sameBytes = timingSafeEqual(given, wanted);
   if (!(sameBytes && givenBytes.length === expectedBytes.length)) return null;
 
-  const passwordHash = await bcrypt.hash(expected, 12);
+  const passwordHash = await hashPassword(expected);
   const user = await db.transaction(async (tx) => {
     // Same lock as updateManagedUser, so the zero-admin check cannot race
     // an admin being created or reactivated.

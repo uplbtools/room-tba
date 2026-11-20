@@ -1,21 +1,31 @@
 {
-  // Reference config for Cloudflare R2 bucket setup. The Room TBA app deploys to
-  // Vercel (see astro.config.mjs), so runtime uploads use S3-compatible API
-  // credentials from env vars — not Workers bindings.
-  //
-  // Setup:
-  // 1. Create an R2 bucket in the Cloudflare dashboard.
-  // 2. Create an R2 API token with Object Read & Write on that bucket.
-  // 3. Enable public access (custom domain or r2.dev) and set R2_PUBLIC_URL.
-  // 4. Add the env vars listed in .env.example to Vercel / local .env.
-  //
-  // Optional: deploy a Worker that binds this bucket for edge-only use cases.
-  "name": "room-tba-r2",
-  "compatibility_date": "2024-09-23",
-  "r2_buckets": [
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "room-tba",
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "workers_dev": true,
+  "vars": {
+    // The adapter's loadWranglerEnv copies .env/.env.local into process.env at
+    // build time; an explicit var keeps production builds from baking the
+    // staging banner.
+    "PUBLIC_APP_ENV": "production"
+  },
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  // Optional: point Postgres through a Cloudflare Hyperdrive config for
+  // connection pooling at the edge. Create one in the dashboard (or
+  // `wrangler hyperdrive create`), paste its id below, and the Worker uses
+  // its connection string instead of DATABASE_URL. Remove the block to use
+  // DATABASE_URL directly.
+  "hyperdrive": [
     {
-      "binding": "UPLOADS",
-      "bucket_name": "room-tba-uploads"
+      "binding": "HYPERDRIVE",
+      "id": "REPLACE_WITH_HYPERDRIVE_CONFIG_ID"
     }
-  ]
+  ],
+  "routes": [{ "pattern": "room-tba.uplb.tools", "custom_domain": true }]
 }

@@ -3,7 +3,7 @@ import { defineConfig, envField } from "astro/config";
 import svelte from "@astrojs/svelte";
 import AstroPWA from "@vite-pwa/astro";
 import node from "@astrojs/node";
-import vercel from "@astrojs/vercel";
+import cloudflare from "@astrojs/cloudflare";
 import {
   MESSENGER_CONTRIBUTE_TARGET,
   MESSENGER_MAINTAIN_TARGET,
@@ -440,34 +440,5 @@ export default defineConfig({
   },
   adapter: e2eNodeAdapter
     ? node({ mode: "standalone" })
-    : vercel({
-        // Old clients keep resolving their own deployment's hashed assets
-        // (?dpl= pinning) instead of 404ing after every release. Second
-        // layer of the boot-failure fix; the first is precaching pglite.
-        skewProtection: true,
-        // Entity SEO pages use prerender=false and render on first request; Vercel
-        // caches HTML at the edge (ISR). Admin writes revalidate via ISR_BYPASS_TOKEN.
-        isr: {
-          expiration: 60 * 60 * 24,
-          bypassToken: process.env.ISR_BYPASS_TOKEN,
-          // /og.png must stay a plain function: Vercel ISR keys its cache on
-          // pathname only, so ?t=/&s=/&k= variants all collapse into one cached
-          // PNG and every entity shares the first-rendered card (#651). The
-          // normal CDN cache (via the route's s-maxage) keys on the full URL.
-          // /reset-password carries a per-user ?token=, and ISR keys on the
-          // pathname alone: one cached render (an empty error body, in the
-          // 2026-10 outage) was served to every reset link for a day.
-          exclude: [
-            /^\/api\//,
-            /^\/og\.png$/,
-            /^\/reset-password\/?$/,
-            // Same for every per-user page: the staff dashboard (its
-            // logged-out redirect was cached for everyone), invites, and
-            // unsubscribe links.
-            /^\/admin(\/.*)?$/,
-            /^\/invite\/?$/,
-            /^\/unsubscribe\/?$/,
-          ],
-        },
-      }),
+    : cloudflare({ prerenderEnvironment: "node" }),
 });

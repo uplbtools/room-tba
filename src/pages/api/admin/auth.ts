@@ -143,7 +143,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     // Try Supabase Auth when configured (#293). Bounded with a timeout — a
     // slow/unreachable Supabase Auth call must not block sign-in forever;
-    // fall through to bcrypt just like the "not configured" case.
+    // fall through to local password verification just like the "not configured" case.
     try {
       const supabase = createServerSupabaseClient({
         request,
@@ -171,7 +171,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         clearTimeout(timer);
       }
     } catch {
-      // Supabase not configured or unavailable → fall through to bcrypt
+      // Supabase not configured or unavailable → fall through to local password check
     }
 
     if (!user) {

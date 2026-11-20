@@ -6,7 +6,7 @@
  * (#773): create it, replay the whole migration chain into it, seed, and let
  * `--drop` tear it down. Unset keeps the shared-`public` behavior.
  */
-import bcrypt from "bcrypt";
+import { hashPassword } from "../src/lib/auth/password-hash";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type pg from "pg";
@@ -226,7 +226,7 @@ async function main() {
 
   const password =
     process.env.E2E_ADMIN_PASSWORD?.trim() || DEFAULT_E2E_PASSWORD;
-  const passwordHash = await bcrypt.hash(password, 12);
+  const passwordHash = await hashPassword(password);
 
   const client = await connectE2eClient(databaseUrl);
 
