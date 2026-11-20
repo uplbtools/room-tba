@@ -1,3 +1,15 @@
+# [2.49.0](https://github.com/uplbtools/room-tba/compare/v2.48.1...v2.49.0) (2026-11-17)
+
+
+### Bug Fixes
+
+* **directions:** drop the GPS route when the location fix is lost ([#1535](https://github.com/uplbtools/room-tba/issues/1535)) ([cc015ac](https://github.com/uplbtools/room-tba/commit/cc015acf36a60fb58fd000ba2f1dd65455dd6c48))
+
+
+### Features
+
+* **today:** show when to leave for the next class ([#1536](https://github.com/uplbtools/room-tba/issues/1536)) ([ef23b06](https://github.com/uplbtools/room-tba/commit/ef23b064d1003fd3a6d7ebaec42d390195a173f4))
+
 # [2.48.0](https://github.com/uplbtools/room-tba/compare/v2.47.0...v2.48.0) (2026-11-17)
 
 
