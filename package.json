@@ -128,7 +128,7 @@
     "dd-trace": "^6.24.0",
     "drizzle-kit": "^0.31.11",
     "globals": "^17.14.0",
-    "happy-dom": "^20.11.12",
+    "happy-dom": "^21.0.4",
     "semantic-release": "^25.0.9",
     "vitest": "^4.1.11"
   },
