@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS "classes" (
   "term_id" integer,
   "acad_group" varchar(8),
   "acad_org" varchar(16),
+  "instructor_initials" text,
   "version" integer DEFAULT 1 NOT NULL,
   "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL,
   "directions" text
@@ -87,6 +88,8 @@ ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "acad_group" varchar(8);
 ALTER TABLE "classes" ALTER COLUMN "acad_group" DROP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "acad_org" varchar(16);
 ALTER TABLE "classes" ALTER COLUMN "acad_org" DROP NOT NULL;
+ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "instructor_initials" text;
+ALTER TABLE "classes" ALTER COLUMN "instructor_initials" DROP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "updated_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL;
 ALTER TABLE "classes" ADD COLUMN IF NOT EXISTS "directions" text;

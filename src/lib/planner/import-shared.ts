@@ -57,6 +57,7 @@ export async function resolveSharedPlan(decoded: DecodedSharePlan): Promise<{
       schedule: row.schedule ?? ["TBA"],
       roomCode: row.roomCode ?? null,
       courseTitle: row.courseTitle ?? null,
+      instructorInitials: row.instructorInitials ?? null,
     };
   });
   return { sections, missing };

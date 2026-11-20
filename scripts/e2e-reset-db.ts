@@ -98,6 +98,7 @@ const E2E_MIGRATION_FILES = [
   "0063_admin_audit_log.sql",
   "0064_staff_security_and_invites.sql",
   "0065_notification_prefs_and_access_requests.sql",
+  "0066_add_class_instructor_initials.sql",
 ] as const;
 
 /**

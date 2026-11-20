@@ -73,6 +73,19 @@ describe("PlannerScreen", () => {
     expect(screen.getByText("All clear")).toBeVisible();
   });
 
+  test("shows instructor initials on grid blocks only when a section has them", () => {
+    plannerStore.addOffering([row({ instructorInitials: "JPDC" })]);
+    plannerStore.addOffering([
+      row({ id: 2, courseCode: "CMSC 56", schedule: ["TTh 09:00AM-10:00AM"] }),
+    ]);
+    render(PlannerScreen);
+    const initials = [
+      ...document.querySelectorAll(".planner-block__instructor"),
+    ];
+    expect(initials).toHaveLength(2);
+    expect(initials[0]?.textContent?.trim()).toBe("JPDC");
+  });
+
   test("shows conflict badge and outlines for overlapping sections", () => {
     plannerStore.addOffering([row({})]);
     plannerStore.addOffering([

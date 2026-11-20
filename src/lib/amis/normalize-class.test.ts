@@ -131,6 +131,7 @@ describe("amis normalize", () => {
       facilityCode: "PSLH A",
       acadGroup: null,
       acadOrg: null,
+      instructorInitials: null,
     });
   });
 
@@ -147,6 +148,15 @@ describe("amis normalize", () => {
     );
     expect(normalized?.acadGroup).toBe("CAS");
     expect(normalized?.acadOrg).toBe("LBICS");
+  });
+
+  it("carries instructor initials and nothing else about the instructor", () => {
+    const normalized = normalizeAmisClass(
+      { course_code: "CMSC 128", section: "A", instructor_initials: "JPDC" },
+      1252,
+    );
+    expect(normalized?.instructorInitials).toBe("JPDC");
+    expect(JSON.stringify(normalized)).not.toMatch(/faculty|name/i);
   });
 
   it("builds schedule from top-level date/time when class_dates is empty (CRS 1231)", () => {

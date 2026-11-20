@@ -237,5 +237,6 @@ export function normalizeAmisClass(
     facilityCode: resolveFacilityCode(row),
     acadGroup: asString(row.acad_group),
     acadOrg: asString(row.acad_org),
+    instructorInitials: asString(row.instructor_initials),
   };
 }

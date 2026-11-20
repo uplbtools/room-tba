@@ -15,6 +15,7 @@ export type ClassInsertRow = {
   termId: number;
   acadGroup?: string | null;
   acadOrg?: string | null;
+  instructorInitials?: string | null;
 };
 
 export type ImportRowStats = {
@@ -290,6 +291,7 @@ export function resolveImportRows(
         termId: row.termId,
         acadGroup: row.acadGroup,
         acadOrg: row.acadOrg,
+        instructorInitials: row.instructorInitials,
       });
       continue;
     }
@@ -317,6 +319,7 @@ export function resolveImportRows(
       termId: row.termId,
       acadGroup: row.acadGroup,
       acadOrg: row.acadOrg,
+      instructorInitials: row.instructorInitials,
     });
   }
 
@@ -339,6 +342,7 @@ export function summarizeImportChanges(input: {
       roomId: number | null;
       acadGroup?: string | null;
       acadOrg?: string | null;
+      instructorInitials?: string | null;
     }
   >;
 }): {
@@ -380,6 +384,8 @@ export function summarizeImportChanges(input: {
         (existing.acadGroup ?? null) !== row.acadGroup) ||
       (row.acadOrg !== undefined &&
         (existing.acadOrg ?? null) !== row.acadOrg) ||
+      (row.instructorInitials !== undefined &&
+        (existing.instructorInitials ?? null) !== row.instructorInitials) ||
       JSON.stringify(existing.schedule ?? []) !== JSON.stringify(row.schedule);
 
     if (changed) {

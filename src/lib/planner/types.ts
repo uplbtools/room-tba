@@ -10,6 +10,8 @@ export type PlannedSection = {
   schedule: string[];
   roomCode: string | null;
   courseTitle: string | null;
+  /** Instructor initials from AMIS, e.g. "JPDC". */
+  instructorInitials?: string | null;
   /** Natural key no longer resolves after a term reimport. */
   stale?: boolean;
   /** Instructor / section reminder — synced to an account when signed in. */

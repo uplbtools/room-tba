@@ -289,6 +289,7 @@ export const classesTable = pgTable(
     // table: data/acad-orgs.json.
     acadGroup: varchar("acad_group", { length: 8 }),
     acadOrg: varchar("acad_org", { length: 16 }),
+    instructorInitials: text("instructor_initials"),
     version: integer().default(1).notNull(),
     updatedAt: timestamp("updated_at", { mode: "string" })
       .defaultNow()
