@@ -14,14 +14,26 @@ export const prerender = false;
 // `new URL(..., import.meta.url)`, which throws `Invalid URL string` in
 // workerd. This endpoint renders the same tree through satori + resvg-wasm
 // directly; both wasm modules init once per isolate.
-let renderersPromise: Promise<void> | null = null;
-function initRenderers(): Promise<void> {
+let renderersPromise: Promise<{ font: ArrayBuffer }> | null = null;
+function initRenderers(): Promise<{ font: ArrayBuffer }> {
+  // Decode the font once per isolate: atob + Uint8Array.from on every request
+  // pushed cold renders over the Workers CPU budget (error 1102).
   renderersPromise ??= Promise.all([
     initSatori(yogaWasm),
     initWasm(resvgWasm),
-  ]).then(() => undefined);
+  ]).then(() => {
+    const fontBase64 = ogFontDataUrl.split(",")[1];
+    const font = Uint8Array.from(atob(fontBase64), (c) =>
+      c.charCodeAt(0),
+    ).buffer;
+    return { font };
+  });
   return renderersPromise;
 }
+
+// Warm wasm + decoded font during isolate startup so the first request does
+// not pay init cost inside its CPU budget.
+void initRenderers();
 
 // Emoji only: satori asks for a twemoji SVG data URI per missing grapheme,
 // same CDN @vercel/og used. Other scripts get no fallback font (the card is
@@ -85,7 +97,14 @@ function clamp(value: string | null, max: number): string {
   return v.length > max ? `${v.slice(0, max - 1)}…` : v;
 }
 
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ url, request }) => {
+  // Rendered cards are immutable per URL; the edge cache absorbs repeat
+  // crawler hits so only the first request pays the satori/resvg CPU cost.
+  // `caches` exists on workerd; guard for other runtimes (tests, dev).
+  const edgeCache = typeof caches === "undefined" ? null : caches.default;
+  const cached = edgeCache ? await edgeCache.match(request) : null;
+  if (cached) return cached;
+
   // Exact-URL content is passed by the page: t=title, s=subtitle, k=kicker.
   // No title param means a page that did not name itself (the homepage).
   // The wordmark badge already brands the card, so repeating "Room TBA" as
@@ -94,9 +113,6 @@ export const GET: APIRoute = async ({ url }) => {
   const subtitle = clamp(url.searchParams.get("s"), 96);
   const kicker = clamp(url.searchParams.get("k"), 40);
 
-  // Convert inline data URLs to ArrayBuffer for font and use data URLs directly for images
-  const fontBase64 = ogFontDataUrl.split(",")[1];
-  const font = Uint8Array.from(atob(fontBase64), (c) => c.charCodeAt(0)).buffer;
   const bgImage = bgImageDataUrl;
   const logoImage = logoImageDataUrl;
 
@@ -262,7 +278,7 @@ export const GET: APIRoute = async ({ url }) => {
     ),
   );
 
-  await initRenderers();
+  const { font } = await initRenderers();
 
   const svg = await satori(card as never, {
     width: WIDTH,
@@ -280,10 +296,13 @@ export const GET: APIRoute = async ({ url }) => {
   rendered.free();
   resvgJS.free();
 
-  return new Response(png.slice().buffer, {
+  const response = new Response(png.slice().buffer, {
     headers: {
       "content-type": "image/png",
       "cache-control": "public, max-age=86400, s-maxage=604800, immutable",
     },
   });
+  // put() wants a clone; the cached copy keeps the same long TTL.
+  if (edgeCache) await edgeCache.put(request, response.clone());
+  return response;
 };
