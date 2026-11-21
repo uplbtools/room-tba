@@ -14,7 +14,13 @@
   "assets": {
     "directory": "./dist/client",
     "binding": "ASSETS",
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    // Browser navigations (sec-fetch-mode: navigate) to paths with no static
+    // asset otherwise get the SPA shell before the Worker runs — which broke
+    // every link-based GET endpoint: Google OAuth start/callback/link,
+    // email confirmation, password reset. The Worker serves assets itself
+    // through the ASSETS binding, so it must see every request.
+    "run_worker_first": true
   },
   // Optional: point Postgres through a Cloudflare Hyperdrive config for
   // connection pooling at the edge. Create one in the dashboard (or
