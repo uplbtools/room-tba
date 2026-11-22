@@ -1,9 +1,8 @@
-import "@lib/og-hbjs-shim";
+import "og-hbjs-shim";
 import type { APIRoute } from "astro";
 import { Resvg, initWasm } from "@resvg/resvg-wasm";
-import resvgWasm from "@resvg/resvg-wasm/index_bg.wasm?module";
 import satori, { init as initSatori } from "satori/standalone";
-import yogaWasm from "satori/yoga.wasm?module";
+import { resvgWasm, yogaWasm } from "og-wasm-runtime";
 import ogFontDataUrl from "../assets/og-font.woff?inline";
 import bgImageDataUrl from "../assets/uplb-bg-og.jpg?inline";
 import logoImageDataUrl from "../assets/logo.png?inline";

@@ -220,9 +220,40 @@ export default defineConfig({
         {
           // workerd cannot compile hb.wasm from bytes; satori gets a
           // pre-compiled module via src/lib/harfbuzzjs-worker.ts instead.
+          // The node/E2E build compiles the same wasm from bytes itself.
           find: /^harfbuzzjs$/,
           replacement: fileURLToPath(
-            new URL("./src/lib/harfbuzzjs-worker.ts", import.meta.url),
+            new URL(
+              e2eNodeAdapter
+                ? "./src/lib/harfbuzzjs-node.ts"
+                : "./src/lib/harfbuzzjs-worker.ts",
+              import.meta.url,
+            ),
+          ),
+        },
+        {
+          // `*.wasm?module` only resolves in the Cloudflare build; the
+          // node/E2E build uses inline data URIs instead.
+          find: "og-wasm-runtime",
+          replacement: fileURLToPath(
+            new URL(
+              e2eNodeAdapter
+                ? "./src/lib/og-wasm-node.ts"
+                : "./src/lib/og-wasm.ts",
+              import.meta.url,
+            ),
+          ),
+        },
+        {
+          // workerd-only global patches for the harfbuzzjs emscripten glue.
+          find: "og-hbjs-shim",
+          replacement: fileURLToPath(
+            new URL(
+              e2eNodeAdapter
+                ? "./src/lib/og-hbjs-shim-node.ts"
+                : "./src/lib/og-hbjs-shim.ts",
+              import.meta.url,
+            ),
           ),
         },
       ],
