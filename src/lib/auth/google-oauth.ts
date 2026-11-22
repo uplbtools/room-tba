@@ -211,8 +211,7 @@ export async function verifyGoogleIdToken(
     throw new Error("Google ID token claims invalid");
   }
 
-  const email =
-    typeof claims["email"] === "string" ? claims["email"] : null;
+  const email = typeof claims["email"] === "string" ? claims["email"] : null;
   const emailVerified =
     claims["email_verified"] === true || claims["email_verified"] === "true";
   const name = typeof claims["name"] === "string" ? claims["name"] : null;
