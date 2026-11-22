@@ -95,5 +95,7 @@ const onRequestHandler = defineMiddleware(async (context, next) => {
 
 // One Postgres client per request: workerd binds socket I/O to the request
 // that created it, so a shared pool resolves queries in the wrong context.
-export const onRequest = (context: Parameters<typeof onRequestHandler>[0], next: Parameters<typeof onRequestHandler>[1]) =>
-  runWithRequestDb(() => onRequestHandler(context, next));
+export const onRequest = (
+  context: Parameters<typeof onRequestHandler>[0],
+  next: Parameters<typeof onRequestHandler>[1],
+) => runWithRequestDb(() => onRequestHandler(context, next));

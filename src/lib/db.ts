@@ -126,12 +126,14 @@ function withRetry<T>(make: () => PromiseLike<T>): Promise<T> {
 /** Thenable stand-in for a postgres.js Query that retries once on stale sockets. */
 function retryingQuery(makeQuery: () => UnsafeQuery): UnsafeQuery {
   const wrap = <T>(make: () => PromiseLike<T>) => ({
+    // biome-ignore lint/suspicious/noThenProperty: intentional thenable — this object stands in for a postgres.js Query
     then: (onFulfilled?: any, onRejected?: any) =>
       withRetry(make).then(onFulfilled, onRejected),
     catch: (onRejected?: any) => withRetry(make).catch(onRejected),
     finally: (onFinally?: any) => withRetry(make).finally(onFinally),
   });
   const query = {
+    // biome-ignore lint/suspicious/noThenProperty: intentional thenable — this object stands in for a postgres.js Query
     then: (onFulfilled?: any, onRejected?: any) =>
       wrap(() => makeQuery()).then(onFulfilled, onRejected),
     catch: (onRejected?: any) => wrap(() => makeQuery()).catch(onRejected),
@@ -144,7 +146,10 @@ function retryingQuery(makeQuery: () => UnsafeQuery): UnsafeQuery {
   return query as unknown as UnsafeQuery;
 }
 
-function makeWorkerDb(postgres: typeof postgresFn, drizzlePjs: typeof drizzlePostgresJsFn) {
+function makeWorkerDb(
+  postgres: typeof postgresFn,
+  drizzlePjs: typeof drizzlePostgresJsFn,
+) {
   function createClient(): SqlClient {
     const client = postgres(hyperdriveConnectionString ?? DATABASE_URL, {
       max: Number.isFinite(poolMax) && poolMax > 0 ? poolMax : 10,

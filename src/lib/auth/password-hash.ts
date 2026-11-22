@@ -58,7 +58,12 @@ async function deriveBits(
   );
   return new Uint8Array(
     await crypto.subtle.deriveBits(
-      { name: "PBKDF2", hash: "SHA-256", salt: salt as BufferSource, iterations: iters },
+      {
+        name: "PBKDF2",
+        hash: "SHA-256",
+        salt: salt as BufferSource,
+        iterations: iters,
+      },
       key,
       KEY_BITS,
     ),
