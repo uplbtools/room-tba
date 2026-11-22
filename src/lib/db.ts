@@ -1,60 +1,73 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { DATABASE_URL } from "astro:env/server";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import type { drizzle as drizzleNodePgFn } from "drizzle-orm/node-postgres";
+import type { drizzle as drizzlePostgresJsFn } from "drizzle-orm/postgres-js";
+import type { Pool as PgPool } from "pg";
+import type postgresFn from "postgres";
 import { e2eSchema } from "../../scripts/e2e-schema";
 
 /**
- * On Cloudflare Workers the Postgres connection goes through the Hyperdrive
- * binding; everywhere else (scripts, local dev, Vercel, E2E) DATABASE_URL wins.
- * `cloudflare:workers` only resolves inside workerd, so the import is dynamic.
- * postgres.js is used instead of node-postgres: it is the driver Cloudflare
- * documents for Hyperdrive and avoids `pg`'s Node-only socket deps in the
- * Worker bundle.
+ * The database driver switches on the runtime:
  *
- * Pooling is per-request, not per-isolate: workerd ties socket I/O to the
- * request context that created it, so a module-global pool hands later
- * requests dead connections (CONNECTION_CLOSED) and resolves queries in the
- * wrong context, which the runtime cancels into request hangs. Hyperdrive
- * already pools server-side, so a fresh client per request is cheap.
- * `runWithRequestDb` (called from src/middleware.ts) scopes one client to
- * each request; anything outside a request (scripts, build) shares the
- * fallback context, where pooling is safe.
+ * - workerd (Cloudflare Workers) → postgres.js. `pg`'s Node-only socket
+ *   deps cannot run there, and postgres.js is the driver Cloudflare
+ *   documents for Hyperdrive. Pooling is per-request, not per-isolate:
+ *   workerd ties socket I/O to the request context that created it, so a
+ *   module-global pool hands later requests dead connections
+ *   (CONNECTION_CLOSED) and resolves queries in the wrong context, which
+ *   the runtime cancels into request hangs. Hyperdrive already pools
+ *   server-side, so a fresh client per request is cheap.
+ *   `runWithRequestDb` (called from src/middleware.ts) scopes one client
+ *   to each request; anything outside a request shares the fallback
+ *   context, where pooling is safe.
+ * - everywhere else (Vercel, local dev, scripts, E2E) → node-postgres,
+ *   unchanged from upstream.
+ *
+ * `cloudflare:workers` only resolves inside workerd, so the detection and
+ * driver imports are dynamic; `pg` never enters the Worker bundle path.
  */
-let connectionString = DATABASE_URL;
-try {
-  const { env } = await import("cloudflare:workers");
-  const hyperdrive = (env as { HYPERDRIVE?: { connectionString?: string } })
-    .HYPERDRIVE;
-  if (hyperdrive?.connectionString) {
-    connectionString = hyperdrive.connectionString;
-  }
-} catch {
-  // Not running inside workerd.
-}
+const runSchema = e2eSchema();
 
 /** Cap pool size in CI so Playwright + preview stay under Supabase session pooler limits. */
 const poolMax = Number(
   process.env["DATABASE_POOL_MAX"] ?? (process.env["CI"] ? "2" : "10"),
 );
 
-const runSchema = e2eSchema();
+let inWorkerd = false;
+let hyperdriveConnectionString: string | undefined;
+try {
+  const { env } = await import("cloudflare:workers");
+  inWorkerd = true;
+  hyperdriveConnectionString = (
+    env as { HYPERDRIVE?: { connectionString?: string } }
+  ).HYPERDRIVE?.connectionString;
+} catch {
+  // Not running inside workerd.
+}
 
-type SqlClient = ReturnType<typeof postgres>;
-type Db = ReturnType<typeof drizzle>;
+// Caller-facing type stays the node-postgres drizzle flavor so existing
+// call sites keep their upstream typings; the postgres.js instance is
+// structurally compatible for the query surface the app uses.
+type Db = ReturnType<typeof drizzleNodePgFn>;
+type SqlClient = ReturnType<typeof postgresFn>;
+type WorkerDb = ReturnType<typeof drizzlePostgresJsFn>;
 
 interface DbContext {
   client?: SqlClient;
-  db?: Db;
+  db?: WorkerDb;
 }
 
 const requestDb = new AsyncLocalStorage<DbContext>();
 const fallbackContext: DbContext = {};
 
-/** Run `fn` with a fresh database client scoped to this request. */
+/** Run `fn` with a fresh database client scoped to this request (workerd only). */
 export function runWithRequestDb<T>(fn: () => T): T {
-  return requestDb.run({}, fn);
+  return inWorkerd ? requestDb.run({}, fn) : fn();
 }
+
+/* ------------------------------------------------------------------ */
+/* workerd path: postgres.js, per-request clients                      */
+/* ------------------------------------------------------------------ */
 
 /**
  * Worker sockets to `*.hyperdrive.local` can still go stale between the
@@ -131,63 +144,87 @@ function retryingQuery(makeQuery: () => UnsafeQuery): UnsafeQuery {
   return query as unknown as UnsafeQuery;
 }
 
-function createClient(): SqlClient {
-  const client = postgres(connectionString, {
-    max: Number.isFinite(poolMax) && poolMax > 0 ? poolMax : 10,
-    idle_timeout: 10,
-    connect_timeout: 10,
-    max_lifetime: 60 * 30,
-    // #773: pin every connection to the per-run E2E schema. Sent as a startup
-    // parameter, which Postgres accepts for any GUC.
-    ...(runSchema ? { connection: { search_path: runSchema } } : {}),
+function makeWorkerDb(postgres: typeof postgresFn, drizzlePjs: typeof drizzlePostgresJsFn) {
+  function createClient(): SqlClient {
+    const client = postgres(hyperdriveConnectionString ?? DATABASE_URL, {
+      max: Number.isFinite(poolMax) && poolMax > 0 ? poolMax : 10,
+      idle_timeout: 10,
+      connect_timeout: 10,
+      max_lifetime: 60 * 30,
+      // #773: pin every connection to the per-run E2E schema. Sent as a startup
+      // parameter, which Postgres accepts for any GUC.
+      ...(runSchema ? { connection: { search_path: runSchema } } : {}),
+    });
+    const rawUnsafe = client.unsafe.bind(client);
+    client.unsafe = ((...args: UnsafeArgs) =>
+      retryingQuery(() => rawUnsafe(...args))) as typeof client.unsafe;
+    return client;
+  }
+
+  function contextClient(ctx: DbContext): SqlClient {
+    ctx.client ??= createClient();
+    return ctx.client;
+  }
+
+  function contextDb(ctx: DbContext): WorkerDb {
+    ctx.db ??= drizzlePjs(contextClient(ctx));
+    return ctx.db;
+  }
+
+  function currentContext(): DbContext {
+    return requestDb.getStore() ?? fallbackContext;
+  }
+
+  /**
+   * `db` resolves its drizzle instance per access, so every call inside a
+   * request (middleware or endpoint) lands on that request's client while
+   * scripts and build-time code share the fallback pool.
+   */
+  return new Proxy({} as Db, {
+    get(_target, prop) {
+      const real = contextDb(currentContext()) as unknown as Db;
+      const value = (real as unknown as Record<PropertyKey, unknown>)[prop];
+      return typeof value === "function" ? value.bind(real) : value;
+    },
   });
-  const rawUnsafe = client.unsafe.bind(client);
-  client.unsafe = ((...args: UnsafeArgs) =>
-    retryingQuery(() => rawUnsafe(...args))) as typeof client.unsafe;
-  return client;
 }
 
-function contextClient(ctx: DbContext): SqlClient {
-  ctx.client ??= createClient();
-  return ctx.client;
+/* ------------------------------------------------------------------ */
+/* node path: node-postgres Pool (unchanged from upstream)             */
+/* ------------------------------------------------------------------ */
+
+async function makeNodeDb(): Promise<Db> {
+  const [{ Pool }, { drizzle: drizzleNodePg }] = await Promise.all([
+    import("pg"),
+    import("drizzle-orm/node-postgres"),
+  ]);
+
+  const pool: PgPool = new Pool({
+    connectionString: DATABASE_URL,
+    max: Number.isFinite(poolMax) && poolMax > 0 ? poolMax : 10,
+    idleTimeoutMillis: 10_000,
+  });
+
+  /**
+   * #773: pin every pooled connection to the per-run E2E schema.
+   * node-postgres queues this ahead of user queries on the same physical
+   * connection, so the first query already sees it (the session pooler
+   * ignores search_path passed through the URL or client `options`).
+   */
+  if (runSchema) {
+    pool.on("connect", (client) => {
+      void client.query(`SET search_path TO ${runSchema}`);
+    });
+  }
+
+  return drizzleNodePg(pool) as unknown as Db;
 }
 
-function contextDb(ctx: DbContext): Db {
-  ctx.db ??= drizzle(contextClient(ctx));
-  return ctx.db;
-}
+const db: Db = inWorkerd
+  ? makeWorkerDb(
+      (await import("postgres")).default,
+      (await import("drizzle-orm/postgres-js")).drizzle,
+    )
+  : await makeNodeDb();
 
-function currentContext(): DbContext {
-  return requestDb.getStore() ?? fallbackContext;
-}
-
-/**
- * `db` resolves its drizzle instance per access, so every call inside a
- * request (middleware or endpoint) lands on that request's client while
- * scripts and build-time code share the fallback pool.
- */
-export const db = new Proxy({} as Db, {
-  get(_target, prop) {
-    const real = contextDb(currentContext());
-    const value = (real as unknown as Record<PropertyKey, unknown>)[prop];
-    return typeof value === "function" ? value.bind(real) : value;
-  },
-});
-
-/** Tagged-template `sql` client; resolves per access like `db`. */
-export const sqlClient = new Proxy(function sqlClient() {}, {
-  apply(_target, _thisArg, args: unknown[]) {
-    const client = contextClient(currentContext()) as unknown as (
-      ...a: unknown[]
-    ) => unknown;
-    return client(...args);
-  },
-  get(_target, prop) {
-    const client = contextClient(currentContext()) as unknown as Record<
-      PropertyKey,
-      unknown
-    >;
-    const value = client[prop];
-    return typeof value === "function" ? value.bind(client) : value;
-  },
-}) as unknown as SqlClient;
+export { db };
