@@ -79,7 +79,7 @@
     "@datadog/browser-rum": "^7.17.0",
     "@electric-sql/pglite": "^0.5.15",
     "@esri/wayback-core": "^1.2.0",
-    "@lucide/svelte": "^1.70.0",
+    "@lucide/svelte": "^1.73.0",
     "@maplibre/maplibre-gl-directions": "^0.10.1",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.119.0",
