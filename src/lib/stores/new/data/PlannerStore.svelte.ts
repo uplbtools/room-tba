@@ -8,7 +8,8 @@ import { findConflicts } from '#lib/utils/planner/conflicts.js';
 import { mergePlannerState, parsePlanner, serializePlanner } from '#lib/utils/planner/persist.js';
 import type { PlannedSection, PlannerPlan } from '#lib/utils/planner/types.js';
 import { sectionNaturalKey } from '#lib/utils/planner/types.js';
-import { PLANNER_LS_KEY } from '../../store-types';
+import { readLocalJson, writeLocalJson } from '#lib/utils/locStorage.js';
+import { PLANNER_FRIENDS_LS_KEY, PLANNER_LS_KEY } from '../../store-types';
 
 function rowToPlannedSection(row: ClassMapValue): PlannedSection | null {
 	if (!row.courseCode || !row.section || !row.type) return null;
@@ -22,6 +23,10 @@ function rowToPlannedSection(row: ClassMapValue): PlannedSection | null {
 	};
 }
 
+export type PlannerFriend = { termId: number; name: string; sections: PlannedSection[] };
+
+const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
 function normalizeTitle(title: string | null | undefined): string | null {
 	const t = title?.trim().replace(/\s+/g, ' ').toLowerCase();
 	return t ? t : null;
@@ -30,6 +35,8 @@ function normalizeTitle(title: string | null | undefined): string | null {
 export default class PlannerStore {
 	plans = $state<PlannerPlan[]>([]);
 	activePlanIdByTerm = $state<Record<string, string>>({});
+	friends = $state<PlannerFriend[]>([]);
+	myName = $state('');
 	private _hydrated = false;
 
 	constructor(private getActiveTermId: () => number | null) {}
@@ -53,6 +60,8 @@ export default class PlannerStore {
 		)
 	);
 
+	friendsForTerm = $derived(this.friends.filter((f) => f.termId === this.activeTermId));
+
 	conflicts = $derived(findConflicts(this.activePlan?.sections ?? []));
 
 	init = () => {
@@ -61,7 +70,40 @@ export default class PlannerStore {
 		const state = parsePlanner(localStorage.getItem(PLANNER_LS_KEY));
 		this.plans = state.plans;
 		this.activePlanIdByTerm = state.activePlanIdByTerm;
+		const saved = readLocalJson<{ myName?: unknown; friends?: unknown }>(
+			PLANNER_FRIENDS_LS_KEY,
+			{}
+		);
+		this.myName = typeof saved.myName === 'string' ? saved.myName : '';
+		this.friends = Array.isArray(saved.friends) ? saved.friends : [];
 	};
+
+	/** Save a group link's members as friends for the term, leaving yourself out. */
+	setFriends = (termId: number, members: { name: string; sections: PlannedSection[] }[]) => {
+		const added = members.filter((m) => !this.myName || !sameName(m.name, this.myName));
+		for (const member of added) {
+			this.friends = this.friends.filter(
+				(f) => f.termId !== termId || !sameName(f.name, member.name)
+			);
+			this.friends.push({ termId, ...member });
+		}
+		this.persistFriends();
+		return added.map((m) => m.name);
+	};
+
+	removeFriend = (termId: number, name: string) => {
+		this.friends = this.friends.filter((f) => f.termId !== termId || f.name !== name);
+		this.persistFriends();
+	};
+
+	setMyName = (name: string) => {
+		this.myName = name.trim();
+		this.persistFriends();
+	};
+
+	private persistFriends() {
+		writeLocalJson(PLANNER_FRIENDS_LS_KEY, { myName: this.myName, friends: this.friends });
+	}
 
 	/** Add every LEC/LAB row of one offering group. Rows without a natural key are skipped. */
 	addOffering = (rows: ClassMapValue[]) => {

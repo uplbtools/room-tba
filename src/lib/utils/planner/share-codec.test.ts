@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { decodeSharePlan, encodeSharePlan, gradesimTakeUrl } from './share-codec.js';
+import {
+	decodeGroup,
+	decodeSharePlan,
+	encodeGroup,
+	encodeSharePlan,
+	gradesimTakeUrl
+} from './share-codec.js';
 import type { PlannerPlan } from './types.js';
 
 const plan: PlannerPlan = {
@@ -74,5 +80,37 @@ describe('gradesimTakeUrl', () => {
 	it('leaves out stale rows and returns null with no courses', () => {
 		const stale = { ...plan, sections: plan.sections.map((s) => ({ ...s, stale: true })) };
 		expect(gradesimTakeUrl(stale)).toBeNull();
+	});
+});
+
+describe('group codec', () => {
+	it('round-trips names, refs and term', () => {
+		const decoded = decodeGroup(
+			encodeGroup(1252, [
+				{ name: 'Ana', sections: plan.sections },
+				{ name: 'Ben', sections: [] }
+			])
+		);
+		expect(decoded).toEqual({
+			termId: 1252,
+			members: [
+				{
+					name: 'Ana',
+					refs: [
+						{ courseCode: 'CMSC 128', section: 'AB-1L', type: 'LEC' },
+						{ courseCode: 'CMSC 128', section: 'AB-1L', type: 'LAB' }
+					]
+				},
+				{ name: 'Ben', refs: [] }
+			]
+		});
+	});
+
+	it('returns null for garbage or wrong-shape payloads', () => {
+		expect(decodeGroup(null)).toBeNull();
+		expect(decodeGroup('%%%')).toBeNull();
+		expect(decodeGroup(encodeSharePlan(plan))).toBeNull();
+		expect(decodeGroup(btoa(JSON.stringify({ v: 1, t: 1252, p: [['', []]] })))).toBeNull();
+		expect(decodeGroup(btoa(JSON.stringify({ v: 1, t: 1252, p: [['Ana', [['x']]]] })))).toBeNull();
 	});
 });

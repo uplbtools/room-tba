@@ -310,4 +310,32 @@ describe('PlannerStore', () => {
 		store.renamePlan(b.id, 'My schedule');
 		expect(store.plans.find((p) => p.id === b.id)?.label).toBe('My schedule (2)');
 	});
+
+	test('setFriends replaces a friend by name, leaves you out, and hydrates', () => {
+		const store = makeStore();
+		store.setMyName('Ana');
+		const sections = [{ ...row({}), schedule: ['MW 07:00AM-08:00AM'] }].map(
+			({ courseCode, section, type, schedule }) => ({
+				courseCode: courseCode ?? '',
+				section: section ?? '',
+				type: type ?? '',
+				schedule: schedule ?? [],
+				roomCode: null,
+				courseTitle: null
+			})
+		);
+		expect(
+			store.setFriends(1252, [
+				{ name: 'ana', sections },
+				{ name: 'Ben', sections: [] }
+			])
+		).toEqual(['Ben']);
+		store.setFriends(1252, [{ name: 'ben', sections }]);
+		expect(store.friendsForTerm.map((f) => [f.name, f.sections.length])).toEqual([['ben', 1]]);
+		expect(makeStore(1253).friendsForTerm).toEqual([]);
+		const again = makeStore();
+		expect(again.myName).toBe('Ana');
+		again.removeFriend(1252, 'ben');
+		expect(again.friendsForTerm).toEqual([]);
+	});
 });
