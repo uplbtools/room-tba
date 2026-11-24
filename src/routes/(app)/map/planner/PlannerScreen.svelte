@@ -35,6 +35,7 @@
 	import GoogleCalendarIcon from '#lib/components/icons/GoogleCalendarIcon.svelte';
 	import PlannerCourseSearch from './PlannerCourseSearch.svelte';
 	import PlannerFindSchedule from './PlannerFindSchedule.svelte';
+	import PlannerFriends from './PlannerFriends.svelte';
 	import PlannerGrid from './PlannerGrid.svelte';
 	import type { ClassOfferingGroup } from '#lib/utils/class-offering-groups.js';
 	import type { ClassMapValue, FinalExamRow } from '#lib/utils/types.js';
@@ -437,8 +438,8 @@
 			</span>
 		</summary>
 		<p class="planner-save-note" role="note">
-			Plans save automatically on this device. Use <strong>Share</strong> to copy a link you can reopen
-			anywhere or send to someone.
+			Plans save automatically on this device. Use <strong>Share</strong> to copy a link you can
+			reopen anywhere or send to someone, or <strong>Friends</strong> to compare schedules with a group.
 		</p>
 		<p class="planner-save-note" role="note">
 			<strong>Why a class may be missing from your day's stops.</strong>
@@ -521,6 +522,8 @@
 			</button>
 		</div>
 	</div>
+
+	<PlannerFriends />
 
 	<div class="planner-body" class:planner-body--no-side={!plan || plan.sections.length === 0}>
 		<PlannerCourseSearch />

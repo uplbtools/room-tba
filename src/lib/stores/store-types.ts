@@ -102,6 +102,7 @@ export function syncTableLabel(table: SyncTableKey): string {
 export const ACTIVE_TERM_LS_KEY = 'active-term-id';
 
 export const PLANNER_LS_KEY = 'room-tba-planner';
+export const PLANNER_FRIENDS_LS_KEY = 'room-tba-planner-friends';
 
 export const SCHEDULE_IMPORT_SS_KEY = 'room-tba-schedule-import';
 

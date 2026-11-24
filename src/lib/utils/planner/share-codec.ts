@@ -48,6 +48,22 @@ export function gradesimTakeUrl(plan: PlannerPlan): string | null {
 	return `https://gradesim.uplb.tools/?take=${codes.map(encodeURIComponent).join(',')}&term=${plan.termId}#planner`;
 }
 
+function parseRefs(s: unknown): SharedSectionRef[] | null {
+	if (!Array.isArray(s)) return null;
+	const refs: SharedSectionRef[] = [];
+	for (const entry of s) {
+		if (
+			!Array.isArray(entry) ||
+			entry.length !== 3 ||
+			entry.some((part) => typeof part !== 'string')
+		) {
+			return null;
+		}
+		refs.push({ courseCode: entry[0], section: entry[1], type: entry[2] });
+	}
+	return refs;
+}
+
 /** Decode a `?plan=` payload. Null on any parse/shape error. */
 export function decodeSharePlan(raw: string | null): DecodedSharePlan | null {
 	if (!raw) return null;
@@ -55,19 +71,53 @@ export function decodeSharePlan(raw: string | null): DecodedSharePlan | null {
 		const payload: unknown = JSON.parse(fromBase64Url(raw));
 		if (!payload || typeof payload !== 'object') return null;
 		const { v, t, s } = payload as SharePayload;
-		if (v !== 1 || typeof t !== 'number' || !Array.isArray(s)) return null;
-		const refs: SharedSectionRef[] = [];
-		for (const entry of s) {
-			if (
-				!Array.isArray(entry) ||
-				entry.length !== 3 ||
-				entry.some((part) => typeof part !== 'string')
-			) {
-				return null;
-			}
-			refs.push({ courseCode: entry[0], section: entry[1], type: entry[2] });
+		if (v !== 1 || typeof t !== 'number') return null;
+		const refs = parseRefs(s);
+		return refs && { termId: t, refs };
+	} catch {
+		return null;
+	}
+}
+
+export type GroupMember = { name: string; refs: SharedSectionRef[] };
+
+export type DecodedGroup = { termId: number; members: GroupMember[] };
+
+type GroupPayload = {
+	v: 1;
+	t: number;
+	p: [string, [string, string, string][]][]; // [name, refs]
+};
+
+/** Encode everyone's schedules for one `?group=` link. */
+export function encodeGroup(
+	termId: number,
+	members: { name: string; sections: SharedSectionRef[] }[]
+): string {
+	const payload: GroupPayload = {
+		v: 1,
+		t: termId,
+		p: members.map((m) => [m.name, m.sections.map((s) => [s.courseCode, s.section, s.type])])
+	};
+	return toBase64Url(JSON.stringify(payload));
+}
+
+/** Decode a `?group=` payload. Null on any parse/shape error. */
+export function decodeGroup(raw: string | null): DecodedGroup | null {
+	if (!raw) return null;
+	try {
+		const payload: unknown = JSON.parse(fromBase64Url(raw));
+		if (!payload || typeof payload !== 'object') return null;
+		const { v, t, p } = payload as GroupPayload;
+		if (v !== 1 || typeof t !== 'number' || !Array.isArray(p)) return null;
+		const members: GroupMember[] = [];
+		for (const entry of p) {
+			if (!Array.isArray(entry) || typeof entry[0] !== 'string' || !entry[0].trim()) return null;
+			const refs = parseRefs(entry[1]);
+			if (!refs) return null;
+			members.push({ name: entry[0].trim().slice(0, 30), refs });
 		}
-		return { termId: t, refs };
+		return { termId: t, members };
 	} catch {
 		return null;
 	}
