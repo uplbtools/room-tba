@@ -16,6 +16,7 @@ export type TestInventory = {
   store: string[];
   component: string[];
   integration: string[];
+  scripts: string[];
   e2eBlocking: string[];
   e2eAdvisory: string[];
   e2eStaging: string[];
@@ -41,6 +42,12 @@ export async function scanTestInventory(root: string): Promise<TestInventory> {
       !f.endsWith(".component.test.ts"),
   );
   const integration = allTests.filter((f) => f.startsWith("integration/"));
+  const scripts = allTests.filter(
+    (f) =>
+      f.startsWith("scripts/") &&
+      !f.endsWith(".store.test.ts") &&
+      !f.endsWith(".component.test.ts"),
+  );
   const e2eAdvisory = allTests.filter((f) => f.startsWith("e2e/advisory/"));
   const e2eStaging = allTests.filter((f) => f.startsWith("e2e/staging/"));
   const e2eBlocking = allTests.filter(
@@ -57,6 +64,7 @@ export async function scanTestInventory(root: string): Promise<TestInventory> {
     store,
     component,
     integration,
+    scripts,
     e2eBlocking,
     e2eAdvisory,
     e2eStaging,
@@ -68,6 +76,7 @@ export type TestInventoryDiscordTiers = {
   store: string[];
   component: string[];
   integration: string[];
+  scripts: string[];
   e2eBlockingSmoke: string[];
   e2eBlockingBrowse: string[];
   e2eBlockingAdmin: string[];
@@ -93,6 +102,7 @@ export function testInventoryDiscordTiers(
     store: inv.store,
     component: inv.component,
     integration: inv.integration,
+    scripts: inv.scripts,
     e2eBlockingSmoke: smoke,
     e2eBlockingBrowse: browse,
     e2eBlockingAdmin: admin,
@@ -132,7 +142,11 @@ See [testing.md](testing.md) for commands, CI gates, and databases. Issue-linked
 ## Summary by tier
 
 ${mdTable([
-  ["bun test src", "Bun — unit (`src/lib`, `src/constants`)", inv.unit.length],
+  [
+    "bun run test",
+    "Bun unit + script tests (`src/lib`, `src/constants`, `scripts/`)",
+    inv.unit.length + inv.scripts.length,
+  ],
   [
     "bun run test:components",
     "Vitest — stores + Svelte @320px",
@@ -169,7 +183,7 @@ ${mdTable([
 
 | Workflow | What runs |
 | -------- | --------- |
-| [ci.yml](../.github/workflows/ci.yml) | \`bun test src\`, \`test:components\`, lint, prod build |
+| [ci.yml](../.github/workflows/ci.yml) | \`bun run test\` unit+scripts, \`test:components\`, lint, prod build |
 | [ci.yml](../.github/workflows/ci.yml) migrations job | \`check:migrations\` on E2E DB |
 | [e2e.yml](../.github/workflows/e2e.yml) | reset DB → build:e2e → integration → Playwright blocking |
 | [e2e-advisory.yml](../.github/workflows/e2e-advisory.yml) | Playwright advisory |
@@ -182,7 +196,7 @@ Playwright **blocking** uses [playwright.config.ts](../playwright.config.ts) (\`
 
 ## Unit tests (Bun) — ${inv.unit.length} files
 
-\`bun test src/lib src/constants\` (excludes \`*.store.test.ts\`).
+\`bun run test\` runs \`bun test src/lib src/constants scripts\` (excludes \`*.store.test.ts\` / \`*.component.test.ts\`).
 
 ${mdList(inv.unit)}
 
@@ -203,6 +217,12 @@ ${mdList(inv.component)}
 \`bun run test:integration\` (E2E Supabase; HTTP suites need preview — use \`test:integration:live\`).
 
 ${mdList(inv.integration)}
+
+## Script tests (Bun): ${inv.scripts.length} files
+
+\`bun run test\` covers \`scripts/\` alongside \`src/lib\` and \`src/constants\`.
+
+${mdList(inv.scripts)}
 
 ## E2E blocking (Playwright) — ${inv.e2eBlocking.length} files
 

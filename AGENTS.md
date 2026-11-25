@@ -343,12 +343,12 @@ Partnerships, legal/MOUs, AMIS live fetch, subjective animation “feel,” prod
 
 ## Verify before done
 
-Adjust checks to change size. PR CI runs **Biome format + unit tests** (no `DATABASE_URL`); full `bun run lint` (includes ESLint) and build remain local/agent responsibilities before merge.
+Adjust checks to change size. PR CI runs **Biome format + unit tests** (no `DATABASE_URL`); full `bun run lint` (Biome format + lint) and build remain local/agent responsibilities before merge.
 
 | Step                                                               | When                                                                                                            |
 | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| `bun run lint` (or targeted biome format / eslint on edited files) | Always before commit/PR                                                                                         |
-| `bun test src` (or targeted test files)                            | When logic, lib, or API behavior changed                                                                        |
+| `bun run lint` (or targeted `bunx biome` on edited files) | Always before commit/PR                                                                                         |
+| `bun run test` (or targeted test files)                            | When logic, lib, or API behavior changed                                                                        |
 | `bun run test:components`                                          | When stores or Svelte UI changed                                                                                |
 | `bun run test:integration`                                         | When services, admin PATCH, or HTTP routes changed: **local before marking PR ready**; CI runs in gated E2E job |
 | Issue-linked work                                                  | Tests per [§ Tests with GitHub issues](#tests-with-github-issues): same PR                                      |
@@ -626,7 +626,7 @@ Human setup detail: [docs/developer-guide.md](docs/developer-guide.md). Cursor C
 | `astro.config.mjs` / `.env.example` env vars | Required vs optional vars, where to get values             |
 | Database provider, Drizzle, migrations       | Supabase Postgres + `drizzle/`: not SQLite/Neon as runtime |
 | Astro / Bun / major deps                     | Version labels that match `package.json`                   |
-| CI workflows (`.github/workflows/*`)         | What runs on PRs (`bun test src`, Biome format, etc.)      |
+| CI workflows (`.github/workflows/*`)         | What runs on PRs (`bun run test`, Biome format, etc.)      |
 | Live URL, repo org, default term label       | Links, “current semester” data note, changelog path        |
 | Editor login entry points                    | `/?editor=login`, in-app editing: not a separate admin app |
 | Project layout (`src/pages`, `src/lib`, …)   | Folder tree in README matches reality                      |
@@ -660,4 +660,4 @@ README-only overhauls are welcome; they still must pass `check:readme` and stay 
 - This is **Astro 7 SSR** (Vercel adapter). API routes under `src/pages/api/*` are server-rendered (`prerender = false`), and SSG entity pages (e.g. `/room/[slug]`) query the DB at build time; so `bun run build` fails without a working `DATABASE_URL`.
 - `@electric-sql/pglite` (`idb://site-data`) is a **browser-side cache only**, not a server/dev database fallback.
 - **PWA:** Workbox precaches `dist/client`; large client bundles affect offline install. See `astro.config.mjs` PWA config before adding heavy dependencies.
-- Standard scripts: `bun dev` (`http://localhost:4321/`), `bun run build`, `bun preview`, `bun run lint`, `bun run format`, `bun test src`, `bun run check:readme`. PR CI runs Biome format check + unit tests; run full lint and build locally before merge.
+- Standard scripts: `bun dev` (`http://localhost:4321/`), `bun run build`, `bun preview`, `bun run lint`, `bun run format`, `bun run test`, `bun run check:readme`. PR CI runs Biome format check + unit tests; run full lint and build locally before merge.

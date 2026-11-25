@@ -124,16 +124,14 @@ async function fetchAppData(): Promise<AppPageData> {
     return countB - countA;
   });
 
-  // @ts-expect-error drizzle returns count as a scalar row here.
-  const [{ count: directionCount }] = await db
+  const directionRows = await db
     .select({ count: count() })
     .from(roomsTable)
     .where(isNotNull(roomsTable.directions));
+  const directionCount = directionRows[0]?.count ?? 0;
 
-  // @ts-expect-error drizzle returns count as a scalar row here.
-  const [{ count: totalRooms }] = await db
-    .select({ count: count() })
-    .from(roomsTable);
+  const totalRows = await db.select({ count: count() }).from(roomsTable);
+  const totalRooms = totalRows[0]?.count ?? 0;
 
   return {
     rooms,

@@ -11,6 +11,11 @@ updates:
     open-pull-requests-limit: 10
     cooldown:
       default-days: 7
+    # Formatter bumps must be manual: a Biome minor (e.g. 2.6.x) reformats the
+    # repo and fails `bunx biome ci` unless `bun run format` lands in the same
+    # PR. Bump deliberately instead.
+    ignore:
+      - dependency-name: "@biomejs/biome"
     commit-message:
       prefix: chore
       include: scope

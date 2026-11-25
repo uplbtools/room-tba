@@ -27,8 +27,8 @@ Refreshing a stale `.env`: see [AGENTS.md § Cursor Cloud](../AGENTS.md#cursor-c
 | Command | Purpose |
 | ------------------------- | --------------------------------------- |
 | `bun dev` | Dev server |
-| `bun test src` | Unit tests (no DB required) |
-| `bun run lint` | Biome format check + ESLint |
+| `bun run test` | Unit tests (no DB required) |
+| `bun run lint` | Biome format + lint check |
 | `bun run format` | Biome format write |
 | `bun run build` | Production build (needs `DATABASE_URL`) |
 | `bunx drizzle-kit studio` | Browse Postgres |
@@ -57,7 +57,7 @@ Do **not** edit `drizzle-migrations/` (archived SQLite history).
 
 ## Tests
 
-Unit tests live under `src/**/*.test.ts`. Run all: `bun test src`. Add tests when changing non-trivial lib or API behavior.
+Unit tests live under `src/**/*.test.ts` and `scripts/**/*.test.ts`. Run all: `bun run test`. Add tests when changing non-trivial lib or API behavior.
 
 ## Getting help
 

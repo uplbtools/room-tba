@@ -97,7 +97,7 @@ Empty database? `bun run seed:sample` loads a small fictional campus (buildings,
 2. Branch off **`staging`** (not `main`).
 3. Make your change.
 4. Before opening a PR:
- - `bun test src`
+ - `bun run test`
  - `bun run lint` (or `bunx biome format` on files you touched)
  - `bun run build` for substantive changes (needs `DATABASE_URL`)
 5. Open a PR to **`staging`**. Use the PR template checkboxes.

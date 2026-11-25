@@ -6,7 +6,7 @@ Production-grade test pyramid for CI and local development.
 
 | Command | What |
 | -------------------------------- | ------------------------------------------------------------ |
-| `bun test src/lib src/constants` | Unit tests (Bun; excludes `*.store.test.ts`) |
+| `bun run test` | Unit tests (Bun; `src/lib`, `src/constants`, `scripts`; excludes `*.store.test.ts` / `*.component.test.ts`) |
 | `bun run test:components` | Vitest store + Svelte component tests |
 | `bun run test:integration` | HTTP + service tests (E2E DB; service-only without preview) |
 | `bun run test:integration:live` | Same as CI: `build:e2e` → preview → integration (incl. HTTP) |
@@ -30,7 +30,7 @@ E2E runs `serve:e2e`, which rebuilds with `@astrojs/node` because `@astrojs/verc
 
 ## CI (every PR push, including drafts)
 
-- **CI / verify**: Biome format, ESLint, unit, components, PWA legal, prod build (~5–8 min)
+- **CI / verify**: Biome format + lint, `check:readme`, `check:undefined-names`, `check:test-inventory`, unit, components, PWA legal, prod build, wiki links (~5–8 min)
 - **CI / migrations**: migrate a throwaway run schema on the E2E DB, then check its tables (~2 min)
 - **CI / feature retirement**: a deleted `src/pages/` entry must retire or repurpose an automated spec and refresh `docs/test-inventory.md`.
 

@@ -36,7 +36,7 @@ Do not close issues with unchecked AC or outdated implementation notes.
 
 Run only what applies to the PR scope:
 
-| Change type | lint | `bun test src` | build (local) | browser |
+| Change type | lint | `bun run test` | build (local) | browser |
 | ----------------------- | ---- | ----------------- | ------------- | ------------------------------------- |
 | Lib/helper only | yes | yes (or targeted) | yes | skip |
 | Map chrome / side panel | yes | yes | yes | 320px + 768px |
@@ -53,7 +53,7 @@ Run these before asking for browser QA:
 git status --short --branch
 bun run lint
 bun run check:readme
-bun test src
+bun run test
 bun run build
 curl -I http://localhost:4321/admin
 curl -I http://localhost:4321/admin/login
@@ -71,7 +71,7 @@ bun -e 'import { config } from "dotenv"; import pg from "pg"; config({ path: ".e
 Expected automated evidence for the current editor foundation:
 
 - `bunx biome format.` passes (PR CI).
-- `bun test src` passes (PR CI).
+- `bun run test` passes (PR CI).
 - `/admin` redirects to `/?editor=login`.
 - `/admin/login` redirects to `/?editor=login`.
 - `/?editor=login` returns `200`.
@@ -132,7 +132,7 @@ Use this structure in the PR comment or PR body (also in [.github/pull_request_t
 Automated:
 
 - [ ] Biome format passed: `bunx biome format .` (PR CI)
-- [ ] Unit tests passed: `bun test src` (PR CI)
+- [ ] Unit tests passed: `bun run test` (PR CI)
 - [ ] Full lint passed (local): `bun run lint`
 - [ ] Build passed (local): `bun run build`
 - [ ] Admin redirects verified: `/admin`, `/admin/login`
