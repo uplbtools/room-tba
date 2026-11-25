@@ -10,7 +10,7 @@
   import LoginStepPanel from "@ui/LoginStepPanel.svelte";
   import "./editor/entity-editor.css";
 
-  import { isSupabaseConfigured } from "@lib/supabase/env";
+  import { isGoogleOAuthConfigured } from "@lib/auth/google-oauth-client";
   import {
     getTurnstileSiteKey,
     isTurnstileWidgetConfigured,
@@ -26,7 +26,7 @@
   } from "@lib/auth/contributor-signup";
 
   const loginErrorId = "admin-login-error";
-  const googleEnabled = isSupabaseConfigured();
+  const googleEnabled = isGoogleOAuthConfigured();
   const turnstileEnabled = isTurnstileWidgetConfigured();
   const turnstileSiteKey = turnstileEnabled ? getTurnstileSiteKey() : "";
 

@@ -130,11 +130,14 @@ export function parsePublishingActor(
 }
 
 export function setSessionCookie(token: string): string {
-  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${COOKIE_MAX_AGE}`;
+  // Lax, not Strict: the Google account-link callback is a cross-site
+  // top-level navigation from accounts.google.com, and Strict withholds the
+  // cookie there, so link-callback always saw not_logged_in.
+  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}`;
 }
 
 export function clearSessionCookie(): string {
-  return `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`;
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
 }
 
 export const ADMIN_COOKIE_NAME = COOKIE_NAME;

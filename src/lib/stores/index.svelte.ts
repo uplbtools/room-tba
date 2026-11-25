@@ -893,56 +893,18 @@ class AdminAuthStore {
     }
   };
 
-  /** Start Google OAuth (#456); resolves to an error message or redirects away. */
+  /** Start Google OAuth (#456); redirects to /api/auth/google/start. */
   loginWithGoogle = async (): Promise<string | null> => {
-    try {
-      const [{ isSupabaseConfigured }, { createBrowserSupabaseClient }] =
-        await Promise.all([
-          import("@lib/supabase/env"),
-          import("@lib/supabase/client"),
-        ]);
-      if (!isSupabaseConfigured()) {
-        return "Google sign-in isn't configured on this server.";
-      }
-      const supabase = createBrowserSupabaseClient();
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/api/auth/callback`,
-        },
-      });
-      if (error) return error.message;
-      return null;
-    } catch {
-      return "Google sign-in failed to start. Try again.";
-    }
+    window.location.href = "/api/auth/google/start";
+    return null;
   };
 
   /** Start Google OAuth to link an identity onto the *already logged-in*
    * account (Account settings → Connect Google), distinct from
    * `loginWithGoogle` which creates/logs into a new account. */
   linkGoogle = async (): Promise<string | null> => {
-    try {
-      const [{ isSupabaseConfigured }, { createBrowserSupabaseClient }] =
-        await Promise.all([
-          import("@lib/supabase/env"),
-          import("@lib/supabase/client"),
-        ]);
-      if (!isSupabaseConfigured()) {
-        return "Google sign-in isn't configured on this server.";
-      }
-      const supabase = createBrowserSupabaseClient();
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/api/auth/link-callback`,
-        },
-      });
-      if (error) return error.message;
-      return null;
-    } catch {
-      return "Google sign-in failed to start. Try again.";
-    }
+    window.location.href = "/api/auth/google/link-start";
+    return null;
   };
 
   logout = async () => {

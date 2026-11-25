@@ -54,11 +54,22 @@ export function checkRateLimit(
 
 /**
  * Client IP for rate-limit keys. Vercel sets `x-vercel-forwarded-for` (and
- * `x-real-ip`) itself; the first `X-Forwarded-For` entry is whatever the
- * client typed, so keying on it let anyone mint a fresh bucket per request.
+ * `x-real-ip`) itself; Cloudflare sets `cf-connecting-ip` to the true client
+ * IP (it overwrites any client-sent value). The first `X-Forwarded-For`
+ * entry is whatever the client typed, so keying on it let anyone mint a
+ * fresh bucket per request.
+ *
+ * `cf-connecting-ip` is only trusted on workerd: behind Vercel a client can
+ * send the header themselves and it would pass through unverified.
  */
 export function clientIp(request: Request): string {
-  for (const header of ["x-vercel-forwarded-for", "x-real-ip"]) {
+  const onWorkerd =
+    (globalThis as { navigator?: { userAgent?: string } }).navigator
+      ?.userAgent === "Cloudflare-Workers";
+  const headers = onWorkerd
+    ? ["cf-connecting-ip", "x-real-ip"]
+    : ["x-vercel-forwarded-for", "x-real-ip"];
+  for (const header of headers) {
     const value = request.headers.get(header)?.split(",")[0]?.trim();
     if (value) return value;
   }

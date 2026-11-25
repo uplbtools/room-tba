@@ -3,7 +3,7 @@
 // shared with the client modal for the same rules.
 
 export const MIN_CONTRIBUTOR_PASSWORD_LENGTH = 10;
-/** bcrypt silently ignores everything past 72 bytes, so refuse longer. */
+/** Retained policy cap (the old bcrypt 72-byte truncation limit). */
 export const MAX_PASSWORD_BYTES = 72;
 export const USERNAME_MIN_LENGTH = 3;
 export const USERNAME_MAX_LENGTH = 32;

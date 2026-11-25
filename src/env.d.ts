@@ -1,13 +1,8 @@
 /// <reference types="astro/client" />
 
-import type { SupabaseClient, User } from "@supabase/supabase-js";
-
 declare namespace App {
   interface Locals {
-    supabase?: SupabaseClient;
-    supabaseUser?: User;
-    supabaseCacheHeaders?: Record<string, string>;
-    /** Signed-in editor identity resolved by middleware (cookie or Supabase). */
+    /** Signed-in editor identity resolved by middleware (HMAC cookie). */
     editorUser?: import("@lib/admin/auth").SessionUser;
   }
 }
