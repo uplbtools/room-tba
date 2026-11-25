@@ -3,6 +3,11 @@
  *
  * Requires ISR_BYPASS_TOKEN in Vercel env and matching bypassToken in astro.config.
  * No-op when the token is unset (local dev, previews without ISR configured).
+ *
+ * Cloudflare Workers have no x-prerender-revalidate equivalent and this PR
+ * does not add a caches.default HTML layer, so on the Worker every request
+ * is SSR and admin writes simply do not revalidate — entity pages pick up
+ * edits on the next request. If edge HTML caching lands later, revisit this.
  */
 
 import {

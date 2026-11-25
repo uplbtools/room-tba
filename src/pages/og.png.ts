@@ -17,16 +17,20 @@ let renderersPromise: Promise<{ font: ArrayBuffer }> | null = null;
 function initRenderers(): Promise<{ font: ArrayBuffer }> {
   // Decode the font once per isolate: atob + Uint8Array.from on every request
   // pushed cold renders over the Workers CPU budget (error 1102).
-  renderersPromise ??= Promise.all([
-    initSatori(yogaWasm),
-    initWasm(resvgWasm),
-  ]).then(() => {
-    const fontBase64 = ogFontDataUrl.split(",")[1];
-    const font = Uint8Array.from(atob(fontBase64), (c) =>
-      c.charCodeAt(0),
-    ).buffer;
-    return { font };
-  });
+  renderersPromise ??= Promise.all([initSatori(yogaWasm), initWasm(resvgWasm)])
+    .then(() => {
+      const fontBase64 = ogFontDataUrl.split(",")[1];
+      const font = Uint8Array.from(atob(fontBase64), (c) =>
+        c.charCodeAt(0),
+      ).buffer;
+      return { font };
+    })
+    .catch((error: unknown) => {
+      // Do not cache a rejected init: the next request retries instead of
+      // failing forever on a transient wasm/fetch error.
+      renderersPromise = null;
+      throw error;
+    });
   return renderersPromise;
 }
 
@@ -99,8 +103,12 @@ function clamp(value: string | null, max: number): string {
 export const GET: APIRoute = async ({ url, request }) => {
   // Rendered cards are immutable per URL; the edge cache absorbs repeat
   // crawler hits so only the first request pays the satori/resvg CPU cost.
-  // `caches` exists on workerd; guard for other runtimes (tests, dev).
-  const edgeCache = typeof caches === "undefined" ? null : caches.default;
+  // `caches.default` is a workerd extension (not in the DOM CacheStorage
+  // types); guard for other runtimes (tests, dev).
+  const edgeCache =
+    typeof caches === "undefined"
+      ? null
+      : ((caches as CacheStorage & { default?: Cache }).default ?? null);
   const cached = edgeCache ? await edgeCache.match(request) : null;
   if (cached) return cached;
 

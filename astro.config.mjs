@@ -349,6 +349,20 @@ export default defineConfig({
         context: "server",
         optional: true,
       }),
+      // Mixed into the PBKDF2 salt for admin/account passwords
+      // (src/lib/auth/password-hash.ts). Optional locally; production warns
+      // at runtime when unset. Worker secret: `wrangler secret put`.
+      PASSWORD_PEPPER: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // PBKDF2 iteration override; default 10_000 when unset.
+      PASSWORD_KDF_ITERATIONS: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
       // Encrypts staff TOTP secrets at rest (32 bytes, base64 or hex). Unset
       // turns two-step verification off rather than storing seeds in clear.
       TOTP_ENCRYPTION_KEY: envField.string({

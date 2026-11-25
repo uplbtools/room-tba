@@ -28,8 +28,25 @@ function iterations(): number {
   return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : DEFAULT_ITERATIONS;
 }
 
+let warnedMissingPepper = false;
+
 function pepperBytes(): Uint8Array {
-  return encoder.encode(process.env["PASSWORD_PEPPER"] ?? "");
+  const pepper = process.env["PASSWORD_PEPPER"] ?? "";
+  // Without the pepper a leaked password_hash column is brute-forceable
+  // offline. Warn loudly in production instead of failing requests: local
+  // dev and E2E run without secrets.
+  if (
+    !pepper &&
+    !warnedMissingPepper &&
+    (process.env["PUBLIC_APP_ENV"] === "production" ||
+      process.env["VERCEL_ENV"] === "production")
+  ) {
+    warnedMissingPepper = true;
+    console.warn(
+      "PASSWORD_PEPPER is not set: password hashes carry no pepper. Set it as a secret (wrangler secret put / Vercel env).",
+    );
+  }
+  return encoder.encode(pepper);
 }
 
 function toHex(bytes: Uint8Array): string {
@@ -97,6 +114,10 @@ export async function verifyPassword(
   stored: string,
 ): Promise<boolean> {
   if (isLegacyPasswordHash(stored)) {
+    // TODO: bcryptjs is pure JS (~300ms+ per compare) and can blow
+    // the Workers CPU budget on legacy-hash logins. Accounts upgrade to
+    // PBKDF2 on first successful verify; if legacy volume stays high, gate
+    // or rehash ahead of the verify.
     return bcrypt.compare(password, stored);
   }
   const parts = stored.split("$");

@@ -55,14 +55,39 @@ type WorkerDb = ReturnType<typeof drizzlePostgresJsFn>;
 interface DbContext {
   client?: SqlClient;
   db?: WorkerDb;
+  /** Pool size for the lazily created client; request scopes cap at 1. */
+  max?: number;
 }
 
 const requestDb = new AsyncLocalStorage<DbContext>();
 const fallbackContext: DbContext = {};
 
-/** Run `fn` with a fresh database client scoped to this request (workerd only). */
+/**
+ * Run `fn` with a fresh database client scoped to this request (workerd only).
+ * The client is capped at one connection — a request's queries serialize
+ * through the pool queue instead of holding several sockets — and must be
+ * released with `endRequestDb` once the response is done.
+ */
 export function runWithRequestDb<T>(fn: () => T): T {
-  return inWorkerd ? requestDb.run({}, fn) : fn();
+  return inWorkerd ? requestDb.run({ max: 1 }, fn) : fn();
+}
+
+/**
+ * Close the request-scoped client, if this async context created one.
+ * No-op outside workerd or when the request never touched the database.
+ * Errors are swallowed: a failed close must not fail the response.
+ */
+export async function endRequestDb(): Promise<void> {
+  const ctx = requestDb.getStore();
+  const client = ctx?.client;
+  if (!client) return;
+  ctx.client = undefined;
+  ctx.db = undefined;
+  try {
+    await client.end({ timeout: 5 });
+  } catch {
+    // Connection already gone; nothing to clean up.
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -125,23 +150,29 @@ function withRetry<T>(make: () => PromiseLike<T>): Promise<T> {
 
 /** Thenable stand-in for a postgres.js Query that retries once on stale sockets. */
 function retryingQuery(makeQuery: () => UnsafeQuery): UnsafeQuery {
-  const wrap = <T>(make: () => PromiseLike<T>) => ({
-    // biome-ignore lint/suspicious/noThenProperty: intentional thenable — this object stands in for a postgres.js Query
-    then: (onFulfilled?: any, onRejected?: any) =>
-      withRetry(make).then(onFulfilled, onRejected),
-    catch: (onRejected?: any) => withRetry(make).catch(onRejected),
-    finally: (onFinally?: any) => withRetry(make).finally(onFinally),
-  });
+  // Memoize the retry promise per terminal accessor: this thenable can be
+  // awaited through .then/.catch/.finally and the postgres.js variants
+  // .values/.raw/.execute/.simple, and each shape must run the SQL once.
+  const settled = new Map<() => PromiseLike<unknown>, Promise<unknown>>();
+  const run = (make: () => PromiseLike<unknown>) => {
+    let promise = settled.get(make);
+    if (!promise) {
+      promise = withRetry(make);
+      settled.set(make, promise);
+    }
+    return promise;
+  };
+  const base = () => makeQuery() as unknown as PromiseLike<unknown>;
   const query = {
     // biome-ignore lint/suspicious/noThenProperty: intentional thenable — this object stands in for a postgres.js Query
     then: (onFulfilled?: any, onRejected?: any) =>
-      wrap(() => makeQuery()).then(onFulfilled, onRejected),
-    catch: (onRejected?: any) => wrap(() => makeQuery()).catch(onRejected),
-    finally: (onFinally?: any) => wrap(() => makeQuery()).finally(onFinally),
-    values: () => wrap(() => makeQuery().values() as PromiseLike<unknown>),
-    raw: () => wrap(() => makeQuery().raw() as PromiseLike<unknown>),
-    execute: () => wrap(() => makeQuery().execute() as PromiseLike<unknown>),
-    simple: () => wrap(() => makeQuery().simple() as PromiseLike<unknown>),
+      run(base).then(onFulfilled, onRejected),
+    catch: (onRejected?: any) => run(base).catch(onRejected),
+    finally: (onFinally?: any) => run(base).finally(onFinally),
+    values: () => run(() => makeQuery().values() as PromiseLike<unknown>),
+    raw: () => run(() => makeQuery().raw() as PromiseLike<unknown>),
+    execute: () => run(() => makeQuery().execute() as PromiseLike<unknown>),
+    simple: () => run(() => makeQuery().simple() as PromiseLike<unknown>),
   };
   return query as unknown as UnsafeQuery;
 }
@@ -150,9 +181,9 @@ function makeWorkerDb(
   postgres: typeof postgresFn,
   drizzlePjs: typeof drizzlePostgresJsFn,
 ) {
-  function createClient(): SqlClient {
+  function createClient(max: number): SqlClient {
     const client = postgres(hyperdriveConnectionString ?? DATABASE_URL, {
-      max: Number.isFinite(poolMax) && poolMax > 0 ? poolMax : 10,
+      max: Number.isFinite(max) && max > 0 ? Math.floor(max) : 10,
       idle_timeout: 10,
       connect_timeout: 10,
       max_lifetime: 60 * 30,
@@ -167,7 +198,9 @@ function makeWorkerDb(
   }
 
   function contextClient(ctx: DbContext): SqlClient {
-    ctx.client ??= createClient();
+    // Request-scoped contexts carry max: 1; the fallback context (scripts,
+    // build-time, non-request code) keeps the configured pool size.
+    ctx.client ??= createClient(ctx.max ?? poolMax);
     return ctx.client;
   }
 

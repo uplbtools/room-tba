@@ -54,4 +54,29 @@ describe("clientIp", () => {
   test("never trusts the client-typed first X-Forwarded-For entry", () => {
     expect(clientIp(req({ "x-forwarded-for": "203.0.113.1" }))).toBe("unknown");
   });
+
+  test("ignores cf-connecting-ip outside workerd (client-spoofable on Vercel)", () => {
+    expect(clientIp(req({ "cf-connecting-ip": "203.0.113.9" }))).toBe(
+      "unknown",
+    );
+  });
+
+  test("trusts cf-connecting-ip on workerd", () => {
+    const original = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+    Object.defineProperty(globalThis, "navigator", {
+      value: { userAgent: "Cloudflare-Workers" },
+      configurable: true,
+    });
+    try {
+      expect(clientIp(req({ "cf-connecting-ip": "203.0.113.9" }))).toBe(
+        "203.0.113.9",
+      );
+    } finally {
+      if (original) {
+        Object.defineProperty(globalThis, "navigator", original);
+      } else {
+        delete (globalThis as { navigator?: unknown }).navigator;
+      }
+    }
+  });
 });

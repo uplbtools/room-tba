@@ -22,16 +22,12 @@
     // through the ASSETS binding, so it must see every request.
     "run_worker_first": true
   },
-  // Optional: point Postgres through a Cloudflare Hyperdrive config for
-  // connection pooling at the edge. Create one in the dashboard (or
-  // `wrangler hyperdrive create`), paste its id below, and the Worker uses
-  // its connection string instead of DATABASE_URL. Remove the block to use
-  // DATABASE_URL directly.
-  "hyperdrive": [
-    {
-      "binding": "HYPERDRIVE",
-      "id": "REPLACE_WITH_HYPERDRIVE_CONFIG_ID"
-    }
-  ],
+  // Postgres goes straight to DATABASE_URL (a Worker secret, set with
+  // `wrangler secret put DATABASE_URL`). Optional: for Hyperdrive connection
+  // pooling at the edge, create a config (`wrangler hyperdrive create`) and
+  // add a `"hyperdrive": [{ "binding": "HYPERDRIVE", "id": "<config id>" }]`
+  // block here; src/lib/db.ts picks up env.HYPERDRIVE automatically.
+  // PASSWORD_PEPPER / PASSWORD_KDF_ITERATIONS are secrets too —
+  // `wrangler secret put <NAME>`; see .env.example.
   "routes": [{ "pattern": "room-tba.uplb.tools", "custom_domain": true }]
 }
