@@ -1,3 +1,10 @@
+## [2.50.1](https://github.com/uplbtools/room-tba/compare/v2.50.0...v2.50.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* **pwa:** keep the saved copy and drop photos from the precache ([#1590](https://github.com/uplbtools/room-tba/issues/1590)) ([2337aab](https://github.com/uplbtools/room-tba/commit/2337aabc000ea8343d45ba58df785bfba0ff6319))
+
 # [2.48.0](https://github.com/uplbtools/room-tba/compare/v2.47.0...v2.48.0) (2026-11-17)
 
 
