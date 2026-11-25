@@ -65,7 +65,17 @@ export default defineConfig({
         // runtime — don't undo that by precaching it into every install
         // (including mobile) regardless of device. Cache it on-demand
         // instead, via the runtimeCaching rule below.
-        globIgnores: ["**/desktop-only*"],
+        globIgnores: [
+          "**/desktop-only*",
+          // Photos and share images, not needed to boot.
+          "developers/**",
+          "contributors/**",
+          "event-images/**",
+          "pubmat/**",
+          "sponsors/sample-*",
+          "uplb-bg-og.jpg",
+          "socmed.png",
+        ],
         // Vercel skew protection appends ?dpl=<deployment> to every chunk
         // request. Without ignoring it, no precached chunk ever matches, and
         // offline boot silently depends on the browser HTTP cache (gone after
