@@ -21,7 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     env:
-      DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+      # Fork PRs get no secrets; the build only needs DATABASE_URL to exist
+      # for env-schema validation. Same fallback as ci.yml (#790).
+      DATABASE_URL: ${{ secrets.E2E_DATABASE_URL || 'postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder' }}
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
