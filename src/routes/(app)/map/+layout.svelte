@@ -1,59 +1,16 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import Search from '#lib/components/new/Search.svelte';
-	import {
-		MapStore,
-		MapToolsStore,
-		MeasureRouteStore,
-		TerrainStore,
-		TravelTimeStore
-	} from '#lib/stores/new/map/map-stores.svelte.js';
-	import FloatingControlPanelStore from '#lib/stores/new/ui/FloatingControlPanelStore.svelte.js';
-	import UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
-	import OfflineStore from '#lib/stores/new/data/OfflineStore.svelte.js';
-	import AnnouncementsStore from '#lib/stores/new/data/AnnouncementsStore.svelte.js';
-	import SavedPlacesStore from '#lib/stores/new/data/SavedPlacesStore.svelte.js';
 	import AnnouncementBar from '#lib/components/AnnouncementBar.svelte';
-	import {
-		initMapStore,
-		initTravelTimeStore,
-		initMapToolsStore,
-		initMeasureRouteStore,
-		initTerrainStore,
-		initFloatingControlPanelStore,
-		initSearchInfo,
-		initModalStore,
-		initUserLocation,
-		initTermStore,
-		initPlannerStore,
-		initAdminAuthStore,
-		initProposalsStore,
-		initOfflineStore,
-		initAnnouncementsStore,
-		initSavedPlacesStore,
-		getEscapeActions,
-		getToast
-	} from '#lib/utils/context.js';
-	import { onMount, type Snippet } from 'svelte';
+	import { getEscapeActions } from '#lib/utils/context.js';
 	import UIMap from './Map.svelte';
-	import SearchInfo from '#lib/stores/SearchInfo.svelte.js';
 	import UILayer from './UILayer.svelte';
 	import MapControlsStack from '#lib/components/map-chrome/MapControlsStack.svelte';
-	import Toast from '#lib/components/Toast.svelte';
 	import ContributionReward from './ContributionReward.svelte';
-	import ModalStore from '#lib/stores/new/ui/ModalStore.svelte.js';
-	import TermStore from '#lib/stores/new/data/TermStore.svelte.js';
-	import DesktopTopBar from '#lib/components/map-chrome/DesktopTopBar.svelte';
 	import MobileBottomNav from '#lib/components/map-chrome/MobileBottomNav.svelte';
-	import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
-	import AdminAuthStore from '#lib/stores/new/data/AdminAuthStore.svelte.js';
-	import ProposalsStore from '#lib/stores/new/data/ProposalsStore.svelte.js';
-	import Modal from '#lib/components/new/Modal.svelte';
-	import AdminLoginModal from '#lib/components/AdminLoginModal.svelte';
-	import AccountSettingsModal from '#lib/components/AccountSettingsModal.svelte';
-	import ManageUsersModal from '#lib/components/modal/ManageUsersModal.svelte';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { goto, replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 
 	/* import { onMount, type Snippet } from 'svelte';
 	import { page } from '$app/state';
@@ -544,66 +501,6 @@
 
 	const { children }: { children: Snippet } = $props();
 
-	initMapStore(new MapStore());
-	initTravelTimeStore(new TravelTimeStore());
-	initMapToolsStore(new MapToolsStore());
-	initMeasureRouteStore(new MeasureRouteStore());
-	initTerrainStore(new TerrainStore());
-	initFloatingControlPanelStore(new FloatingControlPanelStore());
-	initUserLocation(new UserLocation());
-	initSearchInfo(new SearchInfo());
-	initOfflineStore(new OfflineStore());
-	const announcementsStore = initAnnouncementsStore(new AnnouncementsStore());
-	const savedPlacesStore = initSavedPlacesStore(new SavedPlacesStore());
-	const modalStore = initModalStore(new ModalStore());
-	const termStore = initTermStore(new TermStore());
-	const plannerStore = initPlannerStore(new PlannerStore(() => termStore.activeTermId));
-	const proposalsStore = initProposalsStore(new ProposalsStore(() => adminAuthStore.canReview));
-	const adminAuthStore = initAdminAuthStore(
-		new AdminAuthStore({ modalStore, plannerStore, proposalsStore })
-	);
-	const toastStore = getToast();
-
-	const ACCOUNT_ERRORS: Record<string, string> = {
-		missing_token: 'That confirmation link is missing its token.',
-		invalid_or_expired_token:
-			'That confirmation link is invalid or has expired. Request a new one.',
-		not_logged_in: 'Sign in first, then connect Google from account settings.',
-		missing_code: 'Google sign-in was cancelled or incomplete. Try again.',
-		oauth_failed: 'Connecting Google failed. Try again.',
-		already_linked: 'That Google account is already connected to a different Room TBA account.'
-	};
-
-	function openFromUrl(params: URLSearchParams) {
-		const authError = params.get('auth_error');
-		if (authError) adminAuthStore.oauthError = authError;
-		if (authError || params.get('editor') === 'login') adminAuthStore.openLogin();
-
-		const account = params.get('account');
-		const accountError = params.get('account_error');
-		if (account === 'email-changed') toastStore.show('Email address updated.', 'success');
-		if (account === 'google-linked') toastStore.show('Google account connected.', 'success');
-		if (accountError) {
-			toastStore.show(ACCOUNT_ERRORS[accountError] ?? 'Something went wrong. Try again.', 'error');
-		}
-		if (account || accountError) adminAuthStore.openAccountSettings();
-	}
-
-	onMount(() => {
-		void termStore.init();
-		announcementsStore.hydrate();
-		savedPlacesStore.hydrate();
-		plannerStore.init();
-		void adminAuthStore.hydrate();
-
-		const keys = ['editor', 'auth_error', 'account', 'account_error'];
-		const url = new URL(page.url);
-		if (!keys.some((key) => url.searchParams.has(key))) return;
-		openFromUrl(url.searchParams);
-		for (const key of keys) url.searchParams.delete(key);
-		replaceState(url, page.state);
-	});
-
 	const escapeActionStack = getEscapeActions();
 
 	function handleMapKeydown(event: KeyboardEvent & { currentTarget: EventTarget & Window }) {
@@ -621,12 +518,9 @@
      the tree and leaves blank white with no explanation. -->
 <svelte:window onkeydown={handleMapKeydown} />
 
-<main class="layout-root">
+<main class="relative h-full min-h-0">
 	<UILayer>
 		<AnnouncementBar />
-		<div class="-mx-3 -mt-3 hidden self-stretch sm:block">
-			<DesktopTopBar />
-		</div>
 		<Search />
 
 		<div
@@ -640,16 +534,5 @@
 		</div>
 	</UILayer>
 	<UIMap />
-	<Modal />
-	{#if adminAuthStore.loginOpen}
-		<AdminLoginModal />
-	{/if}
-	{#if adminAuthStore.accountSettingsOpen}
-		<AccountSettingsModal />
-	{/if}
-	{#if adminAuthStore.manageUsersOpen}
-		<ManageUsersModal />
-	{/if}
-	<Toast />
 	<ContributionReward />
 </main>
