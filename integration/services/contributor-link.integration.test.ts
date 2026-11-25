@@ -13,10 +13,10 @@ describeIntegration("linkOrCreateContributorFromGoogle (#456)", () => {
   let client: E2eClient;
 
   const cleanup = async () => {
-    await client.query(
-      "DELETE FROM admin_users WHERE email IN ($1, $2)",
-      [EMAIL_NEW, EMAIL_LINK],
-    );
+    await client.query("DELETE FROM admin_users WHERE email IN ($1, $2)", [
+      EMAIL_NEW,
+      EMAIL_LINK,
+    ]);
   };
 
   beforeAll(async () => {
