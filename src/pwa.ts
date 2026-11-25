@@ -32,6 +32,10 @@ const updateSW = isAppPage
     })
   : null;
 
+// Without this the browser may evict the saved copy, and the app can't open
+// offline until it downloads again.
+if (isAppPage) void navigator.storage?.persist?.();
+
 // The refresh button lives in the app UI, which cannot reach this module
 // directly.
 window.addEventListener(APPLY_UPDATE_EVENT, () => {
