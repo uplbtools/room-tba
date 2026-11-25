@@ -1,3 +1,10 @@
+## [2.50.2](https://github.com/uplbtools/room-tba/compare/v2.50.1...v2.50.2) (2026-11-25)
+
+
+### Bug Fixes
+
+* **finals:** read course prefixes with digits like SF1 104 ([#1591](https://github.com/uplbtools/room-tba/issues/1591)) ([02b8947](https://github.com/uplbtools/room-tba/commit/02b8947dad28b0cc9d443bc26d3506d459a94994))
+
 # [2.48.0](https://github.com/uplbtools/room-tba/compare/v2.47.0...v2.48.0) (2026-11-17)
 
 
