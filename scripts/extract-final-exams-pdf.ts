@@ -52,7 +52,7 @@ const SLOT =
 // Some PDFs put only one space between the course and its room
 // ("CHEM 111.1 PSLH A"), so any whitespace separates the two cells.
 const COURSE_ROW =
-  /^([A-Z][A-Za-z]{1,7}\s+\d+(?:\.\d+)?[A-Za-z]?)(?:\s+(.*))?$/;
+  /^([A-Z][A-Za-z0-9]{1,7}\s+\d+(?:\.\d+)?[A-Za-z]?)(?:\s+(.*))?$/;
 const COLUMN_GAP = /^\S+\s+\S+\s{2,}\S/;
 const NOISE =
   /^(Subject\b|All section\b|NO FINAL EXAMINATION|EXAMINATION BY ARRANGEMENT|Department of Human Kinetics|UNIVERSITY OF|OFFICE OF)/i;
