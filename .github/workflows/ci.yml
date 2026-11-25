@@ -48,11 +48,17 @@ jobs:
       - name: Biome check (format + lint)
         run: bunx biome ci .
 
+      - name: README drift guardrails
+        run: bun run check:readme
+
       - name: Undefined identifiers (svelte-check crash class)
         run: bun run check:undefined-names
 
+      - name: Test inventory freshness
+        run: bun run check:test-inventory
+
       - name: Unit tests
-        run: bun test src/lib src/constants --path-ignore-patterns='**/*.store.test.ts' --path-ignore-patterns='**/*.component.test.ts' --reporter=junit --reporter-outfile=junit-unit.xml
+        run: bun test src/lib src/constants scripts --path-ignore-patterns='**/*.store.test.ts' --path-ignore-patterns='**/*.component.test.ts' --reporter=junit --reporter-outfile=junit-unit.xml
 
       - name: Retire feature coverage with retired pages
         env:
@@ -98,6 +104,12 @@ jobs:
           DD_GIT_BRANCH: ${{ github.ref_name }}
           DD_VERSION: ${{ github.sha }}
         run: bun run build
+
+      # Needs dist/ from the Build step, so it shares the dependabot guard:
+      # dependabot PRs skip the build and would fail the "no build output" exit.
+      - name: Wiki link check
+        if: github.actor != 'dependabot[bot]'
+        run: bun run check:wiki-links
 
   migrations:
     if: github.actor != 'dependabot[bot]'

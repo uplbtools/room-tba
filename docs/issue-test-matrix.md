@@ -11,6 +11,8 @@ bun run scripts/generate-issue-test-matrix.ts /tmp/all-issues.json
 
 **Agent rule:** when implementing an issue, add or extend tests in the **same PR** per the tiers column. See [AGENTS.md § Tests with issues](../AGENTS.md#tests-with-github-issues).
 
+**Last generated:** 2026-11-25
+
 ## Summary
 
 | Metric | Count |

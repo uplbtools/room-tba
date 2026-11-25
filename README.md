@@ -185,7 +185,7 @@ Install the [Biome VS Code extension](https://marketplace.visualstudio.com/items
 | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `bun dev`                                            | Dev server                                                                                                                                     |
 | `bun run build`                                      | Production build (**needs** `DATABASE_URL`). Entity SEO pages render on first request via Vercel ISR, not at build                             |
-| `bun test src/lib src/constants`                     | Unit + store tests (no DB required)                                                                                                            |
+| `bun run test`                                      | Unit tests (no DB required)                                                                                                            |
 | `bun run test:components`                            | Vitest component/layout tests                                                                                                                  |
 | `bun run test:integration`                           | API and DB integration on the E2E database (see `docs/testing.md`)                                                                             |
 | `bun run e2e`                                        | Playwright blocking suite (`serve:e2e` builds with the node adapter and previews)                                                              |

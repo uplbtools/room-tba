@@ -79,7 +79,7 @@ Wall clock ~28–35 min in CI.
 ## Before marking PR ready
 
 ```sh
-bun run lint && bun test src
+bun run lint && bun run test
 bun run test:integration:live   # API/service changes
 bun run e2e                     # UI/map/proposal flows
 bun run build                   # substantive changes

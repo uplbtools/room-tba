@@ -14,6 +14,7 @@ function sampleInventory(
     store: ["src/lib/bar.store.test.ts"],
     component: ["src/test/layout.component.test.ts"],
     integration: ["integration/http/public.integration.test.ts"],
+    scripts: ["scripts/lib/foo.test.ts", "scripts/bar.test.ts"],
     e2eBlocking: [
       "e2e/smoke/boot.spec.ts",
       "e2e/browse/search-flow.spec.ts",
@@ -35,6 +36,10 @@ describe("testInventoryDiscordTiers", () => {
     expect(tiers.component).toEqual(["src/test/layout.component.test.ts"]);
     expect(tiers.integration).toEqual([
       "integration/http/public.integration.test.ts",
+    ]);
+    expect(tiers.scripts).toEqual([
+      "scripts/lib/foo.test.ts",
+      "scripts/bar.test.ts",
     ]);
     expect(tiers.e2eBlockingSmoke).toEqual(["e2e/smoke/boot.spec.ts"]);
     expect(tiers.e2eBlockingBrowse).toEqual(["e2e/browse/search-flow.spec.ts"]);

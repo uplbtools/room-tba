@@ -280,6 +280,8 @@ function main() {
     "",
     "**Agent rule:** when implementing an issue, add or extend tests in the **same PR** per the tiers column. See [AGENTS.md § Tests with issues](../AGENTS.md#tests-with-github-issues).",
     "",
+    `**Last generated:** ${new Date().toISOString().slice(0, 10)}`,
+    "",
     "## Summary",
     "",
     "| Metric | Count |",
