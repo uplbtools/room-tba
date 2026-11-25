@@ -1,9 +1,10 @@
 // @ts-check
 import { defineConfig, envField } from "astro/config";
+import { fileURLToPath } from "node:url";
 import svelte from "@astrojs/svelte";
 import AstroPWA from "@vite-pwa/astro";
 import node from "@astrojs/node";
-import vercel from "@astrojs/vercel";
+import cloudflare from "@astrojs/cloudflare";
 import {
   MESSENGER_CONTRIBUTE_TARGET,
   MESSENGER_MAINTAIN_TARGET,
@@ -214,6 +215,49 @@ export default defineConfig({
   ],
 
   vite: {
+    resolve: {
+      alias: [
+        {
+          // workerd cannot compile hb.wasm from bytes; satori gets a
+          // pre-compiled module via src/lib/harfbuzzjs-worker.ts instead.
+          // The node/E2E build compiles the same wasm from bytes itself.
+          find: /^harfbuzzjs$/,
+          replacement: fileURLToPath(
+            new URL(
+              e2eNodeAdapter
+                ? "./src/lib/harfbuzzjs-node.ts"
+                : "./src/lib/harfbuzzjs-worker.ts",
+              import.meta.url,
+            ),
+          ),
+        },
+        {
+          // `*.wasm?module` only resolves in the Cloudflare build; the
+          // node/E2E build uses inline data URIs instead.
+          find: "og-wasm-runtime",
+          replacement: fileURLToPath(
+            new URL(
+              e2eNodeAdapter
+                ? "./src/lib/og-wasm-node.ts"
+                : "./src/lib/og-wasm.ts",
+              import.meta.url,
+            ),
+          ),
+        },
+        {
+          // workerd-only global patches for the harfbuzzjs emscripten glue.
+          find: "og-hbjs-shim",
+          replacement: fileURLToPath(
+            new URL(
+              e2eNodeAdapter
+                ? "./src/lib/og-hbjs-shim-node.ts"
+                : "./src/lib/og-hbjs-shim.ts",
+              import.meta.url,
+            ),
+          ),
+        },
+      ],
+    },
     preview: {
       host: "127.0.0.1",
     },
@@ -301,6 +345,20 @@ export default defineConfig({
         optional: true,
       }),
       ADMIN_SESSION_SECRET: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // Mixed into the PBKDF2 salt for admin/account passwords
+      // (src/lib/auth/password-hash.ts). Optional locally; production warns
+      // at runtime when unset. Worker secret: `wrangler secret put`.
+      PASSWORD_PEPPER: envField.string({
+        access: "secret",
+        context: "server",
+        optional: true,
+      }),
+      // PBKDF2 iteration override; default 10_000 when unset.
+      PASSWORD_KDF_ITERATIONS: envField.string({
         access: "secret",
         context: "server",
         optional: true,
@@ -440,34 +498,5 @@ export default defineConfig({
   },
   adapter: e2eNodeAdapter
     ? node({ mode: "standalone" })
-    : vercel({
-        // Old clients keep resolving their own deployment's hashed assets
-        // (?dpl= pinning) instead of 404ing after every release. Second
-        // layer of the boot-failure fix; the first is precaching pglite.
-        skewProtection: true,
-        // Entity SEO pages use prerender=false and render on first request; Vercel
-        // caches HTML at the edge (ISR). Admin writes revalidate via ISR_BYPASS_TOKEN.
-        isr: {
-          expiration: 60 * 60 * 24,
-          bypassToken: process.env.ISR_BYPASS_TOKEN,
-          // /og.png must stay a plain function: Vercel ISR keys its cache on
-          // pathname only, so ?t=/&s=/&k= variants all collapse into one cached
-          // PNG and every entity shares the first-rendered card (#651). The
-          // normal CDN cache (via the route's s-maxage) keys on the full URL.
-          // /reset-password carries a per-user ?token=, and ISR keys on the
-          // pathname alone: one cached render (an empty error body, in the
-          // 2026-10 outage) was served to every reset link for a day.
-          exclude: [
-            /^\/api\//,
-            /^\/og\.png$/,
-            /^\/reset-password\/?$/,
-            // Same for every per-user page: the staff dashboard (its
-            // logged-out redirect was cached for everyone), invites, and
-            // unsubscribe links.
-            /^\/admin(\/.*)?$/,
-            /^\/invite\/?$/,
-            /^\/unsubscribe\/?$/,
-          ],
-        },
-      }),
+    : cloudflare({ prerenderEnvironment: "node" }),
 });

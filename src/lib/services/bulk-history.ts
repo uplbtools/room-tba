@@ -17,6 +17,7 @@
 
 import { like } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { editorHistoryTable } from "@drizzle/schema";
 
 /** Actor label for rows written by a maintenance script rather than a person. */
@@ -153,7 +154,7 @@ export type BulkHistoryResult = {
  * an explicit act, so the caller must pass `dryRun: false`.
  */
 export async function recordBulkHistory(
-  db: NodePgDatabase,
+  db: NodePgDatabase | PostgresJsDatabase,
   operations: BulkOperation[],
   options: { actor?: string; dryRun?: boolean } = {},
 ): Promise<BulkHistoryResult> {

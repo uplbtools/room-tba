@@ -11,7 +11,7 @@
  * Sign in afterwards at /?editor=login (or /admin) with that username.
  */
 
-import bcrypt from "bcrypt";
+import { hashPassword } from "../src/lib/auth/password-hash";
 import { sql } from "drizzle-orm";
 import { adminUsersTable } from "../drizzle/schema";
 import { openDb } from "./record-bulk-history";
@@ -33,7 +33,7 @@ if (password.length < MIN_PASSWORD_LENGTH) {
 
 const { db, close } = openDb();
 try {
-  const passwordHash = await bcrypt.hash(password, 12);
+  const passwordHash = await hashPassword(password);
   const [row] = await db
     .insert(adminUsersTable)
     .values({

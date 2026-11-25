@@ -4,7 +4,6 @@ import "../styles/font-face.css";
 import "../styles/global.css";
 import "../styles/app-loading.css";
 import desktopOnlyUrl from "../styles/desktop-only.css?url";
-import Analytics from "@vercel/analytics/astro";
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
@@ -500,7 +499,6 @@ const shareTitle = ogTitle ?? title;
           })();
     </script>
     <slot />
-    <Analytics />
     <script>
       // Not inside the app island on purpose: see src/pwa.ts.
       import "../pwa";

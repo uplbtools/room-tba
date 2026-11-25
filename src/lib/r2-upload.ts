@@ -6,6 +6,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { FetchHttpHandler } from "@smithy/fetch-http-handler";
 import {
   R2_ACCESS_KEY_ID,
   R2_ACCOUNT_ID,
@@ -46,6 +47,8 @@ function getR2Client(): S3Client {
   return new S3Client({
     region: "auto",
     endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    // node-http-handler cannot run on workerd; fetch works on both runtimes.
+    requestHandler: new FetchHttpHandler(),
     credentials: {
       accessKeyId: R2_ACCESS_KEY_ID!,
       secretAccessKey: R2_SECRET_ACCESS_KEY!,

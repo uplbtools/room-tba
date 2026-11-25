@@ -57,3 +57,5 @@ graphify-out/
 public/_astro/maplibre-gl-worker.mjs
 public/_astro/maplibre-gl-shared.mjs
 data/transit-basemap-cache/
+
+.wrangler/

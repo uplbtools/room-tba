@@ -6,10 +6,11 @@ import {
   refreshSupabaseSession,
 } from "./lib/supabase/session";
 import { getAdminUserBySupabaseId } from "./lib/services/admin-user-service";
+import { endRequestDb, runWithRequestDb } from "./lib/db";
 import { recordLatency } from "./lib/latency-tracker";
 import { applySecurityHeaders } from "./lib/security-headers";
 
-export const onRequest = defineMiddleware(async (context, next) => {
+const onRequestHandler = defineMiddleware(async (context, next) => {
   bootstrapObservability();
 
   const { pathname } = context.url;
@@ -91,3 +92,18 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   return applySupabaseCacheHeaders(response, context);
 });
+
+// One Postgres client per request: workerd binds socket I/O to the request
+// that created it, so a shared pool resolves queries in the wrong context.
+// The client is closed in `finally` — workerd has no process exit to reap it.
+export const onRequest = (
+  context: Parameters<typeof onRequestHandler>[0],
+  next: Parameters<typeof onRequestHandler>[1],
+) =>
+  runWithRequestDb(async () => {
+    try {
+      return await onRequestHandler(context, next);
+    } finally {
+      await endRequestDb();
+    }
+  });

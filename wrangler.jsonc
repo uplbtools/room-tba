@@ -1,21 +1,33 @@
 {
-  // Reference config for Cloudflare R2 bucket setup. The Room TBA app deploys to
-  // Vercel (see astro.config.mjs), so runtime uploads use S3-compatible API
-  // credentials from env vars — not Workers bindings.
-  //
-  // Setup:
-  // 1. Create an R2 bucket in the Cloudflare dashboard.
-  // 2. Create an R2 API token with Object Read & Write on that bucket.
-  // 3. Enable public access (custom domain or r2.dev) and set R2_PUBLIC_URL.
-  // 4. Add the env vars listed in .env.example to Vercel / local .env.
-  //
-  // Optional: deploy a Worker that binds this bucket for edge-only use cases.
-  "name": "room-tba-r2",
-  "compatibility_date": "2024-09-23",
-  "r2_buckets": [
-    {
-      "binding": "UPLOADS",
-      "bucket_name": "room-tba-uploads"
-    }
-  ]
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "room-tba",
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "workers_dev": true,
+  "vars": {
+    // The adapter's loadWranglerEnv copies .env/.env.local into process.env at
+    // build time; an explicit var keeps production builds from baking the
+    // staging banner.
+    "PUBLIC_APP_ENV": "production"
+  },
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    // Browser navigations (sec-fetch-mode: navigate) to paths with no static
+    // asset otherwise get the SPA shell before the Worker runs — which broke
+    // every link-based GET endpoint: Google OAuth start/callback/link,
+    // email confirmation, password reset. The Worker serves assets itself
+    // through the ASSETS binding, so it must see every request.
+    "run_worker_first": true
+  },
+  // Postgres goes straight to DATABASE_URL (a Worker secret, set with
+  // `wrangler secret put DATABASE_URL`). Optional: for Hyperdrive connection
+  // pooling at the edge, create a config (`wrangler hyperdrive create`) and
+  // add a `"hyperdrive": [{ "binding": "HYPERDRIVE", "id": "<config id>" }]`
+  // block here; src/lib/db.ts picks up env.HYPERDRIVE automatically.
+  // PASSWORD_PEPPER / PASSWORD_KDF_ITERATIONS are secrets too —
+  // `wrangler secret put <NAME>`; see .env.example.
+  "routes": [{ "pattern": "room-tba.uplb.tools", "custom_domain": true }]
 }
