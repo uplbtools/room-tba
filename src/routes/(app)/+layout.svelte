@@ -1,7 +1,8 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { onMount, type Snippet } from 'svelte';
 	// import { browser } from '$app/environment';
 	import { page } from '$app/state';
+	import { replaceState } from '$app/navigation';
 	import '../styles/font-face.css';
 	import '../styles/global.css';
 	import '../styles/app-loading.css';
@@ -18,7 +19,51 @@
 		webpageSchema,
 		websiteSchema
 	} from '#lib/utils/site.js';
-	import { initEscapeActions, initToast } from '#lib/utils/context.js';
+	import {
+		MapStore,
+		MapToolsStore,
+		MeasureRouteStore,
+		TerrainStore,
+		TravelTimeStore
+	} from '#lib/stores/new/map/map-stores.svelte.js';
+	import FloatingControlPanelStore from '#lib/stores/new/ui/FloatingControlPanelStore.svelte.js';
+	import UserLocation from '#lib/stores/new/map/UserLocation.svelte.js';
+	import OfflineStore from '#lib/stores/new/data/OfflineStore.svelte.js';
+	import AnnouncementsStore from '#lib/stores/new/data/AnnouncementsStore.svelte.js';
+	import SavedPlacesStore from '#lib/stores/new/data/SavedPlacesStore.svelte.js';
+	import {
+		initMapStore,
+		initTravelTimeStore,
+		initMapToolsStore,
+		initMeasureRouteStore,
+		initTerrainStore,
+		initFloatingControlPanelStore,
+		initSearchInfo,
+		initModalStore,
+		initUserLocation,
+		initTermStore,
+		initPlannerStore,
+		initAdminAuthStore,
+		initProposalsStore,
+		initOfflineStore,
+		initAnnouncementsStore,
+		initSavedPlacesStore,
+		getToast,
+		initEscapeActions,
+		initToast
+	} from '#lib/utils/context.js';
+	import SearchInfo from '#lib/stores/SearchInfo.svelte.js';
+	import Toast from '#lib/components/Toast.svelte';
+	import ModalStore from '#lib/stores/new/ui/ModalStore.svelte.js';
+	import TermStore from '#lib/stores/new/data/TermStore.svelte.js';
+	import DesktopTopBar from '#lib/components/map-chrome/DesktopTopBar.svelte';
+	import PlannerStore from '#lib/stores/new/data/PlannerStore.svelte.js';
+	import AdminAuthStore from '#lib/stores/new/data/AdminAuthStore.svelte.js';
+	import ProposalsStore from '#lib/stores/new/data/ProposalsStore.svelte.js';
+	import Modal from '#lib/components/new/Modal.svelte';
+	import AdminLoginModal from '#lib/components/AdminLoginModal.svelte';
+	import AccountSettingsModal from '#lib/components/AccountSettingsModal.svelte';
+	import ManageUsersModal from '#lib/components/modal/ManageUsersModal.svelte';
 	import ToastStore from '#lib/stores/new/ui/ToastStore.svelte.js';
 	import EscapeActions from '#lib/stores/new/ui/EscapeActionStack.svelte.js';
 
@@ -44,6 +89,7 @@
 	// Entity routes return their own metadata from `load`; everything else in the
 	// group is the app itself and keeps the home card.
 	const seo = $derived(page.data.seo ?? HOME_SEO);
+	const isMapRoute = $derived(page.route.id?.startsWith('/(app)/map'));
 
 	// #716: the desktop/mobile split is viewport-based (not User-Agent), so the
 	// same check works for every render path — SSR, prerendered shell, and
@@ -76,6 +122,65 @@
 	// }
 	initToast(new ToastStore());
 	initEscapeActions(new EscapeActions());
+	initMapStore(new MapStore());
+	initTravelTimeStore(new TravelTimeStore());
+	initMapToolsStore(new MapToolsStore());
+	initMeasureRouteStore(new MeasureRouteStore());
+	initTerrainStore(new TerrainStore());
+	initFloatingControlPanelStore(new FloatingControlPanelStore());
+	initUserLocation(new UserLocation());
+	initSearchInfo(new SearchInfo());
+	initOfflineStore(new OfflineStore());
+	const announcementsStore = initAnnouncementsStore(new AnnouncementsStore());
+	const savedPlacesStore = initSavedPlacesStore(new SavedPlacesStore());
+	const modalStore = initModalStore(new ModalStore());
+	const termStore = initTermStore(new TermStore());
+	const plannerStore = initPlannerStore(new PlannerStore(() => termStore.activeTermId));
+	const proposalsStore = initProposalsStore(new ProposalsStore(() => adminAuthStore.canReview));
+	const adminAuthStore = initAdminAuthStore(
+		new AdminAuthStore({ modalStore, plannerStore, proposalsStore })
+	);
+	const toastStore = getToast();
+
+	const ACCOUNT_ERRORS: Record<string, string> = {
+		missing_token: 'That confirmation link is missing its token.',
+		invalid_or_expired_token:
+			'That confirmation link is invalid or has expired. Request a new one.',
+		not_logged_in: 'Sign in first, then connect Google from account settings.',
+		missing_code: 'Google sign-in was cancelled or incomplete. Try again.',
+		oauth_failed: 'Connecting Google failed. Try again.',
+		already_linked: 'That Google account is already connected to a different Room TBA account.'
+	};
+
+	function openFromUrl(params: URLSearchParams) {
+		const authError = params.get('auth_error');
+		if (authError) adminAuthStore.oauthError = authError;
+		if (authError || params.get('editor') === 'login') adminAuthStore.openLogin();
+
+		const account = params.get('account');
+		const accountError = params.get('account_error');
+		if (account === 'email-changed') toastStore.show('Email address updated.', 'success');
+		if (account === 'google-linked') toastStore.show('Google account connected.', 'success');
+		if (accountError) {
+			toastStore.show(ACCOUNT_ERRORS[accountError] ?? 'Something went wrong. Try again.', 'error');
+		}
+		if (account || accountError) adminAuthStore.openAccountSettings();
+	}
+
+	onMount(() => {
+		void termStore.init();
+		announcementsStore.hydrate();
+		savedPlacesStore.hydrate();
+		plannerStore.init();
+		void adminAuthStore.hydrate();
+
+		const keys = ['editor', 'auth_error', 'account', 'account_error'];
+		const url = new URL(page.url.href);
+		if (!keys.some((key) => url.searchParams.has(key))) return;
+		openFromUrl(url.searchParams);
+		for (const key of keys) url.searchParams.delete(key);
+		replaceState(url, page.state);
+	});
 </script>
 
 <SeoHead {seo} />
@@ -95,12 +200,32 @@
 	<link rel="manifest" href="/manifest.webmanifest" />
 </svelte:head>
 
-<svelte:boundary>
-	{@render children()}
-	{#snippet failed(error, reset)}
-		{String(error)}
-	{/snippet}
-</svelte:boundary>
+<div class={isMapRoute ? 'flex h-dvh min-h-0 flex-col' : undefined}>
+	{#if isMapRoute}
+		<div class="relative z-30 hidden shrink-0 sm:block">
+			<DesktopTopBar />
+		</div>
+	{/if}
+	<div class={isMapRoute ? 'relative min-h-0 flex-1 overflow-auto' : undefined}>
+		<svelte:boundary>
+			{@render children()}
+			{#snippet failed(error, reset)}
+				{String(error)}
+			{/snippet}
+		</svelte:boundary>
+	</div>
+	<Modal />
+	{#if adminAuthStore.loginOpen}
+		<AdminLoginModal />
+	{/if}
+	{#if adminAuthStore.accountSettingsOpen}
+		<AccountSettingsModal />
+	{/if}
+	{#if adminAuthStore.manageUsersOpen}
+		<ManageUsersModal />
+	{/if}
+	<Toast />
+</div>
 <!--
 <Layout
 	{title}
