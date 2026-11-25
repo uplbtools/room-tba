@@ -1,7 +1,7 @@
 import { defineMiddleware } from "astro:middleware";
 import { bootstrapObservability } from "./lib/observability/bootstrap";
 import { getSessionUser, ADMIN_COOKIE_NAME } from "./lib/admin/auth";
-import { runWithRequestDb } from "./lib/db";
+import { endRequestDb, runWithRequestDb } from "./lib/db";
 import { recordLatency } from "./lib/latency-tracker";
 import { applySecurityHeaders } from "./lib/security-headers";
 
@@ -71,7 +71,15 @@ const onRequestHandler = defineMiddleware(async (context, next) => {
 
 // One Postgres client per request: workerd binds socket I/O to the request
 // that created it, so a shared pool resolves queries in the wrong context.
+// The client is closed in `finally` — workerd has no process exit to reap it.
 export const onRequest = (
   context: Parameters<typeof onRequestHandler>[0],
   next: Parameters<typeof onRequestHandler>[1],
-) => runWithRequestDb(() => onRequestHandler(context, next));
+) =>
+  runWithRequestDb(async () => {
+    try {
+      return await onRequestHandler(context, next);
+    } finally {
+      await endRequestDb();
+    }
+  });

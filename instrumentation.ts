@@ -3,14 +3,25 @@ let registered = false;
 export function register(): void {
   if (registered) return;
 
+  // @vercel/otel is Node-only and cannot run on workerd; skip the lazy import
+  // entirely there so every cold isolate does not log a failure. Traces on
+  // Cloudflare would need a workerd-compatible exporter anyway.
+  if (
+    (globalThis as { navigator?: { userAgent?: string } }).navigator
+      ?.userAgent === "Cloudflare-Workers"
+  ) {
+    return;
+  }
+
   const apiKey = process.env.DD_API_KEY?.trim();
   if (!apiKey) return;
 
   registered = true;
 
-  // @vercel/otel pulls Node-only deps; load it lazily so non-Vercel runtimes
-  // (Cloudflare Workers) can import this module without the package in the
-  // critical path. Datadog is optional everywhere.
+  // @vercel/otel pulls Node-only deps; load it lazily so other runtimes can
+  // import this module without the package in the critical path. Datadog is
+  // optional everywhere. Registration resolves asynchronously, so the first
+  // requests of a cold start may go untraced — acceptable for optional APM.
   void (async () => {
     try {
       const { registerOTel, OTLPHttpProtoTraceExporter } = await import(
