@@ -29,6 +29,13 @@ function stubSearchApi({ hangRooms = false } = {}) {
       }
       if (url.startsWith("/api/rooms")) {
         if (hangRooms) return new Promise<Response>(() => {});
+        const code = new URL(url, "http://x").searchParams.get("search_code");
+        if (code === "PSLH") {
+          return Response.json({
+            data: [{ value: "PSLH A" }, { value: "PSLH B" }],
+            success: true,
+          });
+        }
         // The server's "no rooms match" is data: null, not an error.
         return Response.json({ data: null, success: true });
       }
@@ -128,6 +135,16 @@ describe("Suggestions", () => {
     expect(await screen.findByText("No results for “zzqxw”")).toBeVisible();
     expect(screen.getByText(/Check the spelling/)).toBeVisible();
     expect(screen.queryByText("Searching…")).toBeNull();
+  });
+
+  test("lists close matches when a room number finds nothing", async () => {
+    queryStore.inputValue = "PSLH 1";
+    renderSuggestions();
+
+    expect(await screen.findByText("No results for “PSLH 1”")).toBeVisible();
+    expect(screen.getByText(/close matches/)).toBeVisible();
+    expect(screen.getByRole("button", { name: /PSLH A/ })).toBeVisible();
+    expect(screen.getByRole("button", { name: /PSLH B/ })).toBeVisible();
   });
 
   test("shows loading only while campus data is still loading", async () => {

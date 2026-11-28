@@ -12,7 +12,7 @@
 [![Astro](https://img.shields.io/badge/Astro-7-BC52EE?style=flat-square&logo=astro)](https://astro.build)
 [![Vercel OSS Program](https://vercel.com/oss/program-badge.svg)](https://vercel.com/oss)
 
-_One campus map holds the schedules, buildings, jeepney routes and the answer to "where is PSLH 1?"_
+_One campus map holds the schedules, buildings, jeepney routes and the answer to "where is PSLH A?"_
 
 [Open the map](https://room-tba.uplb.tools) | [Wiki](https://room-tba.uplb.tools/wiki) | [FAQ](https://room-tba.uplb.tools/faq) | [Report wrong data](https://github.com/uplbtools/room-tba/issues/new/choose) | [Changelog](https://room-tba.uplb.tools/changelog)
 
@@ -46,7 +46,7 @@ Under the hood it's a campus platform, not a UPLB-only app. The engine (map UI, 
 
 | Goal                                | How                                                                                                                                                                                     |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Find **PSLH 1** or **PhySci**       | Search + aliases (`PhySci`, `HUM`, …)                                                                                                                                                   |
+| Find **PSLH A** or **PhySci**       | Search + aliases (`PhySci`, `HUM`, …)                                                                                                                                                   |
 | Room schedule this sem              | Term filter + timetable                                                                                                                                                                 |
 | Personal schedule route             | Build a plan in Planner → Map tools → Schedule → pick a day, route stops                                                                                                                |
 | Browse all classes                  | Status bar → Browse classes, then search by course code                                                                                                                                 |

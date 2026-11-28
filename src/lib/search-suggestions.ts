@@ -168,6 +168,15 @@ export function normalizeCourseQuery(query: string): string | null {
   return `${match[1]?.toUpperCase()} ${match[2]?.toUpperCase()}`;
 }
 
+/**
+ * "PSLH 1" → "PSLH": the query without its trailing number, for listing close
+ * matches when the full code finds nothing. null when nothing would be left.
+ */
+export function closeMatchQuery(query: string): string | null {
+  const stem = query.trim().replace(/[\s-]*\d+[a-z]?$/i, "");
+  return stem.length >= 2 && stem !== query.trim() ? stem : null;
+}
+
 export type EntitySearchData = {
   loaded: boolean;
   filteredBuildings: BuildingData[];
