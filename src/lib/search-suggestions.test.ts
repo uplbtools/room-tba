@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
   buildEntitySuggestions,
+  closeMatchQuery,
   enterAction,
   groupSuggestions,
   MATCH,
@@ -396,5 +397,19 @@ describe("trail rows", () => {
       kind: "select",
       suggestion: ranked[0],
     });
+  });
+});
+
+describe("closeMatchQuery", () => {
+  it("drops the trailing room number", () => {
+    expect(closeMatchQuery("PSLH 1")).toBe("PSLH");
+    expect(closeMatchQuery("pslh1")).toBe("pslh");
+    expect(closeMatchQuery("ICS MH9")).toBe("ICS MH");
+  });
+
+  it("is null when there is no number or no stem left", () => {
+    expect(closeMatchQuery("PSLH")).toBeNull();
+    expect(closeMatchQuery("1")).toBeNull();
+    expect(closeMatchQuery("P1")).toBeNull();
   });
 });

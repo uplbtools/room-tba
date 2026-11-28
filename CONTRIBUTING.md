@@ -27,7 +27,7 @@ Use this when a schedule, pin, direction, or building name is wrong.
 
 Include:
 
-- Room or building name (e.g. PSLH 1, PhySci)
+- Room or building name (e.g. PSLH A, PhySci)
 - Term, if it is schedule-related
 - What is wrong and what it should be
 - How you verified (walked there, SAIS, org page, photo)

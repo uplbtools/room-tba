@@ -12,6 +12,8 @@
   import { fetchClassPage } from "@lib/classes-api";
   import {
     EXPANDED_LIMITS,
+    MATCH,
+    closeMatchQuery,
     enterAction,
     groupSuggestions,
     normalizeCourseQuery,
@@ -91,6 +93,7 @@
   let aliasResults = $state<AliasHit[]>([]);
   let aliasFor = $state("");
   let roomResults = $state<RoomHit[]>([]);
+  let closeRoomResults = $state<RoomHit[]>([]);
   let roomFor = $state("");
   let classResults = $state<ClassMapValue[]>([]);
   let classFor = $state("");
@@ -135,38 +138,48 @@
     };
   });
 
+  async function fetchRooms(code: string): Promise<RoomHit[]> {
+    const upper = code.toUpperCase();
+    let hits: RoomHit[] | null = null;
+    try {
+      const response = await fetch(
+        `/api/rooms?search_code=${encodeURIComponent(upper)}`,
+        { signal: AbortSignal.timeout(SEARCH_FETCH_TIMEOUT_MS) },
+      );
+      if (response.ok) {
+        const body = (await response.json()) as { data?: RoomHit[] | null };
+        // `data: null` is the server's "no rooms match", not a failure.
+        hits = Array.isArray(body?.data) ? body.data : [];
+      } else if (response.status === 404) {
+        hits = [];
+      }
+    } catch {
+      // Network unavailable — fall back to the local room cache (#169).
+    }
+    if (hits === null) {
+      hits = isLocalCacheReady() ? ((await searchLocalRooms(upper)) ?? []) : [];
+    }
+    return hits;
+  }
+
   $effect(() => {
     const trimmed = query;
     if (trimmed === "") {
       roomResults = [];
+      closeRoomResults = [];
       roomFor = "";
       return;
     }
 
     let cancelled = false;
     void (async () => {
-      const upper = trimmed.toUpperCase();
-      let hits: RoomHit[] | null = null;
-      try {
-        const response = await fetch(
-          `/api/rooms?search_code=${encodeURIComponent(upper)}`,
-          { signal: AbortSignal.timeout(SEARCH_FETCH_TIMEOUT_MS) },
-        );
-        if (response.ok) {
-          const body = (await response.json()) as { data?: RoomHit[] | null };
-          // `data: null` is the server's "no rooms match", not a failure.
-          hits = Array.isArray(body?.data) ? body.data : [];
-        } else if (response.status === 404) {
-          hits = [];
-        }
-      } catch {
-        // Network unavailable — fall back to the local room cache (#169).
-      }
-      if (hits === null) {
-        hits = isLocalCacheReady() ? ((await searchLocalRooms(upper)) ?? []) : [];
-      }
+      const hits = await fetchRooms(trimmed);
+      // Only an empty search needs the close matches ("PSLH 1" → "PSLH A").
+      const stem = closeMatchQuery(trimmed);
+      const close = hits.length === 0 && stem ? await fetchRooms(stem) : [];
       if (cancelled) return;
       roomResults = hits;
+      closeRoomResults = close;
       roomFor = trimmed;
     })();
 
@@ -245,6 +258,29 @@
     );
   });
   const groups = $derived(groupSuggestions(ranked));
+
+  // No exact hit: offer what the query without its number finds.
+  const closeStem = $derived(closeMatchQuery(query));
+  const closeMatches = $derived.by(() => {
+    if (ranked.length !== 0 || !closeStem) return [];
+    const scored = [
+      ...scoreEntities(closeStem, {
+        loaded,
+        filteredBuildings,
+        filteredDorms,
+        colleges,
+        divisions,
+        events,
+        organizations,
+        places,
+      }),
+      ...scoreRooms(closeStem, closeRoomResults),
+    ];
+    // A description-only hit isn't a close match.
+    return rankSuggestions(
+      scored.filter((s) => (s.score ?? 99) < MATCH.description),
+    );
+  });
 
   // `loaded` flips on at mount with empty arrays; campus rows are only in once
   // a snapshot or the network load is applied (or the load gave up).
@@ -440,10 +476,17 @@
     <div class="suggestions-empty" role="status">
       <p class="suggestions-empty__title">No results for “{query}”</p>
       <p class="suggestions-empty__hint">
-        Check the spelling, try a room code like PS 105, or search classes
-        instead.
+        {#if closeMatches.length !== 0}
+          You might be looking for these close matches.
+        {:else}
+          Check the spelling, try a room code like PS 105, or search classes
+          instead.
+        {/if}
       </p>
     </div>
+    {#each closeMatches as suggestion (`${suggestion.category}:${suggestion.eventSlug ?? suggestion.trailStopId ?? suggestion.value}`)}
+      <Suggestion {...suggestion} />
+    {/each}
     <FinalExamSuggestion onSelect={() => {}} />
     <SearchQuerySuggestion />
   {/if}
